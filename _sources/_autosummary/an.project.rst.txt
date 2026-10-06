@@ -8,6 +8,8 @@ an.project
 
    .. autosummary::
    
+      RENDER_REPORTS_GITIGNORE
+      PROBES_GITIGNORE
       PROJECT_GITIGNORE
    
    .. rubric:: Functions
@@ -15,6 +17,7 @@ an.project
    .. autosummary::
    
       init
+      keep_out_of_git
       keep_reports_out_of_git
       load
       save

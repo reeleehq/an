@@ -37,6 +37,7 @@ an.library
       scan_index
       search_path
       set_status
+      sheet
       show
       verify_checkout
       version_labels
@@ -90,4 +91,5 @@ an.library
    registry
    rights
    root
+   sheets
    stores

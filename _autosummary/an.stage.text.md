@@ -79,11 +79,12 @@ recorded in the compiled document.
 
 ### Classes
 
-| [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                   |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.     |
-| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it. |
-| [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                     |
+| [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Counter`](#an.stage.text.Counter)(\*\*data)                             | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](an.formats.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
+| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
+| [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -96,6 +97,30 @@ recorded in the compiled document.
 The unit that typesets the whole string as ONE node, `block_0` (an#341):
 what a replacement set swaps, since per-word units of different strings do
 not line up.
+
+### *class* an.stage.text.Counter(\*\*data)
+
+Bases: `BaseModel`
+
+A counter block’s number-to-text rule (an#342): `format` in the
+declared d3-format subset ([`an.formats`](an.formats.md#module-an.formats)), and the value shown before
+any `value` action (`start`; `None` = the first action’s value).
+
+```pycon
+>>> Counter(format="Day {d}", start=1).format
+'Day {d}'
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### show(value)
+
+`value` as this counter draws it.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
@@ -185,7 +210,20 @@ on the node origin (the frame centre, or `stage.at`).
 
 #### *property* content *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
-The string the block draws at rest.
+its `start`, else
+zero, until the compiler lowers its `value` channel).
+
+* **Type:**
+  The string the block draws at rest (a counter
+
+#### counter *: [Counter](#an.stage.text.Counter) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`tween <id> value a→b` and
+`set <id> value v` are lowered at compile to a replacement set of the
+strings the frames show. Requires `unit="block"`; no `text`/`texts`.
+
+* **Type:**
+  A number that reads as text (an#342)
 
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

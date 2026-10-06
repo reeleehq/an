@@ -1,0 +1,12 @@
+an.stage.snapshot
+=================
+
+.. automodule:: an.stage.snapshot
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      rasterise
+   

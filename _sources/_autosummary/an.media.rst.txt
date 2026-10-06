@@ -42,6 +42,7 @@ an.media
 
    frames
    gif
+   grid
    mp4
    shutter
    sinks

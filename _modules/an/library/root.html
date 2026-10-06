@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -915,6 +915,65 @@ window.runMermaid = runMermaid;</script>
             <span class="k">return</span> <span class="n">candidate</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PrivateOutputError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Not-publishable material would be written where git would pick it up."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">git_ignores</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the git work tree holding ``path`` ignores it (``git check-ignore``).</span>
+
+<span class="sd">    ``False`` when git cannot say (no ``git`` on the PATH, an error): a write</span>
+<span class="sd">    that needs ignoring is then refused, never let through.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+    <span class="n">target</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">repo</span> <span class="o">=</span> <span class="n">git_worktree_of</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">repo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">"git"</span><span class="p">,</span> <span class="s2">"-C"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">repo</span><span class="p">),</span> <span class="s2">"check-ignore"</span><span class="p">,</span> <span class="s2">"-q"</span><span class="p">,</span> <span class="s2">"--"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">)],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_private_output</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">publishable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">allow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse to write not-publishable output (private or unknown) where git would pick it up.</span>
+
+<span class="sd">    The rule of ``an probe`` and ``an library sheet`` (an#347): the RESOLVED</span>
+<span class="sd">    path (a symlinked folder is followed) must lie outside every git work tree,</span>
+<span class="sd">    or be ignored there (``git check-ignore``). ``allow`` overrides it</span>
+<span class="sd">    (``--allow-private-here``).</span>
+
+<span class="sd">    &gt;&gt;&gt; import tempfile</span>
+<span class="sd">    &gt;&gt;&gt; with tempfile.TemporaryDirectory() as d:</span>
+<span class="sd">    ...     check_private_output(Path(d) / "x.png", publishable=False, what="a frame")</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">publishable</span> <span class="ow">or</span> <span class="n">allow</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">repo</span> <span class="o">=</span> <span class="n">git_worktree_of</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">repo</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">git_ignores</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="k">raise</span> <span class="n">PrivateOutputError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> shows material that is not publishable (private or unknown), and "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2"> is inside the git work tree </span><span class="si">{</span><span class="n">repo</span><span class="si">}</span><span class="s2">, which does not ignore it: "</span>
+        <span class="s2">"write it to an ignored folder (a project's artifacts/probes/ is ignored "</span>
+        <span class="s2">"by `an init`), outside the repository, or pass --allow-private-here"</span>
+    <span class="p">)</span>
 </pre></div>
 
                 </article>

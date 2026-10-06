@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1031,6 +1031,50 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="probe">
+<a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.probe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">probe</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">columns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">allow_private_here</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it.</span>
+
+<span class="sd">    The shot is prepared as a render prepares it (captions, style pack, the</span>
+<span class="sd">    settled length) and its own renderer draws only the frames asked for; a</span>
+<span class="sd">    Manim shot is read from the picture the last render stored. Several --at</span>
+<span class="sd">    make one grid. Frames showing private or unknown material are refused at</span>
+<span class="sd">    a path git would pick up.</span>
+
+<span class="sd">    project_dir: path to an an project</span>
+<span class="sd">    shot: the shot id</span>
+<span class="sd">    at: seconds into the shot, repeatable (--at 1.5 --at 3.8)</span>
+<span class="sd">    out: the PNG to write (default: &lt;project&gt;/artifacts/probes/&lt;shot&gt;@&lt;t&gt;.png, gitignored)</span>
+<span class="sd">    columns: cells per row of a grid (default: a square grid)</span>
+<span class="sd">    supersample: as `an render --supersample`, so the frame matches the film's</span>
+<span class="sd">    allow_private_here: write not-publishable frames where git would pick them up</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.probe</span><span class="w"> </span><span class="kn">import</span> <span class="n">probe</span> <span class="k">as</span> <span class="n">_probe</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shot</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">at</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">"an probe: give --shot &lt;id&gt; and at least one --at &lt;seconds&gt;"</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_probe</span><span class="p">(</span>
+        <span class="n">project_dir</span><span class="p">,</span>
+        <span class="n">shot</span><span class="p">,</span>
+        <span class="n">at</span><span class="p">,</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">out</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">columns</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+        <span class="n">allow_private_here</span><span class="o">=</span><span class="n">allow_private_here</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"probe: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
 <span class="c1"># SSOT for the CLI dispatcher (per the python-dispatching skill convention).</span>
 
 
@@ -1388,6 +1432,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">render</span><span class="p">,</span>
     <span class="n">iterate</span><span class="p">,</span>
     <span class="n">preview</span><span class="p">,</span>
+    <span class="n">probe</span><span class="p">,</span>
     <span class="n">credits</span><span class="p">,</span>
     <span class="n">bench</span><span class="p">,</span>
     <span class="n">bench_compare</span><span class="p">,</span>

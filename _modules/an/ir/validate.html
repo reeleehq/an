@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1077,10 +1077,16 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> — compiling this shot raises"</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="n">built</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">u</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">}</span>
+    <span class="n">counters</span> <span class="o">=</span> <span class="n">counter_block_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
             <span class="n">target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
             <span class="n">root</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"value"</span> <span class="ow">and</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">text_ids</span><span class="p">:</span>
+                <span class="n">_check_counter_value</span><span class="p">(</span>
+                    <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">counters</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">report</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
             <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">built</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">built</span><span class="p">[</span><span class="n">root</span><span class="p">]:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"error"</span><span class="p">,</span>
@@ -1089,6 +1095,53 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="n">root</span><span class="p">])</span><span class="si">}</span><span class="s2">) — compiling this shot raises."</span><span class="p">,</span>
                 <span class="p">)</span>
     <span class="k">return</span> <span class="n">text_ids</span>
+
+
+<div class="viewcode-block" id="counter_block_ids">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.counter_block_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">counter_block_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ids of ``shot``'s counter text blocks (an#342): the only targets a</span>
+<span class="sd">    ``value`` is authored on in the core. Empty without the props store."""</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span> <span class="k">if</span> <span class="n">stores</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">()</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.counters</span><span class="w"> </span><span class="kn">import</span> <span class="n">counter_blocks</span>
+
+    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">counter_blocks</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">props</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_counter_value</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">counters</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``value`` on a text block: a number, on a counter block's entity or its</span>
+<span class="sd">    ``block_0`` — what the compiler's ``counters`` pass lowers."""</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">counters</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"error"</span><span class="p">,</span>
+            <span class="n">where</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"`value` is a counter block's number, and text block </span><span class="si">{</span><span class="n">root</span><span class="si">!r}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"declares no `counter` (counter blocks in this shot: "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">counters</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">) — compiling this shot raises."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">/block_0"</span><span class="p">):</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"error"</span><span class="p">,</span>
+            <span class="n">where</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"`value` targets </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">; a counter's number is set on "</span>
+            <span class="sa">f</span><span class="s2">"the block (</span><span class="si">{</span><span class="n">root</span><span class="si">!r}</span><span class="s2"> or '</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">/block_0') — compiling this shot raises."</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"from_value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"to_value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))):</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"error"</span><span class="p">,</span>
+                <span class="n">where</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"counter </span><span class="si">{</span><span class="n">root</span><span class="si">!r}</span><span class="s2">: `value` is a number, got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2"> — compiling "</span>
+                <span class="s2">"this shot raises."</span><span class="p">,</span>
+            <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_trim_targets</span><span class="p">(</span>
@@ -1182,6 +1235,17 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_value_hint</span><span class="p">(</span><span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""For a refused ``value``: where the core accepts one (an#342)."""</span>
+    <span class="k">if</span> <span class="n">prop</span> <span class="o">!=</span> <span class="s2">"value"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">counters</span> <span class="o">=</span> <span class="n">counter_block_ids</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="s2">" `value` is a counter text block's number (counter blocks in this "</span>
+        <span class="sa">f</span><span class="s2">"shot: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">counters</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">)."</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_report_undeclared_swap</span><span class="p">(</span>
     <span class="n">action</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">declared</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1211,7 +1275,12 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_references</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">shot</span><span class="p">,</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">text_blocks</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A set/tween on a non-transform property must name a declared asset set</span>
 <span class="sd">    and key of its target entity's descriptor — checked HERE, before the</span>
@@ -1250,6 +1319,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">entity_id</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">unchecked</span><span class="p">:</span>
             <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"value"</span> <span class="ow">and</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">text_blocks</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># a text block's `value`: `_check_text_blocks` owns it (an#342)</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">registered</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
@@ -1281,7 +1352,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"property </span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> is not a transform, and "</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> has no descriptor declaring asset sets — "</span>
                     <span class="s2">"compiling this shot raises. Procedural rigs support "</span>
-                    <span class="sa">f</span><span class="s2">"exactly </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_PROCEDURAL_SWAP_SETS</span><span class="p">)</span><span class="si">}</span><span class="s2"> on their mouth."</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"exactly </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_PROCEDURAL_SWAP_SETS</span><span class="p">)</span><span class="si">}</span><span class="s2"> on their mouth."</span>
+                    <span class="o">+</span> <span class="n">_value_hint</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">),</span>
                 <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">declared</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"asset_sets"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -1292,7 +1364,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"property </span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> names no declared asset set of "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> (it has: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span><span class="si">}</span><span class="s2">) — compiling "</span>
                 <span class="s2">"this shot raises."</span>
-                <span class="o">+</span> <span class="p">(</span><span class="n">swap_checks</span><span class="o">.</span><span class="n">missing_set_hint</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="k">if</span> <span class="n">swap_checks</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
+                <span class="o">+</span> <span class="p">(</span><span class="n">swap_checks</span><span class="o">.</span><span class="n">missing_set_hint</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="k">if</span> <span class="n">swap_checks</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">_value_hint</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -2312,7 +2385,20 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_swap_references</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+    <span class="n">_check_swap_references</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
+        <span class="n">text_blocks</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_counter_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The current shot's counter text blocks (an#342), asked once."""</span>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span>
+        <span class="p">(</span><span class="s2">"counter ids"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">counter_block_ids</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_trim_targets</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2365,6 +2451,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span>
     <span class="n">space_of</span> <span class="o">=</span> <span class="n">entity_space_resolver</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
     <span class="n">kinds</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="n">counters</span> <span class="o">=</span> <span class="n">_counter_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">top</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
             <span class="n">leaf</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
@@ -2373,6 +2460,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">prop</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span>
             <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">_AUTHORING_SUGAR_PROPERTIES</span><span class="p">:</span>
                 <span class="k">continue</span>  <span class="c1"># expanded by the compiler before any channel exists</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"value"</span> <span class="ow">and</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">counters</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># a counter's number, lowered to `text` keys (an#342)</span>
             <span class="n">owner</span> <span class="o">=</span> <span class="n">kinds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">registered</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span> <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">registered</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">registered</span><span class="o">.</span><span class="n">space</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>

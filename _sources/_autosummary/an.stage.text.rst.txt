@@ -33,6 +33,7 @@ an.stage.text
    .. autosummary::
    
       TextDescriptor
+      Counter
       TextUnit
       TextLayout
       FontIdentity

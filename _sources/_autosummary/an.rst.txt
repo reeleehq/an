@@ -62,6 +62,7 @@
    engines
    environments
    expression
+   formats
    frame_clock
    genre
    genres
@@ -78,6 +79,7 @@
    paint
    paths
    preview
+   probe
    project
    props
    raster

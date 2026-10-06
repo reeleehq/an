@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.iterate" href="an.iterate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -393,6 +393,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
@@ -420,6 +421,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
 </ul>
 </details></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
@@ -444,6 +447,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
@@ -465,6 +469,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
@@ -479,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -729,16 +735,19 @@ the lockfile’s <code class="docutils literal notranslate"><span class="pre">ki
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.set_status" title="an.library.set_status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_status</span></code></a>(library, asset_id, status, *, by, ...)</p></td>
 <td><p>Set an asset's curation status, recording who and why; return the record.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.show" title="an.library.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(libraries, ref)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.sheet" title="an.library.sheet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sheet</span></code></a>(refs, *[, libraries, package, out, ...])</p></td>
+<td><p>Write a contact sheet of <code class="docutils literal notranslate"><span class="pre">refs</span></code> (<code class="docutils literal notranslate"><span class="pre">[&lt;library&gt;:]&lt;id&gt;[&#64;&lt;version&gt;]</span></code>) to one PNG.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.show" title="an.library.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(libraries, ref)</p></td>
 <td><p>The record, the resolved version, its recomputed rights and the list of versions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.verify_checkout" title="an.library.verify_checkout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_checkout</span></code></a>(libraries, project_dir, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.verify_checkout" title="an.library.verify_checkout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_checkout</span></code></a>(libraries, project_dir, *[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&lt;store&gt;/&lt;key&gt;:</span> <span class="pre">differences}</span></code> for every pinned entry; empty lists are intact copies.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.version_labels" title="an.library.version_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_labels</span></code></a>(library, version)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.version_labels" title="an.library.version_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_labels</span></code></a>(library, version)</p></td>
 <td><p>The labels recorded on a stored version since it was published, oldest first.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.vocabulary" title="an.library.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>(libraries, *[, index])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.vocabulary" title="an.library.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>(libraries, *[, index])</p></td>
 <td><p>Every facet with its values and counts, and the registered capabilities.</p></td>
 </tr>
 </tbody>
@@ -1850,6 +1859,24 @@ version is touched: a project pinned to one keeps reading it.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.library.sheet">
+<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">sheet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refs</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">libraries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_private_here</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/sheets.html#sheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.sheet" title="Link to this definition">#</a></dt>
+<dd><p>Write a contact sheet of <code class="docutils literal notranslate"><span class="pre">refs</span></code> (<code class="docutils literal notranslate"><span class="pre">[&lt;library&gt;:]&lt;id&gt;[&#64;&lt;version&gt;]</span></code>) to one PNG.</p>
+<p>libraries: where the references resolve (default: <code class="docutils literal notranslate"><span class="pre">package</span></code>’s search path)
+out: the PNG (default <code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_SHEET</span></code>)
+parts: tile each version’s art files instead of one specimen frame
+allow_private_here: write a not-publishable sheet inside a git work tree</p>
+<blockquote>
+<div><p>that does not ignore the path</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.library.show">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.show" title="Link to this definition">#</a></dt>
 <dd><p>The record, the resolved version, its recomputed rights and the list of versions.</p>
@@ -1968,7 +1995,10 @@ hidden status (<code class="docutils literal notranslate"><span class="pre">reti
 <tr class="row-even"><td><p><a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">root</span></code></a></p></td>
 <td><p>Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.library.stores.html#module-an.library.stores" title="an.library.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.library.sheets.html#module-an.library.sheets" title="an.library.sheets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sheets</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">sheet</span></code>: a contact sheet of library versions, one specimen frame each (an#347).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.library.stores.html#module-an.library.stores" title="an.library.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
 <td><p>The library mall: <code class="docutils literal notranslate"><span class="pre">records</span></code>, <code class="docutils literal notranslate"><span class="pre">versions</span></code> and <code class="docutils literal notranslate"><span class="pre">blobs</span></code>, each an injected <code class="docutils literal notranslate"><span class="pre">MutableMapping</span></code>.</p></td>
 </tr>
 </tbody>
@@ -2114,6 +2144,7 @@ hidden status (<code class="docutils literal notranslate"><span class="pre">reti
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.scan_index"><code class="docutils literal notranslate"><span class="pre">scan_index()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.search_path"><code class="docutils literal notranslate"><span class="pre">search_path()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.set_status"><code class="docutils literal notranslate"><span class="pre">set_status()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.sheet"><code class="docutils literal notranslate"><span class="pre">sheet()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.verify_checkout"><code class="docutils literal notranslate"><span class="pre">verify_checkout()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.version_labels"><code class="docutils literal notranslate"><span class="pre">version_labels()</span></code></a></li>

@@ -14,12 +14,15 @@ an.ir.schema
       DEFAULT_CAPTION_MAX_CHARS
       DEFAULT_CAPTION_SIZE
       STAGE_NODE_SPACE
+      SPECIMEN_DURATION
+      SPECIMEN_SHOT_ID
    
    .. rubric:: Functions
 
    .. autosummary::
    
       resolve_step_hz
+      stage_specimen
       unregistered_action_kind
    
    .. rubric:: Classes

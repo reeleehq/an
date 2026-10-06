@@ -231,7 +231,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -251,6 +251,15 @@ rig whose declared asset sets it can check (an#246).
 
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
+
+#### specimen *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+a short shot showing one entity of this kind
+on its own, the one `ref` casts — what `an library sheet` draws for a
+version of it (an#347). `None`: the sheet shows a labelled placeholder.
+
+* **Type:**
+  `(ref: AssetRef) -> Shot`
 
 #### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 

@@ -1,0 +1,31 @@
+an.formats
+==========
+
+.. automodule:: an.formats
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_SI_PRECISION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      parse_format
+      format_number
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      NumberFormat
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CounterFormatError
+   

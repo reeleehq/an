@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -786,6 +786,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"TEXT_SCHEMA_VERSION"</span><span class="p">,</span>
     <span class="s2">"TEXT_DOCUMENT_KIND"</span><span class="p">,</span>
     <span class="s2">"TextDescriptor"</span><span class="p">,</span>
+    <span class="s2">"Counter"</span><span class="p">,</span>
     <span class="s2">"TextFontError"</span><span class="p">,</span>
     <span class="s2">"TextLayoutError"</span><span class="p">,</span>
     <span class="s2">"TextUnit"</span><span class="p">,</span>
@@ -880,6 +881,45 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="Counter">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.Counter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Counter</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A counter block's number-to-text rule (an#342): ``format`` in the</span>
+<span class="sd">    declared d3-format subset (:mod:`an.formats`), and the value shown before</span>
+<span class="sd">    any ``value`` action (``start``; ``None`` = the first action's value).</span>
+
+<span class="sd">    &gt;&gt;&gt; Counter(format="Day {d}", start=1).format</span>
+<span class="sd">    'Day {d}'</span>
+<span class="sd">    """</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">)</span>
+
+    <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{d}</span><span class="s2">"</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_dump_what_was_authored</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">omit_unset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"format"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_declared_subset</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fmt</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.formats</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_format</span>
+
+        <span class="n">parse_format</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>  <span class="c1"># raises CounterFormatError (a ValueError), naming the subset</span>
+        <span class="k">return</span> <span class="n">fmt</span>
+
+<div class="viewcode-block" id="Counter.show">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.Counter.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``value`` as this counter draws it."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.formats</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_number</span>
+
+        <span class="k">return</span> <span class="n">format_number</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">)</span></div>
+</div>
+
+
+
 <div class="viewcode-block" id="TextDescriptor">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextDescriptor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TextDescriptor</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
@@ -912,6 +952,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">texts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: The key drawn when nothing has been set; default: the first key.</span>
     <span class="n">rest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: A number that reads as text (an#342): ``tween &lt;id&gt; value a→b`` and</span>
+    <span class="c1">#: ``set &lt;id&gt; value v`` are lowered at compile to a replacement set of the</span>
+    <span class="c1">#: strings the frames show. Requires ``unit="block"``; no ``text``/``texts``.</span>
+    <span class="n">counter</span><span class="p">:</span> <span class="n">Counter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">layer</span><span class="p">:</span> <span class="n">Layer</span> <span class="o">=</span> <span class="s2">"world"</span>
     <span class="c1">#: What one addressable node is: a word, a glyph, a whole line, or the</span>
     <span class="c1">#: whole block (``block_0``, one node however many lines).</span>
@@ -990,20 +1034,32 @@ window.runMermaid = runMermaid;</script>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The string the block draws at rest."""</span>
+<span class="w">        </span><span class="sd">"""The string the block draws at rest (a counter: its ``start``, else</span>
+<span class="sd">        zero, until the compiler lowers its ``value`` channel)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rest_key</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_nothing_set_is_ignored</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TextDescriptor"</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">given</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">name</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"text"</span><span class="p">,</span> <span class="s2">"texts"</span><span class="p">,</span> <span class="s2">"counter"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"a text block draws `text` (one string) or `texts` (a "</span>
-                <span class="s2">"replacement set, an#341); "</span>
-                <span class="o">+</span> <span class="p">(</span><span class="s2">"both were given"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"neither was given"</span><span class="p">)</span>
+                <span class="s2">"a text block draws `text` (one string), `texts` (a replacement "</span>
+                <span class="s2">"set, an#341) or `counter` (a number, an#342); "</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">' and '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">given</span><span class="p">)</span><span class="si">}</span><span class="s2"> were given"</span>
+                    <span class="k">if</span> <span class="n">given</span>
+                    <span class="k">else</span> <span class="s2">"neither was given"</span>
+                <span class="p">)</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">!=</span> <span class="n">BLOCK_UNIT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">given</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"text"</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">!=</span> <span class="n">BLOCK_UNIT</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"`texts` swaps the WHOLE string, so it needs unit='block' (one "</span>
+                <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">given</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">` swaps the WHOLE string, so it needs unit='block' (one "</span>
                 <span class="sa">f</span><span class="s2">"node, `block_0`); got unit=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">!r}</span><span class="s2">. Per-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> units "</span>
                 <span class="s2">"of different strings do not line up, and a tween on one could "</span>
                 <span class="s2">"not say which string it meant."</span>

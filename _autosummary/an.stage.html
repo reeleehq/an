@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.sounds" href="an.sounds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -393,6 +393,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
@@ -420,6 +421,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
 </ul>
 </details></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
@@ -444,6 +447,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
@@ -465,6 +469,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
@@ -479,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -653,47 +659,53 @@ the engine’s own <code class="docutils literal notranslate"><span class="pre">
 <tr class="row-odd"><td><p><a class="reference internal" href="an.stage.compile.html#module-an.stage.compile" title="an.stage.compile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code></a></p></td>
 <td><p>Compile a top-level <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> (renderer=&quot;cutout&quot;) into a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.easing.html#module-an.stage.easing" title="an.stage.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.counters.html#module-an.stage.counters" title="an.stage.counters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">counters</span></code></a></p></td>
+<td><p>A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.easing.html#module-an.stage.easing" title="an.stage.easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing</span></code></a></p></td>
 <td><p>The stage engine's easing vocabulary — a view of <a class="reference internal" href="an.timing.easing.html#module-an.timing.easing" title="an.timing.easing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.easing</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.environments.html#module-an.stage.environments" title="an.stage.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.environments.html#module-an.stage.environments" title="an.stage.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
 <td><p>Environments: a stage made of planes, at declared depths.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.fidelity.html#module-an.stage.fidelity" title="an.stage.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.fidelity.html#module-an.stage.fidelity" title="an.stage.fidelity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fidelity</span></code></a></p></td>
 <td><p>How faithfully a compiled scene reproduces the art it was built from.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.gradients.html#module-an.stage.gradients" title="an.stage.gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradients</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.gradients.html#module-an.stage.gradients" title="an.stage.gradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gradients</span></code></a></p></td>
 <td><p>Gradient fills on the stage: a <a class="reference internal" href="an.paint.html#an.paint.Gradient" title="an.paint.Gradient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gradient</span></code></a> drawn as an inline SVG texture.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.path_geometry.html#module-an.stage.path_geometry" title="an.stage.path_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path_geometry</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.path_geometry.html#module-an.stage.path_geometry" title="an.stage.path_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path_geometry</span></code></a></p></td>
 <td><p>Stroked-path geometry — the executable spec of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathGeometry</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.paths.html#module-an.stage.paths" title="an.stage.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.paths.html#module-an.stage.paths" title="an.stage.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
 <td><p>Stroked paths: routes, invasion arrows, borders, timelines, connectors.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.preview.html#module-an.stage.preview" title="an.stage.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.preview.html#module-an.stage.preview" title="an.stage.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
 <td><p>Live preview server: render a project's current scene in a browser, reloading on edit.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.props.html#module-an.stage.props" title="an.stage.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.props.html#module-an.stage.props" title="an.stage.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
 <td><p>Props: a rig whose art is not a person.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.raster.html#module-an.stage.raster" title="an.stage.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.raster.html#module-an.stage.raster" title="an.stage.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
 <td><p>Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.render.html#module-an.stage.render" title="an.stage.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.render.html#module-an.stage.render" title="an.stage.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>The 2D stage engine (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> in headless Chromium), and the cut-out renderer built on it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.rig.html#module-an.stage.rig" title="an.stage.rig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.rig.html#module-an.stage.rig" title="an.stage.rig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig</span></code></a></p></td>
 <td><p>The rig model the stage draws: bones, slots, skins and attachments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.runtime.html#module-an.stage.runtime" title="an.stage.runtime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.runtime.html#module-an.stage.runtime" title="an.stage.runtime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime</span></code></a></p></td>
 <td><p>Cutout JS runtime — see README.md in this directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.runtime_files.html#module-an.stage.runtime_files" title="an.stage.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.runtime_files.html#module-an.stage.runtime_files" title="an.stage.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
 <td><p>Locate the bundled cutout JS runtime files.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.serialize.html#module-an.stage.serialize" title="an.stage.serialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serialize</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.serialize.html#module-an.stage.serialize" title="an.stage.serialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">serialize</span></code></a></p></td>
 <td><p>JSON contract between the Python compiler and the (future) JS runtime.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.snapshot.html#module-an.stage.snapshot" title="an.stage.snapshot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">snapshot</span></code></a></p></td>
+<td><p>Rasterise art files to PNG in the browser the stage already uses (an#347).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.stage.surface.html#module-an.stage.surface" title="an.stage.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
 <td><p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p></td>

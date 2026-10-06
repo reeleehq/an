@@ -10,19 +10,20 @@ without touching these functions, so they stay plain Python.
 
 ### Functions
 
-| [`bench`](#an.tools.bench)([scenes, out, keep_render, quiet, ...])    | Render the fixed bench corpus and write a metrics ledger.                            |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`bench_compare`](#an.tools.bench_compare)([before, after, mutation, ...])    | Compare two ledger rows — and refuse when they are not comparable.                   |
-| [`bench_mutants`](#an.tools.bench_mutants)([names, quiet])                    | Break each guard on purpose and check the test that names it goes red.               |
-| [`check`](#an.tools.check)()                                          | Print a status report of all backend system + Python deps.                           |
-| [`credits`](#an.tools.credits)(project_dir[, json_out])                 | Show what third-party work is in `project_dir` and what it obliges.                  |
-| [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...]) | Create a fresh an project at `project_dir` — or, with --id, at the default location. |
-| [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
-| [`preview`](#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
-| [`registered_namespaces`](#an.tools.registered_namespaces)()                          | The sub-namespaces installed genres added (`cli.<namespace>` services).              |
-| [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
-| [`sync`](#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
-| [`validate`](#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
+| [`bench`](#an.tools.bench)([scenes, out, keep_render, quiet, ...])     | Render the fixed bench corpus and write a metrics ledger.                             |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`bench_compare`](#an.tools.bench_compare)([before, after, mutation, ...])     | Compare two ledger rows — and refuse when they are not comparable.                    |
+| [`bench_mutants`](#an.tools.bench_mutants)([names, quiet])                     | Break each guard on purpose and check the test that names it goes red.                |
+| [`check`](#an.tools.check)()                                           | Print a status report of all backend system + Python deps.                            |
+| [`credits`](#an.tools.credits)(project_dir[, json_out])                  | Show what third-party work is in `project_dir` and what it obliges.                   |
+| [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
+| [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
+| [`preview`](#an.tools.preview)(project_dir[, shot, no_browser])          | Live-preview the project's scene in a browser; reloads on edit.                       |
+| [`probe`](#an.tools.probe)(project_dir[, shot, at, out, columns, ...]) | Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it. |
+| [`registered_namespaces`](#an.tools.registered_namespaces)()                           | The sub-namespaces installed genres added (`cli.<namespace>` services).               |
+| [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])      | Render the project at `project_dir` to a single mp4.                                  |
+| [`sync`](#an.tools.sync)(project_dir[, accept_measured])              | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
+| [`validate`](#an.tools.validate)(project_dir)                             | Validate the scene at `project_dir`.                                                  |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -172,6 +173,27 @@ browser polls `scene.json` for changes and re-loads when you save
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 shot: shot id to preview (default: first shot in the timeline)
 no_browser: don’t auto-open the default browser
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False)
+
+Write a shot’s frame at chosen instants to a PNG, drawn the way `an render` draws it.
+
+The shot is prepared as a render prepares it (captions, style pack, the
+settled length) and its own renderer draws only the frames asked for; a
+Manim shot is read from the picture the last render stored. Several –at
+make one grid. Frames showing private or unknown material are refused at
+a path git would pick up.
+
+project_dir: path to an an project
+shot: the shot id
+at: seconds into the shot, repeatable (–at 1.5 –at 3.8)
+out: the PNG to write (default: <project>/artifacts/probes/<shot>@<t>.png, gitignored)
+columns: cells per row of a grid (default: a square grid)
+supersample: as `an render --supersample`, so the frame matches the film’s
+allow_private_here: write not-publishable frames where git would pick them up
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

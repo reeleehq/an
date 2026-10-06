@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -393,6 +393,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
@@ -420,6 +421,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
 </ul>
 </details></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
@@ -444,6 +447,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
@@ -465,6 +469,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
@@ -479,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -1483,47 +1489,53 @@ which decides how long a dissolve’s overlap is.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.environments.html#module-an.environments" title="an.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.environments.html#module-an.stage.environments" title="an.stage.environments"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.environments</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_clock</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.formats.html#module-an.formats" title="an.formats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">formats</span></code></a></p></td>
+<td><p>Numbers as text: a declared subset of d3-format, for counters (an#342).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_clock</span></code></a></p></td>
 <td><p>The frame clock: WHEN each output frame samples scene time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.genres.html#module-an.genres" title="an.genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genres</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.genres.html#module-an.genres" title="an.genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genres</span></code></a></p></td>
 <td><p>Genres: what a kind of animation adds to the core, declared as one object.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.html#module-an.ir" title="an.ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.html#module-an.ir" title="an.ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir</span></code></a></p></td>
 <td><p>Scene IR — the single source of truth for a scene.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.iterate.html#module-an.iterate" title="an.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.iterate.html#module-an.iterate" title="an.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a></p></td>
 <td><p>Iterative edit loop — free-text instruction → IR patch via Claude → re-render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
 <td><p>The asset library: reusable assets that outlive their videos (ADR 0005).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
 <td><p>The one switch that says &quot;yes, this run may spend money&quot;.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.mcp.html#module-an.mcp" title="an.mcp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcp</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.mcp.html#module-an.mcp" title="an.mcp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcp</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">an</span></code> MCP server: a curated, generated surface over the vocabulary and the capability registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.measurements.html#module-an.measurements" title="an.measurements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurements</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.measurements.html#module-an.measurements" title="an.measurements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurements</span></code></a></p></td>
 <td><p>Measured durations: shots whose renderer, not their author, decides their length.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.media.html#module-an.media" title="an.media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.media.html#module-an.media" title="an.media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media</span></code></a></p></td>
 <td><p>Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.motion.html#module-an.motion" title="an.motion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">motion</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.motion.html#module-an.motion" title="an.motion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">motion</span></code></a></p></td>
 <td><p>Motion presets: a named vocabulary of moves, as authoring macros.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.orchestrate.html#module-an.orchestrate" title="an.orchestrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orchestrate</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.orchestrate.html#module-an.orchestrate" title="an.orchestrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orchestrate</span></code></a></p></td>
 <td><p>Orchestrator: validate → audio → render → verify.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.paint.html#module-an.paint" title="an.paint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.paint.html#module-an.paint" title="an.paint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint</span></code></a></p></td>
 <td><p>Paint: what fills a shape when one flat colour is not enough -- a gradient.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.paths.html#module-an.paths" title="an.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.paths.html#module-an.paths" title="an.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.paths.html#module-an.stage.paths" title="an.stage.paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.paths</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.preview.html#module-an.preview" title="an.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.preview.html#module-an.preview" title="an.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.preview.html#module-an.stage.preview" title="an.stage.preview"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.preview</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.probe.html#module-an.probe" title="an.probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">probe</span></code>: a shot's frame at chosen instants, through the very path <code class="docutils literal notranslate"><span class="pre">render</span></code> draws it (an#347).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.project.html#module-an.project" title="an.project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project</span></code></a></p></td>
 <td><p>Project init/load/save — the on-disk anatomy of an an project.</p></td>

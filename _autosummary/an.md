@@ -690,6 +690,7 @@ which decides how long a dissolve’s overlap is.
 | [`determinism`](an.determinism.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |
 | [`engines`](an.engines.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.                                                             |
 | [`environments`](an.environments.md#module-an.environments) | Moved to [`an.stage.environments`](an.stage.environments.md#module-an.stage.environments) (an#247); this path is a LIVE alias of it. |
+| [`formats`](an.formats.md#module-an.formats)           | Numbers as text: a declared subset of d3-format, for counters (an#342).                                                                                 |
 | [`frame_clock`](an.frame_clock.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                                                                             |
 | [`genres`](an.genres.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
 | [`ir`](an.ir.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                                                                      |
@@ -704,6 +705,7 @@ which decides how long a dissolve’s overlap is.
 | [`paint`](an.paint.md#module-an.paint)               | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](an.paths.md#module-an.paths)               | Moved to [`an.stage.paths`](an.stage.paths.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
 | [`preview`](an.preview.md#module-an.preview)           | Moved to [`an.stage.preview`](an.stage.preview.md#module-an.stage.preview) (an#247); this path is a LIVE alias of it.           |
+| [`probe`](an.probe.md#module-an.probe)               | `an probe`: a shot's frame at chosen instants, through the very path `render` draws it (an#347).                                                        |
 | [`project`](an.project.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
 | [`props`](an.props.md#module-an.props)               | Moved to [`an.stage.props`](an.stage.props.md#module-an.stage.props) (an#247); this path is a LIVE alias of it.               |
 | [`raster`](an.raster.md#module-an.raster)             | Moved to [`an.stage.raster`](an.stage.raster.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |

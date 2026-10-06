@@ -78,6 +78,7 @@ What lives where:
 | [`scan_index`](#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
 | [`search_path`](#an.library.search_path)([package, extra, roots])               | The ordered libraries `package` reads: its own, then the core `an`, then `extra`.                                                             |
 | [`set_status`](#an.library.set_status)(library, asset_id, status, \*, by, ...) | Set an asset's curation status, recording who and why; return the record.                                                                     |
+| [`sheet`](#an.library.sheet)(refs, \*[, libraries, package, out, ...])    | Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.                                                                  |
 | [`show`](#an.library.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.                                                             |
 | [`verify_checkout`](#an.library.verify_checkout)(libraries, project_dir, \*[, ...]) | `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.                                                         |
 | [`version_labels`](#an.library.version_labels)(library, version)                   | The labels recorded on a stored version since it was published, oldest first.                                                                 |
@@ -976,6 +977,19 @@ version is touched: a project pinned to one keeps reading it.
 'approved'
 ```
 
+### an.library.sheet(refs, , libraries=None, package=None, out=None, cell=256, columns=None, parts=False, allow_private_here=False)
+
+Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.
+
+libraries: where the references resolve (default: `package`’s search path)
+out: the PNG (default `DFLT_SHEET`)
+parts: tile each version’s art files instead of one specimen frame
+allow_private_here: write a not-publishable sheet inside a git work tree
+
+> that does not ignore the path
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.show(libraries, ref)
 
 The record, the resolved version, its recomputed rights and the list of versions.
@@ -1059,4 +1073,5 @@ True
 | [`registry`](an.library.registry.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
 | [`rights`](an.library.rights.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |
 | [`root`](an.library.root.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).                                                                          |
+| [`sheets`](an.library.sheets.md#module-an.library.sheets)             | `an library sheet`: a contact sheet of library versions, one specimen frame each (an#347).                                                                                   |
 | [`stores`](an.library.stores.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                                                                                      |

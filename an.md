@@ -1,4 +1,4 @@
-> built 2026-10-06 12:13 UTC from 8231bce (main) · an 0.1.176. Details: build_info.json
+> built 2026-10-06 12:20 UTC from dea9d77 (main) · an 0.1.177. Details: build_info.json
 
 # index.html.md
 
@@ -1009,6 +1009,19 @@ or rendered now (and stored) when there is none — or when `force`.
 * **Return type:**
   `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` at each of `times`, from its STORED picture (an#347).
+
+Manim owns its clock and renders a whole scene at once, so `an
+probe` never runs it: the picture a render stored is conformed
+exactly as [`render()`](_autosummary/an.adapters.html.md#an.adapters.ManimRenderer.render) conforms it, and the frames showing at
+`times` are read out. With no stored picture it refuses, naming the
+render that stores one.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
 #### render(shot, ctx)
 
 Render `shot` for exactly `shot.duration` (`an.render` settles it
@@ -1425,6 +1438,19 @@ or rendered now (and stored) when there is none — or when `force`.
 
 * **Return type:**
   `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` at each of `times`, from its STORED picture (an#347).
+
+Manim owns its clock and renders a whole scene at once, so `an
+probe` never runs it: the picture a render stored is conformed
+exactly as [`render()`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderer.render) conforms it, and the frames showing at
+`times` are read out. With no stored picture it refuses, naming the
+render that stores one.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 #### render(shot, ctx)
 
@@ -5678,7 +5704,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_swap', 'transitions']
+['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5726,7 +5752,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5945,7 +5971,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -12916,6 +12942,20 @@ The exception type raised at the boundary for every core error.
 
 alias of [`FrameStageError`](_autosummary/an.engines.capture.html.md#an.engines.capture.FrameStageError)
 
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` showing at each of `times` (seconds), as PNG bytes.
+
+`an probe` (an#347): the session [`render()`](_autosummary/an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer.render) opens (the same
+engine, state-driven adapter, supersample and frame clock) and the
+same [`capture_frames()`](_autosummary/an.engines.capture.html.md#an.engines.capture.capture_frames), asked only for the
+frames needed — so a probe frame IS the film’s frame, without the
+rest of the shot or the mux. Each instant is snapped to the frame
+showing then (`floor(t * fps)`, clamped to the shot).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
 #### render(shot, ctx)
 
 Render `shot` to mp4 through the engine; see the module docstring.
@@ -13151,6 +13191,20 @@ Capture-loop tunables passed through to [`an.engines.capture.capture_frames()`](
 #### error
 
 alias of [`FrameStageError`](_autosummary/an.engines.capture.html.md#an.engines.capture.FrameStageError)
+
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` showing at each of `times` (seconds), as PNG bytes.
+
+`an probe` (an#347): the session [`render()`](_autosummary/an.engines.html.md#an.engines.FrameStageRenderer.render) opens (the same
+engine, state-driven adapter, supersample and frame clock) and the
+same [`capture_frames()`](_autosummary/an.engines.capture.html.md#an.engines.capture.capture_frames), asked only for the
+frames needed — so a probe frame IS the film’s frame, without the
+rest of the shot or the mux. Each instant is snapped to the frame
+showing then (`floor(t * fps)`, clamped to the shot).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 #### render(shot, ctx)
 
@@ -13593,6 +13647,122 @@ and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
 the code runs (`an._shims.alias_module()`).
 
 
+# _autosummary/an.formats.html.md
+
+# an.formats
+
+Numbers as text: a declared subset of d3-format, for counters (an#342).
+
+A counter text block ([`an.stage.text.TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor) `counter`) shows a
+number that moves; what it draws is a string, and this module is the one
+statement of how the number becomes the string. The format is a \*\*declared
+mini-language, not Python’s\*\* `str.format` (which allows attribute access,
+states no rounding and is not reproducible in a browser): one d3-format
+specifier in braces, with optional literal text around it.
+
+```pycon
+>>> format_number(7, "Day {d}")
+'Day 7'
+>>> format_number(1234567, "{,d}")
+'1,234,567'
+>>> format_number(21.456, "{.1f} °C")
+'21.5 °C'
+>>> format_number(0.256, "{.0%}")
+'26%'
+>>> format_number(1500, "{.2s}")
+'1.5k'
+```
+
+The subset, and what each specifier means (d3-format’s meaning, so a JavaScript
+consumer can reproduce it with `d3.format`):
+
+| `d`   | an integer                                                                                                                                                             |
+|-------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `,d`  | an integer with `,` between thousands                                                                                                                                  |
+| `.Nf` | fixed point, `N` decimals                                                                                                                                              |
+| `.N%` | times 100, fixed point, `N` decimals, then `%`                                                                                                                         |
+| `s`   | `N` significant digits (`.Ns`; default 6) with an SI prefix<br/>(`k`, `M`, `G`, …, `m`; `µ` and smaller are refused at<br/>typesetting by a face that lacks the glyph) |
+
+**Rounding is to nearest, ties to even, on the float’s exact value** (Python’s
+own correctly rounded formatting): `2.5` → `2` and `3.5` → `4` under
+`d`; `0.125` → `0.12` under `.2f`. d3 rounds ties away from zero, so a
+JavaScript reproduction must round half to even to agree on exact ties (the
+frame grid rarely lands on one). Two further departures from d3’s defaults,
+both stated: the minus sign is `-` (U+002D), because the embedded face has no
+U+2212, and a value that rounds to zero never carries a sign (`-0.4` → `0`),
+which is d3’s own rule.
+
+### Module Attributes
+
+| [`DFLT_SI_PRECISION`](_autosummary/an.formats.html.md#an.formats.DFLT_SI_PRECISION)   | d3's default of 6 significant digits.   |
+|----------------------------------------------------------------------|-----------------------------------------|
+
+### Functions
+
+| [`parse_format`](_autosummary/an.formats.html.md#an.formats.parse_format)(fmt)         | Parse `fmt`: literal text around exactly one `{specifier}`.   |
+|----------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`format_number`](_autosummary/an.formats.html.md#an.formats.format_number)(value, fmt) | `value` drawn as `fmt` says (see the module docstring).       |
+
+### Classes
+
+| [`NumberFormat`](_autosummary/an.formats.html.md#an.formats.NumberFormat)(prefix, type, precision, comma, ...)   | A parsed format: literal `prefix`, the specifier, literal `suffix`.   |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+
+### Exceptions
+
+| [`CounterFormatError`](_autosummary/an.formats.html.md#an.formats.CounterFormatError)   | A counter `format` outside the declared subset.   |
+|-----------------------------------------------------------------------|---------------------------------------------------|
+
+### *exception* an.formats.CounterFormatError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A counter `format` outside the declared subset.
+
+### an.formats.DFLT_SI_PRECISION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 6*
+
+d3’s default of 6 significant digits.
+
+* **Type:**
+  `s` with no precision
+
+### *class* an.formats.NumberFormat(prefix, type, precision, comma, suffix)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A parsed format: literal `prefix`, the specifier, literal `suffix`.
+
+### an.formats.format_number(value, fmt)
+
+`value` drawn as `fmt` says (see the module docstring).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> [format_number(v, "{d}") for v in (2.5, 3.5, -0.4, 29.5)]
+['2', '4', '0', '30']
+>>> format_number(-1234.5, "{,d}")
+'-1,234'
+```
+
+### an.formats.parse_format(fmt)
+
+Parse `fmt`: literal text around exactly one `{specifier}`.
+
+* **Return type:**
+  [`NumberFormat`](_autosummary/an.formats.html.md#an.formats.NumberFormat)
+
+```pycon
+>>> parse_format("Day {d}").prefix
+'Day '
+>>> parse_format("{.3d}")
+Traceback (most recent call last):
+...
+an.formats.CounterFormatError: counter format '{.3d}': `d` takes no precision (it is an integer); the subset is d, ,d, .Nf, .N%, s, .Ns
+```
+
+
 # _autosummary/an.frame_clock.html.md
 
 # an.frame_clock
@@ -14023,7 +14193,7 @@ the line carries none). The cut-out genre’s `[emotion]` is one.
 
 The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -14043,6 +14213,15 @@ rig whose declared asset sets it can check (an#246).
 
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
+
+#### specimen *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+a short shot showing one entity of this kind
+on its own, the one `ref` casts — what `an library sheet` draws for a
+version of it (an#347). `None`: the sheet shows a labelled placeholder.
+
+* **Type:**
+  `(ref: AssetRef) -> Shot`
 
 #### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -14673,7 +14852,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None)
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -14693,6 +14872,15 @@ rig whose declared asset sets it can check (an#246).
 
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
+
+#### specimen *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+a short shot showing one entity of this kind
+on its own, the one `ref` casts — what `an library sheet` draws for a
+version of it (an#347). `None`: the sheet shows a labelled placeholder.
+
+* **Type:**
+  `(ref: AssetRef) -> Shot`
 
 #### swap_checks *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -15675,6 +15863,7 @@ which decides how long a dissolve’s overlap is.
 | [`determinism`](_autosummary/an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.                                                                         |
 | [`engines`](_autosummary/an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them.                                                             |
 | [`environments`](_autosummary/an.environments.html.md#module-an.environments) | Moved to [`an.stage.environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments) (an#247); this path is a LIVE alias of it. |
+| [`formats`](_autosummary/an.formats.html.md#module-an.formats)           | Numbers as text: a declared subset of d3-format, for counters (an#342).                                                                                 |
 | [`frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                                                                             |
 | [`genres`](_autosummary/an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                                                                                      |
@@ -15689,6 +15878,7 @@ which decides how long a dissolve’s overlap is.
 | [`paint`](_autosummary/an.paint.html.md#module-an.paint)               | Paint: what fills a shape when one flat colour is not enough -- a gradient.                                                                             |
 | [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Moved to [`an.stage.paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths) (an#247); this path is a LIVE alias of it.               |
 | [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Moved to [`an.stage.preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview) (an#247); this path is a LIVE alias of it.           |
+| [`probe`](_autosummary/an.probe.html.md#module-an.probe)               | `an probe`: a shot's frame at chosen instants, through the very path `render` draws it (an#347).                                                        |
 | [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
 | [`props`](_autosummary/an.props.html.md#module-an.props)               | Moved to [`an.stage.props`](_autosummary/an.stage.props.html.md#module-an.stage.props) (an#247); this path is a LIVE alias of it.               |
 | [`raster`](_autosummary/an.raster.html.md#module-an.raster)             | Moved to [`an.stage.raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |
@@ -17081,11 +17271,14 @@ True
 | [`DEFAULT_CAPTION_MAX_CHARS`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
 | [`DEFAULT_CAPTION_SIZE`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                  |
 | [`STAGE_NODE_SPACE`](_autosummary/an.ir.schema.html.md#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                          |
+| [`SPECIMEN_DURATION`](_autosummary/an.ir.schema.html.md#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                  |
+| [`SPECIMEN_SHOT_ID`](_autosummary/an.ir.schema.html.md#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                 |
 
 ### Functions
 
 | [`resolve_step_hz`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
 |----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`stage_specimen`](_autosummary/an.ir.schema.html.md#an.ir.schema.stage_specimen)(ref)                         | A short shot showing the one stage entity `ref` casts, on its own (an#347).                                                       |
 | [`unregistered_action_kind`](_autosummary/an.ir.schema.html.md#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                        |
 
 ### Classes
@@ -17592,6 +17785,14 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.schema.SPECIMEN_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+How long a specimen shot runs (`an library sheet` draws its first frame).
+
+### an.ir.schema.SPECIMEN_SHOT_ID *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'specimen'*
+
+The id of a specimen shot.
+
 ### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).
@@ -17971,6 +18172,18 @@ and the project renderer all call it (an#89 review: three copies).
 True
 ```
 
+### an.ir.schema.stage_specimen(ref)
+
+A short shot showing the one stage entity `ref` casts, on its own (an#347).
+
+* **Return type:**
+  [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)
+
+```pycon
+>>> stage_specimen(AssetRef(kind="prop", id="lamp", store="props", ref="lamp")).entities[0].id
+'lamp'
+```
+
 ### an.ir.schema.unregistered_action_kind(kind, , where='')
 
 The error for an action `kind` no loaded genre registered.
@@ -18008,14 +18221,15 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Functions
 
-| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])   | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                     | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])        | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                        | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
-| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])             | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                                | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])                 | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`counter_block_ids`](_autosummary/an.ir.validate.html.md#an.ir.validate.counter_block_ids)(shot, stores)                   | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`post_synthesis_findings`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_stores`](_autosummary/an.ir.validate.html.md#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -18126,6 +18340,14 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
+
+### an.ir.validate.counter_block_ids(shot, stores)
+
+The ids of `shot`’s counter text blocks (an#342): the only targets a
+`value` is authored on in the core. Empty without the props store.
+
+* **Return type:**
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.ir.validate.post_synthesis_findings(scene, , fps=None, checks=('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking'), \*\*stores)
 
@@ -19721,6 +19943,7 @@ What lives where:
 | [`scan_index`](_autosummary/an.library.html.md#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
 | [`search_path`](_autosummary/an.library.html.md#an.library.search_path)([package, extra, roots])               | The ordered libraries `package` reads: its own, then the core `an`, then `extra`.                                                             |
 | [`set_status`](_autosummary/an.library.html.md#an.library.set_status)(library, asset_id, status, \*, by, ...) | Set an asset's curation status, recording who and why; return the record.                                                                     |
+| [`sheet`](_autosummary/an.library.html.md#an.library.sheet)(refs, \*[, libraries, package, out, ...])    | Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.                                                                  |
 | [`show`](_autosummary/an.library.html.md#an.library.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.                                                             |
 | [`verify_checkout`](_autosummary/an.library.html.md#an.library.verify_checkout)(libraries, project_dir, \*[, ...]) | `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.                                                         |
 | [`version_labels`](_autosummary/an.library.html.md#an.library.version_labels)(library, version)                   | The labels recorded on a stored version since it was published, oldest first.                                                                 |
@@ -20619,6 +20842,19 @@ version is touched: a project pinned to one keeps reading it.
 'approved'
 ```
 
+### an.library.sheet(refs, , libraries=None, package=None, out=None, cell=256, columns=None, parts=False, allow_private_here=False)
+
+Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.
+
+libraries: where the references resolve (default: `package`’s search path)
+out: the PNG (default `DFLT_SHEET`)
+parts: tile each version’s art files instead of one specimen frame
+allow_private_here: write a not-publishable sheet inside a git work tree
+
+> that does not ignore the path
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.show(libraries, ref)
 
 The record, the resolved version, its recomputed rights and the list of versions.
@@ -20702,6 +20938,7 @@ True
 | [`registry`](_autosummary/an.library.registry.html.md#module-an.library.registry)         | The machine's memory of its libraries: every root ever written, and every statement ever made (an#249).                                                                      |
 | [`rights`](_autosummary/an.library.rights.html.md#module-an.library.rights)             | Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).                                                                          |
 | [`root`](_autosummary/an.library.root.html.md#module-an.library.root)                 | Where a package's library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).                                                                          |
+| [`sheets`](_autosummary/an.library.sheets.html.md#module-an.library.sheets)             | `an library sheet`: a contact sheet of library versions, one specimen frame each (an#347).                                                                                   |
 | [`stores`](_autosummary/an.library.stores.html.md#module-an.library.stores)             | The library mall: `records`, `versions` and `blobs`, each an injected `MutableMapping`.                                                                                      |
 
 
@@ -21753,6 +21990,53 @@ Where agent-made projects go by default: `<root>/projects/`.
 ```
 
 
+# _autosummary/an.library.sheets.html.md
+
+# an.library.sheets
+
+`an library sheet`: a contact sheet of library versions, one specimen frame each (an#347).
+
+For each reference the version is checked out into a temporary project and
+its kind is asked for a specimen — a short shot showing the entity on its own
+([`an.genres.EntityKind.specimen`](_autosummary/an.genres.html.md#an.genres.EntityKind.specimen); the core gives props, text blocks and
+environments one, a genre its own kinds) — whose first frame is drawn by
+[`an.probe.frame()`](_autosummary/an.probe.html.md#an.probe.frame), the path `render` draws with. A kind without a
+specimen (a voice, a style, a sound, a kind whose genre gives none) shows a
+labelled placeholder. `parts=True` tiles the version’s art files instead.
+
+Every cell is captioned with its reference and licence class, the stricter of
+the version’s stored and recomputed rights. A sheet showing anything not
+publishable (private or unknown) is refused at a path inside a git work tree
+that does not ignore it (`an.library.root.check_private_output()`).
+
+### Module Attributes
+
+| [`DFLT_SHEET`](_autosummary/an.library.sheets.html.md#an.library.sheets.DFLT_SHEET)   | Where a sheet is written by default (relative to the current folder).   |
+|---------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### Functions
+
+| [`sheet`](_autosummary/an.library.sheets.html.md#an.library.sheets.sheet)(refs, \*[, libraries, package, out, ...])   | Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.   |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+
+### an.library.sheets.DFLT_SHEET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'artifacts/probes/sheet.png'*
+
+Where a sheet is written by default (relative to the current folder).
+
+### an.library.sheets.sheet(refs, , libraries=None, package=None, out=None, cell=256, columns=None, parts=False, allow_private_here=False)
+
+Write a contact sheet of `refs` (`[<library>:]<id>[@<version>]`) to one PNG.
+
+libraries: where the references resolve (default: `package`’s search path)
+out: the PNG (default [`DFLT_SHEET`](_autosummary/an.library.sheets.html.md#an.library.sheets.DFLT_SHEET))
+parts: tile each version’s art files instead of one specimen frame
+allow_private_here: write a not-publishable sheet inside a git work tree
+
+> that does not ignore the path
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
 # _autosummary/an.library.stores.html.md
 
 # an.library.stores
@@ -22588,6 +22872,63 @@ rate the frames were rendered at – is required.
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
+# _autosummary/an.media.grid.html.md
+
+# an.media.grid
+
+Tile images into one contact sheet: [`tile()`](_autosummary/an.media.grid.html.md#an.media.grid.tile) (an#347).
+
+A small pure function over PNG bytes — decoded and encoded by
+[`an.bench.png`](_autosummary/an.bench.png.html.md#module-an.bench.png) (numpy and the standard library), each image fitted into a
+square cell without distortion, an optional caption under each. `an probe`
+tiles several instants of a shot with it and `an library sheet` one specimen
+per asset.
+
+Candidate fleet component: one production wrote three ad hoc copies of this
+before it existed (design of an#331, §5.3).
+
+```pycon
+>>> from an.bench.png import decode_png, encode_png
+>>> import numpy as np
+>>> red = encode_png(np.full((4, 8, 3), (255, 0, 0), np.uint8))
+>>> sheet = decode_png(tile([red, red, red], cell=16, columns=2))
+>>> sheet.shape
+(44, 44, 3)
+```
+
+### Functions
+
+| [`tile`](_autosummary/an.media.grid.html.md#an.media.grid.tile)(images, \*[, cell, columns, labels, ...])   | One PNG holding every image of `images` (PNG bytes), each in a `cell` square.      |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`trim`](_autosummary/an.media.grid.html.md#an.media.grid.trim)(image, \*[, tolerance, margin])             | `image` (PNG bytes) cropped to what differs from its corner colour, plus a margin. |
+
+### an.media.grid.tile(images, , cell=256, columns=None, labels=None, gap=4, background=(255, 255, 255))
+
+One PNG holding every image of `images` (PNG bytes), each in a `cell` square.
+
+columns: cells per row (default: the smallest square grid that holds them)
+labels: one caption per image, drawn under its cell
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.media.grid.trim(image, , tolerance=8, margin=0.06)
+
+`image` (PNG bytes) cropped to what differs from its corner colour, plus a margin.
+
+An image that is all background is returned unchanged.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> import numpy as np
+>>> a = np.full((20, 20, 3), 255, np.uint8); a[5:9, 10:12] = 0
+>>> decode_png(trim(encode_png(a), margin=0)).shape
+(4, 2, 3)
+```
+
+
 # _autosummary/an.media.html.md
 
 # an.media
@@ -22853,6 +23194,7 @@ True
 | [`frames`](_autosummary/an.media.frames.html.md#module-an.media.frames)           | The frame directory every engine writes and every sink reads.                  |
 |------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`gif`](_autosummary/an.media.gif.html.md#module-an.media.gif)                 | The GIF sink: ONE palette recipe, for flat 2D art.                             |
+| [`grid`](_autosummary/an.media.grid.html.md#module-an.media.grid)               | Tile images into one contact sheet: `tile()` (an#347).                         |
 | [`mp4`](_autosummary/an.media.mp4.html.md#module-an.media.mp4)                 | The MP4 sink: PNG frames -> the delivered H.264 mp4, with the pinned argv.     |
 | [`shutter`](_autosummary/an.media.shutter.html.md#module-an.media.shutter)         | The temporal half of the frame stage: average several instants into one frame. |
 | [`sinks`](_autosummary/an.media.sinks.html.md#module-an.media.sinks)             | Frame sinks: a frame directory in, one deliverable out -- one sink per format. |
@@ -24003,6 +24345,85 @@ and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
 the code runs (`an._shims.alias_module()`).
 
 
+# _autosummary/an.probe.html.md
+
+# an.probe
+
+`an probe`: a shot’s frame at chosen instants, through the very path `render` draws it (an#347).
+
+Looking at one moment of a shot used to mean a whole render, or a throwaway
+script that staged the scene its own way and drew something else. A probe
+prepares the shot exactly as [`an.render.render()`](_autosummary/an.render.html.md#an.render.render) does (`_prepare_shots`:
+settled length, burned captions, the style pack, the resolved knobs), then asks
+the shot’s own renderer for the frames showing at the instants given:
+
+- a frame-stage renderer (the stage engine, the cut-out renderer) opens the
+  session `render` opens and captures through
+  [`an.engines.capture.capture_frames()`](_autosummary/an.engines.capture.html.md#an.engines.capture.capture_frames) — supersample, frame clock and
+  > canvas readback included — only the frames asked for
+  > ([`an.engines.frame_stage.FrameStageRenderer.probe_frames()`](_autosummary/an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer.probe_frames));
+- a renderer that owns its clock (Manim) serves the frames from the picture a
+  render stored, or refuses with the remedy;
+- any other renderer refuses: it has no `probe_frames`.
+
+Speech plays as the last render (or synthesis) stamped it: a probe never
+synthesises a line. Nothing is cached, written to the shot cache or archived.
+
+**Rights.** A frame showing material that is not publishable (`an credits`
+for the shot says private or unknown) is refused at a path inside a git work
+tree that does not ignore it; the default folder, `artifacts/probes/`, is
+ignored by `an init` and added to an older project’s `.gitignore`.
+
+### Functions
+
+| [`frame`](_autosummary/an.probe.html.md#an.probe.frame)(project, shot, t, \*\*kwargs)             | PNG bytes of shot `shot`'s film frame at `t` seconds (see [`frames()`](_autosummary/an.probe.html.md#an.probe.frames)).   |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| [`frames`](_autosummary/an.probe.html.md#an.probe.frames)(project, shot, times, \*[, supersample]) | PNG bytes of shot `shot`'s film frame at each of `times` (seconds into the shot).                                       |
+| [`probe`](_autosummary/an.probe.html.md#an.probe.probe)(project_dir, shot, at, \*[, out, ...])    | Write shot `shot`'s frames at `at` to one PNG (a grid for several instants).                                            |
+
+### Exceptions
+
+| [`ProbeError`](_autosummary/an.probe.html.md#an.probe.ProbeError)   | A probe cannot draw what was asked: the message says why and what to do.   |
+|---------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### *exception* an.probe.ProbeError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A probe cannot draw what was asked: the message says why and what to do.
+
+### an.probe.frame(project, shot, t, \*\*kwargs)
+
+PNG bytes of shot `shot`’s film frame at `t` seconds (see [`frames()`](_autosummary/an.probe.html.md#an.probe.frames)).
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.probe.frames(project, shot, times, , supersample=1)
+
+PNG bytes of shot `shot`’s film frame at each of `times` (seconds into the shot).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+project: a loaded [`Project`](_autosummary/an.project.html.md#an.project.Project) or its folder
+supersample: as `an render --supersample` (the frame is the film’s only
+
+> if it matches the render’s)
+
+### an.probe.probe(project_dir, shot, at, , out=None, columns=None, supersample=1, allow_private_here=False)
+
+Write shot `shot`’s frames at `at` to one PNG (a grid for several instants).
+
+out: the PNG to write (default `<project>/artifacts/probes/<shot>@<t>.png`)
+columns: cells per row of a grid (default: a square grid)
+allow_private_here: write not-publishable frames inside a git work tree
+
+> that does not ignore the path
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
 # _autosummary/an.project.html.md
 
 # an.project
@@ -24022,34 +24443,45 @@ Layout (from spec §11):
 
 ### Module Attributes
 
-| [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE)   | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`RENDER_REPORTS_GITIGNORE`](_autosummary/an.project.html.md#an.project.RENDER_REPORTS_GITIGNORE)   | A render report records what a render on THIS machine found — warnings, exception text — so it is per-machine output, not project source (an#254).   |
+|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROBES_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROBES_GITIGNORE)           | Probe frames and contact sheets (`an probe`, `an library sheet`, an#347): looks at work in progress, which may show private-study material.          |
+| [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE)          | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).                      |
 
 ### Functions
 
-| [`init`](_autosummary/an.project.html.md#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`keep_reports_out_of_git`](_autosummary/an.project.html.md#an.project.keep_reports_out_of_git)(pdir)          | Add [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE) to an OLDER project's `.gitignore` (an `an init` from before an#254 left it out), the first time a render writes a report (an#309) — conservatively: never when the file already says anything about those paths (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
-| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| [`save`](_autosummary/an.project.html.md#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [`init`](_autosummary/an.project.html.md#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`keep_out_of_git`](_autosummary/an.project.html.md#an.project.keep_out_of_git)(pdir, lines)           | Add `lines` to an OLDER project's `.gitignore` (an `an init` from before they existed left them out) — conservatively: never a line whose folder the file already says anything about (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
+| [`keep_reports_out_of_git`](_autosummary/an.project.html.md#an.project.keep_reports_out_of_git)(pdir)          | Add [`RENDER_REPORTS_GITIGNORE`](_autosummary/an.project.html.md#an.project.RENDER_REPORTS_GITIGNORE) to an older project's `.gitignore` the first time a render writes a report (an#309), by [`keep_out_of_git()`](_autosummary/an.project.html.md#an.project.keep_out_of_git)'s rules.                                                                                                                                                     |
+| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                             |
+| [`save`](_autosummary/an.project.html.md#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                           |
 
 ### Classes
 
 | [`Project`](_autosummary/an.project.html.md#an.project.Project)(root, mall, scene)   | A loaded an project: directory + mall + current scene.   |
 |-------------------------------------------------------------------------------|----------------------------------------------------------|
 
-### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/',)*
+### an.project.PROBES_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/probes/',)*
+
+Probe frames and contact sheets (`an probe`, `an library sheet`,
+an#347): looks at work in progress, which may show private-study material.
+
+### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/')*
 
 What a project’s `.gitignore` keeps out of version control (`an init`
-adds each line a `.gitignore` lacks, never removing one). A render report
-records what a render on THIS machine found — warnings, exception text — so it
-is per-machine output, not project source (an#254).
+adds each line a `.gitignore` lacks, never removing one).
 
 ### *class* an.project.Project(root, mall, scene)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
+
+### an.project.RENDER_REPORTS_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/',)*
+
+A render report records what a render on THIS machine found — warnings,
+exception text — so it is per-machine output, not project source (an#254).
 
 ### an.project.init(project_dir, , name=None, force=False)
 
@@ -24062,15 +24494,22 @@ project’s `.gitignore` gains [`PROJECT_GITIGNORE`](_autosummary/an.project.htm
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
+### an.project.keep_out_of_git(pdir, lines)
+
+Add `lines` to an OLDER project’s `.gitignore` (an `an init` from
+before they existed left them out) — conservatively: never a line whose
+folder the file already says anything about (a project may have chosen to
+commit its reports, `!artifacts/render_reports/`), never through a
+symlink (a shared ignore file), and never creating a `.gitignore` in a
+project that is not in a git work tree.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.project.keep_reports_out_of_git(pdir)
 
-Add [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE) to an OLDER project’s `.gitignore` (an
-`an init` from before an#254 left it out), the first time a render
-writes a report (an#309) — conservatively: never when the file already
-says anything about those paths (a project may have chosen to commit its
-reports, `!artifacts/render_reports/`), never through a symlink (a
-shared ignore file), and never creating a `.gitignore` in a project that
-is not in a git work tree.
+Add [`RENDER_REPORTS_GITIGNORE`](_autosummary/an.project.html.md#an.project.RENDER_REPORTS_GITIGNORE) to an older project’s `.gitignore`
+the first time a render writes a report (an#309), by [`keep_out_of_git()`](_autosummary/an.project.html.md#an.project.keep_out_of_git)’s rules.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -25536,7 +25975,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -26544,7 +26983,7 @@ The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
 
-### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
+### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
 The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
@@ -26819,6 +27258,82 @@ reports it), so the two say the same thing about the same path.
 >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
 'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])
 ```
+
+
+# _autosummary/an.stage.counters.html.md
+
+# an.stage.counters
+
+A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).
+
+A counter block is a text block whose document declares `counter: {format,
+start}` ([`an.stage.text.Counter`](_autosummary/an.stage.text.html.md#an.stage.text.Counter)). In the IR its number is an ordinary
+channel, authored as `tween <id> value a→b` and `set <id> value v`; what the
+renderer sees is a replacement set (an#341): one `block_0` drawing per string
+the frames show, swapped by `set text <key>`. The number never reaches the
+runtime, which has no `value` case.
+
+The lowering is the stage’s `counters` compile pass. It runs after every pass
+that can contribute a `value` action (a genre pass adds them to
+`state.extra_actions` before the `actions` pass) and before the `actions`
+pass, whose swap check reads the vocabulary; `tests/test_text_counter.py`
+pins that order against the registry. For each counter block it:
+
+1. compiles the block’s `value` leaves as one numeric channel with the
+   compiler’s own clip builder (`an.stage.compile._compile_actions()`), so
+   easings, `step_hz`, the set-hold rule and a from-less tween’s start are
+   exactly those of every other channel;
+2. samples that channel on the frame grid `i / fps` (a `step_hz` shot’s
+   channel is already stepped, so its grid is honoured by construction);
+3. formats each sample ([`an.formats`](_autosummary/an.formats.html.md#module-an.formats)), typesets every distinct string once
+   and rebuilds the block as a `texts` set whose rest is the first frame’s
+   string;
+4. replaces each `value` leaf by a `delay` of the same length (so no
+   sequence around it moves) and adds a `set <id>/block_0 text <key>` half a
+   frame before the first frame showing each new string (the captions’ rule,
+   so no float disagreement about `i / fps` moves a boundary a frame).
+
+A counter with no `start` shows its first action’s value until then; a
+from-less tween with neither a `start` nor an earlier `value` action, and a
+counter with neither a `start` nor any `value` action, are compile errors
+naming both. A shot with no counter block is untouched.
+
+### Module Attributes
+
+| [`VALUE_PROPERTY`](_autosummary/an.stage.counters.html.md#an.stage.counters.VALUE_PROPERTY)     | The block-scoped property a counter's number is authored on.   |
+|---------------------------------------------------------------------|----------------------------------------------------------------|
+| [`COUNTER_KEY_PREFIX`](_autosummary/an.stage.counters.html.md#an.stage.counters.COUNTER_KEY_PREFIX) | What every generated key of a counter's set starts with.       |
+
+### Functions
+
+| [`lower_counters`](_autosummary/an.stage.counters.html.md#an.stage.counters.lower_counters)(state)             | The `counters` pass (see the module docstring).                                                                                    |
+|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| [`counter_blocks`](_autosummary/an.stage.counters.html.md#an.stage.counters.counter_blocks)(shot, props_store) | `{entity id: block}` for every text block of `shot` that declares a counter (an unresolvable document is the builder's to report). |
+
+### an.stage.counters.COUNTER_KEY_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'v_'*
+
+What every generated key of a counter’s set starts with.
+
+### an.stage.counters.VALUE_PROPERTY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'value'*
+
+The block-scoped property a counter’s number is authored on. NOT a global
+authorable property (an#342): a genre’s own `value` is untouched.
+
+### an.stage.counters.counter_blocks(shot, props_store)
+
+`{entity id: block}` for every text block of `shot` that declares a
+counter (an unresolvable document is the builder’s to report).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), `_CounterBlock`]
+
+### an.stage.counters.lower_counters(state)
+
+The `counters` pass (see the module docstring). A no-op for a shot
+with no counter block, which is every shot written before an#342.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.stage.easing.html.md
@@ -27561,6 +28076,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 |------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | [`canvas_capture`](_autosummary/an.stage.canvas_capture.html.md#module-an.stage.canvas_capture) | The canvas capture path: frames read from the page, not photographed off the screen.                                                        |
 | [`compile`](_autosummary/an.stage.compile.html.md#module-an.stage.compile)               | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                    |
+| [`counters`](_autosummary/an.stage.counters.html.md#module-an.stage.counters)             | A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).                                                          |
 | [`easing`](_autosummary/an.stage.easing.html.md#module-an.stage.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing). |
 | [`environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments)     | Environments: a stage made of planes, at declared depths.                                                                                   |
 | [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                       |
@@ -27575,6 +28091,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`runtime`](_autosummary/an.stage.runtime.html.md#module-an.stage.runtime)               | Cutout JS runtime — see README.md in this directory.                                                                                        |
 | [`runtime_files`](_autosummary/an.stage.runtime_files.html.md#module-an.stage.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                 |
 | [`serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                      |
+| [`snapshot`](_autosummary/an.stage.snapshot.html.md#module-an.stage.snapshot)             | Rasterise art files to PNG in the browser the stage already uses (an#347).                                                                  |
 | [`surface`](_autosummary/an.stage.surface.html.md#module-an.stage.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                        |
 | [`text`](_autosummary/an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
 | [`text_layout`](_autosummary/an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
@@ -29740,6 +30257,32 @@ Dump a scene to a plain-dict representation (no None pruning).
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
+# _autosummary/an.stage.snapshot.html.md
+
+# an.stage.snapshot
+
+Rasterise art files to PNG in the browser the stage already uses (an#347).
+
+`an library sheet --parts` tiles an asset’s part files; most cut-out parts
+are SVG, which nothing in the core can decode. Chromium draws them exactly as
+the stage will. Raster parts (PNG, JPEG, WebP, GIF) are drawn the same way, so
+one path serves every format the stage loads.
+
+### Functions
+
+| [`rasterise`](_autosummary/an.stage.snapshot.html.md#an.stage.snapshot.rasterise)(files, \*, size)   | PNG bytes of each `(path, data)` art file, fitted into a `size` square, transparent behind.   |
+|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+
+### an.stage.snapshot.rasterise(files, , size)
+
+PNG bytes of each `(path, data)` art file, fitted into a `size` square, transparent behind.
+
+Raises [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError) with the install hint when the stage extra is absent.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+
 # _autosummary/an.stage.surface.html.md
 
 # an.stage.surface
@@ -30033,11 +30576,12 @@ recorded in the compiled document.
 
 ### Classes
 
-| [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                   |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`TextUnit`](_autosummary/an.stage.text.html.md#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.     |
-| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it. |
-| [`FontIdentity`](_autosummary/an.stage.text.html.md#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                     |
+| [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Counter`](_autosummary/an.stage.text.html.md#an.stage.text.Counter)(\*\*data)                             | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](_autosummary/an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
+| [`TextUnit`](_autosummary/an.stage.text.html.md#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
+| [`FontIdentity`](_autosummary/an.stage.text.html.md#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -30050,6 +30594,30 @@ recorded in the compiled document.
 The unit that typesets the whole string as ONE node, `block_0` (an#341):
 what a replacement set swaps, since per-word units of different strings do
 not line up.
+
+### *class* an.stage.text.Counter(\*\*data)
+
+Bases: `BaseModel`
+
+A counter block’s number-to-text rule (an#342): `format` in the
+declared d3-format subset ([`an.formats`](_autosummary/an.formats.html.md#module-an.formats)), and the value shown before
+any `value` action (`start`; `None` = the first action’s value).
+
+```pycon
+>>> Counter(format="Day {d}", start=1).format
+'Day {d}'
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### show(value)
+
+`value` as this counter draws it.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
@@ -30139,7 +30707,20 @@ on the node origin (the frame centre, or `stage.at`).
 
 #### *property* content *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
-The string the block draws at rest.
+its `start`, else
+zero, until the compiler lowers its `value` channel).
+
+* **Type:**
+  The string the block draws at rest (a counter
+
+#### counter *: [Counter](_autosummary/an.stage.text.html.md#an.stage.text.Counter) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`tween <id> value a→b` and
+`set <id> value v` are lowered at compile to a replacement set of the
+strings the frames show. Requires `unit="block"`; no `text`/`texts`.
+
+* **Type:**
+  A number that reads as text (an#342)
 
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -34691,19 +35272,20 @@ without touching these functions, so they stay plain Python.
 
 ### Functions
 
-| [`bench`](_autosummary/an.tools.html.md#an.tools.bench)([scenes, out, keep_render, quiet, ...])    | Render the fixed bench corpus and write a metrics ledger.                            |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`bench_compare`](_autosummary/an.tools.html.md#an.tools.bench_compare)([before, after, mutation, ...])    | Compare two ledger rows — and refuse when they are not comparable.                   |
-| [`bench_mutants`](_autosummary/an.tools.html.md#an.tools.bench_mutants)([names, quiet])                    | Break each guard on purpose and check the test that names it goes red.               |
-| [`check`](_autosummary/an.tools.html.md#an.tools.check)()                                          | Print a status report of all backend system + Python deps.                           |
-| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out])                 | Show what third-party work is in `project_dir` and what it obliges.                  |
-| [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force, id, genre, ...]) | Create a fresh an project at `project_dir` — or, with --id, at the default location. |
-| [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
-| [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
-| [`registered_namespaces`](_autosummary/an.tools.html.md#an.tools.registered_namespaces)()                          | The sub-namespaces installed genres added (`cli.<namespace>` services).              |
-| [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
-| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
-| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
+| [`bench`](_autosummary/an.tools.html.md#an.tools.bench)([scenes, out, keep_render, quiet, ...])     | Render the fixed bench corpus and write a metrics ledger.                             |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`bench_compare`](_autosummary/an.tools.html.md#an.tools.bench_compare)([before, after, mutation, ...])     | Compare two ledger rows — and refuse when they are not comparable.                    |
+| [`bench_mutants`](_autosummary/an.tools.html.md#an.tools.bench_mutants)([names, quiet])                     | Break each guard on purpose and check the test that names it goes red.                |
+| [`check`](_autosummary/an.tools.html.md#an.tools.check)()                                           | Print a status report of all backend system + Python deps.                            |
+| [`credits`](_autosummary/an.tools.html.md#an.tools.credits)(project_dir[, json_out])                  | Show what third-party work is in `project_dir` and what it obliges.                   |
+| [`init`](_autosummary/an.tools.html.md#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
+| [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
+| [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])          | Live-preview the project's scene in a browser; reloads on edit.                       |
+| [`probe`](_autosummary/an.tools.html.md#an.tools.probe)(project_dir[, shot, at, out, columns, ...]) | Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it. |
+| [`registered_namespaces`](_autosummary/an.tools.html.md#an.tools.registered_namespaces)()                           | The sub-namespaces installed genres added (`cli.<namespace>` services).               |
+| [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])      | Render the project at `project_dir` to a single mp4.                                  |
+| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir[, accept_measured])              | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
+| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                             | Validate the scene at `project_dir`.                                                  |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -34853,6 +35435,27 @@ browser polls `scene.json` for changes and re-loads when you save
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 shot: shot id to preview (default: first shot in the timeline)
 no_browser: don’t auto-open the default browser
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False)
+
+Write a shot’s frame at chosen instants to a PNG, drawn the way `an render` draws it.
+
+The shot is prepared as a render prepares it (captions, style pack, the
+settled length) and its own renderer draws only the frames asked for; a
+Manim shot is read from the picture the last render stored. Several –at
+make one grid. Frames showing private or unknown material are refused at
+a path git would pick up.
+
+project_dir: path to an an project
+shot: the shot id
+at: seconds into the shot, repeatable (–at 1.5 –at 3.8)
+out: the PNG to write (default: <project>/artifacts/probes/<shot>@<t>.png, gitignored)
+columns: cells per row of a grid (default: a square grid)
+supersample: as `an render --supersample`, so the frame matches the film’s
+allow_private_here: write not-publishable frames where git would pick them up
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -35802,7 +36405,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 12:13 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8231bceba734ee9cf007522ceb38eec7d1e7b4e6"><code>8231bce</code></a> on branch <code>main</code>, for **an 0.1.176** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:20 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/dea9d77ff00d5a9734c7d69fbe471b68625e9c77"><code>dea9d77</code></a> on branch <code>main</code>, for **an 0.1.177** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -35811,9 +36414,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/8231bceba734ee9cf007522ceb38eec7d1e7b4e6"><code>8231bceba734ee9cf007522ceb38eec7d1e7b4e6</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/dea9d77ff00d5a9734c7d69fbe471b68625e9c77"><code>dea9d77ff00d5a9734c7d69fbe471b68625e9c77</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.176</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.177</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -35822,9 +36425,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37461011268">37461011268</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37461891215">37461891215</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>e851d56161a9f1fa4ac627d2497b6520798d63b9</code> (in the history of the built commit) |
+| Event commit | <code>cbdebadc7d722b0ff27cf35e54646bcea0acfee4</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -35849,13 +36452,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.176/">0.1.176</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.177/">0.1.177</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 8231bceba734ee9cf007522ceb38eec7d1e7b4e6
+git checkout dea9d77ff00d5a9734c7d69fbe471b68625e9c77
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

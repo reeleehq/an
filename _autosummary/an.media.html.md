@@ -261,6 +261,7 @@ True
 | [`frames`](an.media.frames.html.md#module-an.media.frames)           | The frame directory every engine writes and every sink reads.                  |
 |------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`gif`](an.media.gif.html.md#module-an.media.gif)                 | The GIF sink: ONE palette recipe, for flat 2D art.                             |
+| [`grid`](an.media.grid.html.md#module-an.media.grid)               | Tile images into one contact sheet: `tile()` (an#347).                         |
 | [`mp4`](an.media.mp4.html.md#module-an.media.mp4)                 | The MP4 sink: PNG frames -> the delivered H.264 mp4, with the pinned argv.     |
 | [`shutter`](an.media.shutter.html.md#module-an.media.shutter)         | The temporal half of the frame stage: average several instants into one frame. |
 | [`sinks`](an.media.sinks.html.md#module-an.media.sinks)             | Frame sinks: a frame directory in, one deliverable out -- one sink per format. |

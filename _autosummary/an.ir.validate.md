@@ -22,14 +22,15 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Functions
 
-| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks])   | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
-|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                     | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
-| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])        | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
-| [`rig_stores`](#an.ir.validate.rig_stores)()                                        | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
-| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])             | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
-| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                                | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
-| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])                 | Cross-field semantic checks.                                                                                                                                                                                  |
+| [`counter_block_ids`](#an.ir.validate.counter_block_ids)(shot, stores)                   | The ids of `shot`'s counter text blocks (an#342): the only targets a `value` is authored on in the core.                                                                                                      |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`post_synthesis_findings`](#an.ir.validate.post_synthesis_findings)(scene, \*[, fps, checks]) | `(check, finding)` for each finding the synthesized timing gives.                                                                                                                                             |
+| [`registered_kind_problems`](#an.ir.validate.registered_kind_problems)(scene)                   | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](#an.ir.validate.require_registered_kinds)(scene, \*[, where])      | `scene`, or [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`rig_stores`](#an.ir.validate.rig_stores)()                                      | `{entity kind: (mall store, descriptor kind)}` for every kind that has a rig.                                                                                                                                 |
+| [`shot_dialogue_overruns`](#an.ir.validate.shot_dialogue_overruns)(shot, \*[, ...])           | `(k, message)` for each line of `shot` that ends past the shot's end.                                                                                                                                         |
+| [`validate_schema`](#an.ir.validate.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](#an.ir.validate.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
@@ -140,6 +141,14 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
+
+### an.ir.validate.counter_block_ids(shot, stores)
+
+The ids of `shot`’s counter text blocks (an#342): the only targets a
+`value` is authored on in the core. Empty without the props store.
+
+* **Return type:**
+  [`frozenset`](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.ir.validate.post_synthesis_findings(scene, , fps=None, checks=('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking'), \*\*stores)
 

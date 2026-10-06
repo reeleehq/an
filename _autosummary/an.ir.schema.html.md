@@ -47,11 +47,14 @@ True
 | [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
 | [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                  |
 | [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                          |
+| [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                  |
+| [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                 |
 
 ### Functions
 
 | [`resolve_step_hz`](#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
 |----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`stage_specimen`](#an.ir.schema.stage_specimen)(ref)                         | A short shot showing the one stage entity `ref` casts, on its own (an#347).                                                       |
 | [`unregistered_action_kind`](#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                        |
 
 ### Classes
@@ -558,6 +561,14 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.schema.SPECIMEN_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+How long a specimen shot runs (`an library sheet` draws its first frame).
+
+### an.ir.schema.SPECIMEN_SHOT_ID *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'specimen'*
+
+The id of a specimen shot.
+
 ### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).
@@ -935,6 +946,18 @@ and the project renderer all call it (an#89 review: three copies).
 15.0
 >>> resolve_step_hz(Shot(id="s"), None) is None
 True
+```
+
+### an.ir.schema.stage_specimen(ref)
+
+A short shot showing the one stage entity `ref` casts, on its own (an#347).
+
+* **Return type:**
+  [`Shot`](#an.ir.schema.Shot)
+
+```pycon
+>>> stage_specimen(AssetRef(kind="prop", id="lamp", store="props", ref="lamp")).entities[0].id
+'lamp'
 ```
 
 ### an.ir.schema.unregistered_action_kind(kind, , where='')

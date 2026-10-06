@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -765,10 +765,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">DRIVE_STATE</span><span class="p">,</span>
     <span class="n">Engine</span><span class="p">,</span>
     <span class="n">FrameJob</span><span class="p">,</span>
+    <span class="n">FrameRequest</span><span class="p">,</span>
     <span class="n">UnseekableEngineError</span><span class="p">,</span>
     <span class="n">require_seekable</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_count</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp4</span> <span class="k">as</span> <span class="n">_mp4</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.shutter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_frame_samples</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.supersample</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_factor</span>
@@ -875,6 +877,22 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1">#: Slack when snapping an instant to the frame showing then: ``1.5`` s at 30 fps</span>
+<span class="c1">#: is frame 45 even when ``1.5 * 30`` lands a hair under.</span>
+<span class="n">_FRAME_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">film_frame</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The index of the film frame showing at ``t`` seconds into a shot.</span>
+
+<span class="sd">    &gt;&gt;&gt; film_frame(1.5, 30, 90), film_frame(0.0, 30, 90), film_frame(99, 30, 90)</span>
+<span class="sd">    (45, 0, 89)</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">total_frames</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span> <span class="o">+</span> <span class="n">_FRAME_EPS</span><span class="p">)))</span>
+
+
 <div class="viewcode-block" id="FrameStageRenderer">
 <a class="viewcode-back" href="../../../_autosummary/an.engines.frame_stage.html#an.engines.FrameStageRenderer">[docs]</a>
 <span class="nd">@dataclass</span>
@@ -916,6 +934,65 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">raise</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
+
+<div class="viewcode-block" id="FrameStageRenderer.probe_frames">
+<a class="viewcode-back" href="../../../_autosummary/an.engines.frame_stage.html#an.engines.FrameStageRenderer.probe_frames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">probe_frames</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">"RenderContext"</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="s2">"list[float]"</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The film's frames of ``shot`` showing at each of ``times`` (seconds), as PNG bytes.</span>
+
+<span class="sd">        ``an probe`` (an#347): the session :meth:`render` opens (the same</span>
+<span class="sd">        engine, state-driven adapter, supersample and frame clock) and the</span>
+<span class="sd">        same :func:`~an.engines.capture.capture_frames`, asked only for the</span>
+<span class="sd">        frames needed — so a probe frame IS the film's frame, without the</span>
+<span class="sd">        rest of the shot or the mux. Each instant is snapped to the frame</span>
+<span class="sd">        showing then (``floor(t * fps)``, clamped to the shot).</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probe</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">CORE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">):</span>
+                <span class="k">raise</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_probe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">"RenderContext"</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
+        <span class="n">supersample</span> <span class="o">=</span> <span class="n">check_factor</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">supersample</span><span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"check"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="n">total_frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+        <span class="n">frame_samples</span> <span class="o">=</span> <span class="n">check_frame_samples</span><span class="p">(</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span> <span class="n">total_frames</span><span class="o">=</span><span class="n">total_frames</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span>
+        <span class="p">)</span>
+        <span class="n">workspace</span> <span class="o">=</span> <span class="n">shot_workspace</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">frames_dir</span> <span class="o">=</span> <span class="n">_fresh_frames_dir</span><span class="p">(</span><span class="n">workspace</span><span class="p">)</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">FrameJob</span><span class="p">(</span>
+            <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+            <span class="n">workspace</span><span class="o">=</span><span class="n">workspace</span><span class="p">,</span>
+            <span class="n">frames_dir</span><span class="o">=</span><span class="n">frames_dir</span><span class="p">,</span>
+            <span class="n">total_frames</span><span class="o">=</span><span class="n">total_frames</span><span class="p">,</span>
+            <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+            <span class="n">frame_samples</span><span class="o">=</span><span class="n">frame_samples</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">every</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">requests</span><span class="p">()</span>
+        <span class="n">film</span> <span class="o">=</span> <span class="p">[</span><span class="n">film_frame</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+        <span class="c1"># Numbered 0..n-1: the capture loop checks for exactly that many files.</span>
+        <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">FrameRequest</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">every</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">times</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">film</span><span class="p">)]</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">job</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">require_seekable</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="o">==</span> <span class="n">DRIVE_STATE</span><span class="p">:</span>
+                <span class="n">session</span> <span class="o">=</span> <span class="n">StateDrivenAdapter</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">_capture</span><span class="o">.</span><span class="n">capture_frames</span><span class="p">(</span>
+                <span class="n">session</span><span class="p">,</span>
+                <span class="n">requests</span><span class="p">,</span>
+                <span class="n">frames_dir</span><span class="p">,</span>
+                <span class="n">factor</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">capture_options</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">frame_path</span><span class="p">(</span><span class="n">frames_dir</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">requests</span><span class="p">))]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">"RenderContext"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"RenderResult"</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderResult</span>

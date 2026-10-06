@@ -17,6 +17,7 @@ an.ir.validate
 
    .. autosummary::
    
+      counter_block_ids
       post_synthesis_findings
       registered_kind_problems
       require_registered_kinds

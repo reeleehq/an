@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -803,11 +803,15 @@ window.runMermaid = runMermaid;</script>
         <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">then</span><span class="p">,</span> <span class="n">then</span><span class="p">))</span>
 
 
+<span class="c1">#: A render report records what a render on THIS machine found — warnings,</span>
+<span class="c1">#: exception text — so it is per-machine output, not project source (an#254).</span>
+<span class="n">RENDER_REPORTS_GITIGNORE</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"artifacts/render_reports/"</span><span class="p">,)</span>
+<span class="c1">#: Probe frames and contact sheets (``an probe``, ``an library sheet``,</span>
+<span class="c1">#: an#347): looks at work in progress, which may show private-study material.</span>
+<span class="n">PROBES_GITIGNORE</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"artifacts/probes/"</span><span class="p">,)</span>
 <span class="c1">#: What a project's ``.gitignore`` keeps out of version control (``an init``</span>
-<span class="c1">#: adds each line a ``.gitignore`` lacks, never removing one). A render report</span>
-<span class="c1">#: records what a render on THIS machine found — warnings, exception text — so it</span>
-<span class="c1">#: is per-machine output, not project source (an#254).</span>
-<span class="n">PROJECT_GITIGNORE</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"artifacts/render_reports/"</span><span class="p">,)</span>
+<span class="c1">#: adds each line a ``.gitignore`` lacks, never removing one).</span>
+<span class="n">PROJECT_GITIGNORE</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">RENDER_REPORTS_GITIGNORE</span> <span class="o">+</span> <span class="n">PROBES_GITIGNORE</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_gitignored</span><span class="p">(</span><span class="n">pdir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -828,27 +832,36 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
-<div class="viewcode-block" id="keep_reports_out_of_git">
-<a class="viewcode-back" href="../../_autosummary/an.project.html#an.keep_reports_out_of_git">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">keep_reports_out_of_git</span><span class="p">(</span><span class="n">pdir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Add :data:`PROJECT_GITIGNORE` to an OLDER project's ``.gitignore`` (an</span>
-<span class="sd">    ``an init`` from before an#254 left it out), the first time a render</span>
-<span class="sd">    writes a report (an#309) — conservatively: never when the file already</span>
-<span class="sd">    says anything about those paths (a project may have chosen to commit its</span>
-<span class="sd">    reports, ``!artifacts/render_reports/``), never through a symlink (a</span>
-<span class="sd">    shared ignore file), and never creating a ``.gitignore`` in a project that</span>
-<span class="sd">    is not in a git work tree."""</span>
+<div class="viewcode-block" id="keep_out_of_git">
+<a class="viewcode-back" href="../../_autosummary/an.project.html#an.keep_out_of_git">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">keep_out_of_git</span><span class="p">(</span><span class="n">pdir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add ``lines`` to an OLDER project's ``.gitignore`` (an ``an init`` from</span>
+<span class="sd">    before they existed left them out) — conservatively: never a line whose</span>
+<span class="sd">    folder the file already says anything about (a project may have chosen to</span>
+<span class="sd">    commit its reports, ``!artifacts/render_reports/``), never through a</span>
+<span class="sd">    symlink (a shared ignore file), and never creating a ``.gitignore`` in a</span>
+<span class="sd">    project that is not in a git work tree."""</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">pdir</span> <span class="o">/</span> <span class="s2">".gitignore"</span>
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
         <span class="k">return</span>
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">PROJECT_GITIGNORE</span><span class="p">}</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">name</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">):</span>
-            <span class="k">return</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">text</span>
+        <span class="p">)</span>
     <span class="k">elif</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">d</span> <span class="o">/</span> <span class="s2">".git"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="o">*</span><span class="n">pdir</span><span class="o">.</span><span class="n">parents</span><span class="p">)):</span>
         <span class="k">return</span>
-    <span class="n">_ensure_gitignored</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">PROJECT_GITIGNORE</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">_ensure_gitignored</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="keep_reports_out_of_git">
+<a class="viewcode-back" href="../../_autosummary/an.project.html#an.keep_reports_out_of_git">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">keep_reports_out_of_git</span><span class="p">(</span><span class="n">pdir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add :data:`RENDER_REPORTS_GITIGNORE` to an older project's ``.gitignore``</span>
+<span class="sd">    the first time a render writes a report (an#309), by :func:`keep_out_of_git`'s rules."""</span>
+    <span class="n">keep_out_of_git</span><span class="p">(</span><span class="n">pdir</span><span class="p">,</span> <span class="n">RENDER_REPORTS_GITIGNORE</span><span class="p">)</span></div>
 
 
 

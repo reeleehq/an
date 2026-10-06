@@ -15,34 +15,45 @@ Layout (from spec §11):
 
 ### Module Attributes
 
-| [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE)   | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE)   | A render report records what a render on THIS machine found — warnings, exception text — so it is per-machine output, not project source (an#254).   |
+|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROBES_GITIGNORE`](#an.project.PROBES_GITIGNORE)           | Probe frames and contact sheets (`an probe`, `an library sheet`, an#347): looks at work in progress, which may show private-study material.          |
+| [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE)          | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).                      |
 
 ### Functions
 
-| [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)          | Add [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE) to an OLDER project's `.gitignore` (an `an init` from before an#254 left it out), the first time a render writes a report (an#309) — conservatively: never when the file already says anything about those paths (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
-| [`load`](#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| [`save`](#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`keep_out_of_git`](#an.project.keep_out_of_git)(pdir, lines)           | Add `lines` to an OLDER project's `.gitignore` (an `an init` from before they existed left them out) — conservatively: never a line whose folder the file already says anything about (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
+| [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)          | Add [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE) to an older project's `.gitignore` the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.project.keep_out_of_git)'s rules.                                                                                                                                                     |
+| [`load`](#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                             |
+| [`save`](#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                           |
 
 ### Classes
 
 | [`Project`](#an.project.Project)(root, mall, scene)   | A loaded an project: directory + mall + current scene.   |
 |-------------------------------------------------------------------------------|----------------------------------------------------------|
 
-### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/',)*
+### an.project.PROBES_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/probes/',)*
+
+Probe frames and contact sheets (`an probe`, `an library sheet`,
+an#347): looks at work in progress, which may show private-study material.
+
+### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/', 'artifacts/probes/')*
 
 What a project’s `.gitignore` keeps out of version control (`an init`
-adds each line a `.gitignore` lacks, never removing one). A render report
-records what a render on THIS machine found — warnings, exception text — so it
-is per-machine output, not project source (an#254).
+adds each line a `.gitignore` lacks, never removing one).
 
 ### *class* an.project.Project(root, mall, scene)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
+
+### an.project.RENDER_REPORTS_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/',)*
+
+A render report records what a render on THIS machine found — warnings,
+exception text — so it is per-machine output, not project source (an#254).
 
 ### an.project.init(project_dir, , name=None, force=False)
 
@@ -55,15 +66,22 @@ project’s `.gitignore` gains [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNO
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
+### an.project.keep_out_of_git(pdir, lines)
+
+Add `lines` to an OLDER project’s `.gitignore` (an `an init` from
+before they existed left them out) — conservatively: never a line whose
+folder the file already says anything about (a project may have chosen to
+commit its reports, `!artifacts/render_reports/`), never through a
+symlink (a shared ignore file), and never creating a `.gitignore` in a
+project that is not in a git work tree.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.project.keep_reports_out_of_git(pdir)
 
-Add [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE) to an OLDER project’s `.gitignore` (an
-`an init` from before an#254 left it out), the first time a render
-writes a report (an#309) — conservatively: never when the file already
-says anything about those paths (a project may have chosen to commit its
-reports, `!artifacts/render_reports/`), never through a symlink (a
-shared ignore file), and never creating a `.gitignore` in a project that
-is not in a git work tree.
+Add [`RENDER_REPORTS_GITIGNORE`](#an.project.RENDER_REPORTS_GITIGNORE) to an older project’s `.gitignore`
+the first time a render writes a report (an#309), by [`keep_out_of_git()`](#an.project.keep_out_of_git)’s rules.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.schema" href="an.ir.schema.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -393,6 +393,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
@@ -420,6 +421,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
 </ul>
 </details></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
@@ -444,6 +447,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
@@ -465,6 +469,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
@@ -479,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -625,25 +631,28 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">post_synthesis_findings</span></code></a>(scene, *[, fps, checks])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.counter_block_ids" title="an.ir.validate.counter_block_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">counter_block_ids</span></code></a>(shot, stores)</p></td>
+<td><p>The ids of <code class="docutils literal notranslate"><span class="pre">shot</span></code>'s counter text blocks (an#342): the only targets a <code class="docutils literal notranslate"><span class="pre">value</span></code> is authored on in the core.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.post_synthesis_findings" title="an.ir.validate.post_synthesis_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">post_synthesis_findings</span></code></a>(scene, *[, fps, checks])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(check,</span> <span class="pre">finding)</span></code> for each finding the synthesized timing gives.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.registered_kind_problems" title="an.ir.validate.registered_kind_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_kind_problems</span></code></a>(scene)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.registered_kind_problems" title="an.ir.validate.registered_kind_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_kind_problems</span></code></a>(scene)</p></td>
 <td><p>The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of <code class="docutils literal notranslate"><span class="pre">validate_semantic</span></code> (no stores, no rig builds; cheap).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.require_registered_kinds" title="an.ir.validate.require_registered_kinds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_registered_kinds</span></code></a>(scene, *[, where])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.require_registered_kinds" title="an.ir.validate.require_registered_kinds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_registered_kinds</span></code></a>(scene, *[, where])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code>, or <a class="reference internal" href="#an.ir.validate.UnregisteredInSceneError" title="an.ir.validate.UnregisteredInSceneError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a> naming every action kind, entity kind and renderer it uses that is not registered.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.rig_stores" title="an.ir.validate.rig_stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_stores</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.rig_stores" title="an.ir.validate.rig_stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rig_stores</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">(mall</span> <span class="pre">store,</span> <span class="pre">descriptor</span> <span class="pre">kind)}</span></code> for every kind that has a rig.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.shot_dialogue_overruns" title="an.ir.validate.shot_dialogue_overruns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_dialogue_overruns</span></code></a>(shot, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.shot_dialogue_overruns" title="an.ir.validate.shot_dialogue_overruns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_dialogue_overruns</span></code></a>(shot, *[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(k,</span> <span class="pre">message)</span></code> for each line of <code class="docutils literal notranslate"><span class="pre">shot</span></code> that ends past the shot's end.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.validate_schema" title="an.ir.validate.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.validate_schema" title="an.ir.validate.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
 <td><p>Validate that <code class="docutils literal notranslate"><span class="pre">doc</span></code> (dict, JSON string, or SceneIR) conforms to the schema.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.validate_semantic" title="an.ir.validate.validate_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_semantic</span></code></a>(scene, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.validate_semantic" title="an.ir.validate.validate_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_semantic</span></code></a>(scene, *[, ...])</p></td>
 <td><p>Cross-field semantic checks.</p></td>
 </tr>
 </tbody>
@@ -796,6 +805,18 @@ two checks that need the same derived fact compute it once
 <p>Result of running one or more validators.</p>
 <p><code class="docutils literal notranslate"><span class="pre">passed</span></code> is True iff there are no error-severity findings.</p>
 <dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.counter_block_ids">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">counter_block_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#counter_block_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.counter_block_ids" title="Link to this definition">#</a></dt>
+<dd><p>The ids of <code class="docutils literal notranslate"><span class="pre">shot</span></code>’s counter text blocks (an#342): the only targets a
+<code class="docutils literal notranslate"><span class="pre">value</span></code> is authored on in the core. Empty without the props store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -1024,6 +1045,7 @@ which decides how long a dissolve’s overlap is.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationReport"><code class="docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.counter_block_ids"><code class="docutils literal notranslate"><span class="pre">counter_block_ids()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.post_synthesis_findings"><code class="docutils literal notranslate"><span class="pre">post_synthesis_findings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.registered_kind_problems"><code class="docutils literal notranslate"><span class="pre">registered_kind_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.require_registered_kinds"><code class="docutils literal notranslate"><span class="pre">require_registered_kinds()</span></code></a></li>

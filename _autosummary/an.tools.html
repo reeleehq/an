@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
+    <script src="../_static/documentation_options.js?v=73ca257f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.176" />
+  <meta name="docsearch:version" content="0.1.177" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -393,6 +393,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
@@ -420,6 +421,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
 </ul>
 </details></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
@@ -444,6 +447,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
@@ -465,6 +469,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
@@ -479,6 +484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -624,16 +630,19 @@ without touching these functions, so they stay plain Python.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.tools.preview" title="an.tools.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a>(project_dir[, shot, no_browser])</p></td>
 <td><p>Live-preview the project's scene in a browser; reloads on edit.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.registered_namespaces" title="an.tools.registered_namespaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_namespaces</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.probe" title="an.tools.probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe</span></code></a>(project_dir[, shot, at, out, columns, ...])</p></td>
+<td><p>Write a shot's frame at chosen instants to a PNG, drawn the way <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> draws it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.registered_namespaces" title="an.tools.registered_namespaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_namespaces</span></code></a>()</p></td>
 <td><p>The sub-namespaces installed genres added (<code class="docutils literal notranslate"><span class="pre">cli.&lt;namespace&gt;</span></code> services).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.render" title="an.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project_dir[, output_name, tts, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.render" title="an.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project_dir[, output_name, tts, ...])</p></td>
 <td><p>Render the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> to a single mp4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.sync" title="an.tools.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir[, accept_measured])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.sync" title="an.tools.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir[, accept_measured])</p></td>
 <td><p>Reconcile scene.md and ir/scene.json inside <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.validate" title="an.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(project_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.validate" title="an.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(project_dir)</p></td>
 <td><p>Validate the scene at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 </tbody>
@@ -810,6 +819,29 @@ no_browser: don’t auto-open the default browser</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.tools.probe">
+<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">probe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_private_here</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#probe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.probe" title="Link to this definition">#</a></dt>
+<dd><p>Write a shot’s frame at chosen instants to a PNG, drawn the way <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> draws it.</p>
+<p>The shot is prepared as a render prepares it (captions, style pack, the
+settled length) and its own renderer draws only the frames asked for; a
+Manim shot is read from the picture the last render stored. Several –at
+make one grid. Frames showing private or unknown material are refused at
+a path git would pick up.</p>
+<p>project_dir: path to an an project
+shot: the shot id
+at: seconds into the shot, repeatable (–at 1.5 –at 3.8)
+out: the PNG to write (default: &lt;project&gt;/artifacts/probes/&lt;shot&gt;&#64;&lt;t&gt;.png, gitignored)
+columns: cells per row of a grid (default: a square grid)
+supersample: as <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--supersample</span></code>, so the frame matches the film’s
+allow_private_here: write not-publishable frames where git would pick them up</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.tools.registered_namespaces">
 <span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">registered_namespaces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#registered_namespaces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.registered_namespaces" title="Link to this definition">#</a></dt>
 <dd><p>The sub-namespaces installed genres added (<code class="docutils literal notranslate"><span class="pre">cli.&lt;namespace&gt;</span></code> services).</p>
@@ -976,6 +1008,7 @@ says what its author wrote.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.init"><code class="docutils literal notranslate"><span class="pre">init()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.iterate"><code class="docutils literal notranslate"><span class="pre">iterate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.preview"><code class="docutils literal notranslate"><span class="pre">preview()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.probe"><code class="docutils literal notranslate"><span class="pre">probe()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.registered_namespaces"><code class="docutils literal notranslate"><span class="pre">registered_namespaces()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.tools.sync"><code class="docutils literal notranslate"><span class="pre">sync()</span></code></a></li>

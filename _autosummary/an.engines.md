@@ -171,6 +171,20 @@ Capture-loop tunables passed through to [`an.engines.capture.capture_frames()`](
 
 alias of [`FrameStageError`](an.engines.capture.md#an.engines.capture.FrameStageError)
 
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` showing at each of `times` (seconds), as PNG bytes.
+
+`an probe` (an#347): the session [`render()`](#an.engines.FrameStageRenderer.render) opens (the same
+engine, state-driven adapter, supersample and frame clock) and the
+same [`capture_frames()`](an.engines.capture.md#an.engines.capture.capture_frames), asked only for the
+frames needed — so a probe frame IS the film’s frame, without the
+rest of the shot or the mux. Each instant is snapped to the frame
+showing then (`floor(t * fps)`, clamped to the shot).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
 #### render(shot, ctx)
 
 Render `shot` to mp4 through the engine; see the module docstring.

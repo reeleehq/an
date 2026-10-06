@@ -51,6 +51,19 @@ or rendered now (and stored) when there is none — or when `force`.
 * **Return type:**
   `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+#### probe_frames(shot, ctx, times)
+
+The film’s frames of `shot` at each of `times`, from its STORED picture (an#347).
+
+Manim owns its clock and renders a whole scene at once, so `an
+probe` never runs it: the picture a render stored is conformed
+exactly as [`render()`](#an.adapters.ManimRenderer.render) conforms it, and the frames showing at
+`times` are read out. With no stored picture it refuses, naming the
+render that stores one.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
 #### render(shot, ctx)
 
 Render `shot` for exactly `shot.duration` (`an.render` settles it

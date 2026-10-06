@@ -83,6 +83,7 @@
 - [an.engines.frame_stage](an.engines.frame_stage.html.md): &#96;frame_stage_renderer(engine)&#96;: any seekable engine becomes a &#96;Renderer&#96;.
 - [an.engines.protocol](an.engines.protocol.html.md): The &#96;Engine&#96; protocol: a seekable thing that turns a time, or a state, into a frame.
 - [an.environments](an.environments.html.md): Moved to &#96;an.stage.environments&#96; (an#247); this path is a LIVE alias of it.
+- [an.formats](an.formats.html.md): Numbers as text: a declared subset of d3-format, for counters (an#342).
 - [an.frame_clock](an.frame_clock.html.md): The frame clock: WHEN each output frame samples scene time.
 - [an.genres](an.genres.html.md): Genres: what a kind of animation adds to the core, declared as one object.
 - [an.genres.registry](an.genres.registry.html.md): The core’s open registries: action kinds, entity kinds, semantic checks, md sugar, compile passes.
@@ -106,6 +107,7 @@
 - [an.library.registry](an.library.registry.html.md): The machine’s memory of its libraries: every root ever written, and every statement ever made (an#24...
 - [an.library.rights](an.library.rights.html.md): Rights on every version: the most restrictive licence class wins (ADR 0005 decision 10, design §9).
 - [an.library.root](an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
+- [an.library.sheets](an.library.sheets.html.md): &#96;an library sheet&#96;: a contact sheet of library versions, one specimen frame each (an#347).
 - [an.library.stores](an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
 - [an.live_api](an.live_api.html.md): The one switch that says “yes, this run may spend money”.
 - [an.mcp](an.mcp.html.md): The &#96;an&#96; MCP server: a curated, generated surface over the vocabulary and the capability registry.
@@ -115,6 +117,7 @@
 - [an.media](an.media.html.md): Frames to deliverables, engine-independent: the frame stage’s resolves and the sinks.
 - [an.media.frames](an.media.frames.html.md): The frame directory every engine writes and every sink reads.
 - [an.media.gif](an.media.gif.html.md): The GIF sink: ONE palette recipe, for flat 2D art.
+- [an.media.grid](an.media.grid.html.md): Tile images into one contact sheet: &#96;tile()&#96; (an#347).
 - [an.media.mp4](an.media.mp4.html.md): The MP4 sink: PNG frames -&gt; the delivered H.264 mp4, with the pinned argv.
 - [an.media.shutter](an.media.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
 - [an.media.sinks](an.media.sinks.html.md): Frame sinks: a frame directory in, one deliverable out – one sink per format.
@@ -124,6 +127,7 @@
 - [an.paint](an.paint.html.md): Paint: what fills a shape when one flat colour is not enough – a gradient.
 - [an.paths](an.paths.html.md): Moved to &#96;an.stage.paths&#96; (an#247); this path is a LIVE alias of it.
 - [an.preview](an.preview.html.md): Moved to &#96;an.stage.preview&#96; (an#247); this path is a LIVE alias of it.
+- [an.probe](an.probe.html.md): &#96;an probe&#96;: a shot’s frame at chosen instants, through the very path &#96;render&#96; draws it (an#347).
 - [an.project](an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
 - [an.props](an.props.html.md): Moved to &#96;an.stage.props&#96; (an#247); this path is a LIVE alias of it.
 - [an.raster](an.raster.html.md): Moved to &#96;an.stage.raster&#96; (an#247); this path is a LIVE alias of it.
@@ -143,6 +147,7 @@
 - [an.stage.cache_key](an.stage.cache_key.html.md): What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).
 - [an.stage.canvas_capture](an.stage.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
 - [an.stage.compile](an.stage.compile.html.md): Compile a top-level &#96;Shot&#96; (renderer=”cutout”) into a &#96;CutoutSceneJSON&#96;.
+- [an.stage.counters](an.stage.counters.html.md): A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).
 - [an.stage.easing](an.stage.easing.html.md): The stage engine’s easing vocabulary — a view of &#96;an.timing.easing&#96;.
 - [an.stage.environments](an.stage.environments.html.md): Environments: a stage made of planes, at declared depths.
 - [an.stage.fidelity](an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
@@ -157,6 +162,7 @@
 - [an.stage.runtime](an.stage.runtime.html.md): Cutout JS runtime — see README.md in this directory.
 - [an.stage.runtime_files](an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.stage.serialize](an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
+- [an.stage.snapshot](an.stage.snapshot.html.md): Rasterise art files to PNG in the browser the stage already uses (an#347).
 - [an.stage.surface](an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.stage.text](an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).

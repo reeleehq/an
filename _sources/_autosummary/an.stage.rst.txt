@@ -19,6 +19,7 @@ an.stage
    cache_key
    canvas_capture
    compile
+   counters
    easing
    environments
    fidelity
@@ -33,6 +34,7 @@ an.stage
    runtime
    runtime_files
    serialize
+   snapshot
    surface
    text
    text_layout
