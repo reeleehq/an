@@ -728,12 +728,12 @@ def test_no_skill_advertises_a_capability_that_now_raises():
     """
     skills = Path(__file__).resolve().parents[1] / ".claude/skills"
     offenders = []
-    for skill in sorted(skills.glob("*/SKILL.md")):
+    for skill in sorted([*skills.glob("*/SKILL.md"), *skills.glob("*/references/*.md")]):
         text = skill.read_text(encoding="utf-8")
         for line in text.splitlines():
             # An enumeration of legal `kind` values must not offer `prop`.
             if "`kind`" in line and "∈" in line and "prop" in line.split("∈")[1]:
-                offenders.append(f"{skill.parent.name}: {line.strip()[:90]}")
+                offenders.append(f"{skill.relative_to(skills)}: {line.strip()[:90]}")
     assert not offenders, (
         "a skill advertises `prop` as a usable entity kind, but the compiler "
         f"raises on it:\n" + "\n".join(offenders)
@@ -955,7 +955,8 @@ def test_no_doc_offers_a_targeting_example_that_no_rig_builds():
     root = Path(__file__).resolve().parents[1]
     offenders = []
     for rel in ("an/base.py", "CLAUDE.md", "README.md",
-                ".claude/skills/an-dev/SKILL.md", ".claude/skills/an/SKILL.md"):
+                ".claude/skills/an-dev/SKILL.md", ".claude/skills/an/SKILL.md",
+                *sorted(str(q.relative_to(root)) for q in (root / ".claude/skills/an/references").glob("*.md"))):
         for path, prop in re.findall(r"([a-z_]+(?:/[a-z_]+)+):([a-z_]+)",
                                      (root / rel).read_text(encoding="utf-8")):
             if path not in real:

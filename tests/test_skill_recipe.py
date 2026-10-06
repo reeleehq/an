@@ -21,8 +21,14 @@ from pathlib import Path
 SKILL = Path(__file__).resolve().parents[1] / ".claude" / "skills" / "an" / "SKILL.md"
 
 
+def _skill_text() -> str:
+    """The skill's index and every reference file it links (progressive disclosure)."""
+    parts = [SKILL, *sorted((SKILL.parent / "references").glob("*.md"))]
+    return "\n".join(p.read_text(encoding="utf-8") for p in parts)
+
+
 def _block(marker: str, fence: str) -> str:
-    text = SKILL.read_text(encoding="utf-8")
+    text = _skill_text()
     m = re.search(
         rf"<!-- skill-test: {marker} -->\n({re.escape(fence)}\w*)\n(.*?)\n{re.escape(fence)}\n",
         text,

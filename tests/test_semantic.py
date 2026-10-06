@@ -299,7 +299,11 @@ def test_the_skill_vocabulary_section_is_generated_and_current():
 
 def test_the_docs_say_a_legless_walk_glides():
     """an#335: a legless figure glides since cutan#8; no doc still says it rocks."""
-    skill = (ROOT / ".claude" / "skills" / "an" / "SKILL.md").read_text(encoding="utf-8")
+    skill_dir = ROOT / ".claude" / "skills" / "an"
+    skill = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in [skill_dir / "SKILL.md", *sorted((skill_dir / "references").glob("*.md"))]
+    )
     assert "legless ones rock" not in skill
     assert "falls back to a rock on a legless figure" not in skill
     arch = (ROOT / "misc" / "docs" / "architecture_as_built.md").read_text(encoding="utf-8")
