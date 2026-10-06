@@ -322,11 +322,7 @@ def _runtime_kernel(src: str | None = None) -> str:
             _extract_js_block(src, "function applyEasing"),
             _extract_js_block(src, "function evaluateChannel"),
             _extract_js_block(src, "function wrapTime"),
-            src[
-                src.index("const RUNTIME_PROPERTIES") : src.index(
-                    "// Port of `an/adapters/cutout/timeline.py::evaluate_timeline`"
-                )
-            ],
+            src[src.index("const RUNTIME_PROPERTIES") : src.index("function evaluateTimeline")],
             _extract_js_block(src, "function evaluateTimeline"),
         ]
     )

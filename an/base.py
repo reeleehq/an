@@ -130,7 +130,10 @@ BT709_SCALE_FILTER: str = "scale=out_range=tv:out_color_matrix=bt709"
 # -- Easing -------------------------------------------------------------------
 
 #: Named easing presets. Renderers should accept these and the cubic-Bézier
-#: 4-tuple form `[cx1, cy1, cx2, cy2]`. Names follow the GSAP / CSS convention.
+#: 4-tuple form `[cx1, cy1, cx2, cy2]`. They are `an`'s LEGACY family
+#: (:mod:`an.timing.easing`): ``ease`` and ``ease_in_out`` are the quadratic
+#: ease-in-out, not CSS ``ease``; the CSS curves are the hyphenated names
+#: (``ease-in-out``, ``cubic-bezier(...)``) of the ``css`` family.
 EASING_PRESETS: tuple[str, ...] = (
     "linear",
     "ease",
