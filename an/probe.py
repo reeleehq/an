@@ -108,9 +108,7 @@ def frames(
         shutil.rmtree(work, ignore_errors=True)
 
 
-def frame(
-    project: Project | str | os.PathLike, shot: str, t: float, **kwargs
-) -> bytes:
+def frame(project: Project | str | os.PathLike, shot: str, t: float, **kwargs) -> bytes:
     """PNG bytes of shot ``shot``'s film frame at ``t`` seconds (see :func:`frames`)."""
     return frames(project, shot, [t], **kwargs)[0]
 
@@ -120,7 +118,9 @@ def _shot_publishable(project: Project, shot: str) -> tuple[bool, list[str]]:
     from an.credits import credits_for_scene
 
     scene = project.scene
-    only = scene.model_copy(update={"timeline": [s for s in scene.timeline if s.id == shot]})
+    only = scene.model_copy(
+        update={"timeline": [s for s in scene.timeline if s.id == shot]}
+    )
     report = credits_for_scene(project.mall, only)
     held = [
         f"{e.asset} ({e.license_class})"

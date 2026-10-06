@@ -172,7 +172,9 @@ def film_frame(t: float, fps: float, total_frames: int) -> int:
     """
     import math
 
-    return min(max(total_frames - 1, 0), max(0, math.floor(t * float(fps) + _FRAME_EPS)))
+    return min(
+        max(total_frames - 1, 0), max(0, math.floor(t * float(fps) + _FRAME_EPS))
+    )
 
 
 @dataclass
@@ -231,7 +233,9 @@ class FrameStageRenderer:
                 raise
             raise self.error(str(e)) from e
 
-    def _probe(self, shot: "Shot", ctx: "RenderContext", times: list[float]) -> list[bytes]:
+    def _probe(
+        self, shot: "Shot", ctx: "RenderContext", times: list[float]
+    ) -> list[bytes]:
         supersample = check_factor(ctx.supersample)
         check = getattr(self.engine, "check", None)
         if check is not None:

@@ -700,4 +700,14 @@ def sheet(
     return f"sheet: {path}"
 
 
-_dispatch_funcs = [publish, kit, find, vocabulary, show, checkout, promote, retire, sheet]
+_dispatch_funcs = [
+    publish,
+    kit,
+    find,
+    vocabulary,
+    show,
+    checkout,
+    promote,
+    retire,
+    sheet,
+]
