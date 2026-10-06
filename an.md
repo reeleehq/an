@@ -1,4 +1,4 @@
-> built 2026-10-06 13:39 UTC from 5a0f0c1 (main) · an 0.1.194. Details: build_info.json
+> built 2026-10-06 13:52 UTC from 45ef4bc (main) · an 0.1.195. Details: build_info.json
 
 # index.html.md
 
@@ -19633,7 +19633,7 @@ Subcommands: `publish`, `kit`, `find`, `vocabulary`, `show`,
 | [`show`](_autosummary/an.library.cli.html.md#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.        |
 | [`vocabulary`](_autosummary/an.library.cli.html.md#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON).   |
 
-### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, upgrade=False, package='', root='', extra='')
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, upgrade=False, package='', root='', extra='', only='', skip='')
 
 Check a library version out into a project, and pin it in assets.lock.json.
 
@@ -19645,6 +19645,8 @@ upgrade: update in place the entry pinned to an earlier version of this asset, i
 package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
 root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
+only: for a kit, check out only these members (their keys or asset ids, comma-separated)
+skip: for a kit, leave these members out (their keys or asset ids, comma-separated)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -20157,7 +20159,7 @@ What lives where:
 | [`build_library_mall`](_autosummary/an.library.html.md#an.library.build_library_mall)([root, package])                | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).                                                             |
 | [`check_pins`](_autosummary/an.library.html.md#an.library.check_pins)(scene, lock)                            | Findings where a scene's `AssetRef.library` and the project lockfile disagree.                                                                |
 | [`checkout`](_autosummary/an.library.html.md#an.library.checkout)(libraries, project_dir, ref, \*[, ...])   | Materialise a library version into a project, carry its rights, pin it.                                                                       |
-| [`checkout_kit`](_autosummary/an.library.html.md#an.library.checkout_kit)(libraries, project_dir, ref, \*)      | Check every member of a kit out into a project, pin each, and record the kit.                                                                 |
+| [`checkout_kit`](_autosummary/an.library.html.md#an.library.checkout_kit)(libraries, project_dir, ref, \*)      | Check the members of a kit out into a project, pin each, and record the kit.                                                                  |
 | [`drift_findings`](_autosummary/an.library.html.md#an.library.drift_findings)([project_dir, mall, lock, ...])     | One `info` Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.                                   |
 | [`effective_rights`](_autosummary/an.library.html.md#an.library.effective_rights)(libraries, version, \*[, ...])    | The rights of a version, recomputed from its sources, its lineage and its bytes.                                                              |
 | [`find`](_autosummary/an.library.html.md#an.library.find)(libraries, \*[, kind, style, affords, ...])   | Assets matching every facet given (AND across facets, OR within one facet's values).                                                          |
@@ -20550,9 +20552,9 @@ written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
 
-### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
+### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, only=None, skip=(), mall=None, lock=None)
 
-Check every member of a kit out into a project, pin each, and record the kit.
+Check the members of a kit out into a project, pin each, and record the kit.
 
 libraries: where the kit and its members resolve
 project_dir: the project to check out into
@@ -20562,18 +20564,24 @@ upgrade: update in place a member’s entry pinned to an earlier version of
 
 > that member, unedited since (`checkout()`)
 
+only: check out only these members, each named by the key it lands under
+: (`narrator`) or by its asset id (`voice.narrator`); default: all
+
+skip: leave these members out, named the same way
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 
 > `kits` section, as [`ProjectLock`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock) has
 
-Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member, in the
-kit’s order. Each member is checked out by `checkout()`
+Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member checked
+out, in the kit’s order. Each member is checked out by `checkout()`
 under its `key` and pinned in `assets.lock.json` as any check-out is; the
 kit itself is recorded under the lockfile’s `kits` section (its pinned
 reference, manifest and the members’ lockfile keys), so `an library` readers
 and a human can see which kit the project came from. Checking the same kit out
-again is idempotent.
+again is idempotent. A partial check-out (`only`, `skip`, an#400) records
+the members the project holds: a later check-out of more members of the same
+kit version adds to them.
 
 All members are resolved and checked before the first is written: a missing
 member, a member that is itself a kit, a corrupt stored file, or a project
@@ -21530,7 +21538,7 @@ the whole kit and leaves the project as it was.
 
 ### Functions
 
-| [`checkout_kit`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit)(libraries, project_dir, ref, \*)      | Check every member of a kit out into a project, pin each, and record the kit.            |
+| [`checkout_kit`](_autosummary/an.library.kits.html.md#an.library.kits.checkout_kit)(libraries, project_dir, ref, \*)      | Check the members of a kit out into a project, pin each, and record the kit.             |
 |-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | [`publish_kit`](_autosummary/an.library.kits.html.md#an.library.kits.publish_kit)(library, asset_id, members, \*[, ...]) | Publish a kit — a pinned set of assets — as the next version of `asset_id` in `library`. |
 
@@ -21566,9 +21574,9 @@ One member of a kit: a pinned reference and the project key it lands under.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
+### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, only=None, skip=(), mall=None, lock=None)
 
-Check every member of a kit out into a project, pin each, and record the kit.
+Check the members of a kit out into a project, pin each, and record the kit.
 
 libraries: where the kit and its members resolve
 project_dir: the project to check out into
@@ -21578,18 +21586,24 @@ upgrade: update in place a member’s entry pinned to an earlier version of
 
 > that member, unedited since (`checkout()`)
 
+only: check out only these members, each named by the key it lands under
+: (`narrator`) or by its asset id (`voice.narrator`); default: all
+
+skip: leave these members out, named the same way
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 
 > `kits` section, as [`ProjectLock`](_autosummary/an.stores.library_lock.html.md#an.stores.library_lock.ProjectLock) has
 
-Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member, in the
-kit’s order. Each member is checked out by `checkout()`
+Returns one [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult) per member checked
+out, in the kit’s order. Each member is checked out by `checkout()`
 under its `key` and pinned in `assets.lock.json` as any check-out is; the
 kit itself is recorded under the lockfile’s `kits` section (its pinned
 reference, manifest and the members’ lockfile keys), so `an library` readers
 and a human can see which kit the project came from. Checking the same kit out
-again is idempotent.
+again is idempotent. A partial check-out (`only`, `skip`, an#400) records
+the members the project holds: a later check-out of more members of the same
+kit version adds to them.
 
 All members are resolved and checked before the first is written: a missing
 member, a member that is itself a kit, a corrupt stored file, or a project
@@ -26218,7 +26232,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -37299,20 +37313,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 13:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/5a0f0c1dcd5e381d4e1cb56967ee98a68d6a30ac"><code>5a0f0c1</code></a> on branch <code>main</code>, for **an 0.1.194** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 13:52 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/45ef4bcc7559054efc9b01950f193127eef7240b"><code>45ef4bc</code></a> on branch <code>main</code>, for **an 0.1.195** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.194) is ahead of the latest release on PyPI (0.1.192): these docs describe unreleased code.
+- The documented version (0.1.195) is ahead of the latest release on PyPI (0.1.194): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/5a0f0c1dcd5e381d4e1cb56967ee98a68d6a30ac"><code>5a0f0c1dcd5e381d4e1cb56967ee98a68d6a30ac</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/45ef4bcc7559054efc9b01950f193127eef7240b"><code>45ef4bcc7559054efc9b01950f193127eef7240b</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.194</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.195</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37321,9 +37335,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37471920233">37471920233</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37473509983">37473509983</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>bdb99624c4d90af8515dc610762d8510150c3f57</code> (in the history of the built commit) |
+| Event commit | <code>e17837b552bed0e2fd8cd885478dd376b5acf144</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37332,7 +37346,7 @@ The documentation and the package may be misaligned:
 | epythet  | 0.2.12  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
-| Python   | 3.12.14 |
+| Python   | 3.12.15 |
 
 ## Configuration as resolved
 
@@ -37348,13 +37362,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.192/">0.1.192</a>, older than the documented version (0.1.194).
+Latest release: <a href="https://pypi.org/project/an/0.1.194/">0.1.194</a>, older than the documented version (0.1.195).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 5a0f0c1dcd5e381d4e1cb56967ee98a68d6a30ac
+git checkout 45ef4bcc7559054efc9b01950f193127eef7240b
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

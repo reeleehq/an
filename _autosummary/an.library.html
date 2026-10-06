@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=557fc66e"></script>
+    <script src="../_static/documentation_options.js?v=f1074277"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.iterate" href="an.iterate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.194" />
+  <meta name="docsearch:version" content="0.1.195" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -665,7 +665,7 @@ the lockfile’s <code class="docutils literal notranslate"><span class="pre">ki
 <td><p>Materialise a library version into a project, carry its rights, pin it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.checkout_kit" title="an.library.checkout_kit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkout_kit</span></code></a>(libraries, project_dir, ref, *)</p></td>
-<td><p>Check every member of a kit out into a project, pin each, and record the kit.</p></td>
+<td><p>Check the members of a kit out into a project, pin each, and record the kit.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.drift_findings" title="an.library.drift_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drift_findings</span></code></a>([project_dir, mall, lock, ...])</p></td>
 <td><p>One <code class="docutils literal notranslate"><span class="pre">info</span></code> Finding per checked-out entry that is no longer — or cannot be shown to be — its pinned version.</p></td>
@@ -1274,8 +1274,8 @@ sends it back as a new version derived from this one.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.checkout_kit">
-<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">checkout_kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upgrade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#checkout_kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.checkout_kit" title="Link to this definition">#</a></dt>
-<dd><p>Check every member of a kit out into a project, pin each, and record the kit.</p>
+<span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">checkout_kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upgrade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#checkout_kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.checkout_kit" title="Link to this definition">#</a></dt>
+<dd><p>Check the members of a kit out into a project, pin each, and record the kit.</p>
 <p>libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: <code class="docutils literal notranslate"><span class="pre">[&lt;library&gt;:]&lt;kit</span> <span class="pre">asset</span> <span class="pre">id&gt;[&#64;&lt;version&gt;]</span></code>; <code class="docutils literal notranslate"><span class="pre">latest</span></code> is resolved now
@@ -1284,18 +1284,25 @@ upgrade: update in place a member’s entry pinned to an earlier version of</p>
 <blockquote>
 <div><p>that member, unedited since (<code class="xref py py-func docutils literal notranslate"><span class="pre">checkout()</span></code>)</p>
 </div></blockquote>
-<p>mall: the project mall (default: <code class="docutils literal notranslate"><span class="pre">build_project_mall(project_dir)</span></code>)
+<dl class="simple">
+<dt>only: check out only these members, each named by the key it lands under</dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">narrator</span></code>) or by its asset id (<code class="docutils literal notranslate"><span class="pre">voice.narrator</span></code>); default: all</p>
+</dd>
+</dl>
+<p>skip: leave these members out, named the same way
+mall: the project mall (default: <code class="docutils literal notranslate"><span class="pre">build_project_mall(project_dir)</span></code>)
 lock: the lockfile (default: the mall’s <code class="docutils literal notranslate"><span class="pre">library_lock</span></code> store); it needs a</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">kits</span></code> section, as <a class="reference internal" href="an.stores.library_lock.html#an.stores.library_lock.ProjectLock" title="an.stores.library_lock.ProjectLock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProjectLock</span></code></a> has</p>
 </div></blockquote>
-<p>Returns one <a class="reference internal" href="#an.library.CheckoutResult" title="an.library.checkout.CheckoutResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">CheckoutResult</span></code></a> per member, in the
-kit’s order. Each member is checked out by <code class="xref py py-func docutils literal notranslate"><span class="pre">checkout()</span></code>
+<p>Returns one <a class="reference internal" href="#an.library.CheckoutResult" title="an.library.checkout.CheckoutResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">CheckoutResult</span></code></a> per member checked
+out, in the kit’s order. Each member is checked out by <code class="xref py py-func docutils literal notranslate"><span class="pre">checkout()</span></code>
 under its <code class="docutils literal notranslate"><span class="pre">key</span></code> and pinned in <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code> as any check-out is; the
 kit itself is recorded under the lockfile’s <code class="docutils literal notranslate"><span class="pre">kits</span></code> section (its pinned
 reference, manifest and the members’ lockfile keys), so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span></code> readers
 and a human can see which kit the project came from. Checking the same kit out
-again is idempotent.</p>
+again is idempotent. A partial check-out (<code class="docutils literal notranslate"><span class="pre">only</span></code>, <code class="docutils literal notranslate"><span class="pre">skip</span></code>, an#400) records
+the members the project holds: a later check-out of more members of the same
+kit version adds to them.</p>
 <p>All members are resolved and checked before the first is written: a missing
 member, a member that is itself a kit, a corrupt stored file, or a project
 entry that is a fork (without <code class="docutils literal notranslate"><span class="pre">overwrite</span></code>) raises <a class="reference internal" href="#an.library.CheckoutError" title="an.library.CheckoutError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CheckoutError</span></code></a>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=557fc66e"></script>
+    <script src="../../../_static/documentation_options.js?v=f1074277"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.194" />
+  <meta name="docsearch:version" content="0.1.195" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1271,6 +1271,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">package</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">only</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Check a library version out into a project, and pin it in assets.lock.json.</span>
 
@@ -1282,16 +1284,30 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    package: the library to read first, then the core an library (default: the reference's &lt;library&gt;: prefix, else an)</span>
 <span class="sd">    root: that library's root (with no --package, the root of the library the reference names)</span>
 <span class="sd">    extra: further libraries, by package name, comma-separated</span>
+<span class="sd">    only: for a kit, check out only these members (their keys or asset ids, comma-separated)</span>
+<span class="sd">    skip: for a kit, leave these members out (their keys or asset ids, comma-separated)</span>
 <span class="sd">    """</span>
     <span class="n">libraries</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">parse_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">KIT_KIND</span><span class="p">:</span>
+    <span class="n">is_kit</span> <span class="o">=</span> <span class="n">parse_ref</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">KIT_KIND</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">only</span> <span class="ow">or</span> <span class="n">skip</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_kit</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+            <span class="s2">"an library checkout: --only and --skip select a kit's members; "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> is not a kit"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_kit</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
                 <span class="s2">"an library checkout: --key names one asset's key; a kit's members "</span>
                 <span class="s2">"carry their own keys (set them with `an library kit --key-for`)"</span>
             <span class="p">)</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">_checkout_kit</span><span class="p">(</span>
-            <span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span>
+            <span class="n">libraries</span><span class="p">,</span>
+            <span class="n">project_dir</span><span class="p">,</span>
+            <span class="n">ref</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+            <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span><span class="p">,</span>
+            <span class="n">only</span><span class="o">=</span><span class="n">_names</span><span class="p">(</span><span class="n">only</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">skip</span><span class="o">=</span><span class="n">_names</span><span class="p">(</span><span class="n">skip</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"kit </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> members"</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">results</span><span class="p">)]</span>
         <span class="n">castable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">ref</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
@@ -1306,6 +1322,11 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="o">*</span><span class="n">_entities_block</span><span class="p">([</span><span class="n">result</span><span class="p">])])</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_names</span><span class="p">(</span><span class="n">csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The comma-separated names in ``csv``, stripped (none for an empty string)."""</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_entities_block</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>

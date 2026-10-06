@@ -31,7 +31,7 @@ Subcommands: `publish`, `kit`, `find`, `vocabulary`, `show`,
 | [`show`](#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.        |
 | [`vocabulary`](#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON).   |
 
-### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, upgrade=False, package='', root='', extra='')
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, upgrade=False, package='', root='', extra='', only='', skip='')
 
 Check a library version out into a project, and pin it in assets.lock.json.
 
@@ -43,6 +43,8 @@ upgrade: update in place the entry pinned to an earlier version of this asset, i
 package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
 root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
+only: for a kit, check out only these members (their keys or asset ids, comma-separated)
+skip: for a kit, leave these members out (their keys or asset ids, comma-separated)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

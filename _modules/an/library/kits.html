@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=557fc66e"></script>
+    <script src="../../../_static/documentation_options.js?v=f1074277"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.194" />
+  <meta name="docsearch:version" content="0.1.195" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -844,6 +844,34 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">asset_kind_info</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span><span class="o">.</span><span class="n">store</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">_slug</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_select_members</span><span class="p">(</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">plan</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">LibraryRef</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">only</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">LibraryRef</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The members of ``plan`` that ``only`` and ``skip`` keep, named by key or asset id."""</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_slot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">]</span>
+    <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">}</span>
+    <span class="n">only</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">only</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">(</span><span class="n">only</span><span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">skip</span><span class="p">)</span>
+    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">only</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">())</span> <span class="o">|</span> <span class="n">skip</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+        <span class="n">listed</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">asset</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">asset</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> has no member </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span><span class="si">}</span><span class="s2">; its members are </span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">member</span>
+        <span class="k">for</span> <span class="n">member</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">only</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">only</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">pair</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">skip</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kept</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: the selection leaves no member to check out"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kept</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_refuse_slots</span><span class="p">(</span>
     <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">slots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">error</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">LibraryError</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -974,10 +1002,12 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">upgrade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">only</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CheckoutResult</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Check every member of a kit out into a project, pin each, and record the kit.</span>
+<span class="w">    </span><span class="sd">"""Check the members of a kit out into a project, pin each, and record the kit.</span>
 
 <span class="sd">    libraries: where the kit and its members resolve</span>
 <span class="sd">    project_dir: the project to check out into</span>
@@ -985,17 +1015,22 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    overwrite: replace project entries that are not exactly their member's version</span>
 <span class="sd">    upgrade: update in place a member's entry pinned to an earlier version of</span>
 <span class="sd">        that member, unedited since (:func:`~an.library.checkout.checkout`)</span>
+<span class="sd">    only: check out only these members, each named by the key it lands under</span>
+<span class="sd">        (``narrator``) or by its asset id (``voice.narrator``); default: all</span>
+<span class="sd">    skip: leave these members out, named the same way</span>
 <span class="sd">    mall: the project mall (default: ``build_project_mall(project_dir)``)</span>
 <span class="sd">    lock: the lockfile (default: the mall's ``library_lock`` store); it needs a</span>
 <span class="sd">        ``kits`` section, as :class:`~an.stores.library_lock.ProjectLock` has</span>
 
-<span class="sd">    Returns one :class:`~an.library.checkout.CheckoutResult` per member, in the</span>
-<span class="sd">    kit's order. Each member is checked out by :func:`~an.library.checkout.checkout`</span>
+<span class="sd">    Returns one :class:`~an.library.checkout.CheckoutResult` per member checked</span>
+<span class="sd">    out, in the kit's order. Each member is checked out by :func:`~an.library.checkout.checkout`</span>
 <span class="sd">    under its ``key`` and pinned in ``assets.lock.json`` as any check-out is; the</span>
 <span class="sd">    kit itself is recorded under the lockfile's ``kits`` section (its pinned</span>
 <span class="sd">    reference, manifest and the members' lockfile keys), so ``an library`` readers</span>
 <span class="sd">    and a human can see which kit the project came from. Checking the same kit out</span>
-<span class="sd">    again is idempotent.</span>
+<span class="sd">    again is idempotent. A partial check-out (``only``, ``skip``, an#400) records</span>
+<span class="sd">    the members the project holds: a later check-out of more members of the same</span>
+<span class="sd">    kit version adds to them.</span>
 
 <span class="sd">    All members are resolved and checked before the first is written: a missing</span>
 <span class="sd">    member, a member that is itself a kit, a corrupt stored file, or a project</span>
@@ -1031,6 +1066,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_refuse_member_kind</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">CheckoutError</span><span class="p">)</span>
         <span class="n">plan</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">member_pin</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">key</span><span class="p">))</span>
     <span class="n">_refuse_slots</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="p">[</span><span class="n">_slot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">],</span> <span class="n">CheckoutError</span><span class="p">)</span>
+    <span class="n">kit_slots</span> <span class="o">=</span> <span class="p">[</span><span class="n">lock_key</span><span class="p">(</span><span class="o">*</span><span class="n">_slot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">]</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">_select_members</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="n">plan</span><span class="p">,</span> <span class="n">only</span><span class="o">=</span><span class="n">only</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">:</span>
         <span class="n">check_checkout</span><span class="p">(</span>
             <span class="n">libs</span><span class="p">,</span>
@@ -1056,12 +1093,15 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">plan</span>
     <span class="p">]</span>
+    <span class="n">held</span> <span class="o">=</span> <span class="n">kits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">holds</span> <span class="o">=</span> <span class="p">{</span><span class="n">lock_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">):</span>
+        <span class="n">holds</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"members"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
     <span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"library"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">),</span>
         <span class="s2">"manifest_sha256"</span><span class="p">:</span> <span class="n">version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">],</span>
-        <span class="s2">"members"</span><span class="p">:</span> <span class="p">[</span><span class="n">lock_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">],</span>
+        <span class="s2">"members"</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kit_slots</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">holds</span><span class="p">],</span>
     <span class="p">}</span>
-    <span class="n">held</span> <span class="o">=</span> <span class="n">kits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">record</span><span class="p">}</span> <span class="o">!=</span> <span class="n">record</span><span class="p">:</span>
         <span class="n">kits</span><span class="p">[</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">record</span><span class="p">,</span> <span class="s2">"checked_out"</span><span class="p">:</span> <span class="n">_now</span><span class="p">()}</span>
     <span class="k">return</span> <span class="n">results</span></div>
