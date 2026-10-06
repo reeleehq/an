@@ -111,7 +111,11 @@ def test_validate_refuses_a_rate_above_fps(bad):
 def test_validate_checks_step_hz_against_the_render_fps_when_given():
     """an#435: `an render --fps 12` refuses a step_hz of 15 at compile, so
     `validate(fps=12)` predicts it, naming the render's rate."""
-    scene = SceneIR(meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0), timeline=[_shot(step_hz=15.0)])
+    # no entities: the check is the core's, so it runs without a genre
+    scene = SceneIR(
+        meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0),
+        timeline=[Shot(id="s", duration=2.0, step_hz=15.0)],
+    )
     assert validate_semantic(scene).passed  # the scene's 24 fps allows it
     report = validate_semantic(scene, fps=12)
     errors = {f.ir_path: f.description for f in report.findings if f.severity == "error"}
@@ -127,7 +131,8 @@ def test_an_validate_takes_the_render_fps(tmp_path):
     root = init(tmp_path / "p")
     proj = load(root)
     proj.mall["scenes"]["main"] = SceneIR(
-        meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0), timeline=[_shot()]
+        meta=Meta(title="t", duration=2.0, fps=24, step_hz=15.0),
+        timeline=[Shot(id="s", duration=2.0)],
     )
     assert "FAILED" not in validate(str(root))
     out = validate(str(root), fps=12)
