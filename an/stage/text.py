@@ -77,6 +77,7 @@ __all__ = [
     "Counter",
     "TextFontError",
     "TextLayoutError",
+    "TextOutlineWarning",
     "TextUnit",
     "TextLayout",
     "FontIdentity",
@@ -114,6 +115,10 @@ DFLT_TEXT_SIZE: float = 0.06
 #: Ink when the document names none — a near-black that reads on the default
 #: white background.
 DFLT_TEXT_COLOUR: str = "#1a1a1a"
+
+#: The outline's ink when a block sets ``stroke_width`` and names no
+#: ``stroke_color`` (an#313): the near-black of the default fill.
+DFLT_TEXT_STROKE_COLOUR: str = "#1a1a1a"
 
 #: Line height as a multiple of the size.
 DFLT_LEADING: float = 1.2
@@ -238,6 +243,13 @@ class TextDescriptor(BaseModel):
     size: float = Field(default=DFLT_TEXT_SIZE, gt=0, le=1, allow_inf_nan=False)
     #: ``#rrggbb``.
     color: str = DFLT_TEXT_COLOUR
+    #: An outline around every glyph (an#313, OverSimplified's white labels
+    #: edged in black): its visible thickness OUTSIDE the glyph, in scene
+    #: pixels, drawn under the fill in the same texture, so a per-unit
+    #: reveal shows outline and fill together. ``0`` = none.
+    stroke_width: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    #: The outline's ``#rrggbb``; needs ``stroke_width``.
+    stroke_color: str = DFLT_TEXT_STROKE_COLOUR
     #: ``None`` = the embedded face; else a font FILE path (see the module doc).
     font: str | None = None
     align: Literal["left", "center", "right"] = "center"
@@ -262,7 +274,7 @@ class TextDescriptor(BaseModel):
         mark every default as set (:func:`an.ir.migrate.omit_unset`)."""
         return omit_unset(self, handler(self))
 
-    @field_validator("color")
+    @field_validator("color", "stroke_color")
     @classmethod
     def _hex(cls, color):
         if not _HEX_COLOUR.fullmatch(color):
@@ -362,6 +374,11 @@ class TextDescriptor(BaseModel):
                 raise ValueError(
                     f"unknown anchor {self.anchor!r}; choose from {sorted(ANCHORS)}"
                 )
+        if "stroke_color" in self.model_fields_set and not self.stroke_width:
+            raise ValueError(
+                "`stroke_color` colours an outline, and `stroke_width` is 0, so "
+                "nothing would draw it; give `stroke_width` (scene px)"
+            )
         if self.tracking and self.unit != "glyph":
             raise ValueError(
                 f"`tracking` sets a string one run per GLYPH, so unit={self.unit!r} "
@@ -630,6 +647,8 @@ def _layout_string(
             ) from err
         if outline.bbox is not None:
             inked.append((run, outline))
+    if desc.stroke_width and desc.unit in ("word", "glyph"):
+        _warn_if_outlines_overlap(desc, inked)
     if desc.unit == BLOCK_UNIT:
         # One unit for the whole block: the lines' contours in one path, the
         # union of their boxes (an#341).
@@ -641,15 +660,17 @@ def _layout_string(
         box = group[0][0].bbox().union(group[0][1].bbox)
         for run, outline in group[1:]:
             box = box.union(run.bbox()).union(outline.bbox)
+        # The outline reaches `stroke_width` past the ink (an#313).
+        pad = UNIT_BOX_PAD_PX + math.ceil(desc.stroke_width)
         units.append(
             TextUnit(
                 name=f"{desc.unit}_{len(units)}",
                 text="\n".join(run.text for run, _ in group),
                 box=(
-                    math.floor(box.x0) - UNIT_BOX_PAD_PX,
-                    math.floor(box.y0) - UNIT_BOX_PAD_PX,
-                    math.ceil(box.x1) + UNIT_BOX_PAD_PX,
-                    math.ceil(box.y1) + UNIT_BOX_PAD_PX,
+                    math.floor(box.x0) - pad,
+                    math.floor(box.y0) - pad,
+                    math.ceil(box.x1) + pad,
+                    math.ceil(box.y1) + pad,
                 ),
                 d=" ".join(outline.d for _, outline in group),
             )
@@ -667,6 +688,34 @@ def _layout_string(
         font=identity,
         bounds=(bb.x0 + dx, bb.y0 + dy, bb.x1 + dx, bb.y1 + dy),
     )
+
+
+class TextOutlineWarning(UserWarning):
+    """A unit's outline is wide enough to cover its neighbour's glyphs."""
+
+
+def _warn_if_outlines_overlap(desc: TextDescriptor, inked: list) -> None:
+    """Each unit is its own texture, so a unit's outline is drawn OVER the
+    fill of the unit before it wherever the two meet (an#313): two units on
+    one line closer than twice ``stroke_width`` show it. Said once, naming
+    the remedies, rather than drawn silently."""
+    import warnings
+
+    reach = 2 * desc.stroke_width
+    for (a, oa), (b, ob) in zip(inked, inked[1:]):
+        ink_a, ink_b = oa.bbox, ob.bbox
+        same_line = ink_a.y0 < ink_b.y1 and ink_b.y0 < ink_a.y1
+        if same_line and ink_b.x0 - ink_a.x1 < reach:
+            warnings.warn(
+                f"text {desc.name!r}: a {desc.stroke_width:g} px outline reaches "
+                f"across the gap between {a.text!r} and {b.text!r}, so each "
+                f"{desc.unit}'s outline covers part of the one before it (every "
+                "unit is its own texture). Use a thinner `stroke_width`, a larger "
+                "`size`, or `unit: line`/`block` for a heavy outline.",
+                TextOutlineWarning,
+                stacklevel=4,
+            )
+            return
 
 
 def _layout_engine_name(face) -> str:

@@ -68,18 +68,39 @@ INLINE_SRC_PREFIX: str = "data:"
 _SVG_NS = "http://www.w3.org/2000/svg"
 
 
-def unit_svg(d: str, box: tuple[int, int, int, int], *, color: str) -> str:
+def unit_svg(
+    d: str,
+    box: tuple[int, int, int, int],
+    *,
+    color: str,
+    stroke_width: float = 0.0,
+    stroke_color: str | None = None,
+) -> str:
     """One unit's texture: its contours in a viewBox equal to its frame-pixel box.
 
     >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]
     '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'
+
+    With an outline (an#313) the same contours are drawn first as a stroke
+    TWICE ``stroke_width`` wide, round-joined, so ``stroke_width`` shows outside
+    the glyph once the fill covers the inner half: two paths rather than
+    ``paint-order``, so no rasteriser's support for that attribute is assumed.
+
+    >>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
+    True
     """
     x0, y0, x1, y1 = box
     w, h = x1 - x0, y1 - y0
     k = TEXT_TEXTURE_OVERSAMPLE
+    outline = (
+        f'<path fill="none" stroke="{stroke_color}" stroke-width="{2 * stroke_width:g}" '
+        f'stroke-linejoin="round" d="{d}"/>'
+        if stroke_width > 0
+        else ""
+    )
     return (
         f'<svg xmlns="{_SVG_NS}" width="{w * k}" height="{h * k}" '
-        f'viewBox="{x0} {y0} {w} {h}"><path fill="{color}" d="{d}"/></svg>'
+        f'viewBox="{x0} {y0} {w} {h}">{outline}<path fill="{color}" d="{d}"/></svg>'
     )
 
 
@@ -141,7 +162,15 @@ def _unit_texture(
     silently share one texture. Two keys of one set with one string share one
     texture.
     """
-    src = svg_data_uri(unit_svg(unit.d, unit.box, color=desc.color))
+    src = svg_data_uri(
+        unit_svg(
+            unit.d,
+            unit.box,
+            color=desc.color,
+            stroke_width=desc.stroke_width,
+            stroke_color=desc.stroke_color,
+        )
+    )
     digest = hashlib.sha256(src.encode("ascii")).hexdigest()[:TEXT_ALIAS_DIGEST_LEN]
     alias = f"{TEXT_TEXTURE_PREFIX}{entity_id}.{unit.name}.{digest}"
     textures[alias] = AssetJSON(src=src)

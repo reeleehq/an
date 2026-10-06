@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T12:47:01Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 4863,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "5e11d9ab08bdbeacdef91356cf5659b43f8cb47618ace92e958eed2616f9d832",
+      "shot_id": "label",
+      "time": 0.0
+    },
+    {
+      "bytes": 8024,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "76366a38732b59edcd74cd8f9cb694f9c64c047d85d6b40c36870ed7f28073f3",
+      "shot_id": "label",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "text-outline-313",
+    "dirty": true,
+    "sha": "dfef157faadcd568667155c606e8297b5781644b"
+  },
+  "reason": "new core scene (an#313): outlined words over a plate, revealed word by word",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "text_outline",
+  "scene_contract_sha256": "157235ffc28787de601acc5277393ed8f80171f28054aafa48461d7652555894",
+  "shot_ids": [
+    "label"
+  ],
+  "source": "misc/bench/corpus/text_outline",
+  "what_moves": "OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."
+}

@@ -12,6 +12,7 @@ path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role
 stage_pan  planes and the camera's TRANSLATION — parallax at three depths
 text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
+text_outline outlined words over a plate, revealed word by word (an#313)
 text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
 text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
@@ -42,7 +43,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -221,6 +222,22 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "regression in the draw order (the disc over the wall), in the "
             "wrapper's compensation (the disc sliding against the sky), or "
             "in the band containers' addressing moves a golden."
+        ),
+    ),
+    "text_outline": Fixture(
+        path=f"{CORPUS_DIRNAME}/text_outline",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "OUTLINED text (an#313, OverSimplified's labels): white words with a "
+            "4 px near-black outline over a mid-blue plate and a pale stripe, "
+            "the second word fading in from 0.125 s. Frame 0 shows the first "
+            "word alone, outline and all, and NO outline where the second word "
+            "will be (the outline lives in the word's own texture, so its alpha "
+            "hides both); frame 8 shows both, legible over the blue and the "
+            "stripe alike. A regression in the outline's width, its order under "
+            "the fill, the box growth that keeps it unclipped, or per-word "
+            "alpha moves a golden."
         ),
     ),
     "transitions": Fixture(
