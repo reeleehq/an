@@ -106,7 +106,7 @@ allow_restricted: copy a private or unknown version anyway (it otherwise never l
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='')
+### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='', license_part=None)
 
 Publish an asset folder as the next version of `asset_id`.
 
@@ -133,6 +133,7 @@ relabel_reason: why — recorded (on the version, or on the head it labels) and 
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated
+license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names (‘\*’ stays in one folder, ‘\*\*’ crosses folders, case-exact); every other file takes the version’s label without them. Never looser than what the bytes already carry, unless relicensed
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

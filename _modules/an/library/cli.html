@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2bc3bbc1"></script>
+    <script src="../../../_static/documentation_options.js?v=8fbb3fd8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.172" />
+  <meta name="docsearch:version" content="0.1.173" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -754,7 +754,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.federation</span><span class="w"> </span><span class="kn">import</span> <span class="n">Library</span><span class="p">,</span> <span class="n">open_library</span><span class="p">,</span> <span class="n">search_path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_ref</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_kind</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">license_class</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">version_key</span>
 
@@ -791,6 +791,56 @@ window.runMermaid = runMermaid;</script>
         <span class="n">author</span><span class="o">=</span><span class="n">author</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">url</span><span class="o">=</span><span class="n">url</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: The ``key=value`` fields a ``--license-part`` may give after its licence.</span>
+<span class="n">_PART_FIELDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"provider"</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_license_parts</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">asset</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``{glob: source}`` from repeated ``--license-part 'GLOB=LICENCE[,provider=…,author=…,url=…]'``.</span>
+
+<span class="sd">    The glob is everything before the first ``=`` (match a path holding ``=``</span>
+<span class="sd">    with ``?``). A part whose class differs from the asset's, or that owes</span>
+<span class="sd">    attribution, names its own ``provider=`` (L1-12 of the an#345 review: the</span>
+<span class="sd">    credit must go to the right party); otherwise it takes ``--provider``.</span>
+
+<span class="sd">    &gt;&gt;&gt; asset = AssetSource(provider="me", license="cc0-1.0")</span>
+<span class="sd">    &gt;&gt;&gt; p = _license_parts(["parts/*.png=cc0-1.0"], asset)</span>
+<span class="sd">    &gt;&gt;&gt; p["parts/*.png"].provider, p["parts/*.png"].license</span>
+<span class="sd">    ('me', 'cc0-1.0')</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="n">glob</span><span class="p">,</span> <span class="n">eq</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+        <span class="n">licence</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">rest</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">eq</span> <span class="ow">and</span> <span class="n">glob</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">licence</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"an library publish: --license-part </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> must read "</span>
+                <span class="s2">"'GLOB=LICENCE[,provider=…,author=…,url=…]'"</span>
+            <span class="p">)</span>
+        <span class="n">extra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PART_FIELDS</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"an library publish: --license-part field </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2"> is not one "</span>
+                    <span class="sa">f</span><span class="s2">"of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_PART_FIELDS</span><span class="p">)</span><span class="si">}</span><span class="s2"> as key=value"</span>
+                <span class="p">)</span>
+            <span class="n">extra</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">if</span> <span class="s2">"provider"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">extra</span><span class="p">:</span>
+            <span class="bp">cls</span> <span class="o">=</span> <span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"-"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="n">licence</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">asset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">cls</span> <span class="o">==</span> <span class="s2">"attribution"</span> <span class="ow">or</span> <span class="bp">cls</span> <span class="o">!=</span> <span class="n">license_class</span><span class="p">(</span><span class="n">asset</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"an library publish: --license-part </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> needs its own "</span>
+                    <span class="s2">"provider=… (a part whose licence class differs from the "</span>
+                    <span class="s2">"asset's, or that owes attribution, is credited to its own party)"</span>
+                <span class="p">)</span>
+            <span class="n">extra</span><span class="p">[</span><span class="s2">"provider"</span><span class="p">]</span> <span class="o">=</span> <span class="n">asset</span><span class="o">.</span><span class="n">provider</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">glob</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="p">(</span><span class="n">license</span><span class="o">=</span><span class="n">licence</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span> <span class="ow">or</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_refusing</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
@@ -881,6 +931,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">expect_head</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">replace_curation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">license_part</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Publish an asset folder as the next version of ``asset_id``.</span>
 
@@ -907,16 +958,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet</span>
 <span class="sd">    replace_curation: --style/--tags replace the record's lists instead of adding to them</span>
 <span class="sd">    extra: further libraries where --derived-from resolves, by package name, comma-separated</span>
+<span class="sd">    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. Never looser than what the bytes already carry, unless relicensed</span>
 <span class="sd">    """</span>
     <span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">asset_source</span> <span class="o">=</span> <span class="n">_source_from_flags</span><span class="p">(</span>
+        <span class="n">license</span><span class="o">=</span><span class="n">license</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">source_url</span>
+    <span class="p">)</span>
     <span class="n">others</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="n">_split</span><span class="p">(</span><span class="n">derived_from</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())[</span><span class="mi">1</span><span class="p">:]</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_publish_dir</span><span class="p">(</span>
         <span class="n">lib</span><span class="p">,</span>
         <span class="n">folder</span><span class="p">,</span>
         <span class="n">asset_id</span><span class="p">,</span>
-        <span class="n">source</span><span class="o">=</span><span class="n">_source_from_flags</span><span class="p">(</span>
-            <span class="n">license</span><span class="o">=</span><span class="n">license</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">source_url</span>
-        <span class="p">),</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">asset_source</span><span class="p">,</span>
+        <span class="n">license_parts</span><span class="o">=</span><span class="n">_license_parts</span><span class="p">(</span><span class="n">license_part</span><span class="p">,</span> <span class="n">asset_source</span><span class="p">),</span>
         <span class="n">derived_from</span><span class="o">=</span><span class="n">_split</span><span class="p">(</span><span class="n">derived_from</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(),</span>
         <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">family</span><span class="o">=</span><span class="n">family</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>

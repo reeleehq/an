@@ -250,7 +250,7 @@ from the source version, with the record’s curation carried over.
 * **Return type:**
   [`PublishResult`](#an.library.api.PublishResult)
 
-### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True, license_parts=None, file_sources=None)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -313,6 +313,25 @@ expect_head: guard against publishing into an asset you did not mean:
 
 search: further libraries where `derived_from` references resolve (the
 : owning library is always searched first)
+
+license_parts: `{glob: source}` — a per-file statement for every stored
+: path a glob matches (`match_license_parts()`: `*` stays in one
+  folder, `**` crosses folders, case-exact; a glob matching nothing,
+  two globs disagreeing on a path, or a near miss refuse), each pinned
+  to the file’s digest (an#345). Needs an asset-level `source` (given
+  or carried): the files no glob names are stated with the version’s
+  label computed WITHOUT these statements. A per-file statement never
+  relaxes what the bytes already carry — the per-part source of the same
+  file, the same bytes at another path, and every earlier statement of
+  this asset’s chain or of a version it derives from about them: a
+  looser one is refused unless `relicense` records who and why (the
+  relicence then lists the digests it covers, and a per-file statement
+  stricter than it keeps binding). At a later publish a statement is
+  carried for its file while the bytes are unchanged; a file changed
+  since is recorded `unlabelled`
+
+file_sources: `{path: source}` — the same, by exact stored path (what a
+: stored version holds; [`promote()`](#an.library.api.promote) passes it)
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -460,7 +479,7 @@ stricter.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None)
+### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None, per_file=True)
 
 Every labelled source a version’s rights depend on — its own, its lineage, its bytes.
 
@@ -489,6 +508,11 @@ floor: a [`BlobFloor`](an.library.floor.html.md#an.library.floor.BlobFloor) to r
 owner: the library holding `version` (default: unknown — its own
 : statements are then read from the floor too, which repeats a reason and
   relaxes nothing)
+
+per_file: count each walked version’s per-file statements
+: (`FILE_SOURCES_FIELD`, labelled `file:<path>`; an#345) — they
+  count toward a version’s rights, never toward the label that speaks
+  for the files nothing itemises (`False`: `_own_label_class()`)
 
 A version carrying an explicit `relicense` (who, why) contributes its
 asset-level source alone: that recorded statement replaces everything it

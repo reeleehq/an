@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=2bc3bbc1"></script>
+    <script src="../_static/documentation_options.js?v=8fbb3fd8"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.federation" href="an.library.federation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.172" />
+  <meta name="docsearch:version" content="0.1.173" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -606,7 +606,13 @@ the same digest (<code class="docutils literal notranslate"><span class="pre">As
 (a stale factory stamp on a re-carved part) itemises nothing;</p></li>
 <li><p>otherwise the asset’s own label: its asset-level and descriptor sources and
 its lineage — what the asset says about every file it does not itemise;</p></li>
-<li><p>for a relicensed version, its relicence.</p></li>
+<li><p>for a relicensed version, its relicence;</p></li>
+<li><p>for a version carrying per-file statements (<code class="docutils literal notranslate"><span class="pre">file_sources</span></code>, an#345), or
+one whose lineage does: the strictest of its per-file statement (else its
+label computed without per-file statements), the same file’s per-part
+source, the same bytes at its other paths, and what its lineage says about
+these bytes — so a later statement never relaxes an earlier one
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.api._PerFileRule</span></code>).</p></li>
 </ul>
 <p><strong>Where the statements live.</strong> Each library keeps a derived store,
 <code class="docutils literal notranslate"><span class="pre">blob_rights</span></code>: <code class="docutils literal notranslate"><span class="pre">sha256</span> <span class="pre">-&gt;</span> <span class="pre">{&quot;&lt;library&gt;:&lt;asset_id&gt;&quot;:</span> <span class="pre">statement}</span></code>, one entry

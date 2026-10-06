@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2bc3bbc1"></script>
+    <script src="../../../_static/documentation_options.js?v=8fbb3fd8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.172" />
+  <meta name="docsearch:version" content="0.1.173" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -749,6 +749,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">posixpath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
@@ -772,7 +773,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">referenced_paths</span><span class="p">,</span>
     <span class="n">same_source</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span><span class="p">,</span> <span class="n">omit_unset</span><span class="p">,</span> <span class="n">register_kind</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DocumentKind</span><span class="p">,</span>
+    <span class="n">migrate</span><span class="p">,</span>
+    <span class="n">omit_unset</span><span class="p">,</span>
+    <span class="n">register_kind</span><span class="p">,</span>
+    <span class="n">register_migration</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.affordances</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CAPABILITIES</span><span class="p">,</span>
     <span class="n">KEY_SEP</span><span class="p">,</span>
@@ -870,9 +877,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">DocumentKind</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"LibraryVersion"</span><span class="p">,</span>
         <span class="n">version_field</span><span class="o">=</span><span class="s2">"schema_version"</span><span class="p">,</span>
-        <span class="n">current_version</span><span class="o">=</span><span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
+        <span class="n">current_version</span><span class="o">=</span><span class="s2">"0.2.0"</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
+
+
+<span class="nd">@register_migration</span><span class="p">(</span><span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span> <span class="s2">"0.2.0"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_version_0_1_to_0_2</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""0.2.0 adds the optional ``file_sources`` (an#345): nothing to rewrite.</span>
+
+<span class="sd">    A version is WRITTEN at 0.2.0 only when it carries ``file_sources``, so an</span>
+<span class="sd">    older reader (which knows no path from 0.2.0) refuses it rather than</span>
+<span class="sd">    reading its per-file statements as the asset-level label alone.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"schema_version"</span><span class="p">:</span> <span class="s2">"0.2.0"</span><span class="p">}</span>
+
+
 <span class="n">LABEL_KIND</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">=</span> <span class="n">register_kind</span><span class="p">(</span>
     <span class="n">DocumentKind</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"LibraryLabel"</span><span class="p">,</span>
@@ -935,6 +955,23 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: references alone are re-resolved by name, and a same-named library's other</span>
 <span class="c1">#: ``x@v001`` would stand in for it.</span>
 <span class="n">LINEAGE_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"lineage"</span>
+<span class="c1">#: The version field holding per-file statements (an#345): ``{path: source}``,</span>
+<span class="c1">#: each source pinned to the digest of the file it was given for. Any file of</span>
+<span class="c1">#: the version can carry one, attachment or not. A version carrying the field</span>
+<span class="c1">#: (and every version whose lineage does) is stated under the never-relax rule</span>
+<span class="c1">#: (:class:`_PerFileRule`): a per-file statement can only ever be stricter than</span>
+<span class="c1">#: what the bytes already carry, unless a recorded relicence names those bytes.</span>
+<span class="n">FILE_SOURCES_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"file_sources"</span>
+<span class="c1">#: How a per-file statement is labelled among a version's contributors (and in</span>
+<span class="c1">#: a check-out's origin block, where no descriptor label can shadow it).</span>
+<span class="n">FILE_SOURCE_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"file:"</span>
+<span class="c1">#: The relicence entry listing the digests a relicence speaks for, recorded on</span>
+<span class="c1">#: a version carrying ``file_sources``: a per-file statement stricter than the</span>
+<span class="c1">#: relicence is not covered, and keeps binding.</span>
+<span class="n">RELICENSE_COVERS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"covers"</span>
+<span class="c1">#: The version-document schema a version carrying ``file_sources`` is written</span>
+<span class="c1">#: at, so an older ``an`` refuses to read it instead of reading it looser.</span>
+<span class="n">PER_FILE_SCHEMA_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"0.2.0"</span>
 <span class="c1">#: How many labels a publish tries when another publisher takes the one it chose.</span>
 <span class="n">MAX_PUBLISH_ATTEMPTS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1">#: How many close capability names a typo's error suggests.</span>
@@ -1139,6 +1176,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">relabel</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">unlabelled</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
     <span class="n">lineage</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"doc"</span><span class="p">:</span> <span class="n">doc</span><span class="p">,</span>
@@ -1156,6 +1194,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">payload</span><span class="p">[</span><span class="n">LINEAGE_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">lineage</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">unlabelled</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="n">UNLABELLED_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unlabelled</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_sources</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Present (even empty) on every version of a chain that ever carried</span>
+        <span class="c1"># per-file statements: absent leaves every older manifest unchanged.</span>
+        <span class="n">payload</span><span class="p">[</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">file_sources</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">canonical_json</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 
@@ -1175,6 +1217,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">relabel</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">),</span>
         <span class="n">unlabelled</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(),</span>
         <span class="n">lineage</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LINEAGE_FIELD</span><span class="p">),</span>
+        <span class="n">file_sources</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">),</span>
     <span class="p">)</span>
 
 
@@ -1214,6 +1257,136 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">migrate</span><span class="p">(</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">versions</span><span class="p">[</span><span class="n">version_key</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">label</span><span class="p">)]),</span> <span class="n">kind</span><span class="o">=</span><span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span>
     <span class="p">)</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------- per-file</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_glob_regex</span><span class="p">(</span><span class="n">glob</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">near</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The regex a ``--license-part`` glob matches stored paths with.</span>
+
+<span class="sd">    ``*`` and ``?`` stay inside one path segment, a whole ``**`` segment</span>
+<span class="sd">    matches any number of segments (none included), everything else is</span>
+<span class="sd">    literal and case-exact. ``near``: the looser pattern a NEAR miss matches —</span>
+<span class="sd">    any case, any extension in place of the glob's own, ``_``/``-``/space</span>
+<span class="sd">    interchangeable or absent in the file name, and extra folders above it.</span>
+<span class="sd">    """</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">glob</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">):</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">n</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">seg</span> <span class="o">==</span> <span class="s2">"**"</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"(?:[^/]+/)*"</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">last</span> <span class="k">else</span> <span class="s2">"(?:[^/]+(?:/[^/]+)*)?"</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">stem</span><span class="p">,</span> <span class="n">dot</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">seg</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+        <span class="c1"># An extension swap only where the stem names something (``head_*``):</span>
+        <span class="c1"># a bare ``*.png`` means "every PNG", and its other files are no miss.</span>
+        <span class="n">swap</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">near</span> <span class="ow">and</span> <span class="n">last</span> <span class="ow">and</span> <span class="n">dot</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">stem</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="s2">"*?"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="s2">"*?"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">stem</span> <span class="k">if</span> <span class="n">swap</span> <span class="k">else</span> <span class="n">seg</span>
+        <span class="n">loose</span> <span class="o">=</span> <span class="n">near</span> <span class="ow">and</span> <span class="n">last</span>
+        <span class="n">piece</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="s2">"[^/]*"</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">"*"</span>
+            <span class="k">else</span> <span class="s2">"[^/]"</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">"?"</span>
+            <span class="k">else</span> <span class="sa">r</span><span class="s2">"[_\- ]?"</span>
+            <span class="k">if</span> <span class="n">loose</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">"_- "</span>
+            <span class="k">else</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">body</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">loose</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"(?:[^/]+/)*"</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">piece</span> <span class="o">+</span> <span class="p">(</span><span class="sa">r</span><span class="s2">"\.[^/.]+"</span> <span class="k">if</span> <span class="n">swap</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">""</span> <span class="k">if</span> <span class="n">last</span> <span class="k">else</span> <span class="s2">"/"</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span> <span class="k">if</span> <span class="n">near</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">match_license_parts</span><span class="p">(</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{path: (glob, source)}``: which stored path each ``--license-part`` glob labels.</span>
+
+<span class="sd">    Matched against the paths the version stores (after clutter is skipped),</span>
+<span class="sd">    NFC on both sides. Refused, with a sentence: a glob matching nothing; a</span>
+<span class="sd">    path two globs give different sources; and a NEAR miss — a path no glob</span>
+<span class="sd">    matches that one would match ignoring case, extension, the ``_``/``-``/space</span>
+<span class="sd">    separators or extra folders</span>
+<span class="sd">    (``parts/Head_3.PNG``, ``parts/head_3.jpg`` beside ``parts/head_*.png``),</span>
+<span class="sd">    since a miss falls to the looser asset-level label.</span>
+
+<span class="sd">    &gt;&gt;&gt; match_license_parts({"parts/head_*.png": "private"},</span>
+<span class="sd">    ...                     ["parts/head_1.png", "parts/body.svg"])</span>
+<span class="sd">    {'parts/head_1.png': ('parts/head_*.png', 'private')}</span>
+<span class="sd">    &gt;&gt;&gt; sorted(match_license_parts({"**/*.png": "x"}, ["a.png", "parts/sub/b.png"]))</span>
+<span class="sd">    ['a.png', 'parts/sub/b.png']</span>
+<span class="sd">    &gt;&gt;&gt; match_license_parts({"parts/head_*.png": "p"},</span>
+<span class="sd">    ...     ["parts/head_1.png", "parts/head_2.jpg"])  # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    LibraryError: ...</span>
+<span class="sd">    """</span>
+    <span class="n">stored</span> <span class="o">=</span> <span class="p">{</span><span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"NFC"</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">}</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">glob</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">parts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">glob</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span><span class="s2">"a --license-part needs a glob before its '='"</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">_glob_regex</span><span class="p">(</span><span class="n">glob</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">nfc</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">stored</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">nfc</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"--license-part </span><span class="si">{</span><span class="n">glob</span><span class="si">!r}</span><span class="s2"> matches no file of the asset (globs are "</span>
+                <span class="s2">"case-exact, '*' stays inside one folder and '**' crosses folders)"</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">:</span>
+            <span class="n">held</span> <span class="o">=</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">source</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> is matched by --license-part </span><span class="si">{</span><span class="n">held</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">glob</span><span class="si">!r}</span><span class="s2"> "</span>
+                    <span class="s2">"with different sources; make the globs disjoint"</span>
+                <span class="p">)</span>
+            <span class="n">found</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">glob</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">glob</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="n">near</span> <span class="o">=</span> <span class="n">_glob_regex</span><span class="p">(</span><span class="n">glob</span><span class="p">,</span> <span class="n">near</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">missed</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">p</span> <span class="k">for</span> <span class="n">nfc</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">stored</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">found</span> <span class="ow">and</span> <span class="n">near</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">nfc</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">missed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"--license-part </span><span class="si">{</span><span class="n">glob</span><span class="si">!r}</span><span class="s2"> nearly matches </span><span class="si">{</span><span class="n">missed</span><span class="si">}</span><span class="s2"> (another case, "</span>
+                <span class="s2">"extension, separator or folder), which would fall to the "</span>
+                <span class="s2">"asset-level label: name them with their own --license-part, or "</span>
+                <span class="s2">"widen the glob"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_file_entry</span><span class="p">(</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The per-file statement ``version`` makes about exactly these bytes at ``path``.</span>
+
+<span class="sd">    An entry pinned to other bytes (the file changed since) speaks for nothing.</span>
+<span class="sd">    """</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">source</span> <span class="k">if</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_file_contributions</span><span class="p">(</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The per-file statements a version makes about the bytes it holds, as contributors."""</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">_file_entry</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">FILE_SOURCE_PREFIX</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">entry</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="c1"># --------------------------------------------------------------------------- rights</span>
@@ -1519,6 +1692,7 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">floor</span><span class="p">:</span> <span class="n">BlobFloor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_MACHINE</span><span class="p">,</span>
     <span class="n">owner</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">per_file</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Every labelled source a version's rights depend on — its own, its lineage, its bytes.</span>
 
@@ -1546,6 +1720,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    owner: the library holding ``version`` (default: unknown — its own</span>
 <span class="sd">        statements are then read from the floor too, which repeats a reason and</span>
 <span class="sd">        relaxes nothing)</span>
+<span class="sd">    per_file: count each walked version's per-file statements</span>
+<span class="sd">        (:data:`FILE_SOURCES_FIELD`, labelled ``file:&lt;path&gt;``; an#345) — they</span>
+<span class="sd">        count toward a version's rights, never toward the label that speaks</span>
+<span class="sd">        for the files nothing itemises (``False``: :func:`_own_label_class`)</span>
 
 <span class="sd">    A version carrying an explicit ``relicense`` (who, why) contributes its</span>
 <span class="sd">    asset-level source alone: that recorded statement replaces everything it</span>
@@ -1622,6 +1800,10 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
                 <span class="p">)</span>
             <span class="p">)</span>
+            <span class="c1"># A relicence never covers a per-file statement it did not name:</span>
+            <span class="c1"># one stricter than it keeps binding (an#345).</span>
+            <span class="k">if</span> <span class="n">per_file</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_file_contributions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">_verify</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">gap</span><span class="p">(</span>
@@ -1654,6 +1836,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">files</span><span class="o">=</span><span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="p">)</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="n">per_file</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_file_contributions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
         <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
             <span class="n">gap</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1855,21 +2039,300 @@ window.runMermaid = runMermaid;</script>
     <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The class of what a version says about every file it does not itemise</span>
-<span class="sd">    (with the labels recorded on it since, when ``owner`` holds it)."""</span>
+<span class="sd">    (with the labels recorded on it since, when ``owner`` holds it).</span>
+
+<span class="sd">    Per-file statements (an#345) are left out at every depth of the walk: a</span>
+<span class="sd">    file another file's label names is no reason to restate THIS file.</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">roll_up</span><span class="p">(</span>
-        <span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+        <span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">per_file</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="p">)</span><span class="o">.</span><span class="n">license_class</span>
 
 
+<span class="c1">#: A statement as the never-relax rule weighs it: ``(class, why)``.</span>
+<span class="n">_Said</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strictest</span><span class="p">(</span><span class="o">*</span><span class="n">said</span><span class="p">:</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The most restrictive of several ``(class, why)``; on a tie, the first."""</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">present</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">said</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">present</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">order</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="k">if</span> <span class="n">present</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"free"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_source_class</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"unknown"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_relicence_covers</span><span class="p">(</span><span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``version``'s relicence speaks for ``digest``: all its bytes,</span>
+<span class="sd">    or only those its ``covers`` lists (a version under the per-file rule)."""</span>
+    <span class="n">relicense</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">relicense</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">covers</span> <span class="o">=</span> <span class="n">relicense</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_COVERS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">covers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">covers</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_PerFileRule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a version says about each of its blobs under the never-relax rule (an#345).</span>
+
+<span class="sd">    Applies to a version carrying ``file_sources`` and to every version whose</span>
+<span class="sd">    lineage does; every other version is stated exactly as before</span>
+<span class="sd">    (:func:`blob_statement`), so no stored statement moves on ``reindex``.</span>
+<span class="sd">    For each file the class stated is the STRICTEST of:</span>
+
+<span class="sd">    - its per-file statement if it has one, else the version's label computed</span>
+<span class="sd">      without any per-file statement (:func:`_own_label_class`), or — a file</span>
+<span class="sd">      only a per-part source itemises — that source, as before (extending the</span>
+<span class="sd">      rule to per-part sources is an#357's question);</span>
+<span class="sd">    - its per-part source, when it also has a per-file one (neither wins by</span>
+<span class="sd">      position);</span>
+<span class="sd">    - what the version says about the same bytes at its other paths;</span>
+<span class="sd">    - what every version of its lineage — ``previous`` back to the first,</span>
+<span class="sd">      and each ``derived_from`` parent — says about these bytes: the</span>
+<span class="sd">      statement of the nearest one holding them, or, for bytes it does not</span>
+<span class="sd">      hold, its own label (bytes new to a private chain stay private).</span>
+
+<span class="sd">    A relicensed version states its relicence for the bytes it covers</span>
+<span class="sd">    (:data:`RELICENSE_COVERS`) and its per-file statement for any stricter.</span>
+<span class="sd">    Memoised: build one per operation.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="o">=</span> <span class="n">readers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cached</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">compute</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="c1"># The manifest does not name the asset: two assets' identical versions</span>
+        <span class="c1"># share one, and must not share what is said about them.</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">library_origin</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span> <span class="k">if</span> <span class="n">holder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"asset"</span><span class="p">),</span>
+            <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">),</span>
+            <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">id</span><span class="p">(</span><span class="n">version</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">parents</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``(ref, parent, holder)`` per lineage link; ``parent`` None if it no longer resolves."""</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+            <span class="n">pins</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LINEAGE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="n">refs</span> <span class="o">=</span> <span class="p">[</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">),</span> <span class="o">*</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])]</span>
+            <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="p">(</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">refs</span> <span class="k">if</span> <span class="n">r</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">at</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">parent</span> <span class="o">=</span> <span class="n">_resolve_lineage</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">pins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">parent</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">parent</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unresolvable or unreadable: as recorded</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ref</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                    <span class="k">continue</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">),</span> <span class="n">parent</span><span class="p">,</span> <span class="n">at</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"parents"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">)),</span> <span class="n">compute</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">applies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether ``version`` or any version of its lineage carries ``file_sources``."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">"applies"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">)),</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">FILE_SOURCES_FIELD</span> <span class="ow">in</span> <span class="n">version</span>
+                <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+                    <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">at</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">per_file_lineage</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The strictest PER-FILE statement any version of ``version``'s lineage made about ``digest``.</span>
+
+<span class="sd">        What a relicence must name to relax (R1/R2 of the an#345 review): a</span>
+<span class="sd">        walk stops at a relicence that covered the digest, which relaxed it.</span>
+<span class="sd">        """</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">said</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Said</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">at</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">_file_entry</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="n">digest</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="p">(</span>
+                                <span class="n">_source_class</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span>
+                                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> itemised per file as </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">license</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_relicence_covers</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">digest</span><span class="p">):</span>
+                    <span class="n">deeper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">per_file_lineage</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">deeper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deeper</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="o">*</span><span class="n">said</span><span class="p">)</span> <span class="k">if</span> <span class="n">said</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"per_file"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="n">digest</span><span class="p">),</span> <span class="n">compute</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">own_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">"own"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">)),</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">_own_label_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">holder</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">lineage</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The strictest thing the lineage of ``version`` says about ``digest`` (None: no lineage)."""</span>
+        <span class="k">if</span> <span class="n">_relicence_covers</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">digest</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># a relicence replaces what it inherits, for what it names</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">said</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Said</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">at</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">recorded</span> <span class="o">=</span> <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+                    <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="n">recorded</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> (not on the search path; as recorded)"</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="bp">cls</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">said</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+                <span class="n">said</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">cls</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="o">*</span><span class="n">said</span><span class="p">)</span> <span class="k">if</span> <span class="n">said</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"lineage"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="n">digest</span><span class="p">),</span> <span class="n">compute</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">said</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""What ``version`` says about ``digest``, held or not, with its own lineage's statement."""</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">own</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statement</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">own</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">own_label</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="s2">"its own label"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="n">own</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineage</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">digest</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"said"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="n">digest</span><span class="p">),</span> <span class="n">compute</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">statement</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""What ``version`` says about the bytes ``digest`` it holds: strictest over its paths."""</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">p</span>
+                <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="n">digest</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span>
+                    <span class="o">*</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">st</span><span class="p">[</span><span class="s2">"class"</span><span class="p">],</span> <span class="n">st</span><span class="p">[</span><span class="s2">"label"</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="p">(</span>
+                            <span class="n">blob_statement</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span>
+                                <span class="n">version</span><span class="p">,</span>
+                                <span class="n">p</span><span class="p">,</span>
+                                <span class="n">digest</span><span class="p">,</span>
+                                <span class="n">own_label</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">own_label</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span>
+                                <span class="n">owner</span><span class="o">=</span><span class="n">holder</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_at_path</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"statement"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="n">digest</span><span class="p">),</span> <span class="n">compute</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_at_path</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Said</span><span class="p">:</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">_file_entry</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">_source_class</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> itemised per file as </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">license</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">relicense</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
+            <span class="n">rel</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_source_class</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"unknown"</span><span class="p">,</span>
+                <span class="n">_relicense_note</span><span class="p">(</span><span class="n">relicense</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">_relicence_covers</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">digest</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="n">mine</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span>
+            <span class="c1"># A relicence speaks only for the bytes it names: these keep what</span>
+            <span class="c1"># their lineage said about them.</span>
+            <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="n">mine</span> <span class="ow">or</span> <span class="n">rel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineage</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">digest</span><span class="p">))</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="n">part_said</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">license_class</span><span class="p">(</span><span class="n">part</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> itemised as </span><span class="si">{</span><span class="n">part</span><span class="o">.</span><span class="n">license</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'no licence'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">mine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">part_said</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">part_said</span>  <span class="c1"># a per-part source alone: as before (an#357)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">_strictest</span><span class="p">(</span>
+            <span class="n">mine</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">own_label</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="s2">"the asset's own label"</span><span class="p">),</span>
+            <span class="n">part_said</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_strictest</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineage</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">digest</span><span class="p">))</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_version_statements</span><span class="p">(</span>
-    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span>
+    <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rule</span><span class="p">:</span> <span class="n">_PerFileRule</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">"""``(digest, asset_key, statement)`` for each file of ``version``.</span>
 
 <span class="sd">    The version's own label is computed at most once (an#249 R4-N3): it walks</span>
-<span class="sd">    the version's lineage, and it is the same for every un-itemised file.</span>
+<span class="sd">    the version's lineage, and it is the same for every un-itemised file. A</span>
+<span class="sd">    version under the per-file rule (:class:`_PerFileRule`) states each of its</span>
+<span class="sd">    blobs by that rule, one statement per digest.</span>
 <span class="sd">    """</span>
     <span class="n">asset_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">version</span><span class="p">[</span><span class="s1">'asset'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">rule</span> <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">library</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">digest</span> <span class="o">=</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
+            <span class="bp">cls</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">statement</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">library</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">(</span>
+                <span class="n">digest</span><span class="p">,</span>
+                <span class="n">asset_key</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">),</span>
+                    <span class="s2">"number"</span><span class="p">:</span> <span class="n">version_number</span><span class="p">(</span><span class="n">version</span><span class="p">[</span><span class="s2">"version"</span><span class="p">]),</span>
+                    <span class="s2">"class"</span><span class="p">:</span> <span class="bp">cls</span><span class="p">,</span>
+                    <span class="s2">"label"</span><span class="p">:</span> <span class="n">why</span><span class="p">,</span>
+                    <span class="s2">"manifest"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">),</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">return</span>
     <span class="n">memo</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">own_label</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1925,6 +2388,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">),</span>
     <span class="p">]</span>
     <span class="n">fresh</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>  <span class="c1"># one memo for the whole library (review N3)</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
         <span class="n">library</span><span class="o">.</span><span class="n">versions</span><span class="p">,</span>
         <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">version_number</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">1</span><span class="p">])),</span>
@@ -1933,7 +2397,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">version</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">versions</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by scan_index; nothing to index</span>
             <span class="k">continue</span>
-        <span class="n">said</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_version_statements</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+        <span class="n">said</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_version_statements</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">rule</span><span class="p">))</span>
         <span class="n">remember</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">said</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">said</span><span class="p">:</span>
             <span class="n">record_statement</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span><span class="p">)</span>
@@ -2199,8 +2663,9 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Whether a publish would repeat the head: the same content and statements.</span>
 
-<span class="sd">    The same content (:func:`_same_content`), asset-level source, relicence and</span>
-<span class="sd">    unlabelled files. A relabel the publish does not repeat is no difference:</span>
+<span class="sd">    The same content (:func:`_same_content`), asset-level source, relicence,</span>
+<span class="sd">    unlabelled files and per-file statements (adding a per-file label to</span>
+<span class="sd">    unchanged content is a new statement, so a new version). A relabel the publish does not repeat is no difference:</span>
 <span class="sd">    it was a statement about earlier gaps, which the head already makes.</span>
 <span class="sd">    ``head`` is the head as its labels present it (:func:`labelled_view`).</span>
 <span class="sd">    """</span>
@@ -2215,6 +2680,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="ow">and</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="ow">and</span> <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span> <span class="o">==</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span>
     <span class="p">)</span>
 
 
@@ -2256,6 +2722,172 @@ window.runMermaid = runMermaid;</script>
         <span class="n">bucket</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">new</span> <span class="ow">or</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bucket</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_given_file_sources</span><span class="p">(</span>
+    <span class="n">license_parts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hashes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">source_doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{path: source}`` a publish states per file, each pinned to its file's digest.</span>
+
+<span class="sd">    Refuses: ``license_parts`` with no asset-level source (the label every</span>
+<span class="sd">    other file takes would be undefined), a path the asset does not store, a</span>
+<span class="sd">    source pinning other bytes, and the same bytes given two classes.</span>
+<span class="sd">    """</span>
+    <span class="n">given</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">license_parts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source_doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="s2">"--license-part labels named files; the asset-level label every "</span>
+                <span class="s2">"other file takes must be given too (--license and --provider)"</span>
+            <span class="p">)</span>
+        <span class="n">given</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="n">path</span><span class="p">:</span> <span class="n">src</span>
+                <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span> <span class="ow">in</span> <span class="n">match_license_parts</span><span class="p">(</span><span class="n">license_parts</span><span class="p">,</span> <span class="n">hashes</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="p">(</span><span class="n">file_sources</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hashes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"file_sources names </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">, which the asset does not store"</span>
+            <span class="p">)</span>
+        <span class="n">given</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">pinned</span> <span class="o">=</span> <span class="n">_source_dict</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">digest</span> <span class="o">=</span> <span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+        <span class="n">said</span> <span class="o">=</span> <span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">said</span> <span class="ow">and</span> <span class="n">said</span> <span class="o">!=</span> <span class="n">digest</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the per-file source for </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> pins other bytes (</span><span class="si">{</span><span class="n">said</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">…) "</span>
+                <span class="sa">f</span><span class="s2">"than the file holds (</span><span class="si">{</span><span class="n">digest</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">…)"</span>
+            <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">pinned</span><span class="p">,</span> <span class="s2">"sha256"</span><span class="p">:</span> <span class="n">digest</span><span class="p">}</span>
+    <span class="n">by_digest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="n">by_digest</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">],</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">cls</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">cls</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">held</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> hold the same bytes but are labelled "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">: bytes have one statement — label both alike"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_carried_file_sources</span><span class="p">(</span>
+    <span class="n">head</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">given</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">hashes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(file_sources, dropped)`` of a new version: the given ones over the head's carried ones.</span>
+
+<span class="sd">    A head's statement is carried for its file while the bytes are unchanged</span>
+<span class="sd">    (the carried-source rule); a file changed since is ``dropped`` — recorded</span>
+<span class="sd">    ``unlabelled`` — and never re-pinned to its new bytes by path. ``None``:</span>
+<span class="sd">    neither the head nor this publish states anything per file.</span>
+<span class="sd">    """</span>
+    <span class="n">held</span> <span class="o">=</span> <span class="p">(</span><span class="n">head</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">given</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dropped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="p">(</span><span class="n">held</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">given</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hashes</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">_source_model</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">]:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dropped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">given</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">())),</span> <span class="n">dropped</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_covered</span><span class="p">(</span>
+    <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">pending</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">relicense</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">source_doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">hashes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``relicense`` with the digests it covers: all but those a STRICTER per-file statement names.</span>
+
+<span class="sd">    A relicence relaxes what it names. Bytes an earlier version of the lineage</span>
+<span class="sd">    labelled stricter PER FILE, which this publish does not label per file</span>
+<span class="sd">    itself, are refused (review R1/R2: a head moved to another path, or</span>
+<span class="sd">    re-added later, is not freed by a relicence that never named it).</span>
+<span class="sd">    """</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">rel</span> <span class="o">=</span> <span class="n">_source_class</span><span class="p">(</span><span class="n">_source_model</span><span class="p">(</span><span class="n">source_doc</span><span class="p">))</span>
+    <span class="n">stricter</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">order</span><span class="p">(</span><span class="n">_source_class</span><span class="p">(</span><span class="n">_source_model</span><span class="p">(</span><span class="n">src</span><span class="p">)))</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="p">{</span><span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">}</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">named</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">prior</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">per_file_lineage</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prior</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">order</span><span class="p">(</span><span class="n">prior</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">RightsRefusal</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> holds bytes the lineage labelled per file: </span><span class="si">{</span><span class="n">prior</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">prior</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). A relicence covers only what it names: label it "</span>
+                <span class="sa">f</span><span class="s2">"with --license-part '</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">=…' (stricter keeps binding; looser "</span>
+                <span class="s2">"is the relaxation this relicence records)"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">relicense</span><span class="p">,</span>
+        <span class="n">RELICENSE_COVERS</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">hashes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">-</span> <span class="n">stricter</span><span class="p">),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_relaxing</span><span class="p">(</span>
+    <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">pending</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">hashes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a per-file statement looser than what already binds its bytes (an#345).</span>
+
+<span class="sd">    Binding: the per-part source the descriptor gives the same file, and what</span>
+<span class="sd">    the version's lineage — ``previous`` back to the first, every</span>
+<span class="sd">    ``derived_from`` parent — says about these bytes (:class:`_PerFileRule`).</span>
+<span class="sd">    """</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">digest</span> <span class="o">=</span> <span class="n">hashes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="n">_source_class</span><span class="p">(</span><span class="n">_source_model</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="n">part_said</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">license_class</span><span class="p">(</span><span class="n">part</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"its per-part source (</span><span class="si">{</span><span class="n">part</span><span class="o">.</span><span class="n">license</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">part_said</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">part_said</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mine</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: the per-file label (</span><span class="si">{</span><span class="n">mine</span><span class="si">}</span><span class="s2">) and the descriptor's per-part "</span>
+                <span class="sa">f</span><span class="s2">"source (</span><span class="si">{</span><span class="n">part_said</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) disagree; the stricter is stated"</span><span class="p">,</span>
+                <span class="n">LibraryIndexWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">binding</span> <span class="o">=</span> <span class="n">_strictest</span><span class="p">(</span><span class="n">part_said</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">lineage</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">digest</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">binding</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">order</span><span class="p">(</span><span class="n">mine</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">order</span><span class="p">(</span><span class="n">binding</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">RightsRefusal</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the per-file label of </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2"> (</span><span class="si">{</span><span class="n">mine</span><span class="si">}</span><span class="s2">) is looser than what "</span>
+                <span class="sa">f</span><span class="s2">"binds those bytes: </span><span class="si">{</span><span class="n">binding</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">binding</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). A per-file "</span>
+                <span class="s2">"label never relaxes a statement; to relax it, record a relicence "</span>
+                <span class="s2">"(--relicense-by &lt;who&gt; --relicense-reason &lt;why&gt;): it lists the "</span>
+                <span class="s2">"files it covers, and per-file labels stricter than it keep binding"</span>
+            <span class="p">)</span>
+
+
 <div class="viewcode-block" id="publish">
 <a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.publish">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">publish</span><span class="p">(</span>
@@ -2279,6 +2911,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">expect_head</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_ANY_HEAD</span><span class="p">,</span>
     <span class="n">search</span><span class="p">:</span> <span class="n">Libraries</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">carry_source</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">license_parts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PublishResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Publish ``doc`` and its ``files`` as the next version of ``asset_id`` in ``library``.</span>
 
@@ -2331,6 +2965,23 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        ``None`` — the id must be new; ``"vNNN"`` — the head must be that version</span>
 <span class="sd">    search: further libraries where ``derived_from`` references resolve (the</span>
 <span class="sd">        owning library is always searched first)</span>
+<span class="sd">    license_parts: ``{glob: source}`` — a per-file statement for every stored</span>
+<span class="sd">        path a glob matches (:func:`match_license_parts`: ``*`` stays in one</span>
+<span class="sd">        folder, ``**`` crosses folders, case-exact; a glob matching nothing,</span>
+<span class="sd">        two globs disagreeing on a path, or a near miss refuse), each pinned</span>
+<span class="sd">        to the file's digest (an#345). Needs an asset-level ``source`` (given</span>
+<span class="sd">        or carried): the files no glob names are stated with the version's</span>
+<span class="sd">        label computed WITHOUT these statements. A per-file statement never</span>
+<span class="sd">        relaxes what the bytes already carry — the per-part source of the same</span>
+<span class="sd">        file, the same bytes at another path, and every earlier statement of</span>
+<span class="sd">        this asset's chain or of a version it derives from about them: a</span>
+<span class="sd">        looser one is refused unless ``relicense`` records who and why (the</span>
+<span class="sd">        relicence then lists the digests it covers, and a per-file statement</span>
+<span class="sd">        stricter than it keeps binding). At a later publish a statement is</span>
+<span class="sd">        carried for its file while the bytes are unchanged; a file changed</span>
+<span class="sd">        since is recorded ``unlabelled``</span>
+<span class="sd">    file_sources: ``{path: source}`` — the same, by exact stored path (what a</span>
+<span class="sd">        stored version holds; :func:`promote` passes it)</span>
 
 <span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
 <span class="sd">    &gt;&gt;&gt; doc = {"name": "lamp", "source": {"provider": "me", "license": "cc0-1.0"}}</span>
@@ -2345,7 +2996,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STATUSES</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"status </span><span class="si">{</span><span class="n">status</span><span class="si">!r}</span><span class="s2"> is not one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">STATUSES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">relicense</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">relicense</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relicense</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">relicense</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relicense</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">RELICENSE_COVERS</span>  <span class="c1"># recomputed for this version below</span>
+        <span class="p">}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">relicense</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"by"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">relicense</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
                 <span class="s2">"a relicence records who and why: relicense={'by': …, 'reason': …} "</span>
@@ -2448,6 +3103,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># that now declares another source is never masked by it.</span>
         <span class="n">source_doc</span> <span class="o">=</span> <span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
     <span class="n">hashes</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">file_refs</span><span class="p">)</span>
+    <span class="n">parts_given</span> <span class="o">=</span> <span class="n">_given_file_sources</span><span class="p">(</span>
+        <span class="n">license_parts</span><span class="p">,</span> <span class="n">file_sources</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">source_doc</span><span class="o">=</span><span class="n">source_doc</span>
+    <span class="p">)</span>
     <span class="n">unlabelled</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">source_doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># The carried source was a statement about the bytes it was declared</span>
@@ -2464,6 +3122,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">!=</span> <span class="n">digest</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">still</span><span class="p">)</span>
             <span class="ow">and</span> <span class="n">itemising_source</span><span class="p">({</span><span class="s2">"doc"</span><span class="p">:</span> <span class="n">doc</span><span class="p">},</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parts_given</span>
         <span class="p">)</span>
     <span class="n">pending</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"doc_kind"</span><span class="p">:</span> <span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -2481,8 +3140,22 @@ window.runMermaid = runMermaid;</script>
         <span class="n">pending</span><span class="p">[</span><span class="n">RELICENSE_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">relicense</span>
     <span class="k">if</span> <span class="n">relabel</span><span class="p">:</span>
         <span class="n">pending</span><span class="p">[</span><span class="n">RELABEL_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">relabel</span>
+    <span class="n">entries</span><span class="p">,</span> <span class="n">dropped</span> <span class="o">=</span> <span class="n">_carried_file_sources</span><span class="p">(</span><span class="n">head_view</span><span class="p">,</span> <span class="n">parts_given</span><span class="p">,</span> <span class="n">hashes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Under the rule through its lineage: recorded, so the version is</span>
+        <span class="c1"># written at the schema an older reader refuses (review S1).</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">unlabelled</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="o">*</span><span class="n">unlabelled</span><span class="p">,</span> <span class="o">*</span><span class="n">dropped</span><span class="p">})</span>
     <span class="k">if</span> <span class="n">unlabelled</span><span class="p">:</span>
         <span class="n">pending</span><span class="p">[</span><span class="n">UNLABELLED_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">unlabelled</span>
+    <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pending</span><span class="p">[</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">entries</span>
+        <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
+            <span class="n">relicense</span> <span class="o">=</span> <span class="n">pending</span><span class="p">[</span><span class="n">RELICENSE_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">_covered</span><span class="p">(</span>
+                <span class="n">readers</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">relicense</span><span class="p">,</span> <span class="n">source_doc</span><span class="p">,</span> <span class="n">entries</span><span class="p">,</span> <span class="n">hashes</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_refuse_relaxing</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">entries</span><span class="p">,</span> <span class="n">hashes</span><span class="p">)</span>
     <span class="n">floor</span> <span class="o">=</span> <span class="n">BlobFloor</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>
     <span class="n">rights</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">)</span>
     <span class="n">manifest</span> <span class="o">=</span> <span class="n">_manifest</span><span class="p">(</span>
@@ -2495,6 +3168,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">relabel</span><span class="o">=</span><span class="n">relabel</span><span class="p">,</span>
         <span class="n">unlabelled</span><span class="o">=</span><span class="n">unlabelled</span><span class="p">,</span>
         <span class="n">lineage</span><span class="o">=</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LINEAGE_FIELD</span><span class="p">),</span>
+        <span class="n">file_sources</span><span class="o">=</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">_load_genres</span><span class="p">()</span>  <span class="c1"># the analysers are the genres' (P7): never an empty facet by accident</span>
     <span class="n">affordances</span><span class="p">,</span> <span class="n">analysers</span> <span class="o">=</span> <span class="n">analyse</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">file_refs</span><span class="p">)</span>
@@ -2506,6 +3180,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">created</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">head</span>
     <span class="n">head_ref</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LibraryRef</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="k">if</span> <span class="n">head</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">relabel</span>
+        <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">_same_content</span><span class="p">(</span><span class="n">head_version</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">head_ref</span><span class="o">=</span><span class="n">head_ref</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span> <span class="o">!=</span> <span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+            <span class="s2">"per-file labels on unchanged content are a new statement, not a "</span>
+            <span class="s2">"relabel of a gap: publish them without --relabel-by/--relabel-reason "</span>
+            <span class="s2">"(that records a new version), then relabel if a gap remains"</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span>
         <span class="n">relabel</span>
         <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -2539,7 +3224,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">asset_id</span><span class="p">,</span>
             <span class="p">{</span>
                 <span class="s2">"kind"</span><span class="p">:</span> <span class="n">VERSION_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="s2">"schema_version"</span><span class="p">:</span> <span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
+                <span class="s2">"schema_version"</span><span class="p">:</span> <span class="n">PER_FILE_SCHEMA_VERSION</span>
+                <span class="k">if</span> <span class="n">FILE_SOURCES_FIELD</span> <span class="ow">in</span> <span class="n">pending</span>
+                <span class="k">else</span> <span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
                 <span class="s2">"asset"</span><span class="p">:</span> <span class="n">asset_id</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">pending</span><span class="p">,</span>
                 <span class="s2">"files"</span><span class="p">:</span> <span class="n">file_refs</span><span class="p">,</span>
@@ -3372,6 +4059,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">note</span><span class="o">=</span><span class="sa">f</span><span class="s2">"promoted from </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="n">search</span><span class="o">=</span><span class="n">readers</span><span class="p">,</span>
         <span class="n">carry_source</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># The per-file statements travel with the bytes they were made about</span>
+        <span class="c1"># (an#345): left behind, the copy would state its private parts free.</span>
+        <span class="n">file_sources</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FILE_SOURCES_FIELD</span><span class="p">),</span>
     <span class="p">)</span></div>
 
 </pre></div>

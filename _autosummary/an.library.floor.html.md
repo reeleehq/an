@@ -14,7 +14,13 @@ library one reads through — and only an explicit, recorded relicence relaxes i
   (a stale factory stamp on a re-carved part) itemises nothing;
 - otherwise the asset’s own label: its asset-level and descriptor sources and
   its lineage — what the asset says about every file it does not itemise;
-- for a relicensed version, its relicence.
+- for a relicensed version, its relicence;
+- for a version carrying per-file statements (`file_sources`, an#345), or
+  one whose lineage does: the strictest of its per-file statement (else its
+  label computed without per-file statements), the same file’s per-part
+  source, the same bytes at its other paths, and what its lineage says about
+  these bytes — so a later statement never relaxes an earlier one
+  (`an.library.api._PerFileRule`).
 
 **Where the statements live.** Each library keeps a derived store,
 `blob_rights`: `sha256 -> {"<library>:<asset_id>": statement}`, one entry

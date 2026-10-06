@@ -1,4 +1,4 @@
-> built 2026-10-06 11:33 UTC from ab871ae (main) · an 0.1.172. Details: build_info.json
+> built 2026-10-06 11:42 UTC from 14e0b48 (main) · an 0.1.173. Details: build_info.json
 
 # index.html.md
 
@@ -18795,7 +18795,7 @@ from the source version, with the record’s curation carried over.
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
 
-### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True, license_parts=None, file_sources=None)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -18858,6 +18858,25 @@ expect_head: guard against publishing into an asset you did not mean:
 
 search: further libraries where `derived_from` references resolve (the
 : owning library is always searched first)
+
+license_parts: `{glob: source}` — a per-file statement for every stored
+: path a glob matches (`match_license_parts()`: `*` stays in one
+  folder, `**` crosses folders, case-exact; a glob matching nothing,
+  two globs disagreeing on a path, or a near miss refuse), each pinned
+  to the file’s digest (an#345). Needs an asset-level `source` (given
+  or carried): the files no glob names are stated with the version’s
+  label computed WITHOUT these statements. A per-file statement never
+  relaxes what the bytes already carry — the per-part source of the same
+  file, the same bytes at another path, and every earlier statement of
+  this asset’s chain or of a version it derives from about them: a
+  looser one is refused unless `relicense` records who and why (the
+  relicence then lists the digests it covers, and a per-file statement
+  stricter than it keeps binding). At a later publish a statement is
+  carried for its file while the bytes are unchanged; a file changed
+  since is recorded `unlabelled`
+
+file_sources: `{path: source}` — the same, by exact stored path (what a
+: stored version holds; [`promote()`](_autosummary/an.library.api.html.md#an.library.api.promote) passes it)
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -19005,7 +19024,7 @@ stricter.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None)
+### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None, per_file=True)
 
 Every labelled source a version’s rights depend on — its own, its lineage, its bytes.
 
@@ -19034,6 +19053,11 @@ floor: a [`BlobFloor`](_autosummary/an.library.floor.html.md#an.library.floor.Bl
 owner: the library holding `version` (default: unknown — its own
 : statements are then read from the floor too, which repeats a reason and
   relaxes nothing)
+
+per_file: count each walked version’s per-file statements
+: (`FILE_SOURCES_FIELD`, labelled `file:<path>`; an#345) — they
+  count toward a version’s rights, never toward the label that speaks
+  for the files nothing itemises (`False`: `_own_label_class()`)
 
 A version carrying an explicit `relicense` (who, why) contributes its
 asset-level source alone: that recorded statement replaces everything it
@@ -19180,7 +19204,7 @@ allow_restricted: copy a private or unknown version anyway (it otherwise never l
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='')
+### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='', license_part=None)
 
 Publish an asset folder as the next version of `asset_id`.
 
@@ -19207,6 +19231,7 @@ relabel_reason: why — recorded (on the version, or on the head it labels) and 
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated
+license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names (‘\*’ stays in one folder, ‘\*\*’ crosses folders, case-exact); every other file takes the version’s label without them. Never looser than what the bytes already carry, unless relicensed
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -19414,7 +19439,13 @@ library one reads through — and only an explicit, recorded relicence relaxes i
   (a stale factory stamp on a re-carved part) itemises nothing;
 - otherwise the asset’s own label: its asset-level and descriptor sources and
   its lineage — what the asset says about every file it does not itemise;
-- for a relicensed version, its relicence.
+- for a relicensed version, its relicence;
+- for a version carrying per-file statements (`file_sources`, an#345), or
+  one whose lineage does: the strictest of its per-file statement (else its
+  label computed without per-file statements), the same file’s per-part
+  source, the same bytes at its other paths, and what its lineage says about
+  these bytes — so a later statement never relaxes an earlier one
+  (`an.library.api._PerFileRule`).
 
 **Where the statements live.** Each library keeps a derived store,
 `blob_rights`: `sha256 -> {"<library>:<asset_id>": statement}`, one entry
@@ -20217,7 +20248,7 @@ from the source version, with the record’s curation carried over.
 * **Return type:**
   [`PublishResult`](_autosummary/an.library.api.html.md#an.library.api.PublishResult)
 
-### an.library.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True)
+### an.library.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True, license_parts=None, file_sources=None)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -20280,6 +20311,25 @@ expect_head: guard against publishing into an asset you did not mean:
 
 search: further libraries where `derived_from` references resolve (the
 : owning library is always searched first)
+
+license_parts: `{glob: source}` — a per-file statement for every stored
+: path a glob matches (`match_license_parts()`: `*` stays in one
+  folder, `**` crosses folders, case-exact; a glob matching nothing,
+  two globs disagreeing on a path, or a near miss refuse), each pinned
+  to the file’s digest (an#345). Needs an asset-level `source` (given
+  or carried): the files no glob names are stated with the version’s
+  label computed WITHOUT these statements. A per-file statement never
+  relaxes what the bytes already carry — the per-part source of the same
+  file, the same bytes at another path, and every earlier statement of
+  this asset’s chain or of a version it derives from about them: a
+  looser one is refused unless `relicense` records who and why (the
+  relicence then lists the digests it covers, and a per-file statement
+  stricter than it keeps binding). At a later publish a statement is
+  carried for its file while the bytes are unchanged; a file changed
+  since is recorded `unlabelled`
+
+file_sources: `{path: source}` — the same, by exact stored path (what a
+: stored version holds; [`promote()`](_autosummary/an.library.html.md#an.library.promote) passes it)
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -25387,7 +25437,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -35326,18 +35376,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 11:33 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/ab871ae951fd33d0638aa1fe1863b500aad3292d"><code>ab871ae</code></a> on branch <code>main</code>, for **an 0.1.172** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 11:42 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/14e0b48ef70242812ce360ff1e053dee6c5d2614"><code>14e0b48</code></a> on branch <code>main</code>, for **an 0.1.173** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.173) is ahead of the latest release on PyPI (0.1.172): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/ab871ae951fd33d0638aa1fe1863b500aad3292d"><code>ab871ae951fd33d0638aa1fe1863b500aad3292d</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/14e0b48ef70242812ce360ff1e053dee6c5d2614"><code>14e0b48ef70242812ce360ff1e053dee6c5d2614</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.172</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.173</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -35346,9 +35398,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37456605908">37456605908</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37457615084">37457615084</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>eff16acf848622316c7b24a802c5ed606af4e557</code> (in the history of the built commit) |
+| Event commit | <code>ebf15f66c5d3152a0ad779077f4d17dcd328c881</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -35373,13 +35425,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.172/">0.1.172</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.172/">0.1.172</a>, older than the documented version (0.1.173).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout ab871ae951fd33d0638aa1fe1863b500aad3292d
+git checkout 14e0b48ef70242812ce360ff1e053dee6c5d2614
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
