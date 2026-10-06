@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=33534663"></script>
+    <script src="../../../_static/documentation_options.js?v=972bc27a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.204" />
+  <meta name="docsearch:version" content="0.1.205" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -811,13 +811,21 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="default_prop_bones">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.props.html#an.stage.props.default_prop_bones">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">default_prop_bones</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Bone</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""One bone at the origin.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_prop_bones</span><span class="p">(</span><span class="n">view_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_VIEW_BOX</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Bone</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""One bone, at the CENTRE of the view_box (an#408).</span>
 
-<span class="sd">    &gt;&gt;&gt; [b.name for b in default_prop_bones()]</span>
-<span class="sd">    ['root']</span>
+<span class="sd">    A part is centred on its bone (anchor 0.5), so with the bone at the centre</span>
+<span class="sd">    a full-canvas part's art coordinates ARE the rig's: an ``origin`` read off</span>
+<span class="sd">    the drawing (a foot at ``(512, 1000)`` in a 1024 box) lands where it says.</span>
+<span class="sd">    Before an#408 the bone sat at ``(0, 0)`` and an origin had to be measured</span>
+<span class="sd">    from the art's centre. Nothing moves for a prop without an ``origin``: it</span>
+<span class="sd">    is placed by its bones' extent centre, which is this bone wherever it is.</span>
+
+<span class="sd">    &gt;&gt;&gt; [(b.name, b.x, b.y) for b in default_prop_bones()]</span>
+<span class="sd">    [('root', 512.0, 512.0)]</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">DFLT_PROP_BONE</span><span class="p">)]</span></div>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">view_box</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">DFLT_PROP_BONE</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)]</span></div>
 
 
 
@@ -923,7 +931,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># docstring for why `kind: "prop"` on a character is not the same</span>
         <span class="c1"># thing with fewer fields.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bones</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bones</span> <span class="o">=</span> <span class="n">default_prop_bones</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bones</span> <span class="o">=</span> <span class="n">default_prop_bones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_box</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slots</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">slots</span> <span class="o">=</span> <span class="n">default_prop_slots</span><span class="p">()</span></div>
 </div>

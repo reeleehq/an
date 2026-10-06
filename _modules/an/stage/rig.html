@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=33534663"></script>
+    <script src="../../../_static/documentation_options.js?v=972bc27a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.204" />
+  <meta name="docsearch:version" content="0.1.205" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -868,6 +868,36 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RestPoseWarning">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RestPoseWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A rig's bone rest pose was NOT applied, because the document may predate it."""</span></div>
+
+
+
+<div class="viewcode-block" id="rest_pose_protection">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rest_pose_protection">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rest_pose_protection</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">migrated</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rig document"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).</span>
+
+<span class="sd">    The protective step writes ``rest_rotation: false`` onto a document from</span>
+<span class="sd">    before the rest pose whose bones carry one, guessing the pose is already in</span>
+<span class="sd">    its pixels. An author who added a rotation to such a file is the other</span>
+<span class="sd">    case, and nothing else would tell them why the part did not move. A flag</span>
+<span class="sd">    the AUTHOR wrote (present in the stored document) is a choice, and silent.</span>
+
+<span class="sd">    &gt;&gt;&gt; old = {"schema_version": "0.1.0", "bones": [{"name": "leg", "rotation_deg": 20}]}</span>
+<span class="sd">    &gt;&gt;&gt; rest_pose_protection(old, {**old, "rest_rotation": False}).startswith("its bones carry")</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; rest_pose_protection({**old, "rest_rotation": False}, {**old, "rest_rotation": False}) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"rest_rotation"</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">migrated</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">(</span><span class="n">migrated</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="s2">"its bones carry a rotation or scale that is NOT applied: `rest_rotation: "</span>
+        <span class="sa">f</span><span class="s2">"false` keeps the rig as drawn (the migration writes it onto a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> from "</span>
+        <span class="s2">"before bones posed their parts, an#339). If the pose is yours, set "</span>
+        <span class="s2">"`rest_rotation: true` (or delete the key) and the bones pose the parts"</span>
+    <span class="p">)</span></div>
 
 
 
@@ -2060,7 +2090,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_rest_pose_unknown</span><span class="p">(</span>
         <span class="n">raw</span><span class="p">,</span> <span class="n">document_kind</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">REST_POSE_SINCE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">migrated</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">migrated</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># raw stays as stored</span>
     <span class="c1"># A migration that saw the document decided already (it writes</span>
     <span class="c1"># `rest_rotation` when it must); the guard is for one it could not see.</span>
     <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_pose</span> <span class="ow">and</span> <span class="s2">"rest_rotation"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migrated</span>
@@ -2078,6 +2108,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">apply_rest_pose</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">legacy_pose</span>
+    <span class="n">protected</span> <span class="o">=</span> <span class="n">rest_pose_protection</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">migrated</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">protected</span><span class="p">:</span>
+        <span class="c1"># The protection is a guess about an old document (an#407): say so, or</span>
+        <span class="c1"># an author who added a rotation to an old file sees nothing happen.</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">protected</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">RestPoseWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">bone_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
     <span class="n">ref</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">view_box_height</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">view_box</span>

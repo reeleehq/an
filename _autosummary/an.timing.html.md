@@ -578,7 +578,7 @@ ancestor’s later tint (the more specific target wins, as it always did
 while both played).
 
 `runtime.js::evaluateTimeline` is a port of this function and
-`tests/test_pure_pose.py` holds the two to it.
+`cutan`’s `tests/test_pure_pose.py` holds the two to it.
 
 ```pycon
 >>> from an.timing.channel import Channel, Keyframe

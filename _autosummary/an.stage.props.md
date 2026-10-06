@@ -49,9 +49,9 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 
 ### Functions
 
-| [`default_prop_bones`](#an.stage.props.default_prop_bones)()   | One bone at the origin.   |
-|-------------------------------------------------------------------------|---------------------------|
-| [`default_prop_slots`](#an.stage.props.default_prop_slots)()   | One slot on that bone.    |
+| [`default_prop_bones`](#an.stage.props.default_prop_bones)([view_box])   | One bone, at the CENTRE of the view_box (an#408).   |
+|-----------------------------------------------------------------------------------|-----------------------------------------------------|
+| [`default_prop_slots`](#an.stage.props.default_prop_slots)()             | One slot on that bone.                              |
 
 ### Classes
 
@@ -167,16 +167,23 @@ because `an credits` should not need to know which store it came from.
 
 Optional source SVG the `parts/` folder was sliced from.
 
-### an.stage.props.default_prop_bones()
+### an.stage.props.default_prop_bones(view_box=(0, 0, 1024, 1024))
 
-One bone at the origin.
+One bone, at the CENTRE of the view_box (an#408).
+
+A part is centred on its bone (anchor 0.5), so with the bone at the centre
+a full-canvas part’s art coordinates ARE the rig’s: an `origin` read off
+the drawing (a foot at `(512, 1000)` in a 1024 box) lands where it says.
+Before an#408 the bone sat at `(0, 0)` and an origin had to be measured
+from the art’s centre. Nothing moves for a prop without an `origin`: it
+is placed by its bones’ extent centre, which is this bone wherever it is.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.stage.rig.md#an.stage.rig.Bone)]
 
 ```pycon
->>> [b.name for b in default_prop_bones()]
-['root']
+>>> [(b.name, b.x, b.y) for b in default_prop_bones()]
+[('root', 512.0, 512.0)]
 ```
 
 ### an.stage.props.default_prop_slots()

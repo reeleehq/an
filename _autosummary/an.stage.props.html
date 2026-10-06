@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=33534663"></script>
+    <script src="../_static/documentation_options.js?v=972bc27a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.prop_validate" href="an.stage.prop_validate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.204" />
+  <meta name="docsearch:version" content="0.1.205" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -675,8 +675,8 @@ a two-state lamp is <code class="code docutils literal notranslate"><span class=
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.props.default_prop_bones" title="an.stage.props.default_prop_bones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_prop_bones</span></code></a>()</p></td>
-<td><p>One bone at the origin.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.props.default_prop_bones" title="an.stage.props.default_prop_bones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_prop_bones</span></code></a>([view_box])</p></td>
+<td><p>One bone, at the CENTRE of the view_box (an#408).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.props.default_prop_slots" title="an.stage.props.default_prop_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_prop_slots</span></code></a>()</p></td>
 <td><p>One slot on that bone.</p></td>
@@ -822,15 +822,21 @@ because <code class="code docutils literal notranslate"><span class="pre">an</sp
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.props.default_prop_bones">
-<span class="sig-prename descclassname"><span class="pre">an.stage.props.</span></span><span class="sig-name descname"><span class="pre">default_prop_bones</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/props.html#default_prop_bones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.props.default_prop_bones" title="Link to this definition">#</a></dt>
-<dd><p>One bone at the origin.</p>
+<span class="sig-prename descclassname"><span class="pre">an.stage.props.</span></span><span class="sig-name descname"><span class="pre">default_prop_bones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view_box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1024,</span> <span class="pre">1024)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/props.html#default_prop_bones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.props.default_prop_bones" title="Link to this definition">#</a></dt>
+<dd><p>One bone, at the CENTRE of the view_box (an#408).</p>
+<p>A part is centred on its bone (anchor 0.5), so with the bone at the centre
+a full-canvas part’s art coordinates ARE the rig’s: an <code class="docutils literal notranslate"><span class="pre">origin</span></code> read off
+the drawing (a foot at <code class="docutils literal notranslate"><span class="pre">(512,</span> <span class="pre">1000)</span></code> in a 1024 box) lands where it says.
+Before an#408 the bone sat at <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">0)</span></code> and an origin had to be measured
+from the art’s centre. Nothing moves for a prop without an <code class="docutils literal notranslate"><span class="pre">origin</span></code>: it
+is placed by its bones’ extent centre, which is this bone wherever it is.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.stage.rig.html#an.stage.rig.Bone" title="an.stage.rig.Bone"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bone</span></code></a>]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">default_prop_bones</span><span class="p">()]</span>
-<span class="go">['root']</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">default_prop_bones</span><span class="p">()]</span>
+<span class="go">[('root', 512.0, 512.0)]</span>
 </pre></div>
 </div>
 </dd></dl>

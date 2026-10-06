@@ -56,6 +56,7 @@ Two layers live here:
 | [`protect_legacy_rest_pose`](#an.stage.rig.protect_legacy_rest_pose)(doc)                      | The migration step every rig kind runs onto the version that applies the rest pose (an#339).                                                                                                                                             |
 | [`raster_digest`](#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                       |
 | [`register_rest_pose_migration`](#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                        |
+| [`rest_pose_protection`](#an.stage.rig.rest_pose_protection)(raw, migrated, \*[, kind])    | What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).                                                                                                                                                      |
 | [`rest_transform`](#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                    |
 | [`rig_affordances`](#an.stage.rig.rig_affordances)(desc)                              | What a rig's structure affords, derived from the rig model (an#340).                                                                                                                                                                     |
 | [`rig_origin`](#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                           |
@@ -713,6 +714,27 @@ records `to` as the version the builder applies the rest pose from.
 >>> from an.ir.migrate import MIGRATIONS
 >>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
 {'version': '1.0', 'bones': []}
+```
+
+### an.stage.rig.rest_pose_protection(raw, migrated, , kind='rig document')
+
+What to say when the MIGRATION, on this read, kept a rig’s pose unapplied (an#407).
+
+The protective step writes `rest_rotation: false` onto a document from
+before the rest pose whose bones carry one, guessing the pose is already in
+its pixels. An author who added a rotation to such a file is the other
+case, and nothing else would tell them why the part did not move. A flag
+the AUTHOR wrote (present in the stored document) is a choice, and silent.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> old = {"schema_version": "0.1.0", "bones": [{"name": "leg", "rotation_deg": 20}]}
+>>> rest_pose_protection(old, {**old, "rest_rotation": False}).startswith("its bones carry")
+True
+>>> rest_pose_protection({**old, "rest_rotation": False}, {**old, "rest_rotation": False}) is None
+True
 ```
 
 ### an.stage.rig.rest_transform(bone)

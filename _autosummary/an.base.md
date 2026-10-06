@@ -171,7 +171,10 @@ dialogue and long enough to read as deliberate.
 ### an.base.EASING_PRESETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
 
 Named easing presets. Renderers should accept these and the cubic-Bézier
-4-tuple form `[cx1, cy1, cx2, cy2]`. Names follow the GSAP / CSS convention.
+4-tuple form `[cx1, cy1, cx2, cy2]`. They are `an`’s LEGACY family
+([`an.timing.easing`](an.timing.easing.md#module-an.timing.easing)): `ease` and `ease_in_out` are the quadratic
+ease-in-out, not CSS `ease`; the CSS curves are the hyphenated names
+(`ease-in-out`, `cubic-bezier(...)`) of the `css` family.
 
 ### an.base.EasingSpec *: [TypeAlias](https://docs.python.org/3/library/typing.html#typing.TypeAlias)* *= str | tuple[float, float, float, float] | list[float]*
 
