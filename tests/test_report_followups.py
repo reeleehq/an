@@ -84,7 +84,10 @@ TRIM_GOLDEN = {1: "d959b357542d137b0b766bbb74c54eebee719859aeb6fc2722bec7b340774
 #: the decode chain, the argv), by CHAIN_VERSION. Same rule: a red means bump
 #: CHAIN_VERSION (keyed once it is not 1) and ADD a row. The ffmpeg BUILD is
 #: not covered (TakeDigestWarning says so when it shows).
-CHAIN_GOLDEN = {1: "acf40b7ecb5d4339a03e0ae1c272f349ee27488ee18a4e7999308bc049059d71"}
+CHAIN_GOLDEN = {
+    1: "acf40b7ecb5d4339a03e0ae1c272f349ee27488ee18a4e7999308bc049059d71",
+    2: "87790fcc4b37f741b75bd2f5443df78d3cd6452f04947823a4df722dc13cc504",  # an#350: apad before atempo, output cut to input / tempo
+}
 
 _CHAIN_SAMPLES = (
     {"pitch_semitones": 3},
