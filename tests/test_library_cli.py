@@ -49,6 +49,7 @@ def test_the_library_group_is_wired_with_its_commands_pinned_by_literal():
         "checkout",
         "promote",
         "retire",
+        "sheet",
     ]
 
 

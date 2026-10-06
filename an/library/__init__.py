@@ -92,6 +92,7 @@ from an.library.lock import ProjectLock
 from an.library.registry import RegistryError, register_root, registered_roots
 from an.library.rights import Rights, RightsRefusal, roll_up
 from an.library.root import library_root, project_dir, projects_root
+from an.library.sheets import sheet
 from an.library.stores import VersionExistsError, build_library_mall
 
 __all__ = [
@@ -145,6 +146,7 @@ __all__ = [
     "scan_index",
     "search_path",
     "set_status",
+    "sheet",
     "show",
     "verify_checkout",
     "version_labels",

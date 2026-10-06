@@ -662,4 +662,42 @@ def retire(
     )
 
 
-_dispatch_funcs = [publish, kit, find, vocabulary, show, checkout, promote, retire]
+@_refusing
+def sheet(
+    refs: list[str],
+    out: str = "",
+    cell: int = 256,
+    columns: int = 0,
+    parts: bool = False,
+    allow_private_here: bool = False,
+    package: str = "",
+    root: str = "",
+    extra: str = "",
+) -> str:
+    """Draw a contact sheet: one specimen frame per library version, captioned with its licence class.
+
+    refs: [<library>:]<asset_id>[@<version>] references
+    out: the PNG to write (default: artifacts/probes/sheet.png under the current folder)
+    cell: the side of each cell, in pixels
+    columns: cells per row (default: a square grid)
+    parts: tile each version's art files instead of one specimen frame
+    allow_private_here: write a sheet showing private or unknown material where git would pick it up
+    package: the library to read first (default: the first reference's <library>: prefix, else an)
+    root: that library's root
+    extra: further libraries, by package name, comma-separated
+    """
+    from an.library.sheets import sheet as _sheet
+
+    path = _sheet(
+        refs,
+        libraries=_libraries(package, root, extra, refs=refs),
+        out=out or None,
+        cell=cell,
+        columns=columns or None,
+        parts=parts,
+        allow_private_here=allow_private_here,
+    )
+    return f"sheet: {path}"
+
+
+_dispatch_funcs = [publish, kit, find, vocabulary, show, checkout, promote, retire, sheet]

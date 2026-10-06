@@ -178,6 +178,10 @@ class EntityKind:
     #: report, art_exists) -> bool`` (judge a swap on the entity ITSELF; ``True``
     #: when handled). ``None``: the generic per-node rule only.
     swap_checks: Any = None
+    #: ``(ref: AssetRef) -> Shot``: a short shot showing one entity of this kind
+    #: on its own, the one ``ref`` casts — what ``an library sheet`` draws for a
+    #: version of it (an#347). ``None``: the sheet shows a labelled placeholder.
+    specimen: Callable[[Any], Any] | None = None
 
 
 #: When a check runs: once before the shots, once per shot, once after them.

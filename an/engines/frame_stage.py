@@ -53,10 +53,12 @@ from an.engines.protocol import (
     DRIVE_STATE,
     Engine,
     FrameJob,
+    FrameRequest,
     UnseekableEngineError,
     require_seekable,
 )
 from an.frame_clock import frame_count
+from an.media.frames import frame_path
 from an.media import mp4 as _mp4
 from an.media.shutter import check_frame_samples
 from an.media.supersample import check_factor
@@ -157,6 +159,22 @@ class StateDrivenAdapter:
         return getattr(self.session, name)
 
 
+#: Slack when snapping an instant to the frame showing then: ``1.5`` s at 30 fps
+#: is frame 45 even when ``1.5 * 30`` lands a hair under.
+_FRAME_EPS: float = 1e-9
+
+
+def film_frame(t: float, fps: float, total_frames: int) -> int:
+    """The index of the film frame showing at ``t`` seconds into a shot.
+
+    >>> film_frame(1.5, 30, 90), film_frame(0.0, 30, 90), film_frame(99, 30, 90)
+    (45, 0, 89)
+    """
+    import math
+
+    return min(max(total_frames - 1, 0), max(0, math.floor(t * float(fps) + _FRAME_EPS)))
+
+
 @dataclass
 class FrameStageRenderer:
     """A ``Renderer`` that drives an :class:`~an.engines.protocol.Engine` frame by frame.
@@ -193,6 +211,62 @@ class FrameStageRenderer:
             if isinstance(e, self.error):
                 raise
             raise self.error(str(e)) from e
+
+    def probe_frames(
+        self, shot: "Shot", ctx: "RenderContext", times: "list[float]"
+    ) -> list[bytes]:
+        """The film's frames of ``shot`` showing at each of ``times`` (seconds), as PNG bytes.
+
+        ``an probe`` (an#347): the session :meth:`render` opens (the same
+        engine, state-driven adapter, supersample and frame clock) and the
+        same :func:`~an.engines.capture.capture_frames`, asked only for the
+        frames needed — so a probe frame IS the film's frame, without the
+        rest of the shot or the mux. Each instant is snapped to the frame
+        showing then (``floor(t * fps)``, clamped to the shot).
+        """
+        try:
+            return self._probe(shot, ctx, list(times))
+        except CORE_ERRORS as e:
+            if isinstance(e, self.error):
+                raise
+            raise self.error(str(e)) from e
+
+    def _probe(self, shot: "Shot", ctx: "RenderContext", times: list[float]) -> list[bytes]:
+        supersample = check_factor(ctx.supersample)
+        check = getattr(self.engine, "check", None)
+        if check is not None:
+            check(ctx)
+        total_frames = frame_count(shot.duration, ctx.fps)
+        frame_samples = check_frame_samples(
+            ctx.frame_samples, total_frames=total_frames, duration=shot.duration
+        )
+        workspace = shot_workspace(ctx.work_dir, shot.id)
+        frames_dir = _fresh_frames_dir(workspace)
+        job = FrameJob(
+            shot=shot,
+            ctx=ctx,
+            workspace=workspace,
+            frames_dir=frames_dir,
+            total_frames=total_frames,
+            supersample=supersample,
+            frame_samples=frame_samples,
+        )
+        every = job.requests()
+        film = [film_frame(t, ctx.fps, total_frames) for t in times]
+        # Numbered 0..n-1: the capture loop checks for exactly that many files.
+        requests = [FrameRequest(n, every[i].times) for n, i in enumerate(film)]
+        with self.engine.open(job) as session:
+            if require_seekable(session) == DRIVE_STATE:
+                session = StateDrivenAdapter(session)
+            _capture.capture_frames(
+                session,
+                requests,
+                frames_dir,
+                factor=supersample,
+                size=job.size,
+                **self.capture_options,
+            )
+        return [frame_path(frames_dir, n).read_bytes() for n in range(len(requests))]
 
     def _render(self, shot: "Shot", ctx: "RenderContext") -> "RenderResult":
         from an.adapters._base import RenderResult

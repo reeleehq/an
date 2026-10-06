@@ -88,11 +88,15 @@ def _age_the_seed(*paths: Path) -> None:
         os.utime(p, (then, then))
 
 
+#: A render report records what a render on THIS machine found — warnings,
+#: exception text — so it is per-machine output, not project source (an#254).
+RENDER_REPORTS_GITIGNORE: tuple[str, ...] = ("artifacts/render_reports/",)
+#: Probe frames and contact sheets (``an probe``, ``an library sheet``,
+#: an#347): looks at work in progress, which may show private-study material.
+PROBES_GITIGNORE: tuple[str, ...] = ("artifacts/probes/",)
 #: What a project's ``.gitignore`` keeps out of version control (``an init``
-#: adds each line a ``.gitignore`` lacks, never removing one). A render report
-#: records what a render on THIS machine found — warnings, exception text — so it
-#: is per-machine output, not project source (an#254).
-PROJECT_GITIGNORE: tuple[str, ...] = ("artifacts/render_reports/",)
+#: adds each line a ``.gitignore`` lacks, never removing one).
+PROJECT_GITIGNORE: tuple[str, ...] = RENDER_REPORTS_GITIGNORE + PROBES_GITIGNORE
 
 
 def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
@@ -113,25 +117,31 @@ def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
     )
 
 
-def keep_reports_out_of_git(pdir: Path) -> None:
-    """Add :data:`PROJECT_GITIGNORE` to an OLDER project's ``.gitignore`` (an
-    ``an init`` from before an#254 left it out), the first time a render
-    writes a report (an#309) — conservatively: never when the file already
-    says anything about those paths (a project may have chosen to commit its
-    reports, ``!artifacts/render_reports/``), never through a symlink (a
-    shared ignore file), and never creating a ``.gitignore`` in a project that
-    is not in a git work tree."""
+def keep_out_of_git(pdir: Path, lines: tuple[str, ...]) -> None:
+    """Add ``lines`` to an OLDER project's ``.gitignore`` (an ``an init`` from
+    before they existed left them out) — conservatively: never a line whose
+    folder the file already says anything about (a project may have chosen to
+    commit its reports, ``!artifacts/render_reports/``), never through a
+    symlink (a shared ignore file), and never creating a ``.gitignore`` in a
+    project that is not in a git work tree."""
     path = pdir / ".gitignore"
     if path.is_symlink():
         return
     if path.exists():
         text = path.read_text(encoding="utf-8", errors="replace")
-        names = {line.rstrip("/").rsplit("/", 1)[-1] for line in PROJECT_GITIGNORE}
-        if any(name in text for name in names):
-            return
+        lines = tuple(
+            line for line in lines if line.rstrip("/").rsplit("/", 1)[-1] not in text
+        )
     elif not any((d / ".git").exists() for d in (pdir, *pdir.parents)):
         return
-    _ensure_gitignored(pdir, PROJECT_GITIGNORE)
+    if lines:
+        _ensure_gitignored(pdir, lines)
+
+
+def keep_reports_out_of_git(pdir: Path) -> None:
+    """Add :data:`RENDER_REPORTS_GITIGNORE` to an older project's ``.gitignore``
+    the first time a render writes a report (an#309), by :func:`keep_out_of_git`'s rules."""
+    keep_out_of_git(pdir, RENDER_REPORTS_GITIGNORE)
 
 
 def init(
