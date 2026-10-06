@@ -23,19 +23,32 @@ adapters and the same flow handles them.
 
 ### Functions
 
-| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                                               |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_render_findings`](#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                  |
-| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                      |
-| [`portable_text`](#an.render.portable_text)(text, \*[, root, home, tmp])       | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
-| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                    |
-| [`render_findings`](#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                             |
-| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                            |
+| [`cache_entries`](#an.render.cache_entries)(project, engine, \*\*knobs)    | The shot-cache entry ids of [`cache_reach()`](#an.render.cache_reach) (what `an.build.gc` keeps of the shot cache, an#274).                                                                                                                                                                                                                                                                                                            |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cache_reach`](#an.render.cache_reach)(project, engine, \*[, fps, ...]) | What a render of `project`'s CURRENT scene under these knobs would read — the shot-cache entry ids, and the record-store entries of the renderers' derived stores (a Manim shot's measurement record, which names its picture and contact sheet: [`an.build.derived`](an.build.derived.md#module-an.build.derived), an#299) — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing. |
+| [`format_render_findings`](#an.render.format_render_findings)(project[, ...])       | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                                                                                                                                                            |
+| [`live_runs`](#an.render.live_runs)(project_root)                      | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                                                                                                                                                                |
+| [`portable_text`](#an.render.portable_text)(text, \*[, root, home, tmp])   | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir.                                                                                                                                           |
+| [`render`](#an.render.render)(project, \*[, output_name, fps, ...]) | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [`render_findings`](#an.render.render_findings)(project[, output_name])      | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                                                                                                                                                                       |
+| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])       | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                                                                                                                                                                      |
+
+### Classes
+
+| [`CacheReach`](#an.render.CacheReach)([ids, derived])   | [`cache_reach()`](#an.render.cache_reach)'s answer: shot-cache ids, and derived-store entries by store name.   |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Exceptions
 
 | [`RenderError`](#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
+
+### *class* an.render.CacheReach(ids=<factory>, derived=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+[`cache_reach()`](#an.render.cache_reach)’s answer: shot-cache ids, and derived-store entries
+by store name.
 
 ### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'VoiceStandInWarning': 'voices spoken by another provider than they declare', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
 
@@ -87,11 +100,22 @@ Where a run’s process cannot be asked whether it lives (Windows), a run
 unfinished after this long is taken for one that crashed: otherwise it would
 shield every cache entry written since, from `an cache gc`, for ever.
 
-### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
+### an.render.cache_entries(project, engine, \*\*knobs)
 
-The shot-cache entry ids a render of `project`’s CURRENT scene under
-these knobs would read — computed by the render’s own setup and the
-engine’s own key code, rendering and synthesising nothing.
+The shot-cache entry ids of [`cache_reach()`](#an.render.cache_reach) (what `an.build.gc`
+keeps of the shot cache, an#274).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.render.cache_reach(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
+
+What a render of `project`’s CURRENT scene under these knobs would
+read — the shot-cache entry ids, and the record-store entries of the
+renderers’ derived stores (a Manim shot’s measurement record, which names
+its picture and contact sheet: [`an.build.derived`](an.build.derived.md#module-an.build.derived), an#299) — computed
+by the render’s own setup and the engine’s own key code, rendering and
+synthesising nothing.
 
 What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
 render’s audio pipeline stamps it, from the content-keyed audio and viseme
@@ -106,7 +130,7 @@ key is unknowable without a paid or random synthesis, and a collector must
 not guess.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  [`CacheReach`](#an.render.CacheReach)
 
 ### an.render.format_render_findings(project, output_name='main', , max_per_group=5)
 

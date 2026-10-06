@@ -1,4 +1,4 @@
-> built 2026-10-06 01:40 UTC from 19e2f52 (main) · an 0.1.166. Details: build_info.json
+> built 2026-10-06 01:49 UTC from 9ba1aef (main) · an 0.1.167. Details: build_info.json
 
 # index.html.md
 
@@ -9371,7 +9371,7 @@ Never deletes a reachable entry, nor anything written since a render of this pro
 
 project_dir: path to an an project
 dry_run: report what would be deleted, delete nothing
-max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it
+max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB) — the shot cache and the Manim stores together; reachable entries are never removed, so the cache can stay above it
 max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept (and when the current scene cannot be keyed under its settings, a line’s audio not cached under them, its entries are kept whatever its age)
 force: collect a cache no render of this project has recorded what it used in (one written before `an cache gc` existed): keep only what the current scene reaches (a setting whose audio is no longer cached is not kept; an#311)
 
@@ -9387,6 +9387,122 @@ no_reachability: skip computing what the current scene reaches (which compiles e
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.build.derived.html.md
+
+# an.build.derived
+
+A renderer’s derived stores, as `an cache gc` collects them (an#299).
+
+An opaque renderer keeps intermediates of its own beside the shot cache — Manim
+its raw pictures, their measurement records and contact sheets — content-keyed,
+so every edit adds entries and nothing removes them. A renderer declares them
+here, beside its shot keyer ([`an.build.keys.register_shot_keyer()`](_autosummary/an.build.keys.html.md#an.build.keys.register_shot_keyer)), with
+[`register_derived_stores()`](_autosummary/an.build.derived.html.md#an.build.derived.register_derived_stores); [`an.build.gc`](_autosummary/an.build.gc.html.md#module-an.build.gc) collects every registered
+store under the shot cache’s guarantees.
+
+A declaration ([`DerivedStores`](_autosummary/an.build.derived.html.md#an.build.derived.DerivedStores)) names:
+
+- `record_store` — the store whose entries NAME others (Manim’s
+  `measurements`: a record names its picture and its contact sheet), deleted
+  first, so a record never names something already gone;
+- `named_stores` — the stores records name (`pictures`,
+  `contact_sheets`);
+- `entries(renderer, shot, ctx)` — the record-store keys a render of `shot`
+  under `ctx` reads, COMPUTED (never rendered);
+- `provenance(render_provenance)` — the entries a cached shot’s provenance
+  names, by store;
+- `names(record_bytes)` — what one record names, by store; it raises
+  [`UnreadableRecordError`](_autosummary/an.build.derived.html.md#an.build.derived.UnreadableRecordError) for bytes it cannot read (a record half
+  > written by a concurrent render), and the collector then deletes nothing a
+  > record could name.
+
+A store belongs to one renderer: a second claim is refused, so one renderer’s
+`names` never reads another’s records.
+
+```pycon
+>>> spec = DerivedStores(
+...     record_store="records", named_stores=("blobs",),
+...     entries=lambda renderer, shot, ctx: set(),
+...     provenance=lambda provenance: {},
+...     names=lambda data: {"blobs": {data.decode()}},
+... )
+>>> sorted(spec.stores)
+['blobs', 'records']
+>>> sorted(spec.closure({"records": {"r": b"b1"}}, {"records": {"r"}})["blobs"])
+['b1']
+```
+
+### Functions
+
+| `derived_stores_for`(renderer_name)                                                               |                                                             |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| [`register_derived_stores`](_autosummary/an.build.derived.html.md#an.build.derived.register_derived_stores)(renderer_name, spec, \*) | Declare `renderer_name`'s derived stores for `an cache gc`. |
+| [`registered_derived_stores`](_autosummary/an.build.derived.html.md#an.build.derived.registered_derived_stores)()                      | Every declaration, by renderer name.                        |
+
+### Classes
+
+| [`DerivedStores`](_autosummary/an.build.derived.html.md#an.build.derived.DerivedStores)(record_store, named_stores, ...)   | One renderer's derived stores (see the module docstring).   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+
+### Exceptions
+
+| [`DerivedStoresRegistrationError`](_autosummary/an.build.derived.html.md#an.build.derived.DerivedStoresRegistrationError)   | A derived-store declaration that cannot be collected safely.   |
+|-----------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [`UnreadableRecordError`](_autosummary/an.build.derived.html.md#an.build.derived.UnreadableRecordError)            | A record's bytes cannot be read (half written, damaged).       |
+
+### *class* an.build.derived.DerivedStores(record_store, named_stores, entries, provenance, names)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One renderer’s derived stores (see the module docstring).
+
+#### closure(mall, entries)
+
+`entries` plus what each of its records names. A record that is
+absent names nothing; one that cannot be read raises
+[`UnreadableRecordError`](_autosummary/an.build.derived.html.md#an.build.derived.UnreadableRecordError).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+#### *property* stores *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+Every store, the record store first (the deletion order).
+
+### *exception* an.build.derived.DerivedStoresRegistrationError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A derived-store declaration that cannot be collected safely.
+
+### *exception* an.build.derived.UnreadableRecordError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A record’s bytes cannot be read (half written, damaged).
+
+### an.build.derived.register_derived_stores(renderer_name, spec, , replace=False)
+
+Declare `renderer_name`’s derived stores for `an cache gc`.
+
+Refused: a store another renderer already claims, and a second
+registration for the name unless `replace` (a module reloaded passes
+the same stores again, which is allowed).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.build.derived.registered_derived_stores()
+
+Every declaration, by renderer name. Loads the renderer registry first
+(a backend behind the import firewall declares when it is imported), its
+load warnings about unrelated backends silenced: they are the render’s
+to give.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`DerivedStores`](_autosummary/an.build.derived.html.md#an.build.derived.DerivedStores)]
 
 
 # _autosummary/an.build.gc.html.md
@@ -9507,11 +9623,15 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>)
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>, derived=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The shot cache’s size, what it holds, and how much of it is reachable.
+
+#### derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), DerivedUsage]*
+
+The renderers’ derived stores (an#299), by store name.
 
 ### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}*
 
@@ -9521,12 +9641,20 @@ voice’s own provider (an#305). Always among the profiles the current scene
 is keyed under, so a cache written before roots existed keeps what a plain
 render of the current scene reads.
 
-### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None)
+### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None, deleted_derived=<factory>, derived_freed=0, kept_derived=0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a collection deleted (or, with `dry_run`, would delete), and why
 the rest was kept.
+
+#### deleted_derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+what was (or would be) deleted,
+by store, and the bytes that frees.
+
+* **Type:**
+  The renderers’ derived stores (an#299)
 
 ### an.build.gc.HYPOTHETICAL_PROFILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], ...]* *= ({'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}, {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'})*
 
@@ -9537,7 +9665,7 @@ offline — what a cache written before roots existed was rendered with.
 * **Type:**
   The knob sets a plain render used or uses, recorded by a root or not
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>)
+### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>, derived=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -9546,6 +9674,11 @@ What the current scene and the recorded roots keep, and why.
 `profiles` are the knob sets the current scene was keyed under;
 `skipped` the ones it could not be (`(profile, why)`: a line’s audio
 is not cached under it — an#306), whose roots keep what they recorded.
+
+#### derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [set](https://docs.python.org/3/builtins/stdtypes.html#set)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+The renderers’ derived-store entries the current scene reads, by store
+(a Manim picture, its measurement and contact sheet; an#299).
 
 ### an.build.gc.cache_info(project_dir, , reachability=True, engine=None, now=None)
 
@@ -10116,6 +10249,7 @@ renderer whose class is not the one the keyer was registered for.
 
 | [`cli`](_autosummary/an.build.cli.html.md#module-an.build.cli)               | `an cache …` — the shot cache from the shell (an#274).                                |
 |----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`derived`](_autosummary/an.build.derived.html.md#module-an.build.derived)       | A renderer's derived stores, as `an cache gc` collects them (an#299).                 |
 | [`gc`](_autosummary/an.build.gc.html.md#module-an.build.gc)                 | Garbage collection of the shot cache: `an cache gc` and `an cache info` (an#274).     |
 | [`keys`](_autosummary/an.build.keys.html.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
 | [`reads`](_autosummary/an.build.reads.html.md#module-an.build.reads)           | What a shot read: a read-recording view of the mall, and the digests of what it saw.  |
@@ -23567,19 +23701,32 @@ adapters and the same flow handles them.
 
 ### Functions
 
-| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                                               |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                  |
-| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                      |
-| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home, tmp])       | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
-| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                    |
-| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                             |
-| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                            |
+| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*\*knobs)    | The shot-cache entry ids of [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach) (what `an.build.gc` keeps of the shot cache, an#274).                                                                                                                                                                                                                                                                                                            |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cache_reach`](_autosummary/an.render.html.md#an.render.cache_reach)(project, engine, \*[, fps, ...]) | What a render of `project`'s CURRENT scene under these knobs would read — the shot-cache entry ids, and the record-store entries of the renderers' derived stores (a Manim shot's measurement record, which names its picture and contact sheet: [`an.build.derived`](_autosummary/an.build.derived.html.md#module-an.build.derived), an#299) — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing. |
+| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])       | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                                                                                                                                                            |
+| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                      | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                                                                                                                                                                |
+| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home, tmp])   | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir.                                                                                                                                           |
+| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...]) | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])      | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                                                                                                                                                                       |
+| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])       | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                                                                                                                                                                      |
+
+### Classes
+
+| [`CacheReach`](_autosummary/an.render.html.md#an.render.CacheReach)([ids, derived])   | [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach)'s answer: shot-cache ids, and derived-store entries by store name.   |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Exceptions
 
 | [`RenderError`](_autosummary/an.render.html.md#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
+
+### *class* an.render.CacheReach(ids=<factory>, derived=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+[`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach)’s answer: shot-cache ids, and derived-store entries
+by store name.
 
 ### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'VoiceStandInWarning': 'voices spoken by another provider than they declare', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
 
@@ -23631,11 +23778,22 @@ Where a run’s process cannot be asked whether it lives (Windows), a run
 unfinished after this long is taken for one that crashed: otherwise it would
 shield every cache entry written since, from `an cache gc`, for ever.
 
-### an.render.cache_entries(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
+### an.render.cache_entries(project, engine, \*\*knobs)
 
-The shot-cache entry ids a render of `project`’s CURRENT scene under
-these knobs would read — computed by the render’s own setup and the
-engine’s own key code, rendering and synthesising nothing.
+The shot-cache entry ids of [`cache_reach()`](_autosummary/an.render.html.md#an.render.cache_reach) (what `an.build.gc`
+keeps of the shot cache, an#274).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.render.cache_reach(project, engine, , fps=None, resolution=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, tts=None, lipsync='offline', language='en')
+
+What a render of `project`’s CURRENT scene under these knobs would
+read — the shot-cache entry ids, and the record-store entries of the
+renderers’ derived stores (a Manim shot’s measurement record, which names
+its picture and contact sheet: [`an.build.derived`](_autosummary/an.build.derived.html.md#module-an.build.derived), an#299) — computed
+by the render’s own setup and the engine’s own key code, rendering and
+synthesising nothing.
 
 What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
 render’s audio pipeline stamps it, from the content-keyed audio and viseme
@@ -23650,7 +23808,7 @@ key is unknowable without a paid or random synthesis, and a collector must
 not guess.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+  [`CacheReach`](_autosummary/an.render.html.md#an.render.CacheReach)
 
 ### an.render.format_render_findings(project, output_name='main', , max_per_group=5)
 
@@ -34706,20 +34864,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 01:40 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/19e2f5217f8bd68d9a88be871bb8f8529d4a79c1"><code>19e2f52</code></a> on branch <code>main</code>, for **an 0.1.166** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 01:49 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/9ba1aefc2e0807c4f30c335e0833ebb7d64462ca"><code>9ba1aef</code></a> on branch <code>main</code>, for **an 0.1.167** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.166) is ahead of the latest release on PyPI (0.1.165): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/19e2f5217f8bd68d9a88be871bb8f8529d4a79c1"><code>19e2f5217f8bd68d9a88be871bb8f8529d4a79c1</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/9ba1aefc2e0807c4f30c335e0833ebb7d64462ca"><code>9ba1aefc2e0807c4f30c335e0833ebb7d64462ca</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.166</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.167</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34728,9 +34884,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37399470026">37399470026</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37400613919">37400613919</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>bd39f8d61b01c65678aa968585f883563b883a7a</code> (in the history of the built commit) |
+| Event commit | <code>1554c57586e184baf3fefdf988fe13fdd31c0a95</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34755,13 +34911,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.165/">0.1.165</a>, older than the documented version (0.1.166).
+Latest release: <a href="https://pypi.org/project/an/0.1.167/">0.1.167</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 19e2f5217f8bd68d9a88be871bb8f8529d4a79c1
+git checkout 9ba1aefc2e0807c4f30c335e0833ebb7d64462ca
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b37d7122"></script>
+    <script src="../_static/documentation_options.js?v=1705f53b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.build.gc" href="an.build.gc.html" />
+    <link rel="next" title="an.build.derived" href="an.build.derived.html" />
     <link rel="prev" title="an.build" href="an.build.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.166" />
+  <meta name="docsearch:version" content="0.1.167" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -365,6 +365,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.build.html">an.build</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
@@ -618,7 +619,7 @@ business logic is <a class="reference internal" href="an.build.gc.html#module-an
 <p>Never deletes a reachable entry, nor anything written since a render of this project still in progress began. A render running meanwhile can at worst re-render a shot, never use a wrong one.</p>
 <p>project_dir: path to an an project
 dry_run: report what would be deleted, delete nothing
-max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB); reachable entries are never removed, so the cache can stay above it
+max_size: keep the most recently written unreachable entries that fit in a cache of this size (e.g. 2G, 500MB) — the shot cache and the Manim stores together; reachable entries are never removed, so the cache can stay above it
 max_age: keep only the unreachable entries written within this age (e.g. 7d, 36h); a recorded render older than it stops naming its entries, but the current scene under its settings is still kept (and when the current scene cannot be keyed under its settings, a line’s audio not cached under them, its entries are kept whatever its age)
 force: collect a cache no render of this project has recorded what it used in (one written before <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> existed): keep only what the current scene reaches (a setting whose audio is no longer cached is not kept; an#311)</p>
 <dl class="field-list simple">
@@ -663,11 +664,11 @@ no_reachability: skip computing what the current scene reaches (which compiles e
       </div>
     </a>
     <a class="right-next"
-       href="an.build.gc.html"
+       href="an.build.derived.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.build.gc</p>
+        <p class="prev-next-title">an.build.derived</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

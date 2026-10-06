@@ -114,11 +114,15 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>)
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>, derived=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The shot cache’s size, what it holds, and how much of it is reachable.
+
+#### derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), DerivedUsage]*
+
+The renderers’ derived stores (an#299), by store name.
 
 ### an.build.gc.DEFAULT_PROFILE *: [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}*
 
@@ -128,12 +132,20 @@ voice’s own provider (an#305). Always among the profiles the current scene
 is keyed under, so a cache written before roots existed keeps what a plain
 render of the current scene reads.
 
-### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None)
+### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None, deleted_derived=<factory>, derived_freed=0, kept_derived=0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a collection deleted (or, with `dry_run`, would delete), and why
 the rest was kept.
+
+#### deleted_derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+what was (or would be) deleted,
+by store, and the bytes that frees.
+
+* **Type:**
+  The renderers’ derived stores (an#299)
 
 ### an.build.gc.HYPOTHETICAL_PROFILES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], ...]* *= ({'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'voice'}, {'capture': None, 'fps': None, 'language': 'en', 'lipsync': 'offline', 'pix_fmt': None, 'resolution': None, 'step_hz': None, 'strict_assets': False, 'supersample': 1, 'tts': 'offline'})*
 
@@ -144,7 +156,7 @@ offline — what a cache written before roots existed was rendered with.
 * **Type:**
   The knob sets a plain render used or uses, recorded by a root or not
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>)
+### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>, derived=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -153,6 +165,11 @@ What the current scene and the recorded roots keep, and why.
 `profiles` are the knob sets the current scene was keyed under;
 `skipped` the ones it could not be (`(profile, why)`: a line’s audio
 is not cached under it — an#306), whose roots keep what they recorded.
+
+#### derived *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [set](https://docs.python.org/3/builtins/stdtypes.html#set)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+The renderers’ derived-store entries the current scene reads, by store
+(a Manim picture, its measurement and contact sheet; an#299).
 
 ### an.build.gc.cache_info(project_dir, , reachability=True, engine=None, now=None)
 

@@ -480,6 +480,7 @@ renderer whose class is not the one the keyer was registered for.
 
 | [`cli`](an.build.cli.md#module-an.build.cli)               | `an cache …` — the shot cache from the shell (an#274).                                |
 |----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`derived`](an.build.derived.md#module-an.build.derived)       | A renderer's derived stores, as `an cache gc` collects them (an#299).                 |
 | [`gc`](an.build.gc.md#module-an.build.gc)                 | Garbage collection of the shot cache: `an cache gc` and `an cache info` (an#274).     |
 | [`keys`](an.build.keys.md#module-an.build.keys)             | Cache keys for build stages: canonical digests, the project fallback, keyers.         |
 | [`reads`](an.build.reads.md#module-an.build.reads)           | What a shot read: a read-recording view of the mall, and the digests of what it saw.  |

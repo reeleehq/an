@@ -63,6 +63,7 @@
 - [an.bench.stage](an.bench.stage.html.md): Measuring a pan: does the stage move as planes, or as one rigid image?
 - [an.build](an.build.html.md): Incremental re-processing: content-addressed build stages (ADR 0004).
 - [an.build.cli](an.build.cli.html.md): &#96;an cache …&#96; — the shot cache from the shell (an#274).
+- [an.build.derived](an.build.derived.html.md): A renderer’s derived stores, as &#96;an cache gc&#96; collects them (an#299).
 - [an.build.gc](an.build.gc.html.md): Garbage collection of the shot cache: &#96;an cache gc&#96; and &#96;an cache info&#96; (an#274).
 - [an.build.keys](an.build.keys.html.md): Cache keys for build stages: canonical digests, the project fallback, keyers.
 - [an.build.reads](an.build.reads.html.md): What a shot read: a read-recording view of the mall, and the digests of what it saw.

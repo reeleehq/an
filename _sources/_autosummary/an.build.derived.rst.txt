@@ -1,0 +1,27 @@
+an.build.derived
+================
+
+.. automodule:: an.build.derived
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      derived_stores_for
+      register_derived_stores
+      registered_derived_stores
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DerivedStores
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      DerivedStoresRegistrationError
+      UnreadableRecordError
+   

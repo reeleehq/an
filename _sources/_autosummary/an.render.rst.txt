@@ -22,12 +22,19 @@ an.render
    .. autosummary::
    
       cache_entries
+      cache_reach
       format_render_findings
       live_runs
       portable_text
       render
       render_findings
       render_project
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CacheReach
    
    .. rubric:: Exceptions
 

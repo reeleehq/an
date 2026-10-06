@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b37d7122"></script>
+    <script src="../_static/documentation_options.js?v=1705f53b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.stage" href="an.bench.stage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.166" />
+  <meta name="docsearch:version" content="0.1.167" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -365,6 +365,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.build</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
@@ -1220,16 +1221,19 @@ renderer whose class is not the one the keyer was registered for.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.build.cli.html#module-an.build.cli" title="an.build.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">…</span></code> — the shot cache from the shell (an#274).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.build.gc.html#module-an.build.gc" title="an.build.gc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gc</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.build.derived.html#module-an.build.derived" title="an.build.derived"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derived</span></code></a></p></td>
+<td><p>A renderer's derived stores, as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> collects them (an#299).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.build.gc.html#module-an.build.gc" title="an.build.gc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gc</span></code></a></p></td>
 <td><p>Garbage collection of the shot cache: <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">gc</span></code> and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">cache</span> <span class="pre">info</span></code> (an#274).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.build.keys.html#module-an.build.keys" title="an.build.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.build.keys.html#module-an.build.keys" title="an.build.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a></p></td>
 <td><p>Cache keys for build stages: canonical digests, the project fallback, keyers.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.build.reads.html#module-an.build.reads" title="an.build.reads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reads</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.build.reads.html#module-an.build.reads" title="an.build.reads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reads</span></code></a></p></td>
 <td><p>What a shot read: a read-recording view of the mall, and the digests of what it saw.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.build.shot_cache.html#module-an.build.shot_cache" title="an.build.shot_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_cache</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.build.shot_cache.html#module-an.build.shot_cache" title="an.build.shot_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_cache</span></code></a></p></td>
 <td><p>The content-keyed shot cache: ADR 0004's first slice, behind the <code class="docutils literal notranslate"><span class="pre">incremental=</span></code> seam.</p></td>
 </tr>
 </tbody>

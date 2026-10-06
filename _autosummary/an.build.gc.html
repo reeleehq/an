@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b37d7122"></script>
+    <script src="../_static/documentation_options.js?v=1705f53b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,10 +53,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="an.build.keys" href="an.build.keys.html" />
-    <link rel="prev" title="an.build.cli" href="an.build.cli.html" />
+    <link rel="prev" title="an.build.derived" href="an.build.derived.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.166" />
+  <meta name="docsearch:version" content="0.1.167" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -365,6 +365,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.build.html">an.build</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.build.gc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
@@ -743,11 +744,17 @@ time and the moment it lands.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.gc.CacheInfo">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">CacheInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_role</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unreachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reachability_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#CacheInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.CacheInfo" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">CacheInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_role</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unreachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reachability_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#CacheInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.CacheInfo" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The shot cache’s size, what it holds, and how much of it is reachable.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.gc.CacheInfo.derived">
+<span class="sig-name descname"><span class="pre">derived</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DerivedUsage</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.build.gc.CacheInfo.derived" title="Link to this definition">#</a></dt>
+<dd><p>The renderers’ derived stores (an#299), by store name.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -762,12 +769,24 @@ render of the current scene reads.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.gc.GcReport">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">GcReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dry_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_protected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_retained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reach</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#GcReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.GcReport" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">GcReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dry_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_blobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_reachable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_protected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_retained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reach</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deleted_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived_freed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#GcReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.GcReport" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What a collection deleted (or, with <code class="docutils literal notranslate"><span class="pre">dry_run</span></code>, would delete), and why
 the rest was kept.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.gc.GcReport.deleted_derived">
+<span class="sig-name descname"><span class="pre">deleted_derived</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.build.gc.GcReport.deleted_derived" title="Link to this definition">#</a></dt>
+<dd><p>what was (or would be) deleted,
+by store, and the bytes that frees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The renderers’ derived stores (an#299)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -785,7 +804,7 @@ offline — what a cache written before roots existed was rendered with.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.gc.Reachability">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">Reachability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#Reachability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.Reachability" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">Reachability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_scene</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#Reachability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.Reachability" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What the current scene and the recorded roots keep, and why.</p>
 <p><code class="docutils literal notranslate"><span class="pre">profiles</span></code> are the knob sets the current scene was keyed under;
@@ -793,6 +812,13 @@ offline — what a cache written before roots existed was rendered with.</p>
 is not cached under it — an#306), whose roots keep what they recorded.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.build.gc.Reachability.derived">
+<span class="sig-name descname"><span class="pre">derived</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.14)"><span class="pre">set</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.build.gc.Reachability.derived" title="Link to this definition">#</a></dt>
+<dd><p>The renderers’ derived-store entries the current scene reads, by store
+(a Manim picture, its measurement and contact sheet; an#299).</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -909,12 +935,12 @@ unless <code class="docutils literal notranslate"><span class="pre">force</span>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="an.build.cli.html"
+       href="an.build.derived.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">an.build.cli</p>
+        <p class="prev-next-title">an.build.derived</p>
       </div>
     </a>
     <a class="right-next"
@@ -948,11 +974,20 @@ unless <code class="docutils literal notranslate"><span class="pre">force</span>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CLOCK_SLACK_S"><code class="docutils literal notranslate"><span class="pre">CLOCK_SLACK_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CacheEntry"><code class="docutils literal notranslate"><span class="pre">CacheEntry</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CacheGcError"><code class="docutils literal notranslate"><span class="pre">CacheGcError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CacheInfo"><code class="docutils literal notranslate"><span class="pre">CacheInfo</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CacheInfo"><code class="docutils literal notranslate"><span class="pre">CacheInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.CacheInfo.derived"><code class="docutils literal notranslate"><span class="pre">CacheInfo.derived</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.DEFAULT_PROFILE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_PROFILE</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport"><code class="docutils literal notranslate"><span class="pre">GcReport</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport"><code class="docutils literal notranslate"><span class="pre">GcReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.GcReport.deleted_derived"><code class="docutils literal notranslate"><span class="pre">GcReport.deleted_derived</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.HYPOTHETICAL_PROFILES"><code class="docutils literal notranslate"><span class="pre">HYPOTHETICAL_PROFILES</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.Reachability"><code class="docutils literal notranslate"><span class="pre">Reachability</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.Reachability"><code class="docutils literal notranslate"><span class="pre">Reachability</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.Reachability.derived"><code class="docutils literal notranslate"><span class="pre">Reachability.derived</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.cache_info"><code class="docutils literal notranslate"><span class="pre">cache_info()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.collect_garbage"><code class="docutils literal notranslate"><span class="pre">collect_garbage()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.build.gc.inventory"><code class="docutils literal notranslate"><span class="pre">inventory()</span></code></a></li>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b37d7122"></script>
+    <script src="../../../_static/documentation_options.js?v=1705f53b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.166" />
+  <meta name="docsearch:version" content="0.1.167" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1000,6 +1000,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">profiles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: The renderers' derived-store entries the current scene reads, by store</span>
+    <span class="c1">#: (a Manim picture, its measurement and contact sheet; an#299).</span>
+    <span class="n">derived</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1065,7 +1068,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    unless ``force``.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.shot_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">project_id</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_entries</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_reach</span>
 
     <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">if</span> <span class="n">now</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">now</span>
     <span class="n">entries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">inventory</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
@@ -1117,7 +1120,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># A stand-in or a missing font warns at compile time; that is</span>
                 <span class="c1"># the render's message to give, not the collector's.</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-                <span class="n">ids</span> <span class="o">=</span> <span class="n">cache_entries</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">)</span>
+                <span class="n">scene_reach</span> <span class="o">=</span> <span class="n">cache_reach</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">AudioNotCachedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># No key until that line is synthesised: nothing cached can be its</span>
             <span class="c1"># shot's entry. What the renders under it used stays, whatever age.</span>
@@ -1133,7 +1136,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"it from rendering (`an validate`)"</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
-        <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+        <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">scene_reach</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">scene_reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
         <span class="n">why</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">({</span><span class="n">why</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">}))</span>
         <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
@@ -1167,6 +1172,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">failed</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">bytes_before</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">reach</span><span class="p">:</span> <span class="n">Reachability</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The renderers' derived stores (an#299): what was (or would be) deleted,</span>
+    <span class="c1">#: by store, and the bytes that frees.</span>
+    <span class="n">deleted_derived</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">derived_freed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">kept_derived</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">freed_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1193,6 +1203,15 @@ window.runMermaid = runMermaid;</script>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_retained</span><span class="si">}</span><span class="s2"> within --max-size/--max-age"</span>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_protected</span><span class="p">)</span><span class="si">}</span><span class="s2"> written during a render or this collection"</span><span class="p">,</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kept_derived</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">what</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">store</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span>
+            <span class="p">)</span> <span class="ow">or</span> <span class="s2">"nothing"</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"derived stores: </span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> entries (</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">), "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">derived_freed</span><span class="p">)</span><span class="si">}</span><span class="s2">; kept </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_derived</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_skipped_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">failed</span><span class="p">:</span>
@@ -1346,6 +1365,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">report</span><span class="o">.</span><span class="n">deleted</span> <span class="o">=</span> <span class="n">candidates</span>
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">deleted_blobs</span> <span class="o">=</span> <span class="n">doomed_blobs</span>
+        <span class="n">doomed_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">}</span>
+        <span class="n">_collect_derived</span><span class="p">(</span>
+            <span class="n">project</span><span class="p">,</span> <span class="n">reach</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doomed_ids</span><span class="p">],</span>
+            <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="n">max_age</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span>
+            <span class="n">shot_cache_kept_bytes</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">doomed_blobs</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># fmt: skip</span>
         <span class="k">return</span> <span class="n">report</span>
     <span class="n">layout</span> <span class="o">=</span> <span class="n">_fs_layout</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
     <span class="c1"># Records first, then blobs: a record must never name a blob that is gone.</span>
@@ -1375,8 +1401,224 @@ window.runMermaid = runMermaid;</script>
             <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">report</span><span class="o">.</span><span class="n">deleted_blobs</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">blob_size</span>
+    <span class="c1"># The derived stores, after the shot cache: a shot entry that stays keeps</span>
+    <span class="c1"># what its provenance names (an#299).</span>
+    <span class="n">removed_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">removed</span><span class="p">}</span>
+    <span class="n">_collect_derived</span><span class="p">(</span>
+        <span class="n">project</span><span class="p">,</span> <span class="n">reach</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">removed_ids</span><span class="p">],</span>
+        <span class="n">horizon</span><span class="o">=</span><span class="n">horizon</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="n">max_age</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span>
+        <span class="n">shot_cache_kept_bytes</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">-</span> <span class="n">report</span><span class="o">.</span><span class="n">freed_bytes</span><span class="p">,</span>
+        <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The renderers' derived stores (an#299)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DerivedEntry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One entry of a renderer's derived store (a Manim picture, measurement</span>
+<span class="sd">    record or contact sheet)."""</span>
+
+    <span class="n">store</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">written_at</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_merge</span><span class="p">(</span><span class="n">into</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">more</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">more</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">into</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_derived_inventory</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">DerivedEntry</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Each derived store's entries with their size and age. An entry whose</span>
+<span class="sd">    age cannot be read (a store with no files) has ``written_at=None``, which</span>
+<span class="sd">    nothing ever deletes."""</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">DerivedEntry</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">stores</span><span class="p">:</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">path_of</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"path_of"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+            <span class="n">size</span><span class="p">,</span> <span class="n">mtime</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">st</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_of</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+                    <span class="n">size</span><span class="p">,</span> <span class="n">mtime</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">st_size</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">st_mtime</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="k">continue</span>  <span class="c1"># gone since the listing</span>
+            <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DerivedEntry</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">size</span><span class="p">,</span> <span class="n">mtime</span><span class="p">))</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">entries</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_derived_keep</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">specs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">reach</span><span class="p">:</span> <span class="n">Reachability</span><span class="p">,</span>
+    <span class="n">kept_shot_entries</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">CacheEntry</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""What the current scene reads, and what every kept shot entry's</span>
+<span class="sd">    provenance names (NOT yet closed over what records name)."""</span>
+    <span class="n">keep</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_merge</span><span class="p">(</span><span class="n">keep</span><span class="p">,</span> <span class="n">reach</span><span class="o">.</span><span class="n">derived</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">kept_shot_entries</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_root</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">specs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">record</span><span class="p">,</span> <span class="s2">"renderer"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_merge</span><span class="p">(</span><span class="n">keep</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">provenance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">render_provenance</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="k">return</span> <span class="n">keep</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_closure</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">specs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">entries</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">store</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">_merge</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">closure</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">out</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_derived</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">reach</span><span class="p">:</span> <span class="n">Reachability</span><span class="p">,</span>
+    <span class="n">kept_shot_entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CacheEntry</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">horizon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">now</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_age</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">shot_cache_kept_bytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="n">GcReport</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Collect the registered derived stores (:mod:`an.build.derived`) under</span>
+<span class="sd">    the shot cache's guarantees.</span>
+
+<span class="sd">    Kept: what the current scene reads, what every kept shot entry's</span>
+<span class="sd">    provenance names, every entry written since the protection horizon — each</span>
+<span class="sd">    with everything its records name. Unreachable history is trimmed by the</span>
+<span class="sd">    caps in UNITS — a record with what it alone names — newest first, against</span>
+<span class="sd">    the ONE ``max_size`` the shot cache's kept bytes already count toward.</span>
+<span class="sd">    Records go first; then the record stores are listed and read AGAIN, and a</span>
+<span class="sd">    named entry goes only if no record present now names it — so a render</span>
+<span class="sd">    racing the collection (a record written after the listing, naming an older</span>
+<span class="sd">    picture) keeps what it needs. A record that cannot be read (half written)</span>
+<span class="sd">    stops every named entry from going this run. ``dry_run`` deletes nothing.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.derived</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnreadableRecordError</span><span class="p">,</span> <span class="n">registered_derived_stores</span>
+
+    <span class="n">specs</span> <span class="o">=</span> <span class="n">registered_derived_stores</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">specs</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">mall</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">stores</span><span class="p">]</span>
+    <span class="n">record_stores</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="o">.</span><span class="n">record_store</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+    <span class="n">inventory_</span> <span class="o">=</span> <span class="n">_derived_inventory</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
+    <span class="n">young</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">store</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">key</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">written_at</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">written_at</span> <span class="o">&gt;=</span> <span class="n">horizon</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">inventory_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">_derived_keep</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">reach</span><span class="p">,</span> <span class="n">kept_shot_entries</span><span class="p">)</span>
+    <span class="n">_merge</span><span class="p">(</span><span class="n">keep</span><span class="p">,</span> <span class="n">young</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">_closure</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">keep</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">UnreadableRecordError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"derived stores: a kept record is unreadable (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing deleted"</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">by_key</span> <span class="o">=</span> <span class="p">{(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">):</span> <span class="n">e</span> <span class="k">for</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">inventory_</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span><span class="p">}</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">e</span> <span class="k">for</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">inventory_</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">store</span> <span class="ow">in</span> <span class="n">record_stores</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="p">())</span>
+    <span class="p">]</span>  <span class="c1"># fmt: skip</span>
+
+    <span class="c1"># A unit: an unreachable record and what it names that nothing kept names.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unit</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="n">DerivedEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">DerivedEntry</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">named</span> <span class="o">=</span> <span class="n">_closure</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">}})</span>
+        <span class="k">except</span> <span class="n">UnreadableRecordError</span><span class="p">:</span>
+            <span class="n">named</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">:</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">}}</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">by_key</span><span class="p">[(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">named</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="ow">in</span> <span class="n">by_key</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="p">())</span>
+        <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">shot_cache_kept_bytes</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">by_key</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">written_at</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">unit</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="p">())]</span>
+            <span class="n">extra</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">)</span>
+            <span class="n">young_enough</span> <span class="o">=</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">now</span> <span class="o">-</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">written_at</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_age</span>
+            <span class="k">if</span> <span class="n">young_enough</span> <span class="ow">and</span> <span class="p">(</span><span class="n">max_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">size</span> <span class="o">+</span> <span class="n">extra</span> <span class="o">&lt;=</span> <span class="n">max_size</span><span class="p">):</span>
+                <span class="n">_merge</span><span class="p">(</span><span class="n">keep</span><span class="p">,</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">store</span><span class="p">:</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">key</span><span class="p">}</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">})</span>
+                <span class="n">size</span> <span class="o">+=</span> <span class="n">extra</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">records</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="p">())]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">gone</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="n">DerivedEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Delete ``e`` now (unless re-written since the listing)."""</span>
+        <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">path_of</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"path_of"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_of</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">))</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;=</span> <span class="n">horizon</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">removed_records</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gone</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">removed_records</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">))</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">derived_freed</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">size</span>
+    <span class="c1"># The record stores AGAIN, as they are now: whatever a present record</span>
+    <span class="c1"># names stays, however old its file.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">store</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="n">mall</span><span class="p">[</span><span class="n">store</span><span class="p">]</span> <span class="k">if</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">())</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">removed_records</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">store</span> <span class="ow">in</span> <span class="n">record_stores</span>
+        <span class="p">}</span>  <span class="c1"># fmt: skip</span>
+        <span class="n">named_now</span> <span class="o">=</span> <span class="n">_closure</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">present</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">UnreadableRecordError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"derived stores: a record is unreadable (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing it could name deleted"</span>
+        <span class="p">)</span>
+        <span class="n">named_now</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">deleted</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">removed_records</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">named_now</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">by_key</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">store</span> <span class="ow">in</span> <span class="n">record_stores</span> <span class="ow">or</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">named_now</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">gone</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+                <span class="n">deleted</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">derived_freed</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">report</span><span class="o">.</span><span class="n">kept_derived</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">by_key</span><span class="p">)</span> <span class="o">-</span> <span class="n">deleted</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1399,6 +1641,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">reachability_error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: The renderers' derived stores (an#299), by store name.</span>
+    <span class="n">derived</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"DerivedUsage"</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"shot cache: </span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">)</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
@@ -1422,8 +1666,32 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"  render of </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'output'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'age'</span><span class="p">]</span><span class="si">}</span><span class="s2"> ago, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'entries'</span><span class="p">]</span><span class="si">}</span><span class="s2"> entries"</span>
                 <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">", knobs </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'knobs'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"knobs"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">derived</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"derived stores:"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">unreachable</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"; unreachable: </span><span class="si">{</span><span class="n">u</span><span class="o">.</span><span class="n">unreachable_entries</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">unreachable_bytes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">unreachable_entries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">else</span> <span class="s2">""</span>
+                <span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">store</span><span class="si">:</span><span class="s2">&lt;14</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">u</span><span class="o">.</span><span class="n">entries</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> entries  </span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="o">+</span> <span class="n">unreachable</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DerivedUsage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One derived store's size, and how much of it nothing reaches</span>
+<span class="sd">    (``None``: reachability unknown)."""</span>
+
+    <span class="n">entries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">bytes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">unreachable_entries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">unreachable_bytes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_age</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1482,6 +1750,14 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"knobs"</span><span class="p">:</span> <span class="n">knobs</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.build.derived</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnreadableRecordError</span><span class="p">,</span> <span class="n">registered_derived_stores</span>
+
+    <span class="n">specs</span> <span class="o">=</span> <span class="n">registered_derived_stores</span><span class="p">()</span>
+    <span class="n">derived_inventory</span> <span class="o">=</span> <span class="n">_derived_inventory</span><span class="p">(</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">stores</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">derived_inventory</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">derived</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DerivedUsage</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">es</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">reachability</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">reach</span> <span class="o">=</span> <span class="n">reachable_entries</span><span class="p">(</span>
@@ -1495,6 +1771,16 @@ window.runMermaid = runMermaid;</script>
         <span class="n">gone</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">]</span>
         <span class="n">info</span><span class="o">.</span><span class="n">reachable</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">),</span> <span class="n">_unique_size</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">blobs</span><span class="p">))</span>
         <span class="n">info</span><span class="o">.</span><span class="n">unreachable</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gone</span><span class="p">),</span> <span class="n">_unique_size</span><span class="p">(</span><span class="n">gone</span><span class="p">,</span> <span class="n">blobs</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">kept</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">derived_keep</span> <span class="o">=</span> <span class="n">_closure</span><span class="p">(</span>
+                <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">_derived_keep</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">reach</span><span class="p">,</span> <span class="n">kept</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">UnreadableRecordError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">info</span>  <span class="c1"># unknown: a record cannot be read</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">derived_inventory</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">lost</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">derived_keep</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">())]</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">derived</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">unreachable_entries</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lost</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">derived</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">unreachable_bytes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">lost</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">info</span></div>
 
 

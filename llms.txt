@@ -65,6 +65,7 @@
 - [an.bench.stage](_autosummary/an.bench.stage.html.md): Measuring a pan: does the stage move as planes, or as one rigid image?
 - [an.build](_autosummary/an.build.html.md): Incremental re-processing: content-addressed build stages (ADR 0004).
 - [an.build.cli](_autosummary/an.build.cli.html.md): &#96;an cache …&#96; — the shot cache from the shell (an#274).
+- [an.build.derived](_autosummary/an.build.derived.html.md): A renderer’s derived stores, as &#96;an cache gc&#96; collects them (an#299).
 - [an.build.gc](_autosummary/an.build.gc.html.md): Garbage collection of the shot cache: &#96;an cache gc&#96; and &#96;an cache info&#96; (an#274).
 - [an.build.keys](_autosummary/an.build.keys.html.md): Cache keys for build stages: canonical digests, the project fallback, keyers.
 - [an.build.reads](_autosummary/an.build.reads.html.md): What a shot read: a read-recording view of the mall, and the digests of what it saw.
@@ -195,7 +196,7 @@
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 01:40 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 01:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

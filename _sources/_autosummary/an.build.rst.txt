@@ -51,6 +51,7 @@ an.build
    :recursive:
 
    cli
+   derived
    gc
    keys
    reads
