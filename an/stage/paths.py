@@ -215,6 +215,33 @@ class PathDescriptor(BaseModel):
         mark every default as set (:func:`an.ir.migrate.omit_unset`)."""
         return omit_unset(self, handler(self))
 
+    @model_validator(mode="before")
+    @classmethod
+    def _known_fields(cls, data):
+        """An unknown key names the closest fields and lists them all (an#457:
+        an end user guessed ``arrowhead_start`` and ``arrowhead: "both"``
+        before finding ``tail_arrowhead``)."""
+        if not isinstance(data, Mapping):
+            return data
+        known = set(cls.model_fields)
+        unknown = sorted(k for k in data if k not in known)
+        if unknown:
+            import difflib
+
+            hints = {
+                k: difflib.get_close_matches(k, sorted(known), n=3, cutoff=0.5)
+                for k in unknown
+            }
+            said = "; ".join(
+                f"{k!r}" + (f" (did you mean {', '.join(map(repr, h))}?)" if h else "")
+                for k, h in hints.items()
+            )
+            raise ValueError(
+                f"unknown PathDescriptor field(s): {said}. The fields are: "
+                f"{', '.join(sorted(known))}"
+            )
+        return data
+
     @field_validator("points")
     @classmethod
     def _finite_points(cls, points):
@@ -419,13 +446,11 @@ def resolve_path(
     >>> doc = {"kind": "PathDescriptor", "name": "a", "points": [[0, 0], [10, 0]]}
     >>> resolve_path(doc, {"points": [[0, 0], [0, 50]]}).points
     [(0.0, 0.0), (0.0, 50.0)]
-    >>> resolve_path(doc, {"colour": "#000000"})
-    Traceback (most recent call last):
-    ...
-    pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescriptor
-    colour
-      Extra inputs are not permitted [type=extra_forbidden, input_value='#000000', input_type=str]
-    ...
+    >>> try:
+    ...     resolve_path(doc, {"colour": "#000000"})
+    ... except ValueError as e:
+    ...     print(str(e).split("Value error, ")[1].split(". The fields")[0])
+    unknown PathDescriptor field(s): 'colour' (did you mean 'color', 'curve', 'source'?)
     """
     stored = migrate(dict(document), kind=PATH_DOCUMENT_KIND.name)
     merged = {**stored, **dict(overrides or {})}
