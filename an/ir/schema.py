@@ -167,7 +167,25 @@ class CameraShake(_IRModel):
     seed: int = 0
 
 
-class Camera(_IRModel):
+class _CameraShakes(_IRModel):
+    """The camera's shakes (an#429), kept apart from :class:`Camera`'s own block
+    so its move vocabulary reads only moves (``test_loud_discards``)."""
+
+    #: Jolts of the frame layered on the move or keys. `None`, not `[]`, for
+    #: the reason `Camera.keys` gives.
+    shake: list[CameraShake] | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_shake(self, handler):
+        """No shake, no key: every document written before an#429 dumps
+        byte-identically (the round-trip guard reads every committed scene)."""
+        data = handler(self)
+        if isinstance(data, dict) and data.get("shake") is None:
+            data.pop("shake", None)
+        return data
+
+
+class Camera(_CameraShakes):
     """Camera state for a shot: a named move, or explicit keys.
 
     >>> Camera(move="push_in").move
@@ -197,18 +215,6 @@ class Camera(_IRModel):
     move: str | None = None
     #: The explicit door. `None` = use `move`.
     keys: list[CameraKey] | None = None
-    #: Jolts of the frame layered on the move or keys (an#429). `None`, not
-    #: `[]`, for the reason `keys` gives.
-    shake: list[CameraShake] | None = None
-
-    @model_serializer(mode="wrap")
-    def _omit_unset_shake(self, handler):
-        """No shake, no key: every document written before an#429 dumps
-        byte-identically (the round-trip guard reads every committed scene)."""
-        data = handler(self)
-        if isinstance(data, dict) and data.get("shake") is None:
-            data.pop("shake", None)
-        return data
 
 
 # -----------------------------------------------------------------------------
