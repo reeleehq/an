@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T10:49:11Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1915,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "4e9a576d1a1d9bd91c8b4f1161a71c7910dcfd00e297f63fa05ce96b36808f36",
+      "shot_id": "count",
+      "time": 0.0
+    },
+    {
+      "bytes": 2677,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "6a26a6ed2c3c5f65bba6696d45e0b7db7e92d6c57167d805af2087a9ae9df14a",
+      "shot_id": "count",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "text-set-t1",
+    "dirty": true,
+    "sha": "b5b679cde32ce0c925e8f789be5456133e2d8b6e"
+  },
+  "reason": "new core scene (an#341): a texts replacement set swapped twice, right-aligned",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "text_swap",
+  "scene_contract_sha256": "f8be4d3503c32b96341c74788f85983517b6820294aed2fe9115acebdd3f7651",
+  "shot_ids": [
+    "count"
+  ],
+  "source": "misc/bench/corpus/text_swap",
+  "what_moves": "a text block's CONTENT changing within one shot (an#341): one right-aligned `unit: block` label whose `texts` set is swapped twice, \"Day 1\" -> \"Day 12\" at 0.125 s (the entity-level `set day text d12`) -> \"Day 300\" at 0.25 s (the `day/block_0` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the `align` edge, or in the entity-level fan-out moves a golden."
+}

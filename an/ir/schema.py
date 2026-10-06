@@ -1080,6 +1080,15 @@ class SceneIR(_IRModel):
 #: The property space a 2D stage engine's node lives in (:mod:`an.timing.spaces`).
 STAGE_NODE_SPACE: str = "stage.node"
 
+def _prop_swap_declaration(entity: Any, mall: Any) -> Any:
+    """The ``prop`` kind's swap declaration: a text block's ``text`` set
+    (an#341), nothing for any other prop. The stage owns text, so it is
+    imported when a shot is compiled or validated, never with the IR."""
+    from an.stage.text_layout import text_swap_declaration
+
+    return text_swap_declaration(entity, mall)
+
+
 CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
     EntityKind(
         "environment",
@@ -1092,6 +1101,7 @@ CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
         space=STAGE_NODE_SPACE,
         store="props",
         description="a prop or piece of set dressing; also stroked paths and text blocks",
+        swap_declaration=_prop_swap_declaration,
     ),
     EntityKind(
         "voice",
