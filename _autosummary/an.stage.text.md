@@ -88,9 +88,10 @@ recorded in the compiled document.
 
 ### Exceptions
 
-| [`TextFontError`](#an.stage.text.TextFontError)   | A text block's font cannot be used: not a file, not a font, or not the face the typesetter actually used.   |
-|------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`TextLayoutError`](#an.stage.text.TextLayoutError) | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
+| [`TextFontError`](#an.stage.text.TextFontError)      | A text block's font cannot be used: not a file, not a font, or not the face the typesetter actually used.   |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`TextLayoutError`](#an.stage.text.TextLayoutError)    | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
+| [`TextOutlineWarning`](#an.stage.text.TextOutlineWarning) | A unit's outline is wide enough to cover its neighbour's glyphs.                                            |
 
 ### an.stage.text.BLOCK_UNIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'block'*
 
@@ -253,6 +254,17 @@ first key); `None` for a single-string block.
 
 Fraction of frame height.
 
+#### stroke_color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The outline’s `#rrggbb`; needs `stroke_width`.
+
+#### stroke_width *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+An outline around every glyph (an#313, OverSimplified’s white labels
+edged in black): its visible thickness OUTSIDE the glyph, in scene
+pixels, drawn under the fill in the same texture, so a per-unit
+reveal shows outline and fill together. `0` = none.
+
 #### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The words. Explicit newlines break lines; `max_width` wraps. Exactly
@@ -316,6 +328,12 @@ and their `align` edges can be lined up (an#341).
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 The text cannot be set as asked (a glyph the face lacks, nothing to draw).
+
+### *exception* an.stage.text.TextOutlineWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A unit’s outline is wide enough to cover its neighbour’s glyphs.
 
 ### *class* an.stage.text.TextUnit(name, text, box, d)
 

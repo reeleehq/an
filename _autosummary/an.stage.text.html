@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a90edcc9"></script>
+    <script src="../_static/documentation_options.js?v=0d7658d0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.surface" href="an.stage.surface.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.190" />
+  <meta name="docsearch:version" content="0.1.191" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -735,6 +735,9 @@ recorded in the compiled document.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.TextLayoutError" title="an.stage.text.TextLayoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TextLayoutError</span></code></a></p></td>
 <td><p>The text cannot be set as asked (a glyph the face lacks, nothing to draw).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.TextOutlineWarning" title="an.stage.text.TextOutlineWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TextOutlineWarning</span></code></a></p></td>
+<td><p>A unit's outline is wide enough to cover its neighbour's glyphs.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -960,6 +963,21 @@ first key); <code class="docutils literal notranslate"><span class="pre">None</s
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.stroke_color">
+<span class="sig-name descname"><span class="pre">stroke_color</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.stroke_color" title="Link to this definition">#</a></dt>
+<dd><p>The outline’s <code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>; needs <code class="docutils literal notranslate"><span class="pre">stroke_width</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.stroke_width">
+<span class="sig-name descname"><span class="pre">stroke_width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.stroke_width" title="Link to this definition">#</a></dt>
+<dd><p>An outline around every glyph (an#313, OverSimplified’s white labels
+edged in black): its visible thickness OUTSIDE the glyph, in scene
+pixels, drawn under the fill in the same texture, so a per-unit
+reveal shows outline and fill together. <code class="docutils literal notranslate"><span class="pre">0</span></code> = none.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.text">
 <span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.text" title="Link to this definition">#</a></dt>
 <dd><p>The words. Explicit newlines break lines; <code class="docutils literal notranslate"><span class="pre">max_width</span></code> wraps. Exactly
@@ -1045,6 +1063,13 @@ and their <code class="docutils literal notranslate"><span class="pre">align</sp
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TextLayoutError</span></span><a class="reference internal" href="../_modules/an/stage/text.html#TextLayoutError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.TextLayoutError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>The text cannot be set as asked (a glyph the face lacks, nothing to draw).</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.stage.text.TextOutlineWarning">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TextOutlineWarning</span></span><a class="reference internal" href="../_modules/an/stage/text.html#TextOutlineWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.TextOutlineWarning" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<p>A unit’s outline is wide enough to cover its neighbour’s glyphs.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1299,6 +1324,8 @@ swap declaration states it (<code class="docutils literal notranslate"><span cla
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.rest"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.rest</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.rest_key"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.rest_key</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.size"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.size</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.stroke_color"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.stroke_color</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.stroke_width"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.stroke_width</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.text"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.text</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.texts"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.texts</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.tracking"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.tracking</span></code></a></li>
@@ -1311,6 +1338,7 @@ swap declaration states it (<code class="docutils literal notranslate"><span cla
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextLayoutError"><code class="docutils literal notranslate"><span class="pre">TextLayoutError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextOutlineWarning"><code class="docutils literal notranslate"><span class="pre">TextOutlineWarning</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextUnit"><code class="docutils literal notranslate"><span class="pre">TextUnit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextUnit.center"><code class="docutils literal notranslate"><span class="pre">TextUnit.center</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextUnit.size"><code class="docutils literal notranslate"><span class="pre">TextUnit.size</span></code></a></li>

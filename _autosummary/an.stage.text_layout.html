@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a90edcc9"></script>
+    <script src="../_static/documentation_options.js?v=0d7658d0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.text" href="an.stage.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.190" />
+  <meta name="docsearch:version" content="0.1.191" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -662,7 +662,7 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.text_swap_declaration" title="an.stage.text_layout.text_swap_declaration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_swap_declaration</span></code></a>(entity, mall)</p></td>
 <td><p>The core <code class="docutils literal notranslate"><span class="pre">prop</span></code> kind's swap declaration (an#341): a text block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> declares its <code class="docutils literal notranslate"><span class="pre">text</span></code> set, <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code>; any other prop declares nothing (its built nodes' sets are its declaration).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color[, stroke_width, ...])</p></td>
 <td><p>One unit's texture: its contours in a viewBox equal to its frame-pixel box.</p></td>
 </tr>
 </tbody>
@@ -751,7 +751,7 @@ on it, naming why.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.text_layout.unit_svg">
-<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">unit_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#unit_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.unit_svg" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">unit_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#unit_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.unit_svg" title="Link to this definition">#</a></dt>
 <dd><p>One unit’s texture: its contours in a viewBox equal to its frame-pixel box.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -760,6 +760,14 @@ on it, naming why.</p>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unit_svg</span><span class="p">(</span><span class="s2">"M0 0L2 0L2 2Z"</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#123456"</span><span class="p">)[:</span><span class="mi">60</span><span class="p">]</span>
 <span class="go">'&lt;svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'</span>
+</pre></div>
+</div>
+<p>With an outline (an#313) the same contours are drawn first as a stroke
+TWICE <code class="docutils literal notranslate"><span class="pre">stroke_width</span></code> wide, round-joined, so <code class="docutils literal notranslate"><span class="pre">stroke_width</span></code> shows outside
+the glyph once the fill covers the inner half: two paths rather than
+<code class="docutils literal notranslate"><span class="pre">paint-order</span></code>, so no rasteriser’s support for that attribute is assumed.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s1">'stroke-width="6"'</span> <span class="ow">in</span> <span class="n">unit_svg</span><span class="p">(</span><span class="s2">"M0 0Z"</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#fff"</span><span class="p">,</span> <span class="n">stroke_width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stroke_color</span><span class="o">=</span><span class="s2">"#000"</span><span class="p">)</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>

@@ -44,4 +44,5 @@ an.stage.text
    
       TextFontError
       TextLayoutError
+      TextOutlineWarning
    

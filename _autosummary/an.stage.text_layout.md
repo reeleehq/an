@@ -37,12 +37,12 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 
 ### Functions
 
-| [`build_text_subtree`](#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)   | The block's node and its unit children, plus what it resolved to.                                                                                                                               |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`svg_data_uri`](#an.stage.text_layout.svg_data_uri)(svg)                               | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix.                                                                                                 |
-| [`text_document`](#an.stage.text_layout.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                                                                                                                      |
-| [`text_swap_declaration`](#an.stage.text_layout.text_swap_declaration)(entity, mall)             | The core `prop` kind's swap declaration (an#341): a text block with `texts` declares its `text` set, `{key: key}`; any other prop declares nothing (its built nodes' sets are its declaration). |
-| [`unit_svg`](#an.stage.text_layout.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                                                                                                                     |
+| [`build_text_subtree`](#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)    | The block's node and its unit children, plus what it resolved to.                                                                                                                               |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`svg_data_uri`](#an.stage.text_layout.svg_data_uri)(svg)                                | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix.                                                                                                 |
+| [`text_document`](#an.stage.text_layout.text_document)(entity, props_store)               | The stored document behind a prop entity if it is a text block, else None.                                                                                                                      |
+| [`text_swap_declaration`](#an.stage.text_layout.text_swap_declaration)(entity, mall)              | The core `prop` kind's swap declaration (an#341): a text block with `texts` declares its `text` set, `{key: key}`; any other prop declares nothing (its built nodes' sets are its declaration). |
+| [`unit_svg`](#an.stage.text_layout.unit_svg)(d, box, \*, color[, stroke_width, ...]) | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                                                                                                                     |
 
 ### an.stage.text_layout.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
@@ -103,7 +103,7 @@ on it, naming why.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.stage.text_layout.unit_svg(d, box, , color)
+### an.stage.text_layout.unit_svg(d, box, , color, stroke_width=0.0, stroke_color=None)
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
@@ -113,4 +113,14 @@ One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 ```pycon
 >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]
 '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'
+```
+
+With an outline (an#313) the same contours are drawn first as a stroke
+TWICE `stroke_width` wide, round-joined, so `stroke_width` shows outside
+the glyph once the fill covers the inner half: two paths rather than
+`paint-order`, so no rasteriser’s support for that attribute is assumed.
+
+```pycon
+>>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
+True
 ```

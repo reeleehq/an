@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a90edcc9"></script>
+    <script src="../../../_static/documentation_options.js?v=0d7658d0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.190" />
+  <meta name="docsearch:version" content="0.1.191" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -724,6 +724,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">stage_pan  planes and the camera's TRANSLATION — parallax at three depths</span>
 <span class="sd">text_card  text — overlay words revealed one by one, a world label — under</span>
 <span class="sd">           the camera's ZOOM and ROLL (the overlay holds still, the world does not)</span>
+<span class="sd">text_outline outlined words over a plate, revealed word by word (an#313)</span>
 <span class="sd">text_swap  text content over time — a `texts` replacement set swapped twice,</span>
 <span class="sd">           right-aligned (an#341)</span>
 <span class="sd">text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)</span>
@@ -754,7 +755,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -936,6 +937,22 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"regression in the draw order (the disc over the wall), in the "</span>
             <span class="s2">"wrapper's compensation (the disc sliding against the sky), or "</span>
             <span class="s2">"in the band containers' addressing moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"text_outline"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/text_outline"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"OUTLINED text (an#313, OverSimplified's labels): white words with a "</span>
+            <span class="s2">"4 px near-black outline over a mid-blue plate and a pale stripe, "</span>
+            <span class="s2">"the second word fading in from 0.125 s. Frame 0 shows the first "</span>
+            <span class="s2">"word alone, outline and all, and NO outline where the second word "</span>
+            <span class="s2">"will be (the outline lives in the word's own texture, so its alpha "</span>
+            <span class="s2">"hides both); frame 8 shows both, legible over the blue and the "</span>
+            <span class="s2">"stripe alike. A regression in the outline's width, its order under "</span>
+            <span class="s2">"the fill, the box growth that keeps it unclipped, or per-word "</span>
+            <span class="s2">"alpha moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"transitions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
