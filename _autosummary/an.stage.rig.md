@@ -28,6 +28,8 @@ Two layers live here:
 |-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RIG_DOCUMENT_OPTIONAL_FIELDS`](#an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS) | The fields [`RigDocument`](#an.stage.rig.RigDocument) adds, each written out of the stored document when unset ([`omit_unset_rig_fields()`](#an.stage.rig.omit_unset_rig_fields)), so every descriptor that never set one reads back, and hashes, as it did before the field existed. |
 | [`REST_POSE_SINCE`](#an.stage.rig.REST_POSE_SINCE)              | `{rig document kind: the version from which its bones' rest pose is applied}`, filled by [`register_rest_pose_migration()`](#an.stage.rig.register_rest_pose_migration) (an#339).                                                                                                                              |
+| [`NESTINGS`](#an.stage.rig.NESTINGS)                     | The nesting modes ([`RigDocument.nesting`](#an.stage.rig.RigDocument.nesting)); unset means the first.                                                                                                                                                                                                |
+| [`RIG_HIERARCHY`](#an.stage.rig.RIG_HIERARCHY)                | The capability a nested chain affords (ADR 0002 decision 1's name, registered by the core in [`an.capabilities.subjects`](an.capabilities.subjects.md#module-an.capabilities.subjects)).                                                                                                        |
 | [`SCENE_PX_PER_VIEW_BOX`](#an.stage.rig.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                            |
 | [`CONTAIN_FIT`](#an.stage.rig.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                   |
 | [`CHARACTER_ART_PREFIX`](#an.stage.rig.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                          |
@@ -41,10 +43,13 @@ Two layers live here:
 | [`bone_extent_centre`](#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](#an.stage.rig.RigDocument.origin) ([`rig_origin()`](#an.stage.rig.rig_origin)). |
 | [`bone_positions`](#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                           |
 | [`bones_carry_a_rest_pose`](#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                       |
-| [`build_rig_subtree`](#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a character, **from its descriptor's rig**.                                                                                                                                                                  |
+| [`build_rig_subtree`](#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a rig (a prop or a character), **from its descriptor**.                                                                                                                                                      |
+| [`chain_draw_order_problems`](#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340).                                                                                                                                                            |
+| [`chain_pose_problems`](#an.stage.rig.chain_pose_problems)(desc)                          | A rest pose the stage cannot apply in a nested chain (an#340).                                                                                                                                                                           |
 | [`declared_origin`](#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                |
 | [`drawn_attachment`](#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                             |
 | [`legacy_rest_pose_unknown`](#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                              |
+| [`nesting_of`](#an.stage.rig.nesting_of)(desc)                                   | `"flat"` or `"bones"` (an#340); unset is flat.                                                                                                                                                                                           |
 | [`omit_unset_rig_fields`](#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                    |
 | [`part_probe`](#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                  |
 | [`primary_slot_per_bone`](#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                              |
@@ -52,9 +57,13 @@ Two layers live here:
 | [`raster_digest`](#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                       |
 | [`register_rest_pose_migration`](#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                        |
 | [`rest_transform`](#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                    |
+| [`rig_affordances`](#an.stage.rig.rig_affordances)(desc)                              | What a rig's structure affords, derived from the rig model (an#340).                                                                                                                                                                     |
 | [`rig_origin`](#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                           |
 | [`rig_origin_problems`](#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                        |
+| [`rig_problems`](#an.stage.rig.rig_problems)(desc)                                 | What is structurally wrong with a rig's bones and slots (an#340).                                                                                                                                                                        |
 | [`rig_rest_problems`](#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                 |
+| [`slot_node_paths`](#an.stage.rig.slot_node_paths)(desc)                              | `{slot: its node path relative to the entity}` (`torso/arm/hand`), by [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.                                               |
+| [`slot_parent_chain`](#an.stage.rig.slot_parent_chain)(desc)                            | `{slot: the slot it nests under, or None}`: THE nesting rule (an#340).                                                                                                                                                                   |
 
 ### Classes
 
@@ -70,6 +79,7 @@ Two layers live here:
 
 | [`RestPoseWarning`](#an.stage.rig.RestPoseWarning)   | A rig's bone rest pose was NOT applied, because the document may predate it.   |
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`RigError`](#an.stage.rig.RigError)          | A rig cannot be built as declared (a cycle, or a chain the stage cannot draw). |
 
 ### *class* an.stage.rig.Attachment(\*\*data)
 
@@ -172,6 +182,10 @@ viewBox without a calibration step.
 * **Type:**
   Canonical character viewBox
 
+### an.stage.rig.NESTINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('flat', 'bones')*
+
+The nesting modes ([`RigDocument.nesting`](#an.stage.rig.RigDocument.nesting)); unset means the first.
+
 ### an.stage.rig.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
@@ -183,11 +197,16 @@ which is what decides where the staging step copies the art from.
 filled by [`register_rest_pose_migration()`](#an.stage.rig.register_rest_pose_migration) (an#339). The builder guard
 reads it to recognise a document older than that version.
 
-### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation')*
+### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation', 'nesting')*
 
 The fields [`RigDocument`](#an.stage.rig.RigDocument) adds, each written out of the stored
 document when unset ([`omit_unset_rig_fields()`](#an.stage.rig.omit_unset_rig_fields)), so every descriptor
 that never set one reads back, and hashes, as it did before the field existed.
+
+### an.stage.rig.RIG_HIERARCHY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rig.hierarchy'*
+
+The capability a nested chain affords (ADR 0002 decision 1’s name, registered
+by the core in [`an.capabilities.subjects`](an.capabilities.subjects.md#module-an.capabilities.subjects)).
 
 ### *exception* an.stage.rig.RestPoseWarning
 
@@ -221,6 +240,18 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for RigDocument
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### nesting *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a slot nests under its
+OWN bone’s primary slot only, so limbs are siblings of the torso (the
+rigs’ long-standing shape). `"bones"`: a slot nests under the primary
+slot of the nearest ancestor bone that has one, to any depth, so a
+forearm turns with its upper arm and a sword with its hand (forward
+kinematics). [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain) is the rule.
+
+* **Type:**
+  How slots nest (an#340). Unset or `"flat"`
+
 #### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The point of the art that the entity’s placement (`stage.at`) refers
@@ -238,6 +269,12 @@ before that rule whose bones carry a rotation or scale, because such a
 rig was drawn with the pose already in its pixels (the fields were
 ignored) and applying them now would pose it twice
 ([`protect_legacy_rest_pose()`](#an.stage.rig.protect_legacy_rest_pose)).
+
+### *exception* an.stage.rig.RigError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A rig cannot be built as declared (a cycle, or a chain the stage cannot draw).
 
 ### *class* an.stage.rig.RigModel(\*\*data)
 
@@ -390,9 +427,22 @@ True
 False
 ```
 
-### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None)
+### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None, skip_slots=None)
 
-Build the scene subtree for a character, **from its descriptor’s rig**.
+Build the scene subtree for a rig (a prop or a character), **from its descriptor**.
+
+Slots nest by [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain) (`nesting: flat` or `bones`,
+an#340). In `bones` mode a nested part is placed relative to its parent
+BONE, without inheriting the parent’s attachment offset, and its bone’s
+rest pose composes through the chain.
+
+`skip_slots` are slots the GENRE says not to build (the cut-out genre’s
+baked face: `cutan.characters.play.suppressed_slots`); a skipped slot’s
+nested parts are not built either. `None` is the legacy rule for a genre
+that predates the argument (`an.genres.API_LEVEL` < 5): with
+`face_overlay` false, the slots nested under the `head` bone’s primary
+slot. It is the one place the core still names a bone, and it goes when no
+genre needs it.
 
 A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures
 either, and `digest(src)` — a content digest for raster art, `None`
@@ -437,6 +487,51 @@ fit draws the art at its natural shape — never stretched to a fabricated box.
 
 * **Return type:**
   [`NodeJSON`](an.stage.serialize.md#an.stage.serialize.NodeJSON)
+
+### an.stage.rig.chain_draw_order_problems(desc)
+
+Where a nested chain asks the STAGE for a draw order it cannot give (an#340).
+
+The stage engine (PixiJS) draws a container’s own visual before its
+children, so a nested part always draws over its parent: a slot nested
+under one with a HIGHER `draw_order` cannot be honoured. This is the
+stage engine’s limit, not a rule of rigs (an engine with free slot order
+could draw it), so the stage compiler refuses it and the asset
+validators only warn. Nothing in `flat` nesting: there a nested slot is
+a face part over its head, drawn after it by construction.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])
+>>> chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")
+True
+```
+
+### an.stage.rig.chain_pose_problems(desc)
+
+A rest pose the stage cannot apply in a nested chain (an#340).
+
+A node exists only for a bone that carries a slot. A bone with NO slot
+between a part and the part it nests under has no node to rotate or
+scale, so its `rotation_deg`/`scale_*` would be lost (its `x`/`y`
+are kept: positions sum along the chain). Refused at compile, like the
+draw order; give the bone a slot or move its pose to the bone below it.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],
+...          bones=[NS(name="arm", parent=None), NS(name="elbow", parent="arm", rotation_deg=-70),
+...                 NS(name="hand", parent="elbow")])
+>>> chain_pose_problems(rig)[0].startswith("bone 'elbow' carries no slot")
+True
+```
 
 ### an.stage.rig.declared_origin(desc)
 
@@ -487,6 +582,18 @@ True
 False
 ```
 
+### an.stage.rig.nesting_of(desc)
+
+`"flat"` or `"bones"` (an#340); unset is flat.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> nesting_of({"nesting": "bones"}), nesting_of({})
+('bones', 'flat')
+```
+
 ### an.stage.rig.omit_unset_rig_fields(data)
 
 Drop every unset [`RigDocument`](#an.stage.rig.RigDocument) field from a dumped document, in place.
@@ -533,12 +640,13 @@ an#211 a PNG was parsed AS SVG here and the compile died on an XML error.
 
 `{bone name: the slot that IS that bone}`, when one exists.
 
-Used for node nesting, which is deliberately **not** the bone hierarchy.
-The rigs here are flat by design — arms are siblings of the torso, not
-children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.
-A slot nests under the primary slot of its bone when it is not that slot
-itself, which is what puts eyes and mouth under `head` and leaves every
-limb a direct child of the entity.
+The anchor of node nesting ([`slot_parent_chain()`](#an.stage.rig.slot_parent_chain)). In the default
+`flat` nesting the rigs are flat — arms are siblings of the torso, not
+children (CLAUDE.md pillar 4) — so bone parentage decides *position* only:
+a slot nests under the primary slot of its own bone when it is not that
+slot itself, which puts eyes and mouth under `head` and leaves every limb
+a direct child of the entity. `nesting: bones` (an#340) follows the bone
+hierarchy to the nearest ancestor’s primary slot instead.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -627,6 +735,30 @@ ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
 {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
 ```
 
+### an.stage.rig.rig_affordances(desc)
+
+What a rig’s structure affords, derived from the rig model (an#340).
+
+`rig.hierarchy` when the rig nests in `bones` mode and some chain links
+two different bones: `keys` are every slot in such a chain (so
+`rig.hierarchy:forearm_l` asks for a forearm in a chain), `count` the
+deepest chain’s number of BONES (`rig.hierarchy>=3` is “a shoulder, an
+elbow and a hand”), `chains` every root-to-leaf chain of slots. Parts on
+one bone (a head with its face) add no depth, and a flat rig affords
+nothing here: that nesting is a drawing convention, not a joint. The core registers it as the `prop`
+analyser; a genre’s analyser composes it for its own kinds.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+...          slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+>>> rig_affordances(rig)
+{'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}
+```
+
 ### an.stage.rig.rig_origin(desc)
 
 The point of the rig, in view_box units, that lands at the entity’s placement.
@@ -672,6 +804,26 @@ True
 'origin (nan, 0.0) is not finit'
 ```
 
+### an.stage.rig.rig_problems(desc)
+
+What is structurally wrong with a rig’s bones and slots (an#340).
+
+A bone whose `parent` names no bone; a cycle in the bone graph (the one
+form a closed linkage can take in a model where each bone names one
+parent: forward kinematics only, so it is refused); a slot whose `bone`
+names no bone (it used to land at the origin, silently). Shared by the
+asset validators (`an character validate`, `an.stage.props.validate_prop()`).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],
+...                 slots=[NS(name="s", bone="nope")]))
+['bones form a cycle (a closed linkage): a -> b -> a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]
+```
+
 ### an.stage.rig.rig_rest_problems(desc)
 
 Warnings about a rig’s rest pose (an#339), on a model or a raw document.
@@ -697,3 +849,51 @@ True
 >>> rig_rest_problems(doc)
 []
 ```
+
+### an.stage.rig.slot_node_paths(desc)
+
+`{slot: its node path relative to the entity}` (`torso/arm/hand`), by
+[`slot_parent_chain()`](#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="a", parent=None), NS(name="b", parent="a")],
+...          slots=[NS(name="a", bone="a"), NS(name="b", bone="b")])
+>>> slot_node_paths(rig)
+{'a': 'a', 'b': 'a/b'}
+```
+
+### an.stage.rig.slot_parent_chain(desc)
+
+`{slot: the slot it nests under, or None}`: THE nesting rule (an#340).
+
+The builder and a genre’s part paths (`cutan`’s `play.slot_parent`,
+`slot_node_path`) all read it, so a `play` or a preset addresses the
+node the builder made.
+
+- `flat` (unset): a slot nests under its own bone’s primary slot (the
+  slot named like the bone) when it is not that slot; everything else is a
+  child of the entity. Arms are siblings of the torso.
+- `bones`: the same, and a slot that IS its bone’s primary (or whose bone
+  has none) nests under the primary slot of the nearest ANCESTOR bone that
+  has one, to any depth. A bone cycle stops the walk; `rig_problems`
+  names it and the builder refuses it.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(bones=[NS(name="arm", parent="torso"), NS(name="hand", parent="arm"),
+...                 NS(name="torso", parent=None)],
+...          slots=[NS(name="torso", bone="torso"), NS(name="arm", bone="arm"),
+...                 NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+>>> slot_parent_chain(rig)
+{'torso': None, 'arm': None, 'hand': None, 'sword': 'hand'}
+>>> rig.nesting = "bones"
+>>> slot_parent_chain(rig)
+{'torso': None, 'arm': 'torso', 'hand': 'arm', 'sword': 'hand'}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]

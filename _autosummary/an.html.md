@@ -728,6 +728,7 @@ which decides how long a dissolve’s overlap is.
 | [`probe`](an.probe.html.md#module-an.probe)                 | `an probe`: a shot's frame at chosen instants, through the very path `render` draws it (an#347).                                                        |
 | [`project`](an.project.html.md#module-an.project)             | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
 | [`props`](an.props.html.md#module-an.props)                 | Moved to [`an.stage.props`](an.stage.props.html.md#module-an.stage.props) (an#247); this path is a LIVE alias of it.               |
+| [`props_cli`](an.props_cli.html.md#module-an.props_cli)         | `an props …` — a prop's asset folder from the shell (an#340).                                                                                           |
 | [`raster`](an.raster.html.md#module-an.raster)               | Moved to [`an.stage.raster`](an.stage.raster.html.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |
 | [`render`](an.render.html.md#module-an.render)               | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                                                                         |
 | [`semantic`](an.semantic.html.md#module-an.semantic)           | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.                                                                |

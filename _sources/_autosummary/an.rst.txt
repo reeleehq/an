@@ -82,6 +82,7 @@
    probe
    project
    props
+   props_cli
    raster
    render
    semantic

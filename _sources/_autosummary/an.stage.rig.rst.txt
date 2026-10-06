@@ -11,6 +11,8 @@ an.stage.rig
       DEFAULT_VIEW_BOX
       RIG_DOCUMENT_OPTIONAL_FIELDS
       REST_POSE_SINCE
+      NESTINGS
+      RIG_HIERARCHY
       SCENE_PX_PER_VIEW_BOX
       CONTAIN_FIT
       CHARACTER_ART_PREFIX
@@ -26,9 +28,12 @@ an.stage.rig
       bone_positions
       bones_carry_a_rest_pose
       build_rig_subtree
+      chain_draw_order_problems
+      chain_pose_problems
       declared_origin
       drawn_attachment
       legacy_rest_pose_unknown
+      nesting_of
       omit_unset_rig_fields
       part_probe
       primary_slot_per_bone
@@ -36,9 +41,13 @@ an.stage.rig
       raster_digest
       register_rest_pose_migration
       rest_transform
+      rig_affordances
       rig_origin
       rig_origin_problems
+      rig_problems
       rig_rest_problems
+      slot_node_paths
+      slot_parent_chain
    
    .. rubric:: Classes
 
@@ -56,4 +65,5 @@ an.stage.rig
    .. autosummary::
    
       RestPoseWarning
+      RigError
    

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8a9defc6"></script>
+    <script src="../_static/documentation_options.js?v=2ee56bdf"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.198" />
+  <meta name="docsearch:version" content="0.1.199" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -450,6 +450,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props_cli.html">an.props_cli</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -480,6 +481,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
@@ -1575,49 +1577,52 @@ which decides how long a dissolve’s overlap is.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.props.html#module-an.props" title="an.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.props.html#module-an.stage.props" title="an.stage.props"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.props</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.raster.html#module-an.raster" title="an.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.props_cli.html#module-an.props_cli" title="an.props_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props_cli</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">props</span> <span class="pre">…</span></code> — a prop's asset folder from the shell (an#340).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.raster.html#module-an.raster" title="an.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.raster.html#module-an.stage.raster" title="an.stage.raster"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.raster</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.html#module-an.semantic" title="an.semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">semantic</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.html#module-an.semantic" title="an.semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">semantic</span></code></a></p></td>
 <td><p>The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.sound_anchors.html#module-an.sound_anchors" title="an.sound_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_anchors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.sound_anchors.html#module-an.sound_anchors" title="an.sound_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_anchors</span></code></a></p></td>
 <td><p>Sound cues timed by the picture (an#317): <code class="docutils literal notranslate"><span class="pre">at:</span> <span class="pre">{when:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">reaches:</span> <span class="pre">{y:</span> <span class="pre">px}}</span></code> and <code class="docutils literal notranslate"><span class="pre">until:</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.sound_fetch.html#module-an.sound_fetch" title="an.sound_fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_fetch</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.sound_fetch.html#module-an.sound_fetch" title="an.sound_fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_fetch</span></code></a></p></td>
 <td><p>Add a sound from a URL, with its provenance and the cut taken (an#318).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
 <td><p>Sound assets: what the sound layer plays, where it came from, and a synthesizer.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.sounds_cli.html#module-an.sounds_cli" title="an.sounds_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds_cli</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.sounds_cli.html#module-an.sounds_cli" title="an.sounds_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds_cli</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sounds</span> <span class="pre">…</span></code>: the project's sounds store from the shell (an#318).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
 <td><p>The 2D stage: the default engine, shipped with <code class="docutils literal notranslate"><span class="pre">an</span></code> but outside the core (an#247).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
 <td><p>Project mall: a dict of dol-backed <code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> stores.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>StylePack: art direction as a document, and the first reader the styles store has had.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.text.html#module-an.stage.text" title="an.stage.text"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.text</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.timing.html#module-an.timing" title="an.timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timing</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.html#module-an.timing" title="an.timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timing</span></code></a></p></td>
 <td><p>The timing kernel: what is on screen at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, as a pure function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
 <td><p>User-facing utility functions, plus the SSOT list for CLI dispatch.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
 <td><p>Internal helpers: file I/O, hashing, time arithmetic, light path utilities.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
 <td><p>Verification protocol — same interface for human, lint, vision-LM, MoVer.</p></td>
 </tr>
 </tbody>

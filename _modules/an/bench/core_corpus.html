@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8a9defc6"></script>
+    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.198" />
+  <meta name="docsearch:version" content="0.1.199" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,6 +736,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">           toppling about it, beside the same rig placed by its bones' extent</span>
 <span class="sd">rig_rest   a tripod whose legs are ONE drawing splayed by their bones' rest</span>
 <span class="sd">           rotation (an#339), tilting as a whole with the splay intact</span>
+<span class="sd">rig_chain  a desk-lamp arm in ``nesting: bones`` (an#340): base, upper arm,</span>
+<span class="sd">           forearm and a shade nested on it, posed by three tweens</span>
 <span class="sd">========== ===================================================================</span>
 
 <span class="sd">They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the</span>
@@ -755,7 +757,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1002,6 +1004,21 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"intact. A regression that dropped the rest pose (three parallel "</span>
             <span class="s2">"legs), applied it twice, or let the entity's rotation replace a "</span>
             <span class="s2">"leg's instead of composing with it moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"rig_chain"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/rig_chain"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a desk-lamp prop with `nesting: bones` (an#340): base -&gt; upper arm "</span>
+            <span class="s2">"-&gt; forearm, and a shade NESTED on the forearm's bone (the sword in "</span>
+            <span class="s2">"the hand). The upper arm (rest 30 deg) tweens 0.52 -&gt; -0.3 rad, the "</span>
+            <span class="s2">"forearm (rest -70 deg, relative to the upper arm) -1.22 -&gt; -0.4, "</span>
+            <span class="s2">"the shade 0 -&gt; 0.6: each turns about its joint and carries what "</span>
+            <span class="s2">"hangs from it. A regression that flattened the chain (forearm "</span>
+            <span class="s2">"left behind by the upper arm), inherited a parent's attachment "</span>
+            <span class="s2">"offset, or applied a rest pose twice moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
 <span class="p">}</span>

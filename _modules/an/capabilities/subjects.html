@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8a9defc6"></script>
+    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.198" />
+  <meta name="docsearch:version" content="0.1.199" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -867,6 +867,23 @@ window.runMermaid = runMermaid;</script>
         <span class="n">subject</span><span class="o">=</span><span class="s2">"engine"</span><span class="p">,</span>
     <span class="p">)</span>
 
+<span class="c1">#: ADR 0002 decision 1's name for a rig whose parts nest in chains (an#340):</span>
+<span class="c1">#: ``keys`` the chain roots, ``count`` the deepest chain's length in parts, so</span>
+<span class="c1">#: ``rig.hierarchy&gt;=3`` is "a limb with an elbow and a hand". Derived from the</span>
+<span class="c1">#: rig model by ``an.stage.rig.rig_affordances``, for props by the stage's</span>
+<span class="c1">#: ``prop`` analyser (``an.stage.props``) and for a genre's rigged kinds by the</span>
+<span class="c1">#: genre's analyser.</span>
+<span class="n">RIG_HIERARCHY</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+    <span class="s2">"rig.hierarchy"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"the rig nests its parts in chains (`nesting: bones`): keys = the chain "</span>
+        <span class="s2">"roots, count = the deepest chain's length in parts"</span>
+    <span class="p">),</span>
+    <span class="n">remedy</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"declare `nesting: bones` on the rig document and parent each part's "</span>
+        <span class="s2">"bone to the bone it hangs from (an elbow's to the shoulder's)"</span>
+    <span class="p">),</span>
+<span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_real_probe</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.check_requirements</span><span class="w"> </span><span class="kn">import</span> <span class="n">playwright_browser_dirs</span>

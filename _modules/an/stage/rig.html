@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8a9defc6"></script>
+    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.198" />
+  <meta name="docsearch:version" content="0.1.199" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -740,10 +740,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_serializer</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities.subjects</span><span class="w"> </span><span class="kn">import</span> <span class="n">RIG_HIERARCHY</span> <span class="k">as</span> <span class="n">_RIG_HIERARCHY_CAPABILITY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">KINDS</span><span class="p">,</span>
@@ -787,7 +789,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The fields :class:`RigDocument` adds, each written out of the stored</span>
 <span class="c1">#: document when unset (:func:`omit_unset_rig_fields`), so every descriptor</span>
 <span class="c1">#: that never set one reads back, and hashes, as it did before the field existed.</span>
-<span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"origin"</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span>
+<span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"origin"</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">,</span> <span class="s2">"nesting"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="omit_unset_rig_fields">
@@ -973,6 +975,14 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: (:func:`protect_legacy_rest_pose`).</span>
     <span class="n">rest_rotation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="c1">#: How slots nest (an#340). Unset or ``"flat"``: a slot nests under its</span>
+    <span class="c1">#: OWN bone's primary slot only, so limbs are siblings of the torso (the</span>
+    <span class="c1">#: rigs' long-standing shape). ``"bones"``: a slot nests under the primary</span>
+    <span class="c1">#: slot of the nearest ancestor bone that has one, to any depth, so a</span>
+    <span class="c1">#: forearm turns with its upper arm and a sword with its hand (forward</span>
+    <span class="c1">#: kinematics). :func:`slot_parent_chain` is the rule.</span>
+    <span class="n">nesting</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"flat"</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_rig_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">omit_unset_rig_fields</span><span class="p">(</span><span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
@@ -1139,18 +1149,345 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">primary_slot_per_bone</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``{bone name: the slot that IS that bone}``, when one exists.</span>
 
-<span class="sd">    Used for node nesting, which is deliberately **not** the bone hierarchy.</span>
-<span class="sd">    The rigs here are flat by design — arms are siblings of the torso, not</span>
-<span class="sd">    children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.</span>
-<span class="sd">    A slot nests under the primary slot of its bone when it is not that slot</span>
-<span class="sd">    itself, which is what puts eyes and mouth under ``head`` and leaves every</span>
-<span class="sd">    limb a direct child of the entity.</span>
+<span class="sd">    The anchor of node nesting (:func:`slot_parent_chain`). In the default</span>
+<span class="sd">    ``flat`` nesting the rigs are flat — arms are siblings of the torso, not</span>
+<span class="sd">    children (CLAUDE.md pillar 4) — so bone parentage decides *position* only:</span>
+<span class="sd">    a slot nests under the primary slot of its own bone when it is not that</span>
+<span class="sd">    slot itself, which puts eyes and mouth under ``head`` and leaves every limb</span>
+<span class="sd">    a direct child of the entity. ``nesting: bones`` (an#340) follows the bone</span>
+<span class="sd">    hierarchy to the nearest ancestor's primary slot instead.</span>
 
 <span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
 <span class="sd">    &gt;&gt;&gt; primary_slot_per_bone(NS(slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head")]))["head"]</span>
 <span class="sd">    'head'</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">}</span></div>
+
+
+
+<span class="c1">#: The nesting modes (:attr:`RigDocument.nesting`); unset means the first.</span>
+<span class="n">NESTINGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"flat"</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span>
+<span class="n">FLAT_NESTING</span><span class="p">,</span> <span class="n">BONES_NESTING</span> <span class="o">=</span> <span class="n">NESTINGS</span>
+
+
+<div class="viewcode-block" id="RigError">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RigError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RigError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A rig cannot be built as declared (a cycle, or a chain the stage cannot draw)."""</span></div>
+
+
+
+<div class="viewcode-block" id="nesting_of">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.nesting_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``"flat"`` or ``"bones"`` (an#340); unset is flat.</span>
+
+<span class="sd">    &gt;&gt;&gt; nesting_of({"nesting": "bones"}), nesting_of({})</span>
+<span class="sd">    ('bones', 'flat')</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"nesting"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">FLAT_NESTING</span></div>
+
+
+
+<div class="viewcode-block" id="slot_parent_chain">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.slot_parent_chain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{slot: the slot it nests under, or None}``: THE nesting rule (an#340).</span>
+
+<span class="sd">    The builder and a genre's part paths (``cutan``'s ``play.slot_parent``,</span>
+<span class="sd">    ``slot_node_path``) all read it, so a ``play`` or a preset addresses the</span>
+<span class="sd">    node the builder made.</span>
+
+<span class="sd">    - ``flat`` (unset): a slot nests under its own bone's primary slot (the</span>
+<span class="sd">      slot named like the bone) when it is not that slot; everything else is a</span>
+<span class="sd">      child of the entity. Arms are siblings of the torso.</span>
+<span class="sd">    - ``bones``: the same, and a slot that IS its bone's primary (or whose bone</span>
+<span class="sd">      has none) nests under the primary slot of the nearest ANCESTOR bone that</span>
+<span class="sd">      has one, to any depth. A bone cycle stops the walk; ``rig_problems``</span>
+<span class="sd">      names it and the builder refuses it.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(bones=[NS(name="arm", parent="torso"), NS(name="hand", parent="arm"),</span>
+<span class="sd">    ...                 NS(name="torso", parent=None)],</span>
+<span class="sd">    ...          slots=[NS(name="torso", bone="torso"), NS(name="arm", bone="arm"),</span>
+<span class="sd">    ...                 NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])</span>
+<span class="sd">    &gt;&gt;&gt; slot_parent_chain(rig)</span>
+<span class="sd">    {'torso': None, 'arm': None, 'hand': None, 'sword': 'hand'}</span>
+<span class="sd">    &gt;&gt;&gt; rig.nesting = "bones"</span>
+<span class="sd">    &gt;&gt;&gt; slot_parent_chain(rig)</span>
+<span class="sd">    {'torso': None, 'arm': 'torso', 'hand': 'arm', 'sword': 'hand'}</span>
+<span class="sd">    """</span>
+    <span class="n">slots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="n">primary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slots</span>
+        <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
+    <span class="n">parent_bone</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="p">}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">bone</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">),</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="n">primary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bone</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">own</span> <span class="o">!=</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">own</span>
+            <span class="k">continue</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
+            <span class="n">seen</span> <span class="o">=</span> <span class="p">{</span><span class="n">bone</span><span class="p">}</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">parent_bone</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bone</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cursor</span> <span class="ow">in</span> <span class="n">primary</span><span class="p">:</span>
+                    <span class="n">parent</span> <span class="o">=</span> <span class="n">primary</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span>
+                    <span class="k">break</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="n">parent_bone</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="slot_node_paths">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.slot_node_paths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">slot_node_paths</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{slot: its node path relative to the entity}`` (``torso/arm/hand``), by</span>
+<span class="sd">    :func:`slot_parent_chain`; a slot caught in a cycle maps to its own name.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones", bones=[NS(name="a", parent=None), NS(name="b", parent="a")],</span>
+<span class="sd">    ...          slots=[NS(name="a", bone="a"), NS(name="b", bone="b")])</span>
+<span class="sd">    &gt;&gt;&gt; slot_node_paths(rig)</span>
+<span class="sd">    {'a': 'a', 'b': 'a/b'}</span>
+<span class="sd">    """</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+        <span class="n">parts</span><span class="p">,</span> <span class="n">seen</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">name</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"/"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span> <span class="k">if</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="rig_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rig_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What is structurally wrong with a rig's bones and slots (an#340).</span>
+
+<span class="sd">    A bone whose ``parent`` names no bone; a cycle in the bone graph (the one</span>
+<span class="sd">    form a closed linkage can take in a model where each bone names one</span>
+<span class="sd">    parent: forward kinematics only, so it is refused); a slot whose ``bone``</span>
+<span class="sd">    names no bone (it used to land at the origin, silently). Shared by the</span>
+<span class="sd">    asset validators (``an character validate``, :func:`an.stage.props.validate_prop`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],</span>
+<span class="sd">    ...                 slots=[NS(name="s", bone="nope")]))</span>
+<span class="sd">    ['bones form a cycle (a closed linkage): a -&gt; b -&gt; a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]</span>
+<span class="sd">    """</span>
+    <span class="n">bones</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">}</span>
+    <span class="n">parent_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">:</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> names parent </span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2">, which the rig does not declare"</span><span class="p">)</span>
+    <span class="n">reported</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">start</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">parent_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cursor</span><span class="p">):]</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reported</span><span class="p">:</span>
+                <span class="n">reported</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">"bones form a cycle (a closed linkage): "</span>
+                    <span class="o">+</span> <span class="s2">" -&gt; "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">loop</span><span class="p">,</span> <span class="n">loop</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+                    <span class="o">+</span> <span class="s2">"; a rig is a tree (forward kinematics only)"</span>
+                <span class="p">)</span>
+    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is bound to bone "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="s1">'bone'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">, which the rig does not declare"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="chain_draw_order_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.chain_draw_order_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">chain_draw_order_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Where a nested chain asks the STAGE for a draw order it cannot give (an#340).</span>
+
+<span class="sd">    The stage engine (PixiJS) draws a container's own visual before its</span>
+<span class="sd">    children, so a nested part always draws over its parent: a slot nested</span>
+<span class="sd">    under one with a HIGHER ``draw_order`` cannot be honoured. This is the</span>
+<span class="sd">    stage engine's limit, not a rule of rigs (an engine with free slot order</span>
+<span class="sd">    could draw it), so the stage compiler refuses it and the asset</span>
+<span class="sd">    validators only warn. Nothing in ``flat`` nesting: there a nested slot is</span>
+<span class="sd">    a face part over its head, drawn after it by construction.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],</span>
+<span class="sd">    ...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])</span>
+<span class="sd">    &gt;&gt;&gt; chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"draw_order"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">slot</span><span class="si">!r}</span><span class="s2"> (draw_order </span><span class="si">{</span><span class="n">order</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="si">}</span><span class="s2">) nests under </span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="si">}</span><span class="s2">), but the stage draws a nested part "</span>
+                <span class="s2">"OVER its parent: raise its draw_order to at least its parent's, "</span>
+                <span class="s2">"flatten it (`nesting: flat`), or reverse the chain"</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="c1"># The stage paints a TREE depth first, so a chain also moves everything</span>
+    <span class="c1"># under it past an unrelated part ordered between its members (a leg</span>
+    <span class="c1"># ordered between the arms and the head would paint over the face).</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
+    <span class="n">children</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">):</span>
+        <span class="n">children</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">parents</span><span class="p">[</span><span class="n">slot</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+    <span class="n">painted</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[])))</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
+        <span class="n">slot</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+        <span class="n">painted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+        <span class="n">stack</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="p">[])))</span>
+    <span class="n">wanted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">painted</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">painted</span> <span class="o">!=</span> <span class="n">wanted</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">painted</span><span class="p">,</span> <span class="n">wanted</span><span class="p">))</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the stage paints the chained tree depth first, so slot </span><span class="si">{</span><span class="n">painted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">painted</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">) would paint before </span><span class="si">{</span><span class="n">wanted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wanted</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">), against the declared order: "</span>
+            <span class="s2">"order each chain's parts together (a part's draw_order between its "</span>
+            <span class="s2">"parent's and its next sibling's), or flatten the rig (`nesting: flat`)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="chain_pose_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.chain_pose_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">chain_pose_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A rest pose the stage cannot apply in a nested chain (an#340).</span>
+
+<span class="sd">    A node exists only for a bone that carries a slot. A bone with NO slot</span>
+<span class="sd">    between a part and the part it nests under has no node to rotate or</span>
+<span class="sd">    scale, so its ``rotation_deg``/``scale_*`` would be lost (its ``x``/``y``</span>
+<span class="sd">    are kept: positions sum along the chain). Refused at compile, like the</span>
+<span class="sd">    draw order; give the bone a slot or move its pose to the bone below it.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],</span>
+<span class="sd">    ...          bones=[NS(name="arm", parent=None), NS(name="elbow", parent="arm", rotation_deg=-70),</span>
+<span class="sd">    ...                 NS(name="hand", parent="elbow")])</span>
+<span class="sd">    &gt;&gt;&gt; chain_pose_problems(rig)[0].startswith("bone 'elbow' carries no slot")</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">bones</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">said</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="c1"># The bones strictly between the part's own bone and its parent's.</span>
+        <span class="n">stop</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="n">slot_bone</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">),</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="n">slot_bone</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">own</span> <span class="o">==</span> <span class="n">stop</span> <span class="k">else</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">own</span><span class="p">),</span> <span class="s2">"parent"</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="o">!=</span> <span class="n">stop</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">bone</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bone</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">said</span> <span class="ow">and</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">({</span><span class="s2">"bones"</span><span class="p">:</span> <span class="p">[</span><span class="n">bone</span><span class="p">]}):</span>
+                <span class="n">said</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">cursor</span><span class="si">!r}</span><span class="s2"> carries no slot, but sits in the chain from "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2"> to </span><span class="si">{</span><span class="n">slot</span><span class="si">!r}</span><span class="s2"> with a rest rotation or scale: no node "</span>
+                    <span class="s2">"carries it, so the pose would be lost; give the bone a slot, or "</span>
+                    <span class="s2">"move its pose onto the bone below it"</span>
+                <span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="c1">#: The capability a nested chain affords (ADR 0002 decision 1's name, registered</span>
+<span class="c1">#: by the core in :mod:`an.capabilities.subjects`).</span>
+<span class="n">RIG_HIERARCHY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_RIG_HIERARCHY_CAPABILITY</span><span class="o">.</span><span class="n">name</span>
+
+
+<div class="viewcode-block" id="rig_affordances">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rig_affordances">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_affordances</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""What a rig's structure affords, derived from the rig model (an#340).</span>
+
+<span class="sd">    ``rig.hierarchy`` when the rig nests in ``bones`` mode and some chain links</span>
+<span class="sd">    two different bones: ``keys`` are every slot in such a chain (so</span>
+<span class="sd">    ``rig.hierarchy:forearm_l`` asks for a forearm in a chain), ``count`` the</span>
+<span class="sd">    deepest chain's number of BONES (``rig.hierarchy&gt;=3`` is "a shoulder, an</span>
+<span class="sd">    elbow and a hand"), ``chains`` every root-to-leaf chain of slots. Parts on</span>
+<span class="sd">    one bone (a head with its face) add no depth, and a flat rig affords</span>
+<span class="sd">    nothing here: that nesting is a drawing convention, not a joint. The core registers it as the ``prop``</span>
+<span class="sd">    analyser; a genre's analyser composes it for its own kinds.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],</span>
+<span class="sd">    ...          slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])</span>
+<span class="sd">    &gt;&gt;&gt; rig_affordances(rig)</span>
+<span class="sd">    {'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span> <span class="ow">or</span> <span class="n">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">has_child</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parents</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">chains</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">parents</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">has_child</span><span class="p">):</span>
+        <span class="n">chain</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">leaf</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">parents</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span>
+        <span class="n">chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">chain</span><span class="p">)))</span>
+    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">joints</span><span class="p">(</span><span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Links between DIFFERENT bones: a face part on the head's own bone is</span>
+        <span class="c1"># a drawing convention, not a joint.</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">slot_bone</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">!=</span> <span class="n">slot_bone</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">chain</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+
+    <span class="n">deep</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chains</span> <span class="k">if</span> <span class="n">joints</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">deep</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">RIG_HIERARCHY</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"keys"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">slot</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">deep</span> <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">c</span><span class="p">}),</span>
+            <span class="s2">"count"</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">joints</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">deep</span><span class="p">),</span>
+            <span class="s2">"chains"</span><span class="p">:</span> <span class="n">deep</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span></div>
 
 
 
@@ -1604,6 +1941,25 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_legacy_baked_face_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The builder's pre-an#340 face rule, for a genre that passes no ``skip_slots``.</span>
+
+<span class="sd">    With the face baked into the head art (``face_overlay`` false), the eye,</span>
+<span class="sd">    brow and mouth slots nested under the HEAD BONE's primary slot would</span>
+<span class="sd">    double the baked features, so they were dropped here. Keyed on the bone,</span>
+<span class="sd">    not on a slot named "head" (an#88 review). The cut-out genre now passes</span>
+<span class="sd">    its own set (``cutan.characters.play.suppressed_slots``).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"face_overlay"</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># The face is the slots ON the head bone (not parts of its child bones,</span>
+    <span class="c1"># which nest under the head too in `nesting: bones`).</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">head</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">head</span>
+    <span class="p">}</span>
+
+
 <div class="viewcode-block" id="build_rig_subtree">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.build_rig_subtree">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_rig_subtree</span><span class="p">(</span>
@@ -1618,8 +1974,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">document_kind</span><span class="p">:</span> <span class="n">DocumentKind</span><span class="p">,</span>
     <span class="n">texture_srcs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">digest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip_slots</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Build the scene subtree for a character, **from its descriptor's rig**.</span>
+<span class="w">    </span><span class="sd">"""Build the scene subtree for a rig (a prop or a character), **from its descriptor**.</span>
+
+<span class="sd">    Slots nest by :func:`slot_parent_chain` (``nesting: flat`` or ``bones``,</span>
+<span class="sd">    an#340). In ``bones`` mode a nested part is placed relative to its parent</span>
+<span class="sd">    BONE, without inheriting the parent's attachment offset, and its bone's</span>
+<span class="sd">    rest pose composes through the chain.</span>
+
+<span class="sd">    ``skip_slots`` are slots the GENRE says not to build (the cut-out genre's</span>
+<span class="sd">    baked face: ``cutan.characters.play.suppressed_slots``); a skipped slot's</span>
+<span class="sd">    nested parts are not built either. ``None`` is the legacy rule for a genre</span>
+<span class="sd">    that predates the argument (``an.genres.API_LEVEL`` &lt; 5): with</span>
+<span class="sd">    ``face_overlay`` false, the slots nested under the ``head`` bone's primary</span>
+<span class="sd">    slot. It is the one place the core still names a bone, and it goes when no</span>
+<span class="sd">    genre needs it.</span>
 
 <span class="sd">    A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures</span>
 <span class="sd">    either, and ``digest(src)`` — a content digest for raster art, ``None``</span>
@@ -1696,16 +2066,20 @@ window.runMermaid = runMermaid;</script>
     <span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">Skin</span><span class="p">())</span>
     <span class="n">bones</span> <span class="o">=</span> <span class="n">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
     <span class="n">origin</span> <span class="o">=</span> <span class="n">rig_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-    <span class="c1"># Shared with `an.characters.play` so a `play` resolves against the</span>
-    <span class="c1"># nesting the builder actually uses (an#7 review).</span>
-    <span class="n">nests_under</span> <span class="o">=</span> <span class="n">primary_slot_per_bone</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-
-    <span class="c1"># If the head art has its own face baked in (DiceBear / hand-drawn full</span>
-    <span class="c1"># avatars), the separate eye/brow/mouth sprites double up with the baked</span>
-    <span class="c1"># features. Lip-sync stays audio-only for these; hand-rig for dialogue.</span>
-    <span class="c1"># `face_overlay` is the DECLARED fact (0.3.0, an#87) — the old vendor-name</span>
-    <span class="c1"># check on metadata.art_provenance lives on only inside the migration.</span>
-    <span class="n">head_has_face</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">desc</span><span class="o">.</span><span class="n">face_overlay</span>
+    <span class="c1"># Shared with a genre's part paths (`cutan.characters.play`) so a `play`</span>
+    <span class="c1"># resolves against the nesting the builder actually uses (an#7, an#340).</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
+    <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
+        <span class="n">broken</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"cycle"</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">chain_draw_order_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">chain_pose_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">broken</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RigError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"rig </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> cannot be built with `nesting: bones`: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">broken</span><span class="p">))</span>
+    <span class="n">slot_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">}</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">skip_slots</span><span class="p">)</span> <span class="k">if</span> <span class="n">skip_slots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_legacy_baked_face_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">(</span><span class="n">slot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="c1"># Slot-qualified on purpose: attachment names are a PER-SLOT namespace</span>
@@ -1758,13 +2132,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">children_of</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">draw_order</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)):</span>
-        <span class="n">parent</span> <span class="o">=</span> <span class="n">nests_under</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">)</span>
-        <span class="n">nested</span> <span class="o">=</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">parent</span> <span class="o">!=</span> <span class="n">slot</span><span class="o">.</span><span class="n">name</span>
-        <span class="c1"># Baked face: drop every slot nested under the HEAD BONE's primary</span>
-        <span class="c1"># slot — keyed on the bone (the rig's skeleton contract), not on the</span>
-        <span class="c1"># slot name "head": a rig whose head slot is named otherwise used to</span>
-        <span class="c1"># get its face overlays (and their blinks) back (an#88 review).</span>
-        <span class="k">if</span> <span class="n">nested</span> <span class="ow">and</span> <span class="n">head_has_face</span> <span class="ow">and</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">nests_under</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head"</span><span class="p">):</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">nested</span> <span class="o">=</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">slot</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">skip</span><span class="p">:</span>
             <span class="k">continue</span>
 
         <span class="n">resolved</span> <span class="o">=</span> <span class="n">drawn_attachment</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
@@ -1775,10 +2145,18 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># Position = the slot's bone, plus the attachment's own offset from it.</span>
         <span class="c1"># Both are needed: five face parts share one `head` bone, so the bone</span>
         <span class="c1"># alone would stack them, and the offset alone would ignore the rig.</span>
-        <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">nested</span><span class="p">:</span>
-            <span class="n">parent_x</span><span class="p">,</span> <span class="n">parent_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="n">parent_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="n">parent_y</span>
+            <span class="n">parent_bone</span> <span class="o">=</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span>
+            <span class="n">parent_x</span><span class="p">,</span> <span class="n">parent_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent_bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x0</span> <span class="o">-</span> <span class="n">parent_x</span><span class="p">,</span> <span class="n">bone_y0</span> <span class="o">-</span> <span class="n">parent_y</span>
+            <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
+                <span class="c1"># Relative to the parent BONE: the parent node sits at its bone</span>
+                <span class="c1"># plus its own attachment offset, which a chain must not inherit.</span>
+                <span class="n">drawn_parent</span> <span class="o">=</span> <span class="n">drawn_attachment</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">drawn_parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">bone_x</span> <span class="o">-=</span> <span class="n">drawn_parent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
+                    <span class="n">bone_y</span> <span class="o">-=</span> <span class="n">drawn_parent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">y</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">bone_x</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">x</span>
@@ -1827,10 +2205,12 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">visual</span><span class="o">.</span><span class="n">asset_geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
         <span class="c1"># The bone's rest pose (an#339) poses the part that IS on it; a slot</span>
-        <span class="c1"># nested under its bone's primary slot gets it from that parent.</span>
+        <span class="c1"># nested under a part on the SAME bone gets it from that parent.</span>
         <span class="n">rest</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">rest_transform</span><span class="p">(</span><span class="n">bone_of</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">apply_rest_pose</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nested</span> <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span> <span class="ow">in</span> <span class="n">bone_of</span>
+            <span class="k">if</span> <span class="n">apply_rest_pose</span>
+            <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span> <span class="ow">in</span> <span class="n">bone_of</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">nested</span> <span class="ow">and</span> <span class="n">slot_of</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">)</span>
             <span class="k">else</span> <span class="p">{}</span>
         <span class="p">)</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span>
@@ -1841,11 +2221,48 @@ window.runMermaid = runMermaid;</script>
         <span class="n">nodes</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
         <span class="n">children_of</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">parent</span> <span class="k">if</span> <span class="n">nested</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 
-    <span class="n">_record_missing_parts</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">missing_art</span><span class="p">,</span> <span class="n">drawn</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="n">into</span><span class="o">=</span><span class="n">resolutions</span><span class="p">)</span>
-
     <span class="k">for</span> <span class="n">parent_name</span><span class="p">,</span> <span class="n">kids</span> <span class="ow">in</span> <span class="n">children_of</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">parent_name</span> <span class="ow">and</span> <span class="n">parent_name</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
             <span class="n">nodes</span><span class="p">[</span><span class="n">parent_name</span><span class="p">]</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">kids</span>
+
+    <span class="c1"># A part is drawn only if its whole chain was built: one whose parent was</span>
+    <span class="c1"># not (its art missing) is an orphan, a hole in the picture like the parent</span>
+    <span class="c1"># (an#340). One whose parent the genre skipped is meant to go with it.</span>
+    <span class="n">attached</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">children_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">attached</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">pending</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+    <span class="n">_record_missing_parts</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">missing_art</span><span class="p">,</span> <span class="n">drawn</span><span class="o">=</span><span class="n">attached</span><span class="p">,</span> <span class="n">into</span><span class="o">=</span><span class="n">resolutions</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_skipped_above</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cursor</span> <span class="ow">in</span> <span class="n">skip</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="n">attached</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">resolutions</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_skipped_above</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">AssetResolutionJSON</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s2">"part"</span><span class="p">,</span>
+                <span class="n">store</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+                <span class="n">resolved</span><span class="o">=</span><span class="s2">"orphaned"</span><span class="p">,</span>
+                <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> nests under </span><span class="si">{</span><span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">!r}</span><span class="s2">, which was not "</span>
+                    <span class="s2">"built (its art is missing), so it draws nothing either"</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>

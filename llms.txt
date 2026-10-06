@@ -132,6 +132,7 @@
 - [an.probe](_autosummary/an.probe.html.md): &#96;an probe&#96;: a shot’s frame at chosen instants, through the very path &#96;render&#96; draws it (an#347).
 - [an.project](_autosummary/an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
 - [an.props](_autosummary/an.props.html.md): Moved to &#96;an.stage.props&#96; (an#247); this path is a LIVE alias of it.
+- [an.props_cli](_autosummary/an.props_cli.html.md): &#96;an props …&#96; — a prop’s asset folder from the shell (an#340).
 - [an.raster](_autosummary/an.raster.html.md): Moved to &#96;an.stage.raster&#96; (an#247); this path is a LIVE alias of it.
 - [an.render](_autosummary/an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
 - [an.semantic](_autosummary/an.semantic.html.md): The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.
@@ -160,6 +161,7 @@
 - [an.stage.path_geometry](_autosummary/an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.stage.paths](_autosummary/an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.stage.preview](_autosummary/an.stage.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
+- [an.stage.prop_validate](_autosummary/an.stage.prop_validate.html.md): Check a prop’s asset folder offline, and say what a prop must be (an#340).
 - [an.stage.props](_autosummary/an.stage.props.html.md): Props: a rig whose art is not a person.
 - [an.stage.raster](_autosummary/an.stage.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 - [an.stage.render](_autosummary/an.stage.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
@@ -207,7 +209,7 @@
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 14:11 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 14:12 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

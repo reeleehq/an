@@ -1,4 +1,4 @@
-> built 2026-10-06 14:11 UTC from f749094 (main) · an 0.1.198. Details: build_info.json
+> built 2026-10-06 14:12 UTC from b1d69d2 (main) · an 0.1.199. Details: build_info.json
 
 # index.html.md
 
@@ -5737,7 +5737,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5785,7 +5785,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -6004,7 +6004,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -11618,7 +11618,7 @@ an afforded capability are already in its `overrides` param.
 `None`: none beyond those. Reporting only: it changes no profile, so
 adding it does not bump `version`.
 
-### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.measure_duration': Capability(name='engine.measure_duration', description='the engine implements the optional \`measure_duration\` member', remedy='use an engine that implements \`measure_duration\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.manim': Capability(name='env.manim', description='the manim, manimkit Python package(s) are importable', remedy="pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux first \`apt install libcairo2-dev libpango1.0-dev\`)", subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
+### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.measure_duration': Capability(name='engine.measure_duration', description='the engine implements the optional \`measure_duration\` member', remedy='use an engine that implements \`measure_duration\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.manim': Capability(name='env.manim', description='the manim, manimkit Python package(s) are importable', remedy="pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux first \`apt install libcairo2-dev libpango1.0-dev\`)", subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'rig.hierarchy': Capability(name='rig.hierarchy', description="the rig nests its parts in chains (\`nesting: bones\`): keys = the chain roots, count = the deepest chain's length in parts", remedy="declare \`nesting: bones\` on the rig document and parent each part's bone to the bone it hangs from (an elbow's to the shoulder's)", subject='asset', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
 
 Registered capabilities, by name.
 
@@ -14147,7 +14147,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 5*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -14173,6 +14173,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 4 = the bones’ rest pose (an#339): `an.stage.rig.register_rest_pose_migration`,
 : `rig_rest_problems`, `RigDocument.rest_rotation`.
+
+5 = nested chains (an#340): `build_rig_subtree(skip_slots=)`, `slot_parent_chain`,
+: `slot_node_paths`, `rig_problems`, `rig_affordances`, `RigError`, `rig.hierarchy`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -16020,6 +16023,7 @@ which decides how long a dissolve’s overlap is.
 | [`probe`](_autosummary/an.probe.html.md#module-an.probe)                 | `an probe`: a shot's frame at chosen instants, through the very path `render` draws it (an#347).                                                        |
 | [`project`](_autosummary/an.project.html.md#module-an.project)             | Project init/load/save — the on-disk anatomy of an an project.                                                                                          |
 | [`props`](_autosummary/an.props.html.md#module-an.props)                 | Moved to [`an.stage.props`](_autosummary/an.stage.props.html.md#module-an.stage.props) (an#247); this path is a LIVE alias of it.               |
+| [`props_cli`](_autosummary/an.props_cli.html.md#module-an.props_cli)         | `an props …` — a prop's asset folder from the shell (an#340).                                                                                           |
 | [`raster`](_autosummary/an.raster.html.md#module-an.raster)               | Moved to [`an.stage.raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |
 | [`render`](_autosummary/an.render.html.md#module-an.render)               | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                                                                         |
 | [`semantic`](_autosummary/an.semantic.html.md#module-an.semantic)           | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.                                                                |
@@ -24847,6 +24851,45 @@ and rebinding one here (a bench lever, `monkeypatch`) rebinds it there, where
 the code runs (`an._shims.alias_module()`).
 
 
+# _autosummary/an.props_cli.html.md
+
+# an.props_cli
+
+`an props …` — a prop’s asset folder from the shell (an#340).
+
+A CORE module (`an.tools` imports it at module level), so it reaches the
+stage only inside its functions: the stage is behind the core firewall.
+
+Wired into the top-level dispatcher as the `props` namespace
+(`an.tools._dispatch_namespaces`), programmatically, per pillar 8: plain
+functions taking strings and returning the text to print; the business logic is
+[`an.stage.prop_validate`](_autosummary/an.stage.prop_validate.html.md#module-an.stage.prop_validate). The prop’s twin of `an character validate` /
+`an character contract`.
+
+### Functions
+
+| [`contract`](_autosummary/an.props_cli.html.md#an.props_cli.contract)()                | Print what a prop folder must hold, generated from the schema and the rig rules.   |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`validate`](_autosummary/an.props_cli.html.md#an.props_cli.validate)(name[, out_dir]) | Check a prop's folder (prop.json + parts/) against the rig contract, offline.      |
+
+### an.props_cli.contract()
+
+Print what a prop folder must hold, generated from the schema and the rig rules.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.props_cli.validate(name, out_dir='')
+
+Check a prop’s folder (prop.json + parts/) against the rig contract, offline.
+
+name: the prop’s key (its folder name)
+out_dir: parent directory; defaults to ./assets/props
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
 # _autosummary/an.raster.html.md
 
 # an.raster
@@ -28666,6 +28709,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                  |
 | [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                     |
 | [`preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview)               | Live preview server: render a project's current scene in a browser, reloading on edit.                                                      |
+| [`prop_validate`](_autosummary/an.stage.prop_validate.html.md#module-an.stage.prop_validate)   | Check a prop's asset folder offline, and say what a prop must be (an#340).                                                                  |
 | [`props`](_autosummary/an.stage.props.html.md#module-an.stage.props)                   | Props: a rig whose art is not a person.                                                                                                     |
 | [`raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster)                 | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                                                                     |
 | [`render`](_autosummary/an.stage.render.html.md#module-an.stage.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                              |
@@ -29101,6 +29145,79 @@ base URL after teardown.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.stage.prop_validate.html.md
+
+# an.stage.prop_validate
+
+Check a prop’s asset folder offline, and say what a prop must be (an#340).
+
+`an props validate <dir>` and `an props contract`: the prop’s twin of
+`an character validate` / `an character contract`, in the core because a
+prop is the stage’s own rig (`an.stage.props.PropDescriptor`), not a genre’s.
+Before it, a carved prop’s layout rules lived in its `prop.json` metadata and
+nothing read them.
+
+The rig rules are the stage’s ([`an.stage.rig`](_autosummary/an.stage.rig.html.md#module-an.stage.rig)), so this validator, `an
+validate` and the rig builder say the same thing: a structural problem
+([`rig_problems()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_problems)) blocks; where the stage cannot draw a
+nested chain ([`chain_draw_order_problems()`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)), the origin and
+the rest pose are advisories here, because they are the stage’s limits or a
+likely slip, not a malformed rig.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     report = validate_prop(d, name="nothing")
+>>> report.passed, report.findings[0].description
+(False, "nothing has no prop.json, or it is not a PropDescriptor (kind 'PropDescriptor')")
+```
+
+### Module Attributes
+
+| [`PROP_META_NAME`](_autosummary/an.stage.prop_validate.html.md#an.stage.prop_validate.PROP_META_NAME)   | The descriptor file a prop folder holds (the props store's sidecar name).   |
+|-------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`BLOCKING`](_autosummary/an.stage.prop_validate.html.md#an.stage.prop_validate.BLOCKING)         | Finding severities, the ones `an character validate` uses.                  |
+
+### Functions
+
+| [`render_prop_contract`](_autosummary/an.stage.prop_validate.html.md#an.stage.prop_validate.render_prop_contract)()              | What a prop folder must hold, read off the schema and the rig rules (never retyped).   |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| [`validate_prop`](_autosummary/an.stage.prop_validate.html.md#an.stage.prop_validate.validate_prop)(prop_dir, \*[, name]) | Check a prop folder (`prop.json` + `parts/`) against the rig contract, offline.        |
+
+### an.stage.prop_validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
+
+Finding severities, the ones `an character validate` uses.
+
+### an.stage.prop_validate.PROP_META_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'prop.json'*
+
+The descriptor file a prop folder holds (the props store’s sidecar name).
+
+### an.stage.prop_validate.render_prop_contract()
+
+What a prop folder must hold, read off the schema and the rig rules (never retyped).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> "nesting" in render_prop_contract()
+True
+```
+
+### an.stage.prop_validate.validate_prop(prop_dir, , name=None)
+
+Check a prop folder (`prop.json` + `parts/`) against the rig contract, offline.
+
+Blocking: no or an unreadable descriptor, a structural rig problem (an
+unknown bone, a bone cycle), an attachment whose art is not in the folder,
+a prop that draws nothing. Advisory: a chain the stage cannot draw in its
+declared order (the compiler refuses it), the origin, the rest pose, an
+unpopulated `AssetSource`.
+
+* **Return type:**
+  [`VerificationReport`](_autosummary/an.verify.html.md#an.verify.VerificationReport)
 
 
 # _autosummary/an.stage.props.html.md
@@ -29829,6 +29946,8 @@ Two layers live here:
 |-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RIG_DOCUMENT_OPTIONAL_FIELDS`](_autosummary/an.stage.rig.html.md#an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS) | The fields [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) adds, each written out of the stored document when unset ([`omit_unset_rig_fields()`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)), so every descriptor that never set one reads back, and hashes, as it did before the field existed. |
 | [`REST_POSE_SINCE`](_autosummary/an.stage.rig.html.md#an.stage.rig.REST_POSE_SINCE)              | `{rig document kind: the version from which its bones' rest pose is applied}`, filled by [`register_rest_pose_migration()`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration) (an#339).                                                                                                                              |
+| [`NESTINGS`](_autosummary/an.stage.rig.html.md#an.stage.rig.NESTINGS)                     | The nesting modes ([`RigDocument.nesting`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.nesting)); unset means the first.                                                                                                                                                                                                |
+| [`RIG_HIERARCHY`](_autosummary/an.stage.rig.html.md#an.stage.rig.RIG_HIERARCHY)                | The capability a nested chain affords (ADR 0002 decision 1's name, registered by the core in [`an.capabilities.subjects`](_autosummary/an.capabilities.subjects.html.md#module-an.capabilities.subjects)).                                                                                                        |
 | [`SCENE_PX_PER_VIEW_BOX`](_autosummary/an.stage.rig.html.md#an.stage.rig.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                            |
 | [`CONTAIN_FIT`](_autosummary/an.stage.rig.html.md#an.stage.rig.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                   |
 | [`CHARACTER_ART_PREFIX`](_autosummary/an.stage.rig.html.md#an.stage.rig.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                          |
@@ -29842,10 +29961,13 @@ Two layers live here:
 | [`bone_extent_centre`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)). |
 | [`bone_positions`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                           |
 | [`bones_carry_a_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                       |
-| [`build_rig_subtree`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a character, **from its descriptor's rig**.                                                                                                                                                                  |
+| [`build_rig_subtree`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a rig (a prop or a character), **from its descriptor**.                                                                                                                                                      |
+| [`chain_draw_order_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340).                                                                                                                                                            |
+| [`chain_pose_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.chain_pose_problems)(desc)                          | A rest pose the stage cannot apply in a nested chain (an#340).                                                                                                                                                                           |
 | [`declared_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                |
 | [`drawn_attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                             |
 | [`legacy_rest_pose_unknown`](_autosummary/an.stage.rig.html.md#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                              |
+| [`nesting_of`](_autosummary/an.stage.rig.html.md#an.stage.rig.nesting_of)(desc)                                   | `"flat"` or `"bones"` (an#340); unset is flat.                                                                                                                                                                                           |
 | [`omit_unset_rig_fields`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                    |
 | [`part_probe`](_autosummary/an.stage.rig.html.md#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                  |
 | [`primary_slot_per_bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                              |
@@ -29853,9 +29975,13 @@ Two layers live here:
 | [`raster_digest`](_autosummary/an.stage.rig.html.md#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                       |
 | [`register_rest_pose_migration`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                        |
 | [`rest_transform`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                    |
+| [`rig_affordances`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_affordances)(desc)                              | What a rig's structure affords, derived from the rig model (an#340).                                                                                                                                                                     |
 | [`rig_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                           |
 | [`rig_origin_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                        |
+| [`rig_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_problems)(desc)                                 | What is structurally wrong with a rig's bones and slots (an#340).                                                                                                                                                                        |
 | [`rig_rest_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                 |
+| [`slot_node_paths`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_node_paths)(desc)                              | `{slot: its node path relative to the entity}` (`torso/arm/hand`), by [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.                                               |
+| [`slot_parent_chain`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain)(desc)                            | `{slot: the slot it nests under, or None}`: THE nesting rule (an#340).                                                                                                                                                                   |
 
 ### Classes
 
@@ -29871,6 +29997,7 @@ Two layers live here:
 
 | [`RestPoseWarning`](_autosummary/an.stage.rig.html.md#an.stage.rig.RestPoseWarning)   | A rig's bone rest pose was NOT applied, because the document may predate it.   |
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`RigError`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigError)          | A rig cannot be built as declared (a cycle, or a chain the stage cannot draw). |
 
 ### *class* an.stage.rig.Attachment(\*\*data)
 
@@ -29973,6 +30100,10 @@ viewBox without a calibration step.
 * **Type:**
   Canonical character viewBox
 
+### an.stage.rig.NESTINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('flat', 'bones')*
+
+The nesting modes ([`RigDocument.nesting`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.nesting)); unset means the first.
+
 ### an.stage.rig.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
 
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
@@ -29984,11 +30115,16 @@ which is what decides where the staging step copies the art from.
 filled by [`register_rest_pose_migration()`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration) (an#339). The builder guard
 reads it to recognise a document older than that version.
 
-### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation')*
+### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation', 'nesting')*
 
 The fields [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) adds, each written out of the stored
 document when unset ([`omit_unset_rig_fields()`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)), so every descriptor
 that never set one reads back, and hashes, as it did before the field existed.
+
+### an.stage.rig.RIG_HIERARCHY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rig.hierarchy'*
+
+The capability a nested chain affords (ADR 0002 decision 1’s name, registered
+by the core in [`an.capabilities.subjects`](_autosummary/an.capabilities.subjects.html.md#module-an.capabilities.subjects)).
 
 ### *exception* an.stage.rig.RestPoseWarning
 
@@ -30022,6 +30158,18 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for RigDocument
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### nesting *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a slot nests under its
+OWN bone’s primary slot only, so limbs are siblings of the torso (the
+rigs’ long-standing shape). `"bones"`: a slot nests under the primary
+slot of the nearest ancestor bone that has one, to any depth, so a
+forearm turns with its upper arm and a sword with its hand (forward
+kinematics). [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain) is the rule.
+
+* **Type:**
+  How slots nest (an#340). Unset or `"flat"`
+
 #### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The point of the art that the entity’s placement (`stage.at`) refers
@@ -30039,6 +30187,12 @@ before that rule whose bones carry a rotation or scale, because such a
 rig was drawn with the pose already in its pixels (the fields were
 ignored) and applying them now would pose it twice
 ([`protect_legacy_rest_pose()`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose)).
+
+### *exception* an.stage.rig.RigError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A rig cannot be built as declared (a cycle, or a chain the stage cannot draw).
 
 ### *class* an.stage.rig.RigModel(\*\*data)
 
@@ -30191,9 +30345,22 @@ True
 False
 ```
 
-### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None)
+### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None, skip_slots=None)
 
-Build the scene subtree for a character, **from its descriptor’s rig**.
+Build the scene subtree for a rig (a prop or a character), **from its descriptor**.
+
+Slots nest by [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain) (`nesting: flat` or `bones`,
+an#340). In `bones` mode a nested part is placed relative to its parent
+BONE, without inheriting the parent’s attachment offset, and its bone’s
+rest pose composes through the chain.
+
+`skip_slots` are slots the GENRE says not to build (the cut-out genre’s
+baked face: `cutan.characters.play.suppressed_slots`); a skipped slot’s
+nested parts are not built either. `None` is the legacy rule for a genre
+that predates the argument (`an.genres.API_LEVEL` < 5): with
+`face_overlay` false, the slots nested under the `head` bone’s primary
+slot. It is the one place the core still names a bone, and it goes when no
+genre needs it.
 
 A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures
 either, and `digest(src)` — a content digest for raster art, `None`
@@ -30238,6 +30405,51 @@ fit draws the art at its natural shape — never stretched to a fabricated box.
 
 * **Return type:**
   [`NodeJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.NodeJSON)
+
+### an.stage.rig.chain_draw_order_problems(desc)
+
+Where a nested chain asks the STAGE for a draw order it cannot give (an#340).
+
+The stage engine (PixiJS) draws a container’s own visual before its
+children, so a nested part always draws over its parent: a slot nested
+under one with a HIGHER `draw_order` cannot be honoured. This is the
+stage engine’s limit, not a rule of rigs (an engine with free slot order
+could draw it), so the stage compiler refuses it and the asset
+validators only warn. Nothing in `flat` nesting: there a nested slot is
+a face part over its head, drawn after it by construction.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])
+>>> chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")
+True
+```
+
+### an.stage.rig.chain_pose_problems(desc)
+
+A rest pose the stage cannot apply in a nested chain (an#340).
+
+A node exists only for a bone that carries a slot. A bone with NO slot
+between a part and the part it nests under has no node to rotate or
+scale, so its `rotation_deg`/`scale_*` would be lost (its `x`/`y`
+are kept: positions sum along the chain). Refused at compile, like the
+draw order; give the bone a slot or move its pose to the bone below it.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],
+...          bones=[NS(name="arm", parent=None), NS(name="elbow", parent="arm", rotation_deg=-70),
+...                 NS(name="hand", parent="elbow")])
+>>> chain_pose_problems(rig)[0].startswith("bone 'elbow' carries no slot")
+True
+```
 
 ### an.stage.rig.declared_origin(desc)
 
@@ -30288,6 +30500,18 @@ True
 False
 ```
 
+### an.stage.rig.nesting_of(desc)
+
+`"flat"` or `"bones"` (an#340); unset is flat.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> nesting_of({"nesting": "bones"}), nesting_of({})
+('bones', 'flat')
+```
+
 ### an.stage.rig.omit_unset_rig_fields(data)
 
 Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.
@@ -30334,12 +30558,13 @@ an#211 a PNG was parsed AS SVG here and the compile died on an XML error.
 
 `{bone name: the slot that IS that bone}`, when one exists.
 
-Used for node nesting, which is deliberately **not** the bone hierarchy.
-The rigs here are flat by design — arms are siblings of the torso, not
-children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.
-A slot nests under the primary slot of its bone when it is not that slot
-itself, which is what puts eyes and mouth under `head` and leaves every
-limb a direct child of the entity.
+The anchor of node nesting ([`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain)). In the default
+`flat` nesting the rigs are flat — arms are siblings of the torso, not
+children (CLAUDE.md pillar 4) — so bone parentage decides *position* only:
+a slot nests under the primary slot of its own bone when it is not that
+slot itself, which puts eyes and mouth under `head` and leaves every limb
+a direct child of the entity. `nesting: bones` (an#340) follows the bone
+hierarchy to the nearest ancestor’s primary slot instead.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -30428,6 +30653,30 @@ ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
 {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
 ```
 
+### an.stage.rig.rig_affordances(desc)
+
+What a rig’s structure affords, derived from the rig model (an#340).
+
+`rig.hierarchy` when the rig nests in `bones` mode and some chain links
+two different bones: `keys` are every slot in such a chain (so
+`rig.hierarchy:forearm_l` asks for a forearm in a chain), `count` the
+deepest chain’s number of BONES (`rig.hierarchy>=3` is “a shoulder, an
+elbow and a hand”), `chains` every root-to-leaf chain of slots. Parts on
+one bone (a head with its face) add no depth, and a flat rig affords
+nothing here: that nesting is a drawing convention, not a joint. The core registers it as the `prop`
+analyser; a genre’s analyser composes it for its own kinds.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+...          slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+>>> rig_affordances(rig)
+{'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}
+```
+
 ### an.stage.rig.rig_origin(desc)
 
 The point of the rig, in view_box units, that lands at the entity’s placement.
@@ -30473,6 +30722,26 @@ True
 'origin (nan, 0.0) is not finit'
 ```
 
+### an.stage.rig.rig_problems(desc)
+
+What is structurally wrong with a rig’s bones and slots (an#340).
+
+A bone whose `parent` names no bone; a cycle in the bone graph (the one
+form a closed linkage can take in a model where each bone names one
+parent: forward kinematics only, so it is refused); a slot whose `bone`
+names no bone (it used to land at the origin, silently). Shared by the
+asset validators (`an character validate`, `an.stage.props.validate_prop()`).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],
+...                 slots=[NS(name="s", bone="nope")]))
+['bones form a cycle (a closed linkage): a -> b -> a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]
+```
+
 ### an.stage.rig.rig_rest_problems(desc)
 
 Warnings about a rig’s rest pose (an#339), on a model or a raw document.
@@ -30498,6 +30767,54 @@ True
 >>> rig_rest_problems(doc)
 []
 ```
+
+### an.stage.rig.slot_node_paths(desc)
+
+`{slot: its node path relative to the entity}` (`torso/arm/hand`), by
+[`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones", bones=[NS(name="a", parent=None), NS(name="b", parent="a")],
+...          slots=[NS(name="a", bone="a"), NS(name="b", bone="b")])
+>>> slot_node_paths(rig)
+{'a': 'a', 'b': 'a/b'}
+```
+
+### an.stage.rig.slot_parent_chain(desc)
+
+`{slot: the slot it nests under, or None}`: THE nesting rule (an#340).
+
+The builder and a genre’s part paths (`cutan`’s `play.slot_parent`,
+`slot_node_path`) all read it, so a `play` or a preset addresses the
+node the builder made.
+
+- `flat` (unset): a slot nests under its own bone’s primary slot (the
+  slot named like the bone) when it is not that slot; everything else is a
+  child of the entity. Arms are siblings of the torso.
+- `bones`: the same, and a slot that IS its bone’s primary (or whose bone
+  has none) nests under the primary slot of the nearest ANCESTOR bone that
+  has one, to any depth. A bone cycle stops the walk; `rig_problems`
+  names it and the builder refuses it.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(bones=[NS(name="arm", parent="torso"), NS(name="hand", parent="arm"),
+...                 NS(name="torso", parent=None)],
+...          slots=[NS(name="torso", bone="torso"), NS(name="arm", bone="arm"),
+...                 NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+>>> slot_parent_chain(rig)
+{'torso': None, 'arm': None, 'hand': None, 'sword': 'hand'}
+>>> rig.nesting = "bones"
+>>> slot_parent_chain(rig)
+{'torso': None, 'arm': 'torso', 'hand': 'arm', 'sword': 'hand'}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 
 # _autosummary/an.stage.runtime.html.md
@@ -37378,20 +37695,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 14:11 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/f7490949a086b8ee316b377ebba4908f332ac0c5"><code>f749094</code></a> on branch <code>main</code>, for **an 0.1.198** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 14:12 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b1d69d2dc869f0c5b42f1ed875e46d07715614c7"><code>b1d69d2</code></a> on branch <code>main</code>, for **an 0.1.199** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.198) is behind the latest release on PyPI (0.1.199): `pip install an` gives newer code than these docs describe.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/f7490949a086b8ee316b377ebba4908f332ac0c5"><code>f7490949a086b8ee316b377ebba4908f332ac0c5</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b1d69d2dc869f0c5b42f1ed875e46d07715614c7"><code>b1d69d2dc869f0c5b42f1ed875e46d07715614c7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.198</code>                                                                                                                                 |
+| Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37400,9 +37715,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37475664068">37475664068</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37476096306">37476096306</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>6ee0844df62eeb378fb2e849bb06c856a26897bb</code> (in the history of the built commit) |
+| Event commit | <code>5724405ec9dd6716ce832d78b8d392ae8c9fef65</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37427,13 +37742,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.199/">0.1.199</a>, newer than the documented version (0.1.198).
+Latest release: <a href="https://pypi.org/project/an/0.1.199/">0.1.199</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout f7490949a086b8ee316b377ebba4908f332ac0c5
+git checkout b1d69d2dc869f0c5b42f1ed875e46d07715614c7
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

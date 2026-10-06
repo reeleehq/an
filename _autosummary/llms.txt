@@ -130,6 +130,7 @@
 - [an.probe](an.probe.html.md): &#96;an probe&#96;: a shot’s frame at chosen instants, through the very path &#96;render&#96; draws it (an#347).
 - [an.project](an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
 - [an.props](an.props.html.md): Moved to &#96;an.stage.props&#96; (an#247); this path is a LIVE alias of it.
+- [an.props_cli](an.props_cli.html.md): &#96;an props …&#96; — a prop’s asset folder from the shell (an#340).
 - [an.raster](an.raster.html.md): Moved to &#96;an.stage.raster&#96; (an#247); this path is a LIVE alias of it.
 - [an.render](an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
 - [an.semantic](an.semantic.html.md): The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.
@@ -158,6 +159,7 @@
 - [an.stage.path_geometry](an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.stage.paths](an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.stage.preview](an.stage.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
+- [an.stage.prop_validate](an.stage.prop_validate.html.md): Check a prop’s asset folder offline, and say what a prop must be (an#340).
 - [an.stage.props](an.stage.props.html.md): Props: a rig whose art is not a person.
 - [an.stage.raster](an.stage.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 - [an.stage.render](an.stage.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.

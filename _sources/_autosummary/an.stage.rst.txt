@@ -27,6 +27,7 @@ an.stage
    path_geometry
    paths
    preview
+   prop_validate
    props
    raster
    render

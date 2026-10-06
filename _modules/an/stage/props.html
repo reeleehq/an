@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8a9defc6"></script>
+    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.198" />
+  <meta name="docsearch:version" content="0.1.199" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -928,6 +928,40 @@ window.runMermaid = runMermaid;</script>
             <span class="bp">self</span><span class="o">.</span><span class="n">slots</span> <span class="o">=</span> <span class="n">default_prop_slots</span><span class="p">()</span></div>
 </div>
 
+
+
+<span class="c1">#: The prop analyser's version (an#340): bump when its output can change for the same input.</span>
+<span class="n">PROP_ANALYSER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">prop_affordances</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">art</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A prop's capabilities: what its rig's structure affords (an#340).</span>
+
+<span class="sd">    Only a ``PropDescriptor`` is a rig; a path or a text block in the props</span>
+<span class="sd">    store affords nothing here.</span>
+
+<span class="sd">    &gt;&gt;&gt; prop_affordances({"kind": "TextDescriptor"})</span>
+<span class="sd">    {}</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PROP_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.rig</span><span class="w"> </span><span class="kn">import</span> <span class="n">rig_affordances</span>
+
+    <span class="k">return</span> <span class="n">rig_affordances</span><span class="p">(</span><span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">PROP_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">register_prop_analyser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register the stage's ``prop`` analyser (an#340); idempotent.</span>
+
+<span class="sd">    Stage-side, not a core import side effect: the library calls it when it</span>
+<span class="sd">    loads the genres, before it analyses an asset.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analyser</span><span class="p">,</span> <span class="n">register_analyser</span>
+
+    <span class="n">register_analyser</span><span class="p">(</span>
+        <span class="n">Analyser</span><span class="p">(</span><span class="s2">"prop"</span><span class="p">,</span> <span class="n">PROP_ANALYSER_VERSION</span><span class="p">,</span> <span class="n">prop_affordances</span><span class="p">),</span> <span class="n">owner</span><span class="o">=</span><span class="s2">"an.stage"</span>
+    <span class="p">)</span>
 </pre></div>
 
                 </article>
