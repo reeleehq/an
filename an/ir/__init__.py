@@ -33,6 +33,7 @@ from an.ir.compose import (
     flatten,
     FlatAction,
 )
+from an.ir.crowd import crowd, fan_out
 from an.ir.validate import (
     validate_schema,
     validate_semantic,
@@ -64,6 +65,8 @@ __all__ = [
     "sequence",
     "parallel",
     "stagger",
+    "crowd",
+    "fan_out",
     "delay",
     "loop",
     "flatten",
