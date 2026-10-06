@@ -539,7 +539,8 @@ def _glob_regex(glob: str, *, near: bool = False) -> re.Pattern[str]:
     ``*`` and ``?`` stay inside one path segment, a whole ``**`` segment
     matches any number of segments (none included), everything else is
     literal and case-exact. ``near``: the looser pattern a NEAR miss matches —
-    any case, and any extension in place of the glob's own.
+    any case, any extension in place of the glob's own, ``_``/``-``/space
+    interchangeable or absent in the file name, and extra folders above it.
     """
     segments = unicodedata.normalize("NFC", glob).split("/")
     out: list[str] = []
@@ -555,9 +556,19 @@ def _glob_regex(glob: str, *, near: bool = False) -> re.Pattern[str]:
             near and last and dot and set(stem) - set("*?") and not set(ext) & set("*?")
         )
         body = stem if swap else seg
+        loose = near and last
         piece = "".join(
-            "[^/]*" if c == "*" else "[^/]" if c == "?" else re.escape(c) for c in body
+            "[^/]*"
+            if c == "*"
+            else "[^/]"
+            if c == "?"
+            else r"[_\- ]?"
+            if loose and c in "_- "
+            else re.escape(c)
+            for c in body
         )
+        if loose:
+            out.append("(?:[^/]+/)*")
         out.append(piece + (r"\.[^/.]+" if swap else "") + ("" if last else "/"))
     return re.compile("".join(out), re.IGNORECASE if near else 0)
 
@@ -1316,6 +1327,16 @@ def _source_class(source: AssetSource | None) -> str:
     return license_class(source) if source is not None else "unknown"
 
 
+def _relicence_covers(version: Mapping[str, Any], digest: str) -> bool:
+    """Whether ``version``'s relicence speaks for ``digest``: all its bytes,
+    or only those its ``covers`` lists (a version under the per-file rule)."""
+    relicense = version.get(RELICENSE_FIELD)
+    if not relicense:
+        return False
+    covers = relicense.get(RELICENSE_COVERS)
+    return covers is None or digest in covers
+
+
 class _PerFileRule:
     """What a version says about each of its blobs under the never-relax rule (an#345).
 
@@ -1352,8 +1373,12 @@ class _PerFileRule:
 
     @staticmethod
     def _vid(version: Mapping[str, Any], holder: Library | None) -> tuple[Any, ...]:
+        # The manifest does not name the asset: two assets' identical versions
+        # share one, and must not share what is said about them.
         return (
             library_origin(holder) if holder is not None else None,
+            version.get("asset"),
+            version.get("version"),
             version.get("manifest_sha256") or id(version),
         )
 
@@ -1371,10 +1396,10 @@ class _PerFileRule:
                     at, pinned, parent = _resolve_lineage(
                         self.readers, ref, pins.get(ref)
                     )
-                except (AssetNotFoundError, AssetIdError):
+                    parent = migrate(dict(parent), kind=VERSION_KIND.name)
+                except Exception:  # noqa: BLE001 — unresolvable or unreadable: as recorded
                     out.append((ref, None, None))
                     continue
-                parent = migrate(dict(parent), kind=VERSION_KIND.name)
                 out.append((str(pinned), parent, at))
             return out
 
@@ -1385,13 +1410,43 @@ class _PerFileRule:
         return self._cached(
             ("applies", *self._vid(version, holder)),
             lambda: FILE_SOURCES_FIELD in version
-            or (
-                not version.get(RELICENSE_FIELD)
-                and any(
-                    parent is not None and self.applies(parent, at)
-                    for _, parent, at in self.parents(version, holder)
-                )
+            or any(
+                parent is not None and self.applies(parent, at)
+                for _, parent, at in self.parents(version, holder)
             ),
+        )
+
+    def per_file_lineage(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> _Said | None:
+        """The strictest PER-FILE statement any version of ``version``'s lineage made about ``digest``.
+
+        What a relicence must name to relax (R1/R2 of the an#345 review): a
+        walk stops at a relicence that covered the digest, which relaxed it.
+        """
+
+        def compute() -> _Said | None:
+            said: list[_Said] = []
+            for ref, parent, at in self.parents(version, holder):
+                if parent is None:
+                    continue
+                for path, d in _file_hashes(parent.get("files") or {}).items():
+                    entry = _file_entry(parent, path, d) if d == digest else None
+                    if entry is not None:
+                        said.append(
+                            (
+                                _source_class(entry),
+                                f"{ref}: {path} itemised per file as {entry.license}",
+                            )
+                        )
+                if not _relicence_covers(parent, digest):
+                    deeper = self.per_file_lineage(parent, at, digest)
+                    if deeper is not None:
+                        said.append(deeper)
+            return _strictest(*said) if said else None
+
+        return self._cached(
+            ("per_file", *self._vid(version, holder), digest), compute
         )
 
     def own_label(self, version: Mapping[str, Any], holder: Library | None) -> str:
@@ -1404,8 +1459,8 @@ class _PerFileRule:
         self, version: Mapping[str, Any], holder: Library | None, digest: str
     ) -> _Said | None:
         """The strictest thing the lineage of ``version`` says about ``digest`` (None: no lineage)."""
-        if version.get(RELICENSE_FIELD):
-            return None  # a relicence replaces what it inherits
+        if _relicence_covers(version, digest):
+            return None  # a relicence replaces what it inherits, for what it names
 
         def compute() -> _Said | None:
             said: list[_Said] = []
@@ -1488,16 +1543,16 @@ class _PerFileRule:
         )
         relicense = version.get(RELICENSE_FIELD)
         if relicense:
-            covers = relicense.get(RELICENSE_COVERS)
-            if covers is not None and digest not in covers:
-                # A relicence speaks only for the bytes it names.
-                return mine or ("unknown", f"{path}: not covered by the relicence")
             source = _source_model(version.get("source"))
             rel = (
                 _source_class(source) if source is not None else "unknown",
                 _relicense_note(relicense),
             )
-            return _strictest(mine, rel)
+            if _relicence_covers(version, digest):
+                return _strictest(mine, rel)
+            # A relicence speaks only for the bytes it names: these keep what
+            # their lineage said about them.
+            return _strictest(mine or rel, self.lineage(version, holder, digest))
         part = itemising_source(version, path, digest)
         part_said = (
             (license_class(part), f"{path} itemised as {part.license or 'no licence'}")
@@ -1514,7 +1569,11 @@ class _PerFileRule:
 
 
 def _version_statements(
-    library: Library, readers: Libraries, version: Mapping[str, Any]
+    library: Library,
+    readers: Libraries,
+    version: Mapping[str, Any],
+    *,
+    rule: _PerFileRule | None = None,
 ) -> Iterator[tuple[str, str, dict[str, Any]]]:
     """``(digest, asset_key, statement)`` for each file of ``version``.
 
@@ -1524,7 +1583,7 @@ def _version_statements(
     blobs by that rule, one statement per digest.
     """
     asset_key = f"{library.name}:{version['asset']}"
-    rule = _PerFileRule(readers)
+    rule = rule if rule is not None else _PerFileRule(readers)
     if rule.applies(version, library):
         for path, raw in sorted((version.get("files") or {}).items()):
             digest = ContentRef.from_json(raw).item_id
@@ -1594,6 +1653,7 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
         ),
     ]
     fresh: dict[str, dict[str, Any]] = {}
+    rule = _PerFileRule(readers)  # one memo for the whole library (review N3)
     for key in sorted(
         library.versions,
         key=lambda k: (k.split("@")[0], version_number(k.split("@")[1])),
@@ -1602,7 +1662,7 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
             version = migrate(dict(library.versions[key]), kind=VERSION_KIND.name)
         except Exception:  # noqa: BLE001 — reported by scan_index; nothing to index
             continue
-        said = list(_version_statements(library, readers, version))
+        said = list(_version_statements(library, readers, version, rule=rule))
         remember(library, said)
         for digest, asset_key, statement in said:
             record_statement(fresh, digest, asset_key, statement)
@@ -1997,12 +2057,20 @@ def _carried_file_sources(
 
 
 def _covered(
+    readers: Libraries,
+    pending: Mapping[str, Any],
     relicense: Mapping[str, Any],
     source_doc: Mapping[str, Any] | None,
     entries: Mapping[str, Mapping[str, Any]],
     hashes: Mapping[str, str],
 ) -> dict[str, Any]:
-    """``relicense`` with the digests it covers: all but those a STRICTER per-file statement names."""
+    """``relicense`` with the digests it covers: all but those a STRICTER per-file statement names.
+
+    A relicence relaxes what it names. Bytes an earlier version of the lineage
+    labelled stricter PER FILE, which this publish does not label per file
+    itself, are refused (review R1/R2: a head moved to another path, or
+    re-added later, is not freed by a relicence that never named it).
+    """
     order = LICENSE_CLASS_ORDER.index
     rel = _source_class(_source_model(source_doc))
     stricter = {
@@ -2010,6 +2078,19 @@ def _covered(
         for path, src in entries.items()
         if order(_source_class(_source_model(src))) < order(rel)
     }
+    named = {hashes[path] for path in entries}
+    rule = _PerFileRule(readers)
+    for path, digest in sorted(hashes.items()):
+        if digest in named:
+            continue
+        prior = rule.per_file_lineage(pending, None, digest)
+        if prior is not None and order(prior[0]) < order(rel):
+            raise RightsRefusal(
+                f"{path!r} holds bytes the lineage labelled per file: {prior[1]} "
+                f"({prior[0]}). A relicence covers only what it names: label it "
+                f"with --license-part '{path}=…' (stricter keeps binding; looser "
+                "is the relaxation this relicence records)"
+            )
     return {
         **relicense,
         RELICENSE_COVERS: sorted(set(hashes.values()) - stricter),
@@ -2308,6 +2389,10 @@ def publish(
     if relabel:
         pending[RELABEL_FIELD] = relabel
     entries, dropped = _carried_file_sources(head_view, parts_given, hashes)
+    if entries is None and _PerFileRule(readers).applies(pending, None):
+        # Under the rule through its lineage: recorded, so the version is
+        # written at the schema an older reader refuses (review S1).
+        entries = {}
     unlabelled = sorted({*unlabelled, *dropped})
     if unlabelled:
         pending[UNLABELLED_FIELD] = unlabelled
@@ -2315,7 +2400,7 @@ def publish(
         pending[FILE_SOURCES_FIELD] = entries
         if relicense:
             relicense = pending[RELICENSE_FIELD] = _covered(
-                relicense, source_doc, entries, hashes
+                readers, pending, relicense, source_doc, entries, hashes
             )
         else:
             _refuse_relaxing(readers, pending, entries, hashes)

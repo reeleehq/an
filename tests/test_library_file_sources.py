@@ -369,3 +369,86 @@ def test_the_cli_takes_repeatable_license_parts(tmp_path: Path):
     v = read_version(lib, "prop.stu", "v001")
     assert v[FILE_SOURCES_FIELD]["parts/head_1.png"]["provider"] == "a-film"
     assert _floor(lib, COLLAR) == {"cutan:prop.stu": "free"}
+
+
+# --------------------------------------------------------------------------- review round
+
+
+def test_r1_a_relicence_that_did_not_hold_the_bytes_frees_nothing():
+    lib = _memory()
+    files = {"parts/head_1.png": HEAD, "parts/collar.svg": COLLAR}
+    publish(lib, "prop.stu", {"name": "stu"}, files, source=CC0,
+            license_parts={"parts/head_1.png": PRIVATE})
+    publish(lib, "prop.stu", {"name": "stu"}, {"parts/collar.svg": COLLAR},
+            source=CC0, relicense=RELICENSE)
+    with pytest.raises(RightsRefusal):
+        publish(lib, "prop.stu", {"name": "stu"}, files, source=CC0,
+                license_parts={"parts/head_1.png": CC0})
+    r = publish(lib, "prop.stu", {"name": "stu"}, files, source=CC0)
+    assert r.rights.license_class == "private"
+    assert _floor(lib, HEAD) == {"cutan:prop.stu": "private"}
+    assert publish(lib, "prop.thief", {"name": "t"}, {"h.png": HEAD},
+                   source=CC0).rights.license_class == "private"
+
+
+def test_r2_a_relicence_does_not_cover_a_private_head_moved_to_another_path():
+    lib = _memory()
+    publish(lib, "prop.stu", {"name": "stu"},
+            {"parts/head_1.png": HEAD, "parts/collar.svg": COLLAR}, source=CC0,
+            license_parts={"parts/head_1.png": PRIVATE})
+    moved = {"heads/h1.png": HEAD, "parts/collar.svg": COLLAR}
+    with pytest.raises(RightsRefusal, match="names"):
+        publish(lib, "prop.stu", {"name": "stu"}, moved, source=CC0,
+                relicense=RELICENSE)
+    # Named, it keeps binding; the relicence frees the collar only.
+    r = publish(lib, "prop.stu", {"name": "stu"}, moved, source=CC0,
+                relicense=RELICENSE, license_parts={"heads/h1.png": PRIVATE})
+    assert r.rights.license_class == "private"
+    assert _floor(lib, HEAD) == {"cutan:prop.stu": "private"}
+    assert _floor(lib, COLLAR) == {"cutan:prop.stu": "free"}
+
+
+def test_r3_a_relicensed_derivative_of_per_file_parts_is_under_the_rule():
+    lib = _memory()
+    publish(lib, "prop.stu", {"name": "stu"}, STU_FILES, source=CC0,
+            license_parts=HEADS_PRIVATE)
+    with pytest.raises(RightsRefusal):
+        publish(lib, "prop.stu-hat", {"name": "hat"}, STU_FILES, source=CC0,
+                derived_from=["cutan:prop.stu@v001"], relicense=RELICENSE)
+    # Under the rule through its lineage alone, it is written at the schema an
+    # older reader refuses.
+    publish(lib, "prop.stu-cap", {"name": "cap"}, {"c.svg": COLLAR}, source=CC0,
+            derived_from=["cutan:prop.stu@v001"])
+    assert read_version(lib, "prop.stu-cap", "v001")["schema_version"] == PER_FILE_SCHEMA_VERSION
+
+
+def test_m1_what_is_said_about_two_identical_versions_is_kept_apart():
+    """Two assets' identical versions share a manifest: the answer must not
+    depend on the order of derived_from."""
+    for parents in (["cutan:prop.a@v001", "cutan:prop.b@v001"],
+                    ["cutan:prop.b@v001", "cutan:prop.a@v001"]):
+        lib = _memory()
+        publish(lib, "prop.a", {"name": "same"}, {"n.png": HEAD})
+        publish(lib, "prop.b", {"name": "same"}, {"n.png": HEAD})
+        publish(lib, "prop.a", {"name": "same"}, {"n.png": HEAD}, source=CC0,
+                relabel={"by": "t", "reason": "drawn by me"})
+        with pytest.raises(RightsRefusal):
+            publish(lib, "prop.c", {"name": "c"}, {"n.png": HEAD}, source=CC0,
+                    derived_from=parents, license_parts={"n.png": CC0})
+
+
+def test_s2_an_unreadable_parent_stands_in_as_recorded():
+    """A parent written by a newer ``an`` (a schema this one cannot read) no
+    longer crashes reindex or the next publish of a version without per-file
+    statements."""
+    versions: dict = {}
+    lib = open_library("cutan", records={}, versions=versions, blobs={})
+    publish(lib, "prop.lamp", {"name": "lamp"}, {"a.svg": COLLAR}, source=CC0)
+    publish(lib, "prop.lamp-red", {"name": "red"}, {"a.svg": COLLAR}, source=CC0,
+            derived_from=["cutan:prop.lamp@v001"])
+    key = "prop.lamp@v001"
+    versions[key] = {**versions[key], "schema_version": "9.0.0"}
+    reindex(lib)
+    r = publish(lib, "prop.lamp-red", {"name": "red"}, {"a.svg": COLLAR, "b.svg": STRAY},
+                source=CC0)
+    assert r.created

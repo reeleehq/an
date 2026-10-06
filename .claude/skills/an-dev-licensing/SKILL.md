@@ -141,8 +141,10 @@ to that code must keep, enforced in `an.library.api._PerFileRule` and
   everything the asset's own chain (`previous`, back to the first) or a
   `derived_from` parent said about those bytes. Looser is refused unless a
   relicence is recorded — and a relicence lists the digests it `covers`; a
-  per-file statement stricter than it keeps binding, so a relicence never frees
-  a private part it did not name.
+  per-file statement stricter than it keeps binding, and bytes the lineage
+  labelled stricter per file must be labelled per file again by the relicensing
+  publish (moved to another path, or re-added later, they are not freed), so a
+  relicence never frees a private part it did not name.
 - **Per-file statements count toward a version's rights, never toward the label
   of the files nothing itemises** (`version_sources(per_file=False)`, at every
   depth): otherwise one private head re-spreads "private" over every file of
