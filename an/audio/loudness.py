@@ -135,7 +135,9 @@ def _decode(audio: bytes) -> _Pcm:
 def _encode(pcm: _Pcm) -> bytes:
     import numpy as np
 
-    ints = np.clip(np.rint(pcm.samples * _INT16_FULL_SCALE), -32768, 32767).astype("<i2")
+    ints = np.clip(np.rint(pcm.samples * _INT16_FULL_SCALE), -32768, 32767).astype(
+        "<i2"
+    )
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(ints.shape[1])
@@ -163,7 +165,10 @@ def _joined(pcms: list[_Pcm]) -> _Pcm:
         if p.rate != rate and len(x):
             positions = np.arange(0, len(x), p.rate / rate)
             x = np.stack(
-                [np.interp(positions, np.arange(len(x)), x[:, c]) for c in range(x.shape[1])],
+                [
+                    np.interp(positions, np.arange(len(x)), x[:, c])
+                    for c in range(x.shape[1])
+                ],
                 axis=1,
             )
         parts.append(x)
@@ -322,7 +327,9 @@ def voice_loudness_spread(levels: list[VoiceLevel]) -> str | None:
     spread = max(v.lufs for v in audible) - min(v.lufs for v in audible)
     if spread <= SPREAD_WARNING_DB:
         return None
-    each = ", ".join(f"{v.voice} {v.lufs:.1f}" for v in sorted(audible, key=lambda v: -v.lufs))
+    each = ", ".join(
+        f"{v.voice} {v.lufs:.1f}" for v in sorted(audible, key=lambda v: -v.lufs)
+    )
     return (
         f"the voices differ by {spread:.1f} dB in loudness ({each} LUFS): the "
         "quietest is hard to hear next to the loudest. Level them with "
@@ -336,7 +343,11 @@ def _offset(mall: Mapping[str, Any], voice: str) -> float:
 
     raw = voice_document(mall, voice).get("loudness_offset_db", 0.0)
     lo, hi = OFFSET_LIMITS_DB
-    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not lo <= raw <= hi:
+    if (
+        isinstance(raw, bool)
+        or not isinstance(raw, (int, float))
+        or not lo <= raw <= hi
+    ):
         raise VoiceLoudnessError(
             f"voice {voice!r}: loudness_offset_db must be a number in [{lo:g}, {hi:g}] "
             f"dB, got {raw!r}"
@@ -382,7 +393,8 @@ def level_voices(
         previous = recorded.pop() if len(recorded) == 1 else None
         if previous is not None and all(
             line.leveled is not None
-            and line.audio_ref == leveled_key(src, gain_db=previous, peak_db=spec.peak_db)
+            and line.audio_ref
+            == leveled_key(src, gain_db=previous, peak_db=spec.peak_db)
             and line.audio_ref in store
             for line, src in zip(lines, sources)
         ):
@@ -406,6 +418,7 @@ def level_voices(
             gain = MAX_GAIN_DB
         if previous is not None and abs(gain - previous) < GAIN_STEP_DB:
             gain = previous  # hysteresis: a move under a step re-levels nothing
+
         def apply(gain_db: float) -> float:
             """Level every line at ``gain_db``; the loudness the voice reaches."""
             level.gain_db = round(round(gain_db / GAIN_STEP_DB) * GAIN_STEP_DB, 3)
@@ -413,7 +426,9 @@ def level_voices(
             for line, src in zip(lines, sources):
                 key = leveled_key(src, gain_db=level.gain_db, peak_db=spec.peak_db)
                 if key not in store:
-                    store[key] = leveled_audio(src, gain_db=level.gain_db, peak_db=spec.peak_db)
+                    store[key] = leveled_audio(
+                        src, gain_db=level.gain_db, peak_db=spec.peak_db
+                    )
                 made.append(store[key])
                 line.leveled = {"source": _source(line), "gain_db": level.gain_db}
                 line.audio_ref = key
