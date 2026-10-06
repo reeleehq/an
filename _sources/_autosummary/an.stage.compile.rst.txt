@@ -33,6 +33,7 @@ an.stage.compile
       note_raster_rig
       parse_tint
       plane_parents
+      retire_front_spelling
       scene_builders
       space_definitions
       stage_replacements

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../_static/documentation_options.js?v=69b98894"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -489,6 +489,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -697,22 +698,25 @@ mall). It reads only.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{plane</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">its</span> <span class="pre">channels</span> <span class="pre">must</span> <span class="pre">target}</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.retire_front_spelling" title="an.stage.compile.retire_front_spelling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retire_front_spelling</span></code></a>(shot)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shot</span></code> with every <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__front/&lt;plane&gt;</span></code> target spelled <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;/&lt;plane&gt;</span></code>, and the <code class="docutils literal notranslate"><span class="pre">(old,</span> <span class="pre">new)</span></code> pairs rewritten.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">builder}</span></code>: the stage's, and every registered one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{space</span> <span class="pre">name:</span> <span class="pre">definition}</span></code> for every space <code class="docutils literal notranslate"><span class="pre">entity_spaces</span></code> names -- what the compiled document embeds as <code class="docutils literal notranslate"><span class="pre">meta.spaces</span></code> so <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> evaluates each declared entity in its space (an#287).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{stage</span> <span class="pre">pass</span> <span class="pre">or</span> <span class="pre">builder:</span> <span class="pre">the</span> <span class="pre">genre</span> <span class="pre">replacing</span> <span class="pre">it}</span></code> -- recorded in the compiled document's <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code> when non-empty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
 <td><p>Clip-local times at which a stepped tween updates its pose (an#89).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
 <td><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> a scene declares, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#112).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
 <td><p>One sentence saying <code class="docutils literal notranslate"><span class="pre">target</span></code> is not a built node, with suggestions.</p></td>
 </tr>
 </tbody>
@@ -1139,8 +1143,39 @@ which is the class of drift this wave keeps closing.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnvironmentDescriptor</span><span class="p">,</span> <span class="n">Plane</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"e"</span><span class="p">,</span> <span class="n">planes</span><span class="o">=</span><span class="p">[</span><span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"a"</span><span class="p">),</span> <span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"b"</span><span class="p">)],</span>
 <span class="gp">... </span>                            <span class="n">characters_after</span><span class="o">=</span><span class="s2">"a"</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plane_parents</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">"street"</span><span class="p">)</span>
-<span class="go">{'a': 'street', 'b': 'street__front'}</span>
+</pre></div>
+</div>
+<p>Since an#343 every container an environment is split into indexes its
+planes under the environment’s id (<code class="docutils literal notranslate"><span class="pre">scope</span></code>), so the answer no longer
+depends on where the environment was cut:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plane_parents</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">"street"</span><span class="p">)</span>
+<span class="go">{'a': 'street', 'b': 'street'}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.retire_front_spelling">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">retire_front_spelling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#retire_front_spelling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.retire_front_spelling" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">shot</span></code> with every <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__front/&lt;plane&gt;</span></code> target spelled <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;/&lt;plane&gt;</span></code>,
+and the <code class="docutils literal notranslate"><span class="pre">(old,</span> <span class="pre">new)</span></code> pairs rewritten.</p>
+<p>The foreground container indexes its planes under the environment’s id
+since an#343, so the old spelling names nothing; indexing the plane twice
+would be the an#110 collision. For one cycle the compiler (and <code class="docutils literal notranslate"><span class="pre">an</span>
+<span class="pre">validate</span></code>) rewrites it with a warning naming the new spelling; a later
+issue retires the rewrite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-class docutils literal notranslate"><span class="pre">Shot</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">SetAction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="s2">"stage"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"environment"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"set"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"environments"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)],</span>
+<span class="gp">... </span>            <span class="n">actions</span><span class="o">=</span><span class="p">[</span><span class="n">SetAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"set__front/wall"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="s2">"alpha"</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new</span><span class="p">,</span> <span class="n">pairs</span> <span class="o">=</span> <span class="n">retire_front_spelling</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">pairs</span>
+<span class="go">('set/wall', [('set__front/wall', 'set/wall')])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1334,6 +1369,7 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.note_raster_rig"><code class="docutils literal notranslate"><span class="pre">note_raster_rig()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.parse_tint"><code class="docutils literal notranslate"><span class="pre">parse_tint()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.plane_parents"><code class="docutils literal notranslate"><span class="pre">plane_parents()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.retire_front_spelling"><code class="docutils literal notranslate"><span class="pre">retire_front_spelling()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.scene_builders"><code class="docutils literal notranslate"><span class="pre">scene_builders()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.space_definitions"><code class="docutils literal notranslate"><span class="pre">space_definitions()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.stage_replacements"><code class="docutils literal notranslate"><span class="pre">stage_replacements()</span></code></a></li>

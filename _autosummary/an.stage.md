@@ -67,3 +67,4 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`text`](an.stage.text.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
 | [`text_layout`](an.stage.text_layout.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
 | [`timeline`](an.stage.timeline.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                               |
+| [`tree`](an.stage.tree.md#module-an.stage.tree)                     | The scene tree's paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).                                                |

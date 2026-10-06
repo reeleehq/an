@@ -51,7 +51,6 @@ what keeps `an` from shipping unattributed work in the meantime.
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`PUBLIC_DOMAIN`](#an.ir.assets.PUBLIC_DOMAIN)                  | The recognised code for the public domain — no rights to clear, nothing owed (an#211).                                                                                                     |
 | [`LicenseClass`](#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
-| [`PROVIDER_TERMS`](#an.ir.assets.PROVIDER_TERMS)                 | Licences of what a provider SYNTHESIZES for you, under the provider's own terms (an#307): the `source.license` a voice document declares for the speech that provider made, by provider.   |
 | [`PROVIDER_TERMS_RESTRICTIONS`](#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)    | the words a credits report prints beside it.                                                                                                                                               |
 | [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
 
@@ -93,6 +92,16 @@ False
 True
 ```
 
+#### cacheable *: [bool](https://docs.python.org/3/builtins/functions.html#bool) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`False` —
+they do not (the Freesound API keeps every sound by reference), and no
+store takes them; `None` — not recorded, which is not a yes (an#332,
+as `lacing.Rights`); `True` — they do.
+
+* **Type:**
+  Whether the terms let the bytes be KEPT (stored, cached)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -116,25 +125,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PROVIDER_TERMS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown']]]* *= {'elevenlabs': {'elevenlabs-free-plan': 'unknown', 'elevenlabs-paid-plan': 'free'}}*
-
-Licences of what a provider SYNTHESIZES for you, under the provider’s own
-terms (an#307): the `source.license` a voice document declares for the
-speech that provider made, by provider. A code counts only on a source
-whose `provider` is that provider — another provider’s terms say nothing
-about it — and is matched as whole leading words (`elevenlabs-paid-plan`,
-`elevenlabs-paid-plan-creator`). Which one applies is the user’s account,
-which `an` cannot see: declaring it is the user’s statement.
-
-- ElevenLabs: on a paid plan the output may be used commercially with no
-  credit (`free`). On the free plan it must credit ElevenLabs AND is for
-  non-commercial use only: no class here says “publishable, but not
-  commercially”, and `attribution` would read as shippable, so it is
-  `unknown` — not publishable — with its restriction named
-  ([`PROVIDER_TERMS_RESTRICTIONS`](#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)) wherever it is listed (review-308 S1).
-  Check the current terms before shipping.
-
-### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is'}*
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
 
 the words a
 credits report prints beside it.
@@ -162,11 +153,13 @@ What this asset’s licence means for shipping the video (an#211).
 'private'
 >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
 'attribution'
+>>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
+'attribution'
 >>> license_class(AssetSource(provider="p", license="bespoke"))
 'unknown'
 ```
 
-A provider’s terms count for what that provider made ([`PROVIDER_TERMS`](#an.ir.assets.PROVIDER_TERMS)):
+A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 
 ```pycon
 >>> license_class(AssetSource(provider="elevenlabs", license="elevenlabs-paid-plan"))

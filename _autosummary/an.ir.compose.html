@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../_static/documentation_options.js?v=69b98894"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.camera" href="an.ir.camera.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -489,6 +489,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -658,22 +659,25 @@ what tooling reasons about.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.loop" title="an.ir.compose.loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code></a>(action, count)</p></td>
 <td><p>Repeat <code class="docutils literal notranslate"><span class="pre">action</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.parallel" title="an.ir.compose.parallel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parallel</span></code></a>(*actions)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.map_leaves" title="an.ir.compose.map_leaves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_leaves</span></code></a>(action, fn)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">action</span></code> with every LEAF replaced by <code class="docutils literal notranslate"><span class="pre">fn(leaf)</span></code>, composites rebuilt around them (whatever field a composite keeps its children in: its kind's <code class="docutils literal notranslate"><span class="pre">children</span></code> hook says which values are children, the model's fields say where they live, so <code class="docutils literal notranslate"><span class="pre">loop.child</span></code> and a genre's composite are reached).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.parallel" title="an.ir.compose.parallel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parallel</span></code></a>(*actions)</p></td>
 <td><p>Run all children at once.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.resolve_action" title="an.ir.compose.resolve_action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_action</span></code></a>(action)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.resolve_action" title="an.ir.compose.resolve_action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_action</span></code></a>(action)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">action</span></code> as its registered model (an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> left open by a document read before its genre loaded is validated now).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.sequence" title="an.ir.compose.sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequence</span></code></a>(*actions)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.sequence" title="an.ir.compose.sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequence</span></code></a>(*actions)</p></td>
 <td><p>Run children one after the other.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.set_" title="an.ir.compose.set_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_</span></code></a>(target, property, value, *[, at])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.set_" title="an.ir.compose.set_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_</span></code></a>(target, property, value, *[, at])</p></td>
 <td><p>Discrete property set at time <code class="docutils literal notranslate"><span class="pre">at</span></code> (relative to its enclosing scope).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.stagger" title="an.ir.compose.stagger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stagger</span></code></a>(lag, *actions)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.stagger" title="an.ir.compose.stagger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stagger</span></code></a>(lag, *actions)</p></td>
 <td><p>Start each action <code class="docutils literal notranslate"><span class="pre">lag</span></code> seconds after the previous one STARTS.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.tween" title="an.ir.compose.tween"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tween</span></code></a>(target, property, to, duration, *[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.tween" title="an.ir.compose.tween"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tween</span></code></a>(target, property, to, duration, *[, ...])</p></td>
 <td><p>Animate a property from <code class="docutils literal notranslate"><span class="pre">from_</span></code> (or its current value) to <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p></td>
 </tr>
 </tbody>
@@ -845,6 +849,26 @@ provides it, for a kind nobody registered.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.compose.map_leaves">
+<span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">map_leaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#map_leaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.map_leaves" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">action</span></code> with every LEAF replaced by <code class="docutils literal notranslate"><span class="pre">fn(leaf)</span></code>, composites rebuilt
+around them (whatever field a composite keeps its children in: its kind’s
+<code class="docutils literal notranslate"><span class="pre">children</span></code> hook says which values are children, the model’s fields say
+where they live, so <code class="docutils literal notranslate"><span class="pre">loop.child</span></code> and a genre’s composite are reached).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">act</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">loop</span><span class="p">(</span><span class="n">set_</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">renamed</span> <span class="o">=</span> <span class="n">map_leaves</span><span class="p">(</span><span class="n">act</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"target"</span><span class="p">:</span> <span class="s2">"b"</span><span class="p">})</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span> <span class="k">else</span> <span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">renamed</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span><span class="p">]</span>
+<span class="go">['b']</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.compose.parallel">
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.parallel" title="Link to this definition">#</a></dt>
 <dd><p>Run all children at once. Total duration = max of child durations.</p>
@@ -1009,6 +1033,7 @@ per-unit actions with holds, not a combinator.)</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.iter_actions"><code class="docutils literal notranslate"><span class="pre">iter_actions()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.kind_of"><code class="docutils literal notranslate"><span class="pre">kind_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.loop"><code class="docutils literal notranslate"><span class="pre">loop()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.map_leaves"><code class="docutils literal notranslate"><span class="pre">map_leaves()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.parallel"><code class="docutils literal notranslate"><span class="pre">parallel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.resolve_action"><code class="docutils literal notranslate"><span class="pre">resolve_action()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.sequence"><code class="docutils literal notranslate"><span class="pre">sequence()</span></code></a></li>

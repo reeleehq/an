@@ -178,7 +178,7 @@ voice document may declare its own `source` (the provider’s terms, the
 licence the user holds); otherwise the speech is listed UNVERIFIED — the
 provider’s terms decide what is owed, and nobody recorded them. The licence
 that counts for synthesized speech is a provider-terms code
-([`an.ir.assets.PROVIDER_TERMS`](an.ir.assets.md#an.ir.assets.PROVIDER_TERMS): `elevenlabs-paid-plan` is `free`;
+(`an.ir.assets.PROVIDER_TERMS`: `elevenlabs-paid-plan` is `free`;
 `elevenlabs-free-plan` is non-commercial only and owes a credit, so it is
 not publishable and is listed with that restriction), or any licence `an`
 recognises;

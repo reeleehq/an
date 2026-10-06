@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../_static/documentation_options.js?v=69b98894"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.runtime_files" href="an.stage.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -489,6 +489,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -997,6 +998,22 @@ document when unset (see the wrap serializer below).</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.serialize.NodeJSON.scope">
+<span class="sig-name descname"><span class="pre">scope</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.serialize.NodeJSON.scope" title="Link to this definition">#</a></dt>
+<dd><p>as the children of the
+node named <code class="docutils literal notranslate"><span class="pre">scope</span></code> in the same parent (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>: as the parent’s own
+children). <code class="docutils literal notranslate"><span class="pre">None</span></code> = under this node’s own path, the rule before
+an#343. An environment’s foreground container carries <code class="docutils literal notranslate"><span class="pre">scope=&lt;env&gt;</span></code>,
+so every plane is <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;/&lt;plane&gt;</span></code> wherever the environment is cut.
+<a class="reference internal" href="an.stage.tree.html#module-an.stage.tree" title="an.stage.tree"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.tree</span></code></a> is the Python statement of the rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Where this node’s CHILDREN are indexed (an#343)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1336,6 +1353,7 @@ take them; the runtime refuses any other kind.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.NodeJSON"><code class="docutils literal notranslate"><span class="pre">NodeJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.NodeJSON.model_config"><code class="docutils literal notranslate"><span class="pre">NodeJSON.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.NodeJSON.scope"><code class="docutils literal notranslate"><span class="pre">NodeJSON.scope</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PathJSON"><code class="docutils literal notranslate"><span class="pre">PathJSON</span></code></a><ul class="nav section-nav flex-column">

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../../../_static/documentation_options.js?v=69b98894"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -812,17 +812,32 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:   ``unknown`` — not publishable — with its restriction named</span>
 <span class="c1">#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).</span>
 <span class="c1">#:   Check the current terms before shipping.</span>
+<span class="c1">#: - Stability AI (Stable Audio Open and the other community models): under the</span>
+<span class="c1">#:   Stability AI Community License (read 2026-10-06 at</span>
+<span class="c1">#:   stability.ai/community-license-agreement, last updated 2024-07-05) "You</span>
+<span class="c1">#:   own any outputs generated from the Models", no notice is owed for outputs,</span>
+<span class="c1">#:   and the licence terminates once the user (with affiliates) makes more than</span>
+<span class="c1">#:   USD 1,000,000 in annual revenue; outputs must follow Stability's acceptable</span>
+<span class="c1">#:   use policy. So ``free``, with that cap named wherever it is listed (an#332).</span>
+<span class="n">_STABILITY_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"stability-community"</span><span class="p">:</span> <span class="s2">"free"</span><span class="p">}</span>
 <span class="n">PROVIDER_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"elevenlabs-paid-plan"</span><span class="p">:</span> <span class="s2">"free"</span><span class="p">,</span>
         <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"unknown"</span><span class="p">,</span>
     <span class="p">},</span>
+    <span class="c1"># The names a Stable Audio output's source is recorded under.</span>
+    <span class="s2">"stability"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
+    <span class="s2">"stability-ai"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
+    <span class="s2">"stable-audio"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="c1">#: What a provider-terms code restricts beyond its class, by code: the words a</span>
 <span class="c1">#: credits report prints beside it.</span>
 <span class="n">PROVIDER_TERMS_RESTRICTIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"ElevenLabs free plan: non-commercial use only, and "</span>
     <span class="s2">"the video must credit ElevenLabs (elevenlabs.io); not publishable as is"</span><span class="p">,</span>
+    <span class="s2">"stability-community"</span><span class="p">:</span> <span class="s2">"Stability AI Community License: the licence ends once "</span>
+    <span class="s2">"you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "</span>
+    <span class="s2">"licence is needed), and use must follow Stability's acceptable use policy"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -887,6 +902,9 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"cc-by-nc"</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
+<span class="c1">#: A licence version at the end of a code (``cc-by-nc-4.0``, ``cc-by-3.0``): a</span>
+<span class="c1">#: code is attribution-requiring when the code without it is listed (an#332).</span>
+<span class="n">_LICENSE_VERSION_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"-\d+(?:\.\d+)*$"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AssetSource">
@@ -921,7 +939,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">source_page_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">author_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">cacheable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1">#: Whether the terms let the bytes be KEPT (stored, cached): ``False`` —</span>
+    <span class="c1">#: they do not (the Freesound API keeps every sound by reference), and no</span>
+    <span class="c1">#: store takes them; ``None`` — not recorded, which is not a yes (an#332,</span>
+    <span class="c1">#: as ``lacing.Rights``); ``True`` — they do.</span>
+    <span class="n">cacheable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># --- an's own.</span>
     <span class="n">sha256</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -964,6 +986,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    'private'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="cc-by-4.0"))</span>
 <span class="sd">    'attribution'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))</span>
+<span class="sd">    'attribution'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="bespoke"))</span>
 <span class="sd">    'unknown'</span>
 
@@ -977,7 +1001,10 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"unknown"</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">raw</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span>
+        <span class="ow">or</span> <span class="n">_LICENSE_VERSION_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span>
+    <span class="p">):</span>
         <span class="k">return</span> <span class="s2">"attribution"</span>
     <span class="n">code</span> <span class="o">=</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">_PRIVATE_EXACT</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span> <span class="ow">in</span> <span class="n">code</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_PRIVATE_PHRASES</span><span class="p">):</span>

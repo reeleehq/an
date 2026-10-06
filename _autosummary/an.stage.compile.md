@@ -65,6 +65,7 @@ mall). It reads only.
 | [`note_raster_rig`](#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                 |
 | [`parse_tint`](#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
 | [`plane_parents`](#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
+| [`retire_front_spelling`](#an.stage.compile.retire_front_spelling)(shot)                      | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                           |
 | [`scene_builders`](#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
 | [`space_definitions`](#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
 | [`stage_replacements`](#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
@@ -416,8 +417,39 @@ which is the class of drift this wave keeps closing.
 >>> from an.stage.environments import EnvironmentDescriptor, Plane
 >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
 ...                             characters_after="a")
+```
+
+Since an#343 every container an environment is split into indexes its
+planes under the environment’s id (`scope`), so the answer no longer
+depends on where the environment was cut:
+
+```pycon
 >>> plane_parents(env, "street")
-{'a': 'street', 'b': 'street__front'}
+{'a': 'street', 'b': 'street'}
+```
+
+### an.stage.compile.retire_front_spelling(shot)
+
+`shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`,
+and the `(old, new)` pairs rewritten.
+
+The foreground container indexes its planes under the environment’s id
+since an#343, so the old spelling names nothing; indexing the plane twice
+would be the an#110 collision. For one cycle the compiler (and `an
+validate`) rewrites it with a warning naming the new spelling; a later
+issue retires the rewrite.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](an.ir.schema.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
+
+```pycon
+>>> from an.ir.schema import AssetRef, SetAction
+>>> shot = Shot(id="s", renderer="stage", duration=1.0,
+...             entities=[AssetRef(kind="environment", id="set", store="environments", ref="r")],
+...             actions=[SetAction(target="set__front/wall", property="alpha", value=0.5)])
+>>> new, pairs = retire_front_spelling(shot)
+>>> new.actions[0].target, pairs
+('set/wall', [('set__front/wall', 'set/wall')])
 ```
 
 ### an.stage.compile.scene_builders()

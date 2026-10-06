@@ -169,6 +169,7 @@
 - [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](_autosummary/an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.stage.timeline](_autosummary/an.stage.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
+- [an.stage.tree](_autosummary/an.stage.tree.html.md): The scene tree’s paths: the ONE Python statement of how &#96;runtime.js&#96; indexes nodes (an#343).
 - [an.stores](_autosummary/an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
 - [an.stores.artifacts](_autosummary/an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
 - [an.stores.characters](_autosummary/an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.
@@ -203,7 +204,7 @@
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 12:31 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 12:42 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

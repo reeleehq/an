@@ -1,4 +1,4 @@
-> built 2026-10-06 12:31 UTC from b9a6cba (main) · an 0.1.180. Details: build_info.json
+> built 2026-10-06 12:42 UTC from 27bd7e5 (main) · an 0.1.181. Details: build_info.json
 
 # index.html.md
 
@@ -681,6 +681,18 @@ One node in the scene tree.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### scope *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+as the children of the
+node named `scope` in the same parent (`""`: as the parent’s own
+children). `None` = under this node’s own path, the rule before
+an#343. An environment’s foreground container carries `scope=<env>`,
+so every plane is `<env>/<plane>` wherever the environment is cut.
+[`an.stage.tree`](_autosummary/an.stage.tree.html.md#module-an.stage.tree) is the Python statement of the rule.
+
+* **Type:**
+  Where this node’s CHILDREN are indexed (an#343)
 
 ### *class* an.adapters.cutout.PlacedClipJSON(\*\*data)
 
@@ -5704,7 +5716,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5752,7 +5764,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5971,7 +5983,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -12457,7 +12469,7 @@ voice document may declare its own `source` (the provider’s terms, the
 licence the user holds); otherwise the speech is listed UNVERIFIED — the
 provider’s terms decide what is owed, and nobody recorded them. The licence
 that counts for synthesized speech is a provider-terms code
-([`an.ir.assets.PROVIDER_TERMS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS): `elevenlabs-paid-plan` is `free`;
+(`an.ir.assets.PROVIDER_TERMS`: `elevenlabs-paid-plan` is `free`;
 `elevenlabs-free-plan` is non-commercial only and owes a credit, so it is
 not publishable and is listed with that restriction), or any licence `an`
 recognises;
@@ -15987,7 +15999,6 @@ what keeps `an` from shipping unattributed work in the meantime.
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`PUBLIC_DOMAIN`](_autosummary/an.ir.assets.html.md#an.ir.assets.PUBLIC_DOMAIN)                  | The recognised code for the public domain — no rights to clear, nothing owed (an#211).                                                                                                     |
 | [`LicenseClass`](_autosummary/an.ir.assets.html.md#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
-| [`PROVIDER_TERMS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS)                 | Licences of what a provider SYNTHESIZES for you, under the provider's own terms (an#307): the `source.license` a voice document declares for the speech that provider made, by provider.   |
 | [`PROVIDER_TERMS_RESTRICTIONS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)    | the words a credits report prints beside it.                                                                                                                                               |
 | [`ATTRIBUTION_REQUIRING_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
 
@@ -16029,6 +16040,16 @@ False
 True
 ```
 
+#### cacheable *: [bool](https://docs.python.org/3/builtins/functions.html#bool) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`False` —
+they do not (the Freesound API keeps every sound by reference), and no
+store takes them; `None` — not recorded, which is not a yes (an#332,
+as `lacing.Rights`); `True` — they do.
+
+* **Type:**
+  Whether the terms let the bytes be KEPT (stored, cached)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -16052,25 +16073,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PROVIDER_TERMS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown']]]* *= {'elevenlabs': {'elevenlabs-free-plan': 'unknown', 'elevenlabs-paid-plan': 'free'}}*
-
-Licences of what a provider SYNTHESIZES for you, under the provider’s own
-terms (an#307): the `source.license` a voice document declares for the
-speech that provider made, by provider. A code counts only on a source
-whose `provider` is that provider — another provider’s terms say nothing
-about it — and is matched as whole leading words (`elevenlabs-paid-plan`,
-`elevenlabs-paid-plan-creator`). Which one applies is the user’s account,
-which `an` cannot see: declaring it is the user’s statement.
-
-- ElevenLabs: on a paid plan the output may be used commercially with no
-  credit (`free`). On the free plan it must credit ElevenLabs AND is for
-  non-commercial use only: no class here says “publishable, but not
-  commercially”, and `attribution` would read as shippable, so it is
-  `unknown` — not publishable — with its restriction named
-  ([`PROVIDER_TERMS_RESTRICTIONS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)) wherever it is listed (review-308 S1).
-  Check the current terms before shipping.
-
-### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is'}*
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
 
 the words a
 credits report prints beside it.
@@ -16098,11 +16101,13 @@ What this asset’s licence means for shipping the video (an#211).
 'private'
 >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
 'attribution'
+>>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
+'attribution'
 >>> license_class(AssetSource(provider="p", license="bespoke"))
 'unknown'
 ```
 
-A provider’s terms count for what that provider made ([`PROVIDER_TERMS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS)):
+A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 
 ```pycon
 >>> license_class(AssetSource(provider="elevenlabs", license="elevenlabs-paid-plan"))
@@ -16294,19 +16299,20 @@ what tooling reasons about.
 
 ### Functions
 
-| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                              |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                            |
-| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                            |
-| [`iter_actions`](_autosummary/an.ir.compose.html.md#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                             |
-| [`kind_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind) that governs `action`.         |
-| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                 |
-| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                      |
-| [`resolve_action`](_autosummary/an.ir.compose.html.md#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now). |
-| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                              |
-| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                          |
-| [`stagger`](_autosummary/an.ir.compose.html.md#an.ir.compose.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                                                                 |
-| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                                |
+| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                                                                                                                                                                                           |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                                                                                                                                                                                         |
+| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                                                                                                         |
+| [`iter_actions`](_autosummary/an.ir.compose.html.md#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                                                                                                                                                                                          |
+| [`kind_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind) that governs `action`.                                                                                                                                                                      |
+| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                                                                                                                                                                              |
+| [`map_leaves`](_autosummary/an.ir.compose.html.md#an.ir.compose.map_leaves)(action, fn)                           | `action` with every LEAF replaced by `fn(leaf)`, composites rebuilt around them (whatever field a composite keeps its children in: its kind's `children` hook says which values are children, the model's fields say where they live, so `loop.child` and a genre's composite are reached). |
+| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                                                                                                                                                                                   |
+| [`resolve_action`](_autosummary/an.ir.compose.html.md#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now).                                                                                                                                                              |
+| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                                                                                                                                                                                           |
+| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                                                                                                                                                                                       |
+| [`stagger`](_autosummary/an.ir.compose.html.md#an.ir.compose.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                                                                                                                                                                                                                              |
+| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                                                                                                                                                                                             |
 
 ### Classes
 
@@ -16439,6 +16445,23 @@ Repeat `action` `count` times.
 
 * **Return type:**
   [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)
+
+### an.ir.compose.map_leaves(action, fn)
+
+`action` with every LEAF replaced by `fn(leaf)`, composites rebuilt
+around them (whatever field a composite keeps its children in: its kind’s
+`children` hook says which values are children, the model’s fields say
+where they live, so `loop.child` and a genre’s composite are reached).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> act = sequence(delay(1.0), loop(set_("a", "x", 1.0), 2))
+>>> renamed = map_leaves(act, lambda a: a.model_copy(update={"target": "b"}) if a.kind == "set" else a)
+>>> [a.target for a in iter_actions(renamed) if a.kind == "set"]
+['b']
+```
 
 ### an.ir.compose.parallel(\*actions)
 
@@ -26038,7 +26061,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -26207,7 +26230,7 @@ numpy, seeded, so the same call writes the same bytes.
 | [`SoundError`](_autosummary/an.sounds.html.md#an.sounds.SoundError)   | A sound the store cannot hold, or holds wrongly.   |
 |---------------------------------------------------------------|----------------------------------------------------|
 
-### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=True, sha256=None, cost_usd=None, extra={})*
+### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=None, sha256=None, cost_usd=None, extra={})*
 
 The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.sounds.synth_tone) / [`synth_hit()`](_autosummary/an.sounds.html.md#an.sounds.synth_hit) /
 [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
@@ -26244,7 +26267,9 @@ Put `audio` (WAV bytes) in `store` under `key`, with its provenance.
 
 `source` is required: a sound with no recorded origin is exactly the
 asset `an credits` cannot vouch for. Its `license` may be `None` —
-that is recorded as UNKNOWN and reported as unverified, never as free.
+that is recorded as UNKNOWN and reported as unverified, never as free. A
+source whose terms forbid keeping the bytes (`cacheable=False`: a
+Freesound API pull) is refused: the store keeps bytes (an#332).
 
 * **Return type:**
   [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
@@ -26873,6 +26898,7 @@ mall). It reads only.
 | [`note_raster_rig`](_autosummary/an.stage.compile.html.md#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                 |
 | [`parse_tint`](_autosummary/an.stage.compile.html.md#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
 | [`plane_parents`](_autosummary/an.stage.compile.html.md#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
+| [`retire_front_spelling`](_autosummary/an.stage.compile.html.md#an.stage.compile.retire_front_spelling)(shot)                      | `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`, and the `(old, new)` pairs rewritten.                                                                                           |
 | [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
 | [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
 | [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
@@ -27224,8 +27250,39 @@ which is the class of drift this wave keeps closing.
 >>> from an.stage.environments import EnvironmentDescriptor, Plane
 >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
 ...                             characters_after="a")
+```
+
+Since an#343 every container an environment is split into indexes its
+planes under the environment’s id (`scope`), so the answer no longer
+depends on where the environment was cut:
+
+```pycon
 >>> plane_parents(env, "street")
-{'a': 'street', 'b': 'street__front'}
+{'a': 'street', 'b': 'street'}
+```
+
+### an.stage.compile.retire_front_spelling(shot)
+
+`shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`,
+and the `(old, new)` pairs rewritten.
+
+The foreground container indexes its planes under the environment’s id
+since an#343, so the old spelling names nothing; indexing the plane twice
+would be the an#110 collision. For one cycle the compiler (and `an
+validate`) rewrites it with a warning naming the new spelling; a later
+issue retires the rewrite.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
+
+```pycon
+>>> from an.ir.schema import AssetRef, SetAction
+>>> shot = Shot(id="s", renderer="stage", duration=1.0,
+...             entities=[AssetRef(kind="environment", id="set", store="environments", ref="r")],
+...             actions=[SetAction(target="set__front/wall", property="alpha", value=0.5)])
+>>> new, pairs = retire_front_spelling(shot)
+>>> new.actions[0].target, pairs
+('set/wall', [('set__front/wall', 'set/wall')])
 ```
 
 ### an.stage.compile.scene_builders()
@@ -28159,6 +28216,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`text`](_autosummary/an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
 | [`text_layout`](_autosummary/an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
 | [`timeline`](_autosummary/an.stage.timeline.html.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                               |
+| [`tree`](_autosummary/an.stage.tree.html.md#module-an.stage.tree)                     | The scene tree's paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).                                                |
 
 
 # _autosummary/an.stage.path_geometry.html.md
@@ -30130,6 +30188,18 @@ One node in the scene tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### scope *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+as the children of the
+node named `scope` in the same parent (`""`: as the parent’s own
+children). `None` = under this node’s own path, the rule before
+an#343. An environment’s foreground container carries `scope=<env>`,
+so every plane is `<env>/<plane>` wherever the environment is cut.
+[`an.stage.tree`](_autosummary/an.stage.tree.html.md#module-an.stage.tree) is the Python statement of the rule.
+
+* **Type:**
+  Where this node’s CHILDREN are indexed (an#343)
+
 ### *class* an.stage.serialize.PathJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -31533,6 +31603,157 @@ itself.
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
 ('x', 'rotation', '<swap>')
 ```
+
+
+# _autosummary/an.stage.tree.html.md
+
+# an.stage.tree
+
+The scene tree’s paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).
+
+The runtime builds a container per node and indexes it in `nodeIndex` under a
+slash-joined path; every channel target is such a path. The compiled scene’s
+top-level `root` is synthetic and is not indexed (its children start at the
+entity name), and the overlay’s children are indexed the same way. Since an#343
+a node may carry `scope`: its CHILDREN are indexed as if they were the
+children of the node named `scope` in the same parent, so an environment’s
+foreground container (`set__front`, `scope="set"`) indexes its planes as
+`set/<plane>`, wherever the environment was cut. `scope=""` indexes them
+as the parent’s own children (a wrapper that adds a transform and no path
+segment).
+
+```pycon
+>>> from an.stage.serialize import NodeJSON
+>>> root = NodeJSON(name="root", children=[
+...     NodeJSON(name="set", children=[NodeJSON(name="sky")]),
+...     NodeJSON(name="maya"),
+...     NodeJSON(name="set__front", scope="set", children=[NodeJSON(name="wall")]),
+... ])
+>>> sorted(paths(root))
+['maya', 'set', 'set/sky', 'set/wall', 'set__front']
+>>> [p for _, p in chain(root, "set/wall")]
+['root', 'set__front', 'set/wall']
+```
+
+The runtime’s own copy of the rule is `childPrefix` in `runtime.js`;
+`tests/test_stage_tree.py` runs it under node against [`child_prefix()`](_autosummary/an.stage.tree.html.md#an.stage.tree.child_prefix),
+and a lint test there refuses a new hand-rolled walk that joins names.
+
+Works on the wire models ([`an.stage.serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)) and on their JSON dicts
+alike, since the bench reads the staged document as JSON.
+
+### Module Attributes
+
+| [`SYNTHETIC_ROOT`](_autosummary/an.stage.tree.html.md#an.stage.tree.SYNTHETIC_ROOT)   | never indexed by the runtime.   |
+|-------------------------------------------------------------------|---------------------------------|
+
+### Functions
+
+| [`child_prefix`](_autosummary/an.stage.tree.html.md#an.stage.tree.child_prefix)(node, path, prefix)   | The prefix `node`'s children are indexed under: its own `path`, or, with `scope`, `scope` taken in the parent's prefix (`""`: the parent's prefix itself).                                                  |
+|-------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`join`](_autosummary/an.stage.tree.html.md#an.stage.tree.join)(prefix, name)                 | `prefix/name`, or `name` at the top.                                                                                                                                                                        |
+| [`walk`](_autosummary/an.stage.tree.html.md#an.stage.tree.walk)(node[, prefix])               | `(path, node)` for `node` and every descendant, as the runtime indexes them, in document order.                                                                                                             |
+| [`lineage`](_autosummary/an.stage.tree.html.md#an.stage.tree.lineage)(node[, prefix])            | `(path, node, ancestor paths)` for `node` and every descendant: the paths of the containers it is drawn inside, outermost first.                                                                            |
+| [`walk_children`](_autosummary/an.stage.tree.html.md#an.stage.tree.walk_children)(root)                | `walk` over the children of the synthetic `root` (not indexed).                                                                                                                                             |
+| [`walk_document`](_autosummary/an.stage.tree.html.md#an.stage.tree.walk_document)(doc)                 | Every indexed `(path, node)` of a compiled document: the scene's entities, then the overlay's (one index for both layers).                                                                                  |
+| [`paths`](_autosummary/an.stage.tree.html.md#an.stage.tree.paths)(root)                        | Every path the runtime indexes under the synthetic `root`.                                                                                                                                                  |
+| [`node_at`](_autosummary/an.stage.tree.html.md#an.stage.tree.node_at)(root, path)                | The node the runtime indexes at `path` (later wins, as `nodeIndex` does), or raise `KeyError` naming the top-level nodes.                                                                                   |
+| [`chain`](_autosummary/an.stage.tree.html.md#an.stage.tree.chain)(root, path)                  | `[(node, its indexed path)]` from the synthetic `root` down to the node at `path`, every container on the way included (a scoped container composes like any parent: it is a container in the runtime too). |
+
+### an.stage.tree.SYNTHETIC_ROOT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
+
+never indexed by the runtime.
+
+* **Type:**
+  The compiled scene’s top-level container
+
+### an.stage.tree.chain(root, path)
+
+`[(node, its indexed path)]` from the synthetic `root` down to the
+node at `path`, every container on the way included (a scoped container
+composes like any parent: it is a container in the runtime too).
+
+Raises `KeyError` naming what is there rather than measuring the wrong node.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.stage.tree.child_prefix(node, path, prefix)
+
+The prefix `node`’s children are indexed under: its own `path`, or,
+with `scope`, `scope` taken in the parent’s prefix (`""`: the
+parent’s prefix itself). Mirrors `childPrefix` in `runtime.js`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.stage.serialize import NodeJSON
+>>> child_prefix(NodeJSON(name="a"), "env/a", "env")
+'env/a'
+>>> child_prefix(NodeJSON(name="a", scope="b"), "env/a", "env")
+'env/b'
+>>> child_prefix(NodeJSON(name="a", scope=""), "env/a", "env")
+'env'
+```
+
+### an.stage.tree.join(prefix, name)
+
+`prefix/name`, or `name` at the top.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> join("", "set"), join("set", "sky")
+('set', 'set/sky')
+```
+
+### an.stage.tree.lineage(node, prefix='')
+
+`(path, node, ancestor paths)` for `node` and every descendant: the
+paths of the containers it is drawn inside, outermost first.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]]
+
+### an.stage.tree.node_at(root, path)
+
+The node the runtime indexes at `path` (later wins, as `nodeIndex`
+does), or raise `KeyError` naming the top-level nodes.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### an.stage.tree.paths(root)
+
+Every path the runtime indexes under the synthetic `root`.
+
+* **Return type:**
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.stage.tree.walk(node, prefix='')
+
+`(path, node)` for `node` and every descendant, as the runtime
+indexes them, in document order.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.stage.tree.walk_children(root)
+
+`walk` over the children of the synthetic `root` (not indexed).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.stage.tree.walk_document(doc)
+
+Every indexed `(path, node)` of a compiled document: the scene’s
+entities, then the overlay’s (one index for both layers).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 
 # _autosummary/an.stores.artifacts.html.md
@@ -36468,7 +36689,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 12:31 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b9a6cba8ac23034dc87ed737464916924731c9b4"><code>b9a6cba</code></a> on branch <code>main</code>, for **an 0.1.180** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:42 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/27bd7e58ce4935f955e7843534d6761f7e9928ea"><code>27bd7e5</code></a> on branch <code>main</code>, for **an 0.1.181** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -36477,9 +36698,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/b9a6cba8ac23034dc87ed737464916924731c9b4"><code>b9a6cba8ac23034dc87ed737464916924731c9b4</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/27bd7e58ce4935f955e7843534d6761f7e9928ea"><code>27bd7e58ce4935f955e7843534d6761f7e9928ea</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.180</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.181</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -36488,9 +36709,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37463138652">37463138652</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37464374835">37464374835</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3b79621eb1324d920f5d9ffe6142da340695dba0</code> (in the history of the built commit) |
+| Event commit | <code>7b6ef486a14302974b1f857894d9c8b0d994da2b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -36515,13 +36736,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.180/">0.1.180</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.181/">0.1.181</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout b9a6cba8ac23034dc87ed737464916924731c9b4
+git checkout 27bd7e58ce4935f955e7843534d6761f7e9928ea
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

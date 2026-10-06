@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../../../_static/documentation_options.js?v=69b98894"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -833,6 +833,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.props</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROP_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">PropDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">PathDescriptor</span><span class="p">,</span> <span class="n">resolve_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">tree</span> <span class="k">as</span> <span class="n">stage_tree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text_layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_text_subtree</span><span class="p">,</span> <span class="n">svg_data_uri</span><span class="p">,</span> <span class="n">text_document</span>  <span class="c1"># noqa: F401  (re-exported)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_base_dir</span><span class="p">,</span> <span class="n">text_entity_problem</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.paint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Gradient</span>
@@ -1137,21 +1138,13 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_runtime_node_paths</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Every path the JS runtime will index for ``node``'s subtree.</span>
 
-<span class="sd">    Mirrors ``buildSceneTree``, including the detail that the synthetic top-level</span>
-<span class="sd">    ``root`` container is NOT indexed — the compiler emits target paths starting</span>
-<span class="sd">    at the entity name. Getting that wrong here would make every check below</span>
-<span class="sd">    off by one segment.</span>
+<span class="sd">    The rule is :mod:`an.stage.tree`'s (``scope`` included, an#343), with the</span>
+<span class="sd">    detail that the synthetic top-level ``root`` container is NOT indexed — the</span>
+<span class="sd">    compiler emits target paths starting at the entity name.</span>
 <span class="sd">    """</span>
-    <span class="n">paths</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"root"</span><span class="p">:</span>
-        <span class="n">paths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">child_prefix</span> <span class="o">=</span> <span class="n">path</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">child_prefix</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># skip the synthetic root, as the runtime does</span>
-    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-        <span class="n">paths</span> <span class="o">|=</span> <span class="n">_runtime_node_paths</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">child_prefix</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">paths</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">SYNTHETIC_ROOT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">paths</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)}</span>
 
 
 <span class="c1">#: How many "did you mean" paths an unknown-target message offers.</span>
@@ -1337,30 +1330,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">path_nodes</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">path_trims</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"root"</span><span class="p">:</span>
-            <span class="n">node_transforms</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span>
-            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"path"</span><span class="p">:</span>
-                <span class="n">path_nodes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s2">"trim_start"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_start</span><span class="p">,</span>
-                        <span class="s2">"trim_end"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_end</span><span class="p">,</span>
-                    <span class="p">}</span>
-                    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only a dashed path has an offset</span>
-                        <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">][</span><span class="s2">"dash_offset"</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash_offset</span>
-            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">:</span>
-                <span class="n">node_sets</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_sets</span>
-                <span class="n">node_asset_ids</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_id</span>
-            <span class="n">child_prefix</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">child_prefix</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># skip the synthetic root, as the runtime does</span>
-        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-            <span class="n">walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">child_prefix</span><span class="p">)</span>
-
-    <span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="c1"># The synthetic root is skipped, as the runtime does (an.stage.tree).</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk_children</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+        <span class="n">node_transforms</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"path"</span><span class="p">:</span>
+            <span class="n">path_nodes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">"trim_start"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_start</span><span class="p">,</span>
+                    <span class="s2">"trim_end"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_end</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only a dashed path has an offset</span>
+                    <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">][</span><span class="s2">"dash_offset"</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash_offset</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">:</span>
+            <span class="n">node_sets</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_sets</span>
+            <span class="n">node_asset_ids</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_id</span>
 
     <span class="n">declared</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">declared_maps</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1525,6 +1510,17 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">default_easing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">)</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">retired</span> <span class="o">=</span> <span class="n">retire_front_spelling</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">retired</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">({</span><span class="n">old</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">old</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">retired</span><span class="p">})</span><span class="si">}</span><span class="s2"> use the "</span>
+            <span class="s2">"retired spelling `&lt;environment&gt;__front/&lt;plane&gt;`; a plane is "</span>
+            <span class="sa">f</span><span class="s2">"addressed `&lt;environment&gt;/&lt;plane&gt;` wherever the environment is cut "</span>
+            <span class="sa">f</span><span class="s2">"(an#343), so they were read as </span><span class="si">{</span><span class="nb">sorted</span><span class="p">({</span><span class="n">new</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">_</span><span class="p">,</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">retired</span><span class="p">})</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="s2">"Rename them: the rewrite is removed in a later release."</span><span class="p">,</span>
+            <span class="n">CutoutCompileWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="n">state</span> <span class="o">=</span> <span class="n">CompileState</span><span class="p">(</span>
         <span class="n">shot</span><span class="o">=</span><span class="n">shot</span><span class="p">,</span>
         <span class="n">mall</span><span class="o">=</span><span class="n">mall</span> <span class="ow">or</span> <span class="p">{},</span>
@@ -2339,6 +2335,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">name</span><span class="o">=</span><span class="n">foreground_node_name</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
                 <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span>
                 <span class="n">children</span><span class="o">=</span><span class="n">in_front</span><span class="p">,</span>
+                <span class="c1"># Its planes are indexed as the environment's own (an#343):</span>
+                <span class="c1"># `set/&lt;plane&gt;` wherever the environment was cut.</span>
+                <span class="n">scope</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">in_front</span>
@@ -2397,16 +2396,63 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; from an.stage.environments import EnvironmentDescriptor, Plane</span>
 <span class="sd">    &gt;&gt;&gt; env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],</span>
 <span class="sd">    ...                             characters_after="a")</span>
+
+<span class="sd">    Since an#343 every container an environment is split into indexes its</span>
+<span class="sd">    planes under the environment's id (``scope``), so the answer no longer</span>
+<span class="sd">    depends on where the environment was cut:</span>
+
 <span class="sd">    &gt;&gt;&gt; plane_parents(env, "street")</span>
-<span class="sd">    {'a': 'street', 'b': 'street__front'}</span>
+<span class="sd">    {'a': 'street', 'b': 'street'}</span>
 <span class="sd">    """</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">]</span>
-    <span class="n">after</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">characters_after</span>
-    <span class="n">cut</span> <span class="o">=</span> <span class="n">names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">after</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">after</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">entity_id</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">cut</span> <span class="k">else</span> <span class="n">foreground_node_name</span><span class="p">(</span><span class="n">entity_id</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
-    <span class="p">}</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">entity_id</span> <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="retire_front_spelling">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.retire_front_spelling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retire_front_spelling</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Shot</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``shot`` with every ``&lt;env&gt;__front/&lt;plane&gt;`` target spelled ``&lt;env&gt;/&lt;plane&gt;``,</span>
+<span class="sd">    and the ``(old, new)`` pairs rewritten.</span>
+
+<span class="sd">    The foreground container indexes its planes under the environment's id</span>
+<span class="sd">    since an#343, so the old spelling names nothing; indexing the plane twice</span>
+<span class="sd">    would be the an#110 collision. For one cycle the compiler (and ``an</span>
+<span class="sd">    validate``) rewrites it with a warning naming the new spelling; a later</span>
+<span class="sd">    issue retires the rewrite.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef, SetAction</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", renderer="stage", duration=1.0,</span>
+<span class="sd">    ...             entities=[AssetRef(kind="environment", id="set", store="environments", ref="r")],</span>
+<span class="sd">    ...             actions=[SetAction(target="set__front/wall", property="alpha", value=0.5)])</span>
+<span class="sd">    &gt;&gt;&gt; new, pairs = retire_front_spelling(shot)</span>
+<span class="sd">    &gt;&gt;&gt; new.actions[0].target, pairs</span>
+<span class="sd">    ('set/wall', [('set__front/wall', 'set/wall')])</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">map_leaves</span>
+
+    <span class="n">envs</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">}</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="c1"># An entity that really is called `&lt;env&gt;__front` keeps its own paths.</span>
+    <span class="n">old_roots</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">foreground_node_name</span><span class="p">(</span><span class="n">e</span><span class="p">):</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">envs</span> <span class="k">if</span> <span class="n">foreground_node_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ids</span>
+    <span class="p">}</span>
+    <span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rewrite</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">root</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sep</span> <span class="ow">and</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">old_roots</span><span class="p">:</span>
+                <span class="n">new</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">old_roots</span><span class="p">[</span><span class="n">root</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rest</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">target</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"target"</span><span class="p">:</span> <span class="n">new</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="c1"># Every leaf, through every composite (a `loop`'s `child` included).</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">map_leaves</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">rewrite</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pairs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">pairs</span>
+    <span class="k">return</span> <span class="n">shot</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"actions"</span><span class="p">:</span> <span class="n">actions</span><span class="p">}),</span> <span class="n">pairs</span></div>
 
 
 
@@ -3835,18 +3881,12 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">planes</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">blended</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">inside</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">here</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">path</span> <span class="k">else</span> <span class="n">n</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">inside</span> <span class="o">=</span> <span class="n">inside</span> <span class="ow">or</span> <span class="n">here</span> <span class="ow">in</span> <span class="n">planes</span>
-        <span class="k">if</span> <span class="n">inside</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">blend</span><span class="p">:</span>
-            <span class="n">blended</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">here</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-            <span class="n">walk</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">here</span><span class="p">,</span> <span class="n">inside</span><span class="p">)</span>
-
     <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="o">.</span><span class="n">children</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">scene_root</span> <span class="k">else</span> <span class="p">()),</span>
                   <span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">overlay_children</span><span class="p">]:</span>  <span class="c1"># fmt: skip</span>
-        <span class="n">walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">here</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ancestors</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">lineage</span><span class="p">(</span><span class="n">child</span><span class="p">):</span>
+            <span class="n">inside</span> <span class="o">=</span> <span class="n">here</span> <span class="ow">in</span> <span class="n">planes</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">a</span> <span class="ow">in</span> <span class="n">planes</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ancestors</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">inside</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">blend</span><span class="p">:</span>
+                <span class="n">blended</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">here</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">blended</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">blended</span><span class="p">)</span><span class="si">}</span><span class="s2"> draw with a blend mode "</span>

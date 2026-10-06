@@ -42,19 +42,20 @@ what tooling reasons about.
 
 ### Functions
 
-| [`delay`](#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                              |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| [`duration_of`](#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                            |
-| [`flatten`](#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                            |
-| [`iter_actions`](#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                             |
-| [`kind_of`](#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](an.genres.html.md#an.genres.ActionKind) that governs `action`.         |
-| [`loop`](#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                 |
-| [`parallel`](#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                      |
-| [`resolve_action`](#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now). |
-| [`sequence`](#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                              |
-| [`set_`](#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                          |
-| [`stagger`](#an.ir.compose.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                                                                 |
-| [`tween`](#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                                |
+| [`delay`](#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                                                                                                                                                                                           |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`duration_of`](#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                                                                                                                                                                                         |
+| [`flatten`](#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                                                                                                         |
+| [`iter_actions`](#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                                                                                                                                                                                          |
+| [`kind_of`](#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](an.genres.html.md#an.genres.ActionKind) that governs `action`.                                                                                                                                                                      |
+| [`loop`](#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                                                                                                                                                                              |
+| [`map_leaves`](#an.ir.compose.map_leaves)(action, fn)                           | `action` with every LEAF replaced by `fn(leaf)`, composites rebuilt around them (whatever field a composite keeps its children in: its kind's `children` hook says which values are children, the model's fields say where they live, so `loop.child` and a genre's composite are reached). |
+| [`parallel`](#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                                                                                                                                                                                   |
+| [`resolve_action`](#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now).                                                                                                                                                              |
+| [`sequence`](#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                                                                                                                                                                                           |
+| [`set_`](#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                                                                                                                                                                                       |
+| [`stagger`](#an.ir.compose.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                                                                                                                                                                                                                              |
+| [`tween`](#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                                                                                                                                                                                             |
 
 ### Classes
 
@@ -187,6 +188,23 @@ Repeat `action` `count` times.
 
 * **Return type:**
   [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)
+
+### an.ir.compose.map_leaves(action, fn)
+
+`action` with every LEAF replaced by `fn(leaf)`, composites rebuilt
+around them (whatever field a composite keeps its children in: its kind’s
+`children` hook says which values are children, the model’s fields say
+where they live, so `loop.child` and a genre’s composite are reached).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> act = sequence(delay(1.0), loop(set_("a", "x", 1.0), 2))
+>>> renamed = map_leaves(act, lambda a: a.model_copy(update={"target": "b"}) if a.kind == "set" else a)
+>>> [a.target for a in iter_actions(renamed) if a.kind == "set"]
+['b']
+```
 
 ### an.ir.compose.parallel(\*actions)
 

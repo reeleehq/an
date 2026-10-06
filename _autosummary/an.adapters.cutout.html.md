@@ -215,6 +215,18 @@ One node in the scene tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### scope *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+as the children of the
+node named `scope` in the same parent (`""`: as the parent’s own
+children). `None` = under this node’s own path, the rule before
+an#343. An environment’s foreground container carries `scope=<env>`,
+so every plane is `<env>/<plane>` wherever the environment is cut.
+[`an.stage.tree`](an.stage.tree.html.md#module-an.stage.tree) is the Python statement of the rule.
+
+* **Type:**
+  Where this node’s CHILDREN are indexed (an#343)
+
 ### *class* an.adapters.cutout.PlacedClipJSON(\*\*data)
 
 Bases: `_JSONModel`

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cdc10c8d"></script>
+    <script src="../_static/documentation_options.js?v=69b98894"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.semantic.views" href="an.semantic.views.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.180" />
+  <meta name="docsearch:version" content="0.1.181" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -489,6 +489,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -679,7 +680,7 @@ numpy, seeded, so the same call writes the same bytes.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.sounds.SYNTH_SOURCE">
-<span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">SYNTH_SOURCE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">AssetSource(provider='an.sounds',</span> <span class="pre">id='procedural-synthesis',</span> <span class="pre">url=None,</span> <span class="pre">license='cc0-1.0',</span> <span class="pre">license_url=None,</span> <span class="pre">attribution=None,</span> <span class="pre">source_page_url=None,</span> <span class="pre">author='an</span> <span class="pre">(procedural</span> <span class="pre">synthesis,</span> <span class="pre">generated</span> <span class="pre">locally)',</span> <span class="pre">author_url=None,</span> <span class="pre">cacheable=True,</span> <span class="pre">sha256=None,</span> <span class="pre">cost_usd=None,</span> <span class="pre">extra={})</span></span><a class="headerlink" href="#an.sounds.SYNTH_SOURCE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">SYNTH_SOURCE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">AssetSource(provider='an.sounds',</span> <span class="pre">id='procedural-synthesis',</span> <span class="pre">url=None,</span> <span class="pre">license='cc0-1.0',</span> <span class="pre">license_url=None,</span> <span class="pre">attribution=None,</span> <span class="pre">source_page_url=None,</span> <span class="pre">author='an</span> <span class="pre">(procedural</span> <span class="pre">synthesis,</span> <span class="pre">generated</span> <span class="pre">locally)',</span> <span class="pre">author_url=None,</span> <span class="pre">cacheable=None,</span> <span class="pre">sha256=None,</span> <span class="pre">cost_usd=None,</span> <span class="pre">extra={})</span></span><a class="headerlink" href="#an.sounds.SYNTH_SOURCE" title="Link to this definition">#</a></dt>
 <dd><p>The provenance of everything <a class="reference internal" href="#an.sounds.synth_tone" title="an.sounds.synth_tone"><code class="xref py py-func docutils literal notranslate"><span class="pre">synth_tone()</span></code></a> / <a class="reference internal" href="#an.sounds.synth_hit" title="an.sounds.synth_hit"><code class="xref py py-func docutils literal notranslate"><span class="pre">synth_hit()</span></code></a> /
 <a class="reference internal" href="#an.sounds.synth_bed" title="an.sounds.synth_bed"><code class="xref py py-func docutils literal notranslate"><span class="pre">synth_bed()</span></code></a> produce: generated on the user’s machine by <code class="docutils literal notranslate"><span class="pre">an</span></code> from
 numbers, so no third party’s work is in it.</p>
@@ -726,7 +727,9 @@ an#330 a pipe-cut WAV recorded its streaming header’s ~22369 s).</p>
 <dd><p>Put <code class="docutils literal notranslate"><span class="pre">audio</span></code> (WAV bytes) in <code class="docutils literal notranslate"><span class="pre">store</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code>, with its provenance.</p>
 <p><code class="docutils literal notranslate"><span class="pre">source</span></code> is required: a sound with no recorded origin is exactly the
 asset <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> cannot vouch for. Its <code class="docutils literal notranslate"><span class="pre">license</span></code> may be <code class="docutils literal notranslate"><span class="pre">None</span></code> —
-that is recorded as UNKNOWN and reported as unverified, never as free.</p>
+that is recorded as UNKNOWN and reported as unverified, never as free. A
+source whose terms forbid keeping the bytes (<code class="docutils literal notranslate"><span class="pre">cacheable=False</span></code>: a
+Freesound API pull) is refused: the store keeps bytes (an#332).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a></span></p>

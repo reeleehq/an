@@ -1,0 +1,26 @@
+an.stage.tree
+=============
+
+.. automodule:: an.stage.tree
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SYNTHETIC_ROOT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      child_prefix
+      join
+      walk
+      lineage
+      walk_children
+      walk_document
+      paths
+      node_at
+      chain
+   

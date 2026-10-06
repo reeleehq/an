@@ -167,6 +167,7 @@
 - [an.stage.text](an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.stage.timeline](an.stage.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
+- [an.stage.tree](an.stage.tree.html.md): The scene tree’s paths: the ONE Python statement of how &#96;runtime.js&#96; indexes nodes (an#343).
 - [an.stores](an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
 - [an.stores.artifacts](an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
 - [an.stores.characters](an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.

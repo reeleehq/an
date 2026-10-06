@@ -21,6 +21,7 @@ an.ir.compose
       iter_actions
       kind_of
       loop
+      map_leaves
       parallel
       resolve_action
       sequence
