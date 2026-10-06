@@ -10,6 +10,7 @@ an.stage.rig
    
       DEFAULT_VIEW_BOX
       RIG_DOCUMENT_OPTIONAL_FIELDS
+      REST_POSE_SINCE
       SCENE_PX_PER_VIEW_BOX
       CONTAIN_FIT
       CHARACTER_ART_PREFIX
@@ -23,15 +24,21 @@ an.stage.rig
       attachment_box
       bone_extent_centre
       bone_positions
+      bones_carry_a_rest_pose
       build_rig_subtree
       declared_origin
       drawn_attachment
+      legacy_rest_pose_unknown
       omit_unset_rig_fields
       part_probe
       primary_slot_per_bone
+      protect_legacy_rest_pose
       raster_digest
+      register_rest_pose_migration
+      rest_transform
       rig_origin
       rig_origin_problems
+      rig_rest_problems
    
    .. rubric:: Classes
 
@@ -43,4 +50,10 @@ an.stage.rig
       RigModel
       Skin
       Slot
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RestPoseWarning
    

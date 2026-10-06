@@ -100,7 +100,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a session can do, read off its members.
 
-### an.engines.protocol.FEATURE_MEMBERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bounds': 'bounds', 'frame_with_alpha': 'alpha', 'frames': 'batch', 'project': 'project', 'provenance': 'provenance', 'resolve': 'resolve', 'state': 'readback'}*
+### an.engines.protocol.FEATURE_MEMBERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bounds': 'bounds', 'frame_with_alpha': 'alpha', 'frames': 'batch', 'project': 'project', 'provenance': 'provenance', 'render_states': 'batch', 'resolve': 'resolve', 'state': 'readback'}*
 
 Optional session member -> the feature it unlocks. The SSOT [`describe()`](#an.engines.protocol.describe)
 reads; a new feature is a new row, never a flag on an engine.

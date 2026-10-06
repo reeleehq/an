@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ee523f82"></script>
+    <script src="../_static/documentation_options.js?v=4a2abb9b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.preview" href="an.stage.preview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.188" />
+  <meta name="docsearch:version" content="0.1.189" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -661,7 +661,10 @@ a two-state lamp is <code class="code docutils literal notranslate"><span class=
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.props.PROP_DOCUMENT_KIND" title="an.stage.props.PROP_DOCUMENT_KIND"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_DOCUMENT_KIND</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.props.PROP_SCHEMA_VERSION" title="an.stage.props.PROP_SCHEMA_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_SCHEMA_VERSION</span></code></a></p></td>
+<td><p>the bones' rest pose (<code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_*</span></code>) poses the built parts; the migration protects a 0.1.0 rig that carried one.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.props.PROP_DOCUMENT_KIND" title="an.stage.props.PROP_DOCUMENT_KIND"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_DOCUMENT_KIND</span></code></a></p></td>
 <td><p>Its own versioned document, registered from the module that owns the schema — the same rule <code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code> follows, and the reason the migration registry is keyed per KIND: two documents at <code class="code docutils literal notranslate"><span class="pre">0.1.0</span></code> that migrate differently is exactly the collision an#77 fixed.</p></td>
 </tr>
 </tbody>
@@ -690,11 +693,23 @@ a two-state lamp is <code class="code docutils literal notranslate"><span class=
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.props.PROP_DOCUMENT_KIND">
-<span class="sig-prename descclassname"><span class="pre">an.stage.props.</span></span><span class="sig-name descname"><span class="pre">PROP_DOCUMENT_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.html#an.ir.DocumentKind" title="an.ir.migrate.DocumentKind"><span class="pre">DocumentKind</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DocumentKind(name='PropDescriptor',</span> <span class="pre">version_field='schema_version',</span> <span class="pre">current_version='0.1.0')</span></span><a class="headerlink" href="#an.stage.props.PROP_DOCUMENT_KIND" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.props.</span></span><span class="sig-name descname"><span class="pre">PROP_DOCUMENT_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.html#an.ir.DocumentKind" title="an.ir.migrate.DocumentKind"><span class="pre">DocumentKind</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DocumentKind(name='PropDescriptor',</span> <span class="pre">version_field='schema_version',</span> <span class="pre">current_version='0.2.0')</span></span><a class="headerlink" href="#an.stage.props.PROP_DOCUMENT_KIND" title="Link to this definition">#</a></dt>
 <dd><p>Its own versioned document, registered from the module that owns the schema
 — the same rule <code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code> follows, and the reason the migration
 registry is keyed per KIND: two documents at <code class="code docutils literal notranslate"><span class="pre">0.1.0</span></code> that migrate
 differently is exactly the collision an#77 fixed.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.props.PROP_SCHEMA_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.stage.props.</span></span><span class="sig-name descname"><span class="pre">PROP_SCHEMA_VERSION</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.2.0'</span></span><a class="headerlink" href="#an.stage.props.PROP_SCHEMA_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>the bones’ rest pose (<code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_*</span></code>) poses
+the built parts; the migration protects a 0.1.0 rig that carried one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0.2.0 (an#339)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -883,6 +898,7 @@ because <code class="code docutils literal notranslate"><span class="pre">an</sp
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.props.PROP_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">PROP_DOCUMENT_KIND</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.props.PROP_SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">PROP_SCHEMA_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.props.PropDescriptor"><code class="docutils literal notranslate"><span class="pre">PropDescriptor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.props.PropDescriptor.animations"><code class="docutils literal notranslate"><span class="pre">PropDescriptor.animations</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.props.PropDescriptor.asset_sets"><code class="docutils literal notranslate"><span class="pre">PropDescriptor.asset_sets</span></code></a></li>

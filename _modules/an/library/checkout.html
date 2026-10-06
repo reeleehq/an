@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=ee523f82"></script>
+    <script src="../../../_static/documentation_options.js?v=4a2abb9b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.188" />
+  <meta name="docsearch:version" content="0.1.189" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -865,6 +865,31 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">sidecar_path</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">meta</span><span class="p">))</span><span class="o">.</span><span class="n">parent</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">as_current</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``doc`` migrated to this build's schema when its ``kind`` is a registered,</span>
+<span class="sd">    versioned document, else ``doc`` itself (an#339).</span>
+
+<span class="sd">    :func:`drift` compares the two sides through it: the factory and the CLI</span>
+<span class="sd">    re-save a descriptor with this build's ``schema_version``, so a schema bump</span>
+<span class="sd">    alone would otherwise read as "descriptor edited" and refuse an in-place</span>
+<span class="sd">    upgrade of a copy nobody touched. A document no migration can read is</span>
+<span class="sd">    compared as it is (unequal to anything it should not equal).</span>
+
+<span class="sd">    &gt;&gt;&gt; as_current({"kind": "PropDescriptor", "schema_version": "0.1.0", "name": "x"})["schema_version"]</span>
+<span class="sd">    '0.2.0'</span>
+<span class="sd">    &gt;&gt;&gt; as_current({"no": "kind"})</span>
+<span class="sd">    {'no': 'kind'}</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">KINDS</span><span class="p">,</span> <span class="n">migrate</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">KINDS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">doc</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">migrate</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)),</span> <span class="n">kind</span><span class="o">=</span><span class="n">doc</span><span class="p">[</span><span class="s2">"kind"</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">doc</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">drift</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""How the project's ``store[key]`` differs from ``version`` — empty when it is that version.</span>
 
@@ -877,7 +902,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
     <span class="n">pop_origin</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">doc</span> <span class="o">!=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">as_current</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">as_current</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)):</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"descriptor edited"</span><span class="p">)</span>
     <span class="n">entry</span> <span class="o">=</span> <span class="n">_entry_dir</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="n">files</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>

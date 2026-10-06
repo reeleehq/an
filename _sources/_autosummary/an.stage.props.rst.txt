@@ -8,6 +8,7 @@ an.stage.props
 
    .. autosummary::
    
+      PROP_SCHEMA_VERSION
       PROP_DOCUMENT_KIND
    
    .. rubric:: Functions

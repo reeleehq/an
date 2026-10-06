@@ -1,4 +1,4 @@
-> built 2026-10-06 13:19 UTC from 1066484 (main) · an 0.1.188. Details: build_info.json
+> built 2026-10-06 13:27 UTC from 4f6ba9f (main) · an 0.1.189. Details: build_info.json
 
 # index.html.md
 
@@ -5733,7 +5733,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5781,7 +5781,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -6000,7 +6000,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -11586,7 +11586,7 @@ never the reverse, and neither imports [`an.ir`](_autosummary/an.ir.html.md#modu
 
 Registered analysers, by kind.
 
-### *class* an.capabilities.Analyser(kind, version, derive, subject='asset', declares=())
+### *class* an.capabilities.Analyser(kind, version, derive, subject='asset', declares=(), overrides=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -11604,6 +11604,15 @@ re-renders nothing.
 The document’s declared facts the derivation honours instead of deriving
 (`rest_view`, `face_overlay`) or reads as a request (`gait`):
 reported by `describe_asset` (ADR 0002 decision 2).
+
+#### overrides *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]], [Iterable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+`(doc, art) -> declared field names` the derivation USED as overrides
+that do not show on an afforded capability’s params: a declared fact
+that REMOVES a capability (a character’s `occluded`, an#381). Those on
+an afforded capability are already in its `overrides` param.
+`None`: none beyond those. Reporting only: it changes no profile, so
+adding it does not bump `version`.
 
 ### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.measure_duration': Capability(name='engine.measure_duration', description='the engine implements the optional \`measure_duration\` member', remedy='use an engine that implements \`measure_duration\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.manim': Capability(name='env.manim', description='the manim, manimkit Python package(s) are importable', remedy="pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux first \`apt install libcairo2-dev libpango1.0-dev\`)", subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
 
@@ -13010,8 +13019,27 @@ A state-driven session seen as a time-driven one: the core evaluates `at(t)`.
 
 `frame(t)` is `render(evaluate_timeline(timeline, t, space=space))` and
 `state(t)` is the evaluated state, so the capture loop and the conformance
-tests treat both drive modes alike. The session’s other members (`resolve`,
-`provenance`, …) are reached through attribute access.
+tests treat both drive modes alike. The session’s other members
+(`resolve`, `provenance`, …) are reached through attribute access.
+
+**Batched** (an#286): `frames(requests)` evaluates every instant here and
+hands the session the STATES, through its optional `render_states(states)`
+(one round trip per batch, the member a JS-bridged view engine implements),
+else `render` per state. A session’s own `frames` is never forwarded: it
+would take times and bypass `state`.
+
+**Adapted by drive mode** (an#286): `project(point, t)` and `bounds(t)`
+reach the session as `project(point, state)` and `bounds(state)` (the
+state-driven signature, previz’s `project(point, {state, ...})`), and
+exist only when the session has them, so [`describe()`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.describe)
+still reads capabilities from real members.
+
+#### frames(requests)
+
+One list of frames per request, a frame per instant, in order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]
 
 ### an.engines.frame_stage.frame_stage_renderer(engine, \*, name=None, renderers=None, error=<class 'an.engines.capture.FrameStageError'>, capture_options=None)
 
@@ -13280,8 +13308,27 @@ A state-driven session seen as a time-driven one: the core evaluates `at(t)`.
 
 `frame(t)` is `render(evaluate_timeline(timeline, t, space=space))` and
 `state(t)` is the evaluated state, so the capture loop and the conformance
-tests treat both drive modes alike. The session’s other members (`resolve`,
-`provenance`, …) are reached through attribute access.
+tests treat both drive modes alike. The session’s other members
+(`resolve`, `provenance`, …) are reached through attribute access.
+
+**Batched** (an#286): `frames(requests)` evaluates every instant here and
+hands the session the STATES, through its optional `render_states(states)`
+(one round trip per batch, the member a JS-bridged view engine implements),
+else `render` per state. A session’s own `frames` is never forwarded: it
+would take times and bypass `state`.
+
+**Adapted by drive mode** (an#286): `project(point, t)` and `bounds(t)`
+reach the session as `project(point, state)` and `bounds(state)` (the
+state-driven signature, previz’s `project(point, {state, ...})`), and
+exist only when the session has them, so [`describe()`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.describe)
+still reads capabilities from real members.
+
+#### frames(requests)
+
+One list of frames per request, a frame per instant, in order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]
 
 ### *class* an.engines.TimeDriven(\*args, \*\*kwargs)
 
@@ -13505,7 +13552,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a session can do, read off its members.
 
-### an.engines.protocol.FEATURE_MEMBERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bounds': 'bounds', 'frame_with_alpha': 'alpha', 'frames': 'batch', 'project': 'project', 'provenance': 'provenance', 'resolve': 'resolve', 'state': 'readback'}*
+### an.engines.protocol.FEATURE_MEMBERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bounds': 'bounds', 'frame_with_alpha': 'alpha', 'frames': 'batch', 'project': 'project', 'provenance': 'provenance', 'render_states': 'batch', 'resolve': 'resolve', 'state': 'readback'}*
 
 Optional session member -> the feature it unlocks. The SSOT [`describe()`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.describe)
 reads; a new feature is a new row, never a flag on an engine.
@@ -14096,7 +14143,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -14119,6 +14166,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 3 = the public rig builder (an#338): `an.stage.rig.build_rig_subtree`, `rig_origin`,
 : `RigDocument` (`origin`), `omit_unset_rig_fields`, `an.stage.compile.note_raster_rig`.
+
+4 = the bones’ rest pose (an#339): `an.stage.rig.register_rest_pose_migration`,
+: `rig_rest_problems`, `RigDocument.rest_rotation`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -18844,7 +18894,7 @@ True
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`Capability`](_autosummary/an.library.affordances.html.md#an.library.affordances.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it. |
 
-### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=())
+### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=(), overrides=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -18862,6 +18912,15 @@ re-renders nothing.
 The document’s declared facts the derivation honours instead of deriving
 (`rest_view`, `face_overlay`) or reads as a request (`gait`):
 reported by `describe_asset` (ADR 0002 decision 2).
+
+#### overrides *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]], [Iterable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+`(doc, art) -> declared field names` the derivation USED as overrides
+that do not show on an afforded capability’s params: a declared fact
+that REMOVES a capability (a character’s `occluded`, an#381). Those on
+an afforded capability are already in its `overrides` param.
+`None`: none beyond those. Reporting only: it changes no profile, so
+adding it does not bump `version`.
 
 ### *class* an.library.affordances.Capability(name, description, remedy, subject='asset', command=None, version='1')
 
@@ -26159,7 +26218,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -29017,8 +29076,9 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 
 ### Module Attributes
 
-| [`PROP_DOCUMENT_KIND`](_autosummary/an.stage.props.html.md#an.stage.props.PROP_DOCUMENT_KIND)   | Its own versioned document, registered from the module that owns the schema — the same rule `CharacterDescriptor` follows, and the reason the migration registry is keyed per KIND: two documents at `0.1.0` that migrate differently is exactly the collision an#77 fixed.   |
-|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROP_SCHEMA_VERSION`](_autosummary/an.stage.props.html.md#an.stage.props.PROP_SCHEMA_VERSION)   | the bones' rest pose (`rotation_deg`, `scale_*`) poses the built parts; the migration protects a 0.1.0 rig that carried one.                                                                                                                                                |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROP_DOCUMENT_KIND`](_autosummary/an.stage.props.html.md#an.stage.props.PROP_DOCUMENT_KIND)    | Its own versioned document, registered from the module that owns the schema — the same rule `CharacterDescriptor` follows, and the reason the migration registry is keyed per KIND: two documents at `0.1.0` that migrate differently is exactly the collision an#77 fixed. |
 
 ### Functions
 
@@ -29031,12 +29091,20 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 | [`PropDescriptor`](_autosummary/an.stage.props.html.md#an.stage.props.PropDescriptor)(\*\*data)   | The on-disk prop schema.   |
 |-----------------------------------------------------------------------------|----------------------------|
 
-### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.1.0')*
+### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.2.0')*
 
 Its own versioned document, registered from the module that owns the schema
 — the same rule `CharacterDescriptor` follows, and the reason the migration
 registry is keyed per KIND: two documents at `0.1.0` that migrate
 differently is exactly the collision an#77 fixed.
+
+### an.stage.props.PROP_SCHEMA_VERSION *= '0.2.0'*
+
+the bones’ rest pose (`rotation_deg`, `scale_*`) poses
+the built parts; the migration protects a 0.1.0 rig that carried one.
+
+* **Type:**
+  0.2.0 (an#339)
 
 ### *class* an.stage.props.PropDescriptor(\*\*data)
 
@@ -29686,6 +29754,7 @@ Two layers live here:
 | [`DEFAULT_VIEW_BOX`](_autosummary/an.stage.rig.html.md#an.stage.rig.DEFAULT_VIEW_BOX)             | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                                                                                 |
 |-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RIG_DOCUMENT_OPTIONAL_FIELDS`](_autosummary/an.stage.rig.html.md#an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS) | The fields [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) adds, each written out of the stored document when unset ([`omit_unset_rig_fields()`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)), so every descriptor that never set one reads back, and hashes, as it did before the field existed. |
+| [`REST_POSE_SINCE`](_autosummary/an.stage.rig.html.md#an.stage.rig.REST_POSE_SINCE)              | `{rig document kind: the version from which its bones' rest pose is applied}`, filled by [`register_rest_pose_migration()`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration) (an#339).                                                                                                                              |
 | [`SCENE_PX_PER_VIEW_BOX`](_autosummary/an.stage.rig.html.md#an.stage.rig.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                            |
 | [`CONTAIN_FIT`](_autosummary/an.stage.rig.html.md#an.stage.rig.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                   |
 | [`CHARACTER_ART_PREFIX`](_autosummary/an.stage.rig.html.md#an.stage.rig.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                          |
@@ -29698,15 +29767,21 @@ Two layers live here:
 | [`attachment_box`](_autosummary/an.stage.rig.html.md#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                   |
 | [`bone_extent_centre`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)). |
 | [`bone_positions`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                           |
+| [`bones_carry_a_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                       |
 | [`build_rig_subtree`](_autosummary/an.stage.rig.html.md#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a character, **from its descriptor's rig**.                                                                                                                                                                  |
 | [`declared_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                |
 | [`drawn_attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                             |
+| [`legacy_rest_pose_unknown`](_autosummary/an.stage.rig.html.md#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                              |
 | [`omit_unset_rig_fields`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                    |
 | [`part_probe`](_autosummary/an.stage.rig.html.md#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                  |
 | [`primary_slot_per_bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                              |
+| [`protect_legacy_rest_pose`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose)(doc)                      | The migration step every rig kind runs onto the version that applies the rest pose (an#339).                                                                                                                                             |
 | [`raster_digest`](_autosummary/an.stage.rig.html.md#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                       |
+| [`register_rest_pose_migration`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                        |
+| [`rest_transform`](_autosummary/an.stage.rig.html.md#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                    |
 | [`rig_origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                           |
 | [`rig_origin_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                        |
+| [`rig_rest_problems`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                 |
 
 ### Classes
 
@@ -29717,6 +29792,11 @@ Two layers live here:
 | [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*data)     | Common config: forward-compatible reads, strict writes.                            |
 | [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*\*data)         | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
 | [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*\*data)         | A draw-order slot bound to a bone, displaying one attachment at a time.            |
+
+### Exceptions
+
+| [`RestPoseWarning`](_autosummary/an.stage.rig.html.md#an.stage.rig.RestPoseWarning)   | A rig's bone rest pose was NOT applied, because the document may predate it.   |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------|
 
 ### *class* an.stage.rig.Attachment(\*\*data)
 
@@ -29824,11 +29904,23 @@ viewBox without a calibration step.
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
 
-### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin',)*
+### an.stage.rig.REST_POSE_SINCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'PropDescriptor': '0.2.0'}*
+
+`{rig document kind: the version from which its bones' rest pose is applied}`,
+filled by [`register_rest_pose_migration()`](_autosummary/an.stage.rig.html.md#an.stage.rig.register_rest_pose_migration) (an#339). The builder guard
+reads it to recognise a document older than that version.
+
+### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation')*
 
 The fields [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) adds, each written out of the stored
 document when unset ([`omit_unset_rig_fields()`](_autosummary/an.stage.rig.html.md#an.stage.rig.omit_unset_rig_fields)), so every descriptor
 that never set one reads back, and hashes, as it did before the field existed.
+
+### *exception* an.stage.rig.RestPoseWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A rig’s bone rest pose was NOT applied, because the document may predate it.
 
 ### *class* an.stage.rig.RigDocument(\*\*data)
 
@@ -29863,6 +29955,16 @@ to, in view_box units (an#338). Unset, the rig is placed by the centre
 of its bones’ extent ([`bone_extent_centre()`](_autosummary/an.stage.rig.html.md#an.stage.rig.bone_extent_centre)), which is what every
 rig did before the field existed; a prop declares its foot (a tripod’s,
 a figurine’s stand) so it stands where it is put whatever its extent.
+
+#### rest_rotation *: [bool](https://docs.python.org/3/builtins/functions.html#bool) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Whether the bones’ `rotation_deg`/`scale_x`/`scale_y` pose the
+built parts (an#339). Unset (or `True`) they do: the rest pose is the
+bones’. `False` is written ONLY by the migration onto a document from
+before that rule whose bones carry a rotation or scale, because such a
+rig was drawn with the pose already in its pixels (the fields were
+ignored) and applying them now would pose it twice
+([`protect_legacy_rest_pose()`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose)).
 
 ### *class* an.stage.rig.RigModel(\*\*data)
 
@@ -30000,6 +30102,21 @@ looping — a malformed rig is #78’s business, not this function’s.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
+### an.stage.rig.bones_carry_a_rest_pose(doc)
+
+Whether any bone of a (raw or model) rig document has a non-zero
+`rotation_deg` or a non-unit `scale_x`/`scale_y`.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})
+True
+>>> bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})
+False
+```
+
 ### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None)
 
 Build the scene subtree for a character, **from its descriptor’s rig**.
@@ -30074,6 +30191,29 @@ The `(name, attachment)` a slot draws by default, or `None`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.stage.rig.legacy_rest_pose_unknown(raw, kind, , since)
+
+The builder guard (an#339): whether `raw` may be a pre-rest-pose
+document that its migration could not see.
+
+`DocumentKind.version_of` reads a document with no version field as
+CURRENT, so the protective migration never runs on it. A document like
+that whose bones carry a pose, and which says nothing about
+`rest_rotation`, is built flat (as it would have been) and warned
+about. A version older than `since` is caught too, should a read skip
+the migration.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> k = DocumentKind("Demo", "schema_version", "0.2.0")
+>>> legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+True
+>>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+False
+```
+
 ### an.stage.rig.omit_unset_rig_fields(data)
 
 Drop every unset [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument) field from a dumped document, in place.
@@ -30136,6 +30276,29 @@ limb a direct child of the entity.
 'head'
 ```
 
+### an.stage.rig.protect_legacy_rest_pose(doc)
+
+The migration step every rig kind runs onto the version that applies the rest pose (an#339).
+
+Before it, a bone’s `rotation_deg` and scale reached no node, so a rig
+whose bones carry one was drawn with that pose in its pixels. Such a
+document gets `rest_rotation: false` and keeps its picture; a document
+whose bones carry none gets nothing (and every document on the
+maintainer’s machine was of that kind when this shipped). Returns `doc`,
+edited in place; the caller sets the version.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]
+False
+>>> "rest_rotation" in protect_legacy_rest_pose({"bones": [{"name": "root"}]})
+False
+>>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]
+True
+```
+
 ### an.stage.rig.raster_digest(store, , art_prefix='characters/')
 
 `digest(src)`: a short content digest for RASTER art, else `None`.
@@ -30149,6 +30312,47 @@ byte-identical.
 
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+### an.stage.rig.register_rest_pose_migration(kind, from_version, to_version)
+
+Register the protective rest-pose step for one rig kind (an#339).
+
+One call from the module that owns the kind’s schema (`an.stage.props`
+for `PropDescriptor`, `cutan` for `CharacterDescriptor`): it registers
+[`protect_legacy_rest_pose()`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose) as that kind’s `from -> to` migration and
+records `to` as the version the builder applies the rest pose from.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> register_rest_pose_migration("DemoRig", "1.0", "2.0")
+>>> REST_POSE_SINCE["DemoRig"]
+'2.0'
+>>> from an.ir.migrate import MIGRATIONS
+>>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
+{'version': '1.0', 'bones': []}
+```
+
+### an.stage.rig.rest_transform(bone)
+
+The node transform fields a bone’s rest pose sets (an#339): its
+`rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.
+
+Every rest reader composes on the built transform (`play` deviations,
+swap poses, the face solver, presets, a from-less tween, the runtime’s
+load), so this is the whole change. An authored `rotation` tween stays
+ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]
+-0.3839724354387525
+>>> rest_transform(Bone(name="leg", rotation_deg=-0.0))
+{'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
+```
 
 ### an.stage.rig.rig_origin(desc)
 
@@ -30193,6 +30397,32 @@ written where view_box units belong), so it is said, not refused.
 True
 >>> rig_origin_problems(NS(origin=(float("nan"), 0), view_box=(0, 0, 1024, 1024)))[0][:30]
 'origin (nan, 0.0) is not finit'
+```
+
+### an.stage.rig.rig_rest_problems(desc)
+
+Warnings about a rig’s rest pose (an#339), on a model or a raw document.
+
+A part turns about its NODE’s origin, which is the bone plus the drawn
+attachment’s `x`/`y` offset. A bone with a rest rotation whose part is
+offset therefore turns that part about a point that is not the joint, the
+usual way a splayed leg ends up detached from its hip. The way to turn a
+part about its joint is `x: 0, y: 0` on the attachment and the art’s
+`anchor` at the joint. Nothing is said about a rig that keeps its legacy
+pose (`rest_rotation: false`), since its bones pose nothing.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> doc = {"bones": [{"name": "leg", "rotation_deg": 20}],
+...        "slots": [{"name": "leg", "bone": "leg"}],
+...        "skins": {"default": {"slots": {"leg": {"leg": {"path": "p.svg", "y": 40}}}}}}
+>>> rig_rest_problems(doc)[0].startswith("bone 'leg' rests at 20")
+True
+>>> doc["skins"]["default"]["slots"]["leg"]["leg"]["y"] = 0
+>>> rig_rest_problems(doc)
+[]
 ```
 
 
@@ -37041,7 +37271,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 13:19 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/10664849d78296285c29188c1dd0c6cb63a497a8"><code>1066484</code></a> on branch <code>main</code>, for **an 0.1.188** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 13:27 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4f6ba9f92096d9d0d2f1259a64752acb93fc828a"><code>4f6ba9f</code></a> on branch <code>main</code>, for **an 0.1.189** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -37050,9 +37280,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/10664849d78296285c29188c1dd0c6cb63a497a8"><code>10664849d78296285c29188c1dd0c6cb63a497a8</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/4f6ba9f92096d9d0d2f1259a64752acb93fc828a"><code>4f6ba9f92096d9d0d2f1259a64752acb93fc828a</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.188</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.189</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37061,9 +37291,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37468940493">37468940493</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37470083206">37470083206</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3126ca88b310dcc4d672d1a4498cae0301704516</code> (in the history of the built commit) |
+| Event commit | <code>dd111f62ed79ece67798f8f15f2bda74243b008a</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37088,13 +37318,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.188/">0.1.188</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.189/">0.1.189</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 10664849d78296285c29188c1dd0c6cb63a497a8
+git checkout 4f6ba9f92096d9d0d2f1259a64752acb93fc828a
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

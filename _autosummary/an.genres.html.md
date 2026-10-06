@@ -105,7 +105,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -128,6 +128,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 
 3 = the public rig builder (an#338): `an.stage.rig.build_rig_subtree`, `rig_origin`,
 : `RigDocument` (`origin`), `omit_unset_rig_fields`, `an.stage.compile.note_raster_rig`.
+
+4 = the bones’ rest pose (an#339): `an.stage.rig.register_rest_pose_migration`,
+: `rig_rest_problems`, `RigDocument.rest_rotation`.
 
 * **Type:**
   The level of the genre-facing API this `an` provides

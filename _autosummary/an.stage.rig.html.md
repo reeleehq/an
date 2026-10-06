@@ -27,6 +27,7 @@ Two layers live here:
 | [`DEFAULT_VIEW_BOX`](#an.stage.rig.DEFAULT_VIEW_BOX)             | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                                                                                 |
 |-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RIG_DOCUMENT_OPTIONAL_FIELDS`](#an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS) | The fields [`RigDocument`](#an.stage.rig.RigDocument) adds, each written out of the stored document when unset ([`omit_unset_rig_fields()`](#an.stage.rig.omit_unset_rig_fields)), so every descriptor that never set one reads back, and hashes, as it did before the field existed. |
+| [`REST_POSE_SINCE`](#an.stage.rig.REST_POSE_SINCE)              | `{rig document kind: the version from which its bones' rest pose is applied}`, filled by [`register_rest_pose_migration()`](#an.stage.rig.register_rest_pose_migration) (an#339).                                                                                                                              |
 | [`SCENE_PX_PER_VIEW_BOX`](#an.stage.rig.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                            |
 | [`CONTAIN_FIT`](#an.stage.rig.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                   |
 | [`CHARACTER_ART_PREFIX`](#an.stage.rig.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                          |
@@ -39,15 +40,21 @@ Two layers live here:
 | [`attachment_box`](#an.stage.rig.attachment_box)(width, height, art)                 | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                                   |
 | [`bone_extent_centre`](#an.stage.rig.bone_extent_centre)(bones)                          | The DEFAULT point in view_box space that the entity's placement refers to, when the rig declares no [`RigDocument.origin`](#an.stage.rig.RigDocument.origin) ([`rig_origin()`](#an.stage.rig.rig_origin)). |
 | [`bone_positions`](#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                           |
+| [`bones_carry_a_rest_pose`](#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                       |
 | [`build_rig_subtree`](#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a character, **from its descriptor's rig**.                                                                                                                                                                  |
 | [`declared_origin`](#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                |
 | [`drawn_attachment`](#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                             |
+| [`legacy_rest_pose_unknown`](#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                              |
 | [`omit_unset_rig_fields`](#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                    |
 | [`part_probe`](#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                  |
 | [`primary_slot_per_bone`](#an.stage.rig.primary_slot_per_bone)(desc)                        | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                              |
+| [`protect_legacy_rest_pose`](#an.stage.rig.protect_legacy_rest_pose)(doc)                      | The migration step every rig kind runs onto the version that applies the rest pose (an#339).                                                                                                                                             |
 | [`raster_digest`](#an.stage.rig.raster_digest)(store, \*[, art_prefix])             | `digest(src)`: a short content digest for RASTER art, else `None`.                                                                                                                                                                       |
+| [`register_rest_pose_migration`](#an.stage.rig.register_rest_pose_migration)(kind, ...)            | Register the protective rest-pose step for one rig kind (an#339).                                                                                                                                                                        |
+| [`rest_transform`](#an.stage.rig.rest_transform)(bone)                               | The node transform fields a bone's rest pose sets (an#339): its `rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.                                                                                                    |
 | [`rig_origin`](#an.stage.rig.rig_origin)(desc)                                   | The point of the rig, in view_box units, that lands at the entity's placement.                                                                                                                                                           |
 | [`rig_origin_problems`](#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                        |
+| [`rig_rest_problems`](#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                 |
 
 ### Classes
 
@@ -58,6 +65,11 @@ Two layers live here:
 | [`RigModel`](#an.stage.rig.RigModel)(\*\*data)     | Common config: forward-compatible reads, strict writes.                            |
 | [`Skin`](#an.stage.rig.Skin)(\*\*data)         | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
 | [`Slot`](#an.stage.rig.Slot)(\*\*data)         | A draw-order slot bound to a bone, displaying one attachment at a time.            |
+
+### Exceptions
+
+| [`RestPoseWarning`](#an.stage.rig.RestPoseWarning)   | A rig's bone rest pose was NOT applied, because the document may predate it.   |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------|
 
 ### *class* an.stage.rig.Attachment(\*\*data)
 
@@ -165,11 +177,23 @@ viewBox without a calibration step.
 The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
 which is what decides where the staging step copies the art from.
 
-### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin',)*
+### an.stage.rig.REST_POSE_SINCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'PropDescriptor': '0.2.0'}*
+
+`{rig document kind: the version from which its bones' rest pose is applied}`,
+filled by [`register_rest_pose_migration()`](#an.stage.rig.register_rest_pose_migration) (an#339). The builder guard
+reads it to recognise a document older than that version.
+
+### an.stage.rig.RIG_DOCUMENT_OPTIONAL_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('origin', 'rest_rotation')*
 
 The fields [`RigDocument`](#an.stage.rig.RigDocument) adds, each written out of the stored
 document when unset ([`omit_unset_rig_fields()`](#an.stage.rig.omit_unset_rig_fields)), so every descriptor
 that never set one reads back, and hashes, as it did before the field existed.
+
+### *exception* an.stage.rig.RestPoseWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A rig’s bone rest pose was NOT applied, because the document may predate it.
 
 ### *class* an.stage.rig.RigDocument(\*\*data)
 
@@ -204,6 +228,16 @@ to, in view_box units (an#338). Unset, the rig is placed by the centre
 of its bones’ extent ([`bone_extent_centre()`](#an.stage.rig.bone_extent_centre)), which is what every
 rig did before the field existed; a prop declares its foot (a tripod’s,
 a figurine’s stand) so it stands where it is put whatever its extent.
+
+#### rest_rotation *: [bool](https://docs.python.org/3/builtins/functions.html#bool) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Whether the bones’ `rotation_deg`/`scale_x`/`scale_y` pose the
+built parts (an#339). Unset (or `True`) they do: the rest pose is the
+bones’. `False` is written ONLY by the migration onto a document from
+before that rule whose bones carry a rotation or scale, because such a
+rig was drawn with the pose already in its pixels (the fields were
+ignored) and applying them now would pose it twice
+([`protect_legacy_rest_pose()`](#an.stage.rig.protect_legacy_rest_pose)).
 
 ### *class* an.stage.rig.RigModel(\*\*data)
 
@@ -341,6 +375,21 @@ looping — a malformed rig is #78’s business, not this function’s.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
+### an.stage.rig.bones_carry_a_rest_pose(doc)
+
+Whether any bone of a (raw or model) rig document has a non-zero
+`rotation_deg` or a non-unit `scale_x`/`scale_y`.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})
+True
+>>> bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})
+False
+```
+
 ### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None)
 
 Build the scene subtree for a character, **from its descriptor’s rig**.
@@ -415,6 +464,29 @@ The `(name, attachment)` a slot draws by default, or `None`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](#an.stage.rig.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.stage.rig.legacy_rest_pose_unknown(raw, kind, , since)
+
+The builder guard (an#339): whether `raw` may be a pre-rest-pose
+document that its migration could not see.
+
+`DocumentKind.version_of` reads a document with no version field as
+CURRENT, so the protective migration never runs on it. A document like
+that whose bones carry a pose, and which says nothing about
+`rest_rotation`, is built flat (as it would have been) and warned
+about. A version older than `since` is caught too, should a read skip
+the migration.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> k = DocumentKind("Demo", "schema_version", "0.2.0")
+>>> legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+True
+>>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+False
+```
+
 ### an.stage.rig.omit_unset_rig_fields(data)
 
 Drop every unset [`RigDocument`](#an.stage.rig.RigDocument) field from a dumped document, in place.
@@ -477,6 +549,29 @@ limb a direct child of the entity.
 'head'
 ```
 
+### an.stage.rig.protect_legacy_rest_pose(doc)
+
+The migration step every rig kind runs onto the version that applies the rest pose (an#339).
+
+Before it, a bone’s `rotation_deg` and scale reached no node, so a rig
+whose bones carry one was drawn with that pose in its pixels. Such a
+document gets `rest_rotation: false` and keeps its picture; a document
+whose bones carry none gets nothing (and every document on the
+maintainer’s machine was of that kind when this shipped). Returns `doc`,
+edited in place; the caller sets the version.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]
+False
+>>> "rest_rotation" in protect_legacy_rest_pose({"bones": [{"name": "root"}]})
+False
+>>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]
+True
+```
+
 ### an.stage.rig.raster_digest(store, , art_prefix='characters/')
 
 `digest(src)`: a short content digest for RASTER art, else `None`.
@@ -490,6 +585,47 @@ byte-identical.
 
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+### an.stage.rig.register_rest_pose_migration(kind, from_version, to_version)
+
+Register the protective rest-pose step for one rig kind (an#339).
+
+One call from the module that owns the kind’s schema (`an.stage.props`
+for `PropDescriptor`, `cutan` for `CharacterDescriptor`): it registers
+[`protect_legacy_rest_pose()`](#an.stage.rig.protect_legacy_rest_pose) as that kind’s `from -> to` migration and
+records `to` as the version the builder applies the rest pose from.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> register_rest_pose_migration("DemoRig", "1.0", "2.0")
+>>> REST_POSE_SINCE["DemoRig"]
+'2.0'
+>>> from an.ir.migrate import MIGRATIONS
+>>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
+{'version': '1.0', 'bones': []}
+```
+
+### an.stage.rig.rest_transform(bone)
+
+The node transform fields a bone’s rest pose sets (an#339): its
+`rotation_deg` in radians and its scales, `-0.0` normalised to `0.0`.
+
+Every rest reader composes on the built transform (`play` deviations,
+swap poses, the face solver, presets, a from-less tween, the runtime’s
+load), so this is the whole change. An authored `rotation` tween stays
+ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]
+-0.3839724354387525
+>>> rest_transform(Bone(name="leg", rotation_deg=-0.0))
+{'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
+```
 
 ### an.stage.rig.rig_origin(desc)
 
@@ -534,4 +670,30 @@ written where view_box units belong), so it is said, not refused.
 True
 >>> rig_origin_problems(NS(origin=(float("nan"), 0), view_box=(0, 0, 1024, 1024)))[0][:30]
 'origin (nan, 0.0) is not finit'
+```
+
+### an.stage.rig.rig_rest_problems(desc)
+
+Warnings about a rig’s rest pose (an#339), on a model or a raw document.
+
+A part turns about its NODE’s origin, which is the bone plus the drawn
+attachment’s `x`/`y` offset. A bone with a rest rotation whose part is
+offset therefore turns that part about a point that is not the joint, the
+usual way a splayed leg ends up detached from its hip. The way to turn a
+part about its joint is `x: 0, y: 0` on the attachment and the art’s
+`anchor` at the joint. Nothing is said about a rig that keeps its legacy
+pose (`rest_rotation: false`), since its bones pose nothing.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> doc = {"bones": [{"name": "leg", "rotation_deg": 20}],
+...        "slots": [{"name": "leg", "bone": "leg"}],
+...        "skins": {"default": {"slots": {"leg": {"leg": {"path": "p.svg", "y": 40}}}}}}
+>>> rig_rest_problems(doc)[0].startswith("bone 'leg' rests at 20")
+True
+>>> doc["skins"]["default"]["slots"]["leg"]["leg"]["y"] = 0
+>>> rig_rest_problems(doc)
+[]
 ```

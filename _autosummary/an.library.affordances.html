@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ee523f82"></script>
+    <script src="../_static/documentation_options.js?v=4a2abb9b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library" href="an.library.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.188" />
+  <meta name="docsearch:version" content="0.1.189" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -666,7 +666,7 @@ fields) when the genres load, which the library’s entry points do
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.affordances.Analyser">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.affordances.</span></span><span class="sig-name descname"><span class="pre">Analyser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'asset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declares</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Analyser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.affordances.Analyser" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.affordances.</span></span><span class="sig-name descname"><span class="pre">Analyser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'asset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declares</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Analyser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.affordances.Analyser" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The derivation of one kind’s profile, versioned.</p>
 <p><code class="docutils literal notranslate"><span class="pre">kind</span></code> is an asset kind (<code class="docutils literal notranslate"><span class="pre">character</span></code>) or a subject that has one
@@ -683,6 +683,17 @@ re-renders nothing.</p>
 <dd><p>The document’s declared facts the derivation honours instead of deriving
 (<code class="docutils literal notranslate"><span class="pre">rest_view</span></code>, <code class="docutils literal notranslate"><span class="pre">face_overlay</span></code>) or reads as a request (<code class="docutils literal notranslate"><span class="pre">gait</span></code>):
 reported by <code class="docutils literal notranslate"><span class="pre">describe_asset</span></code> (ADR 0002 decision 2).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.library.affordances.Analyser.overrides">
+<span class="sig-name descname"><span class="pre">overrides</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.library.affordances.Analyser.overrides" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(doc,</span> <span class="pre">art)</span> <span class="pre">-&gt;</span> <span class="pre">declared</span> <span class="pre">field</span> <span class="pre">names</span></code> the derivation USED as overrides
+that do not show on an afforded capability’s params: a declared fact
+that REMOVES a capability (a character’s <code class="docutils literal notranslate"><span class="pre">occluded</span></code>, an#381). Those on
+an afforded capability are already in its <code class="docutils literal notranslate"><span class="pre">overrides</span></code> param.
+<code class="docutils literal notranslate"><span class="pre">None</span></code>: none beyond those. Reporting only: it changes no profile, so
+adding it does not bump <code class="docutils literal notranslate"><span class="pre">version</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -884,6 +895,7 @@ persisted and two meanings for one name would make a stored facet lie.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.affordances.Analyser"><code class="docutils literal notranslate"><span class="pre">Analyser</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.affordances.Analyser.declares"><code class="docutils literal notranslate"><span class="pre">Analyser.declares</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.affordances.Analyser.overrides"><code class="docutils literal notranslate"><span class="pre">Analyser.overrides</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.affordances.Capability"><code class="docutils literal notranslate"><span class="pre">Capability</span></code></a><ul class="nav section-nav flex-column">

@@ -120,8 +120,27 @@ A state-driven session seen as a time-driven one: the core evaluates `at(t)`.
 
 `frame(t)` is `render(evaluate_timeline(timeline, t, space=space))` and
 `state(t)` is the evaluated state, so the capture loop and the conformance
-tests treat both drive modes alike. The session’s other members (`resolve`,
-`provenance`, …) are reached through attribute access.
+tests treat both drive modes alike. The session’s other members
+(`resolve`, `provenance`, …) are reached through attribute access.
+
+**Batched** (an#286): `frames(requests)` evaluates every instant here and
+hands the session the STATES, through its optional `render_states(states)`
+(one round trip per batch, the member a JS-bridged view engine implements),
+else `render` per state. A session’s own `frames` is never forwarded: it
+would take times and bypass `state`.
+
+**Adapted by drive mode** (an#286): `project(point, t)` and `bounds(t)`
+reach the session as `project(point, state)` and `bounds(state)` (the
+state-driven signature, previz’s `project(point, {state, ...})`), and
+exist only when the session has them, so [`describe()`](an.engines.protocol.md#an.engines.protocol.describe)
+still reads capabilities from real members.
+
+#### frames(requests)
+
+One list of frames per request, a frame per instant, in order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]]
 
 ### an.engines.frame_stage.frame_stage_renderer(engine, \*, name=None, renderers=None, error=<class 'an.engines.capture.FrameStageError'>, capture_options=None)
 

@@ -40,7 +40,7 @@ True
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`Capability`](#an.library.affordances.Capability)(name, description, remedy[, ...])      | A registered capability: its name, what it means, and how to add it. |
 
-### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=())
+### *class* an.library.affordances.Analyser(kind, version, derive, subject='asset', declares=(), overrides=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -58,6 +58,15 @@ re-renders nothing.
 The document’s declared facts the derivation honours instead of deriving
 (`rest_view`, `face_overlay`) or reads as a request (`gait`):
 reported by `describe_asset` (ADR 0002 decision 2).
+
+#### overrides *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]], [Iterable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+`(doc, art) -> declared field names` the derivation USED as overrides
+that do not show on an afforded capability’s params: a declared fact
+that REMOVES a capability (a character’s `occluded`, an#381). Those on
+an afforded capability are already in its `overrides` param.
+`None`: none beyond those. Reporting only: it changes no profile, so
+adding it does not bump `version`.
 
 ### *class* an.library.affordances.Capability(name, description, remedy, subject='asset', command=None, version='1')
 

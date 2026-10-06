@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=ee523f82"></script>
+    <script src="../_static/documentation_options.js?v=4a2abb9b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.engines.conformance" href="an.engines.conformance.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.188" />
+  <meta name="docsearch:version" content="0.1.189" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -753,10 +753,31 @@ the bench and film assembly read) do not move.</p>
 <p>A state-driven session seen as a time-driven one: the core evaluates <code class="docutils literal notranslate"><span class="pre">at(t)</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">frame(t)</span></code> is <code class="docutils literal notranslate"><span class="pre">render(evaluate_timeline(timeline,</span> <span class="pre">t,</span> <span class="pre">space=space))</span></code> and
 <code class="docutils literal notranslate"><span class="pre">state(t)</span></code> is the evaluated state, so the capture loop and the conformance
-tests treat both drive modes alike. The session’s other members (<code class="docutils literal notranslate"><span class="pre">resolve</span></code>,
-<code class="docutils literal notranslate"><span class="pre">provenance</span></code>, …) are reached through attribute access.</p>
+tests treat both drive modes alike. The session’s other members
+(<code class="docutils literal notranslate"><span class="pre">resolve</span></code>, <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, …) are reached through attribute access.</p>
+<p><strong>Batched</strong> (an#286): <code class="docutils literal notranslate"><span class="pre">frames(requests)</span></code> evaluates every instant here and
+hands the session the STATES, through its optional <code class="docutils literal notranslate"><span class="pre">render_states(states)</span></code>
+(one round trip per batch, the member a JS-bridged view engine implements),
+else <code class="docutils literal notranslate"><span class="pre">render</span></code> per state. A session’s own <code class="docutils literal notranslate"><span class="pre">frames</span></code> is never forwarded: it
+would take times and bypass <code class="docutils literal notranslate"><span class="pre">state</span></code>.</p>
+<p><strong>Adapted by drive mode</strong> (an#286): <code class="docutils literal notranslate"><span class="pre">project(point,</span> <span class="pre">t)</span></code> and <code class="docutils literal notranslate"><span class="pre">bounds(t)</span></code>
+reach the session as <code class="docutils literal notranslate"><span class="pre">project(point,</span> <span class="pre">state)</span></code> and <code class="docutils literal notranslate"><span class="pre">bounds(state)</span></code> (the
+state-driven signature, previz’s <code class="docutils literal notranslate"><span class="pre">project(point,</span> <span class="pre">{state,</span> <span class="pre">...})</span></code>), and
+exist only when the session has them, so <a class="reference internal" href="an.engines.protocol.html#an.engines.protocol.describe" title="an.engines.protocol.describe"><code class="xref py py-func docutils literal notranslate"><span class="pre">describe()</span></code></a>
+still reads capabilities from real members.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.engines.frame_stage.StateDrivenAdapter.frames">
+<span class="sig-name descname"><span class="pre">frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/engines/frame_stage.html#StateDrivenAdapter.frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.frame_stage.StateDrivenAdapter.frames" title="Link to this definition">#</a></dt>
+<dd><p>One list of frames per request, a frame per instant, in order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -859,7 +880,10 @@ the renderer raises at its boundary for every core error.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.SHOT_WORKSPACE_PATTERN"><code class="docutils literal notranslate"><span class="pre">SHOT_WORKSPACE_PATTERN</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.StateDrivenAdapter"><code class="docutils literal notranslate"><span class="pre">StateDrivenAdapter</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.StateDrivenAdapter"><code class="docutils literal notranslate"><span class="pre">StateDrivenAdapter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.StateDrivenAdapter.frames"><code class="docutils literal notranslate"><span class="pre">StateDrivenAdapter.frames()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.frame_stage_renderer"><code class="docutils literal notranslate"><span class="pre">frame_stage_renderer()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.require_engine"><code class="docutils literal notranslate"><span class="pre">require_engine()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.engines.frame_stage.shot_workspace"><code class="docutils literal notranslate"><span class="pre">shot_workspace()</span></code></a></li>

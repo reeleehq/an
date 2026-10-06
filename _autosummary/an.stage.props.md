@@ -43,8 +43,9 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 
 ### Module Attributes
 
-| [`PROP_DOCUMENT_KIND`](#an.stage.props.PROP_DOCUMENT_KIND)   | Its own versioned document, registered from the module that owns the schema — the same rule `CharacterDescriptor` follows, and the reason the migration registry is keyed per KIND: two documents at `0.1.0` that migrate differently is exactly the collision an#77 fixed.   |
-|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROP_SCHEMA_VERSION`](#an.stage.props.PROP_SCHEMA_VERSION)   | the bones' rest pose (`rotation_deg`, `scale_*`) poses the built parts; the migration protects a 0.1.0 rig that carried one.                                                                                                                                                |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROP_DOCUMENT_KIND`](#an.stage.props.PROP_DOCUMENT_KIND)    | Its own versioned document, registered from the module that owns the schema — the same rule `CharacterDescriptor` follows, and the reason the migration registry is keyed per KIND: two documents at `0.1.0` that migrate differently is exactly the collision an#77 fixed. |
 
 ### Functions
 
@@ -57,12 +58,20 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 | [`PropDescriptor`](#an.stage.props.PropDescriptor)(\*\*data)   | The on-disk prop schema.   |
 |-----------------------------------------------------------------------------|----------------------------|
 
-### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](an.ir.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.1.0')*
+### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](an.ir.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.2.0')*
 
 Its own versioned document, registered from the module that owns the schema
 — the same rule `CharacterDescriptor` follows, and the reason the migration
 registry is keyed per KIND: two documents at `0.1.0` that migrate
 differently is exactly the collision an#77 fixed.
+
+### an.stage.props.PROP_SCHEMA_VERSION *= '0.2.0'*
+
+the bones’ rest pose (`rotation_deg`, `scale_*`) poses
+the built parts; the migration protects a 0.1.0 rig that carried one.
+
+* **Type:**
+  0.2.0 (an#339)
 
 ### *class* an.stage.props.PropDescriptor(\*\*data)
 

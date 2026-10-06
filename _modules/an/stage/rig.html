@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=ee523f82"></script>
+    <script src="../../../_static/documentation_options.js?v=4a2abb9b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.188" />
+  <meta name="docsearch:version" content="0.1.189" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -737,6 +737,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
@@ -744,7 +745,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_serializer</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">KINDS</span><span class="p">,</span>
+    <span class="n">DocumentKind</span><span class="p">,</span>
+    <span class="n">migrate</span><span class="p">,</span>
+    <span class="n">register_migration</span><span class="p">,</span>
+    <span class="n">version_tuple</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AssetJSON</span><span class="p">,</span>
@@ -780,7 +787,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The fields :class:`RigDocument` adds, each written out of the stored</span>
 <span class="c1">#: document when unset (:func:`omit_unset_rig_fields`), so every descriptor</span>
 <span class="c1">#: that never set one reads back, and hashes, as it did before the field existed.</span>
-<span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"origin"</span><span class="p">,)</span>
+<span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"origin"</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="omit_unset_rig_fields">
@@ -802,6 +809,125 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="bones_carry_a_rest_pose">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.bones_carry_a_rest_pose">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bones_carry_a_rest_pose</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether any bone of a (raw or model) rig document has a non-zero</span>
+<span class="sd">    ``rotation_deg`` or a non-unit ``scale_x``/``scale_y``.</span>
+
+<span class="sd">    &gt;&gt;&gt; bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="n">rotation</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"rotation_deg"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span>
+        <span class="n">sx</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">sy</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rotation</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sx</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sy</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="protect_legacy_rest_pose">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.protect_legacy_rest_pose">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">protect_legacy_rest_pose</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The migration step every rig kind runs onto the version that applies the rest pose (an#339).</span>
+
+<span class="sd">    Before it, a bone's ``rotation_deg`` and scale reached no node, so a rig</span>
+<span class="sd">    whose bones carry one was drawn with that pose in its pixels. Such a</span>
+<span class="sd">    document gets ``rest_rotation: false`` and keeps its picture; a document</span>
+<span class="sd">    whose bones carry none gets nothing (and every document on the</span>
+<span class="sd">    maintainer's machine was of that kind when this shipped). Returns ``doc``,</span>
+<span class="sd">    edited in place; the caller sets the version.</span>
+
+<span class="sd">    &gt;&gt;&gt; protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; "rest_rotation" in protect_legacy_rest_pose({"bones": [{"name": "root"}]})</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="s2">"rest_rotation"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doc</span> <span class="ow">and</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+        <span class="n">doc</span><span class="p">[</span><span class="s2">"rest_rotation"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">doc</span></div>
+
+
+
+<div class="viewcode-block" id="RestPoseWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RestPoseWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RestPoseWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A rig's bone rest pose was NOT applied, because the document may predate it."""</span></div>
+
+
+
+<div class="viewcode-block" id="legacy_rest_pose_unknown">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.legacy_rest_pose_unknown">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">legacy_rest_pose_unknown</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kind</span><span class="p">:</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">since</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The builder guard (an#339): whether ``raw`` may be a pre-rest-pose</span>
+<span class="sd">    document that its migration could not see.</span>
+
+<span class="sd">    ``DocumentKind.version_of`` reads a document with no version field as</span>
+<span class="sd">    CURRENT, so the protective migration never runs on it. A document like</span>
+<span class="sd">    that whose bones carry a pose, and which says nothing about</span>
+<span class="sd">    ``rest_rotation``, is built flat (as it would have been) and warned</span>
+<span class="sd">    about. A version older than ``since`` is caught too, should a read skip</span>
+<span class="sd">    the migration.</span>
+
+<span class="sd">    &gt;&gt;&gt; k = DocumentKind("Demo", "schema_version", "0.2.0")</span>
+<span class="sd">    &gt;&gt;&gt; legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="s2">"rest_rotation"</span> <span class="ow">in</span> <span class="n">raw</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">version_field</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">declared</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">have</span><span class="p">,</span> <span class="n">want</span> <span class="o">=</span> <span class="n">version_tuple</span><span class="p">(</span><span class="n">declared</span><span class="p">),</span> <span class="n">version_tuple</span><span class="p">(</span><span class="n">since</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">have</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">want</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">have</span> <span class="o">&lt;</span> <span class="n">want</span></div>
+
+
+
+<span class="c1">#: ``{rig document kind: the version from which its bones' rest pose is applied}``,</span>
+<span class="c1">#: filled by :func:`register_rest_pose_migration` (an#339). The builder guard</span>
+<span class="c1">#: reads it to recognise a document older than that version.</span>
+<span class="n">REST_POSE_SINCE</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="register_rest_pose_migration">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.register_rest_pose_migration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_rest_pose_migration</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">from_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register the protective rest-pose step for one rig kind (an#339).</span>
+
+<span class="sd">    One call from the module that owns the kind's schema (``an.stage.props``</span>
+<span class="sd">    for ``PropDescriptor``, ``cutan`` for ``CharacterDescriptor``): it registers</span>
+<span class="sd">    :func:`protect_legacy_rest_pose` as that kind's ``from -&gt; to`` migration and</span>
+<span class="sd">    records ``to`` as the version the builder applies the rest pose from.</span>
+
+<span class="sd">    &gt;&gt;&gt; register_rest_pose_migration("DemoRig", "1.0", "2.0")</span>
+<span class="sd">    &gt;&gt;&gt; REST_POSE_SINCE["DemoRig"]</span>
+<span class="sd">    '2.0'</span>
+<span class="sd">    &gt;&gt;&gt; from an.ir.migrate import MIGRATIONS</span>
+<span class="sd">    &gt;&gt;&gt; MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})</span>
+<span class="sd">    {'version': '1.0', 'bones': []}</span>
+<span class="sd">    """</span>
+    <span class="n">version_field</span> <span class="o">=</span> <span class="n">KINDS</span><span class="p">[</span><span class="n">kind</span><span class="p">]</span><span class="o">.</span><span class="n">version_field</span> <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">KINDS</span> <span class="k">else</span> <span class="s2">"schema_version"</span>
+
+    <span class="nd">@register_migration</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">from_version</span><span class="p">,</span> <span class="n">to_version</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_step</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">protect_legacy_rest_pose</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version_field</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
+            <span class="n">doc</span><span class="p">[</span><span class="n">version_field</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_version</span>
+        <span class="k">return</span> <span class="n">doc</span>
+
+    <span class="n">_step</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">from_version</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">to_version</span><span class="si">}</span><span class="s2">: the bones' rest pose is applied (an#339)."</span>
+    <span class="n">REST_POSE_SINCE</span><span class="p">[</span><span class="n">kind</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_version</span></div>
 
 
 
@@ -831,6 +957,15 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: rig did before the field existed; a prop declares its foot (a tripod's,</span>
     <span class="c1">#: a figurine's stand) so it stands where it is put whatever its extent.</span>
     <span class="n">origin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Finite</span><span class="p">,</span> <span class="n">_Finite</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">#: Whether the bones' ``rotation_deg``/``scale_x``/``scale_y`` pose the</span>
+    <span class="c1">#: built parts (an#339). Unset (or ``True``) they do: the rest pose is the</span>
+    <span class="c1">#: bones'. ``False`` is written ONLY by the migration onto a document from</span>
+    <span class="c1">#: before that rule whose bones carry a rotation or scale, because such a</span>
+    <span class="c1">#: rig was drawn with the pose already in its pixels (the fields were</span>
+    <span class="c1">#: ignored) and applying them now would pose it twice</span>
+    <span class="c1">#: (:func:`protect_legacy_rest_pose`).</span>
+    <span class="n">rest_rotation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_rig_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
@@ -1378,6 +1513,87 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="rig_rest_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rig_rest_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_rest_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Warnings about a rig's rest pose (an#339), on a model or a raw document.</span>
+
+<span class="sd">    A part turns about its NODE's origin, which is the bone plus the drawn</span>
+<span class="sd">    attachment's ``x``/``y`` offset. A bone with a rest rotation whose part is</span>
+<span class="sd">    offset therefore turns that part about a point that is not the joint, the</span>
+<span class="sd">    usual way a splayed leg ends up detached from its hip. The way to turn a</span>
+<span class="sd">    part about its joint is ``x: 0, y: 0`` on the attachment and the art's</span>
+<span class="sd">    ``anchor`` at the joint. Nothing is said about a rig that keeps its legacy</span>
+<span class="sd">    pose (``rest_rotation: false``), since its bones pose nothing.</span>
+
+<span class="sd">    &gt;&gt;&gt; doc = {"bones": [{"name": "leg", "rotation_deg": 20}],</span>
+<span class="sd">    ...        "slots": [{"name": "leg", "bone": "leg"}],</span>
+<span class="sd">    ...        "skins": {"default": {"slots": {"leg": {"leg": {"path": "p.svg", "y": 40}}}}}}</span>
+<span class="sd">    &gt;&gt;&gt; rig_rest_problems(doc)[0].startswith("bone 'leg' rests at 20")</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; doc["skins"]["default"]["slots"]["leg"]["leg"]["y"] = 0</span>
+<span class="sd">    &gt;&gt;&gt; rig_rest_problems(doc)</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">rotated</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"rotation_deg"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"rotation_deg"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rotated</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">skins</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">skin_slots</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">skin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="n">bone</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rotated</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">available</span> <span class="o">=</span> <span class="n">skin_slots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">))</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">available</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">wanted</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="s2">"attachment"</span><span class="p">)</span>
+        <span class="n">attachment</span> <span class="o">=</span> <span class="n">available</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="k">if</span> <span class="n">wanted</span> <span class="ow">in</span> <span class="n">available</span> <span class="k">else</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">available</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dx</span> <span class="ow">or</span> <span class="n">dy</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">bone</span><span class="si">!r}</span><span class="s2"> rests at </span><span class="si">{</span><span class="n">rotated</span><span class="p">[</span><span class="n">bone</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> degrees, but slot "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> draws its part offset (</span><span class="si">{</span><span class="n">dx</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">dy</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">) "</span>
+                <span class="s2">"from it, so the part turns about that offset point, not the "</span>
+                <span class="s2">"joint: put the joint in the art's `anchor` and the offset at 0"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="rest_transform">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rest_transform">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rest_transform</span><span class="p">(</span><span class="n">bone</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The node transform fields a bone's rest pose sets (an#339): its</span>
+<span class="sd">    ``rotation_deg`` in radians and its scales, ``-0.0`` normalised to ``0.0``.</span>
+
+<span class="sd">    Every rest reader composes on the built transform (``play`` deviations,</span>
+<span class="sd">    swap poses, the face solver, presets, a from-less tween, the runtime's</span>
+<span class="sd">    load), so this is the whole change. An authored ``rotation`` tween stays</span>
+<span class="sd">    ABSOLUTE: ``to: 0`` straightens a part whose rest is splayed.</span>
+
+<span class="sd">    &gt;&gt;&gt; rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]</span>
+<span class="sd">    -0.3839724354387525</span>
+<span class="sd">    &gt;&gt;&gt; rest_transform(Bone(name="leg", rotation_deg=-0.0))</span>
+<span class="sd">    {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"rotation"</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bone</span><span class="o">.</span><span class="n">rotation_deg</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">"scale_x"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">bone</span><span class="o">.</span><span class="n">scale_x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">"scale_y"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">bone</span><span class="o">.</span><span class="n">scale_y</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
 <div class="viewcode-block" id="build_rig_subtree">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.build_rig_subtree">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_rig_subtree</span><span class="p">(</span>
@@ -1440,9 +1656,29 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># the rig maths reads — view_box, bones, slots, skins, asset_sets,</span>
     <span class="c1"># face_overlay — and differs only in what it seeds when they are empty, so</span>
     <span class="c1"># the code below never asks which kind it has (an#108).</span>
-    <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
-        <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">desc_data</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">desc_data</span><span class="p">)</span>
+    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_rest_pose_unknown</span><span class="p">(</span>
+        <span class="n">raw</span><span class="p">,</span> <span class="n">document_kind</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">REST_POSE_SINCE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     <span class="p">)</span>
+    <span class="n">migrated</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="c1"># A migration that saw the document decided already (it writes</span>
+    <span class="c1"># `rest_rotation` when it must); the guard is for one it could not see.</span>
+    <span class="n">legacy_pose</span> <span class="o">=</span> <span class="n">legacy_pose</span> <span class="ow">and</span> <span class="s2">"rest_rotation"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migrated</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrated</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">legacy_pose</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: its </span><span class="si">{</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> declares no "</span>
+            <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">document_kind</span><span class="o">.</span><span class="n">version_field</span><span class="si">}</span><span class="s2">` (or an old one) and its bones carry "</span>
+            <span class="s2">"a rotation or scale, so it may have been drawn before bones posed "</span>
+            <span class="s2">"their parts (an#339): built WITHOUT the rest pose, as it always was. "</span>
+            <span class="sa">f</span><span class="s2">"Add `</span><span class="si">{</span><span class="n">document_kind</span><span class="o">.</span><span class="n">version_field</span><span class="si">}</span><span class="s2">` (this build writes "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">document_kind</span><span class="o">.</span><span class="n">current_version</span><span class="si">!r}</span><span class="s2">) to apply the pose, or "</span>
+            <span class="s2">"`rest_rotation: false` to keep it as drawn and silence this."</span><span class="p">,</span>
+            <span class="n">RestPoseWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">apply_rest_pose</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">legacy_pose</span>
+    <span class="n">bone_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
     <span class="n">ref</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">view_box_height</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">view_box</span>
     <span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">view_box_height</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
@@ -1580,9 +1816,16 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">geometry</span><span class="p">:</span>
                 <span class="n">visual</span><span class="o">.</span><span class="n">asset_geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
+        <span class="c1"># The bone's rest pose (an#339) poses the part that IS on it; a slot</span>
+        <span class="c1"># nested under its bone's primary slot gets it from that parent.</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rest_transform</span><span class="p">(</span><span class="n">bone_of</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">apply_rest_pose</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nested</span> <span class="ow">and</span> <span class="n">slot</span><span class="o">.</span><span class="n">bone</span> <span class="ow">in</span> <span class="n">bone_of</span>
+            <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">)</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">bone_x</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">bone_y</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">bone_x</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">bone_y</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="n">rest</span><span class="p">),</span>
             <span class="n">visual</span><span class="o">=</span><span class="n">visual</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">nodes</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
