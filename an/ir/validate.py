@@ -2312,6 +2312,8 @@ def _register_core_checks() -> None:
             stage="finish",
             order=11,
             description="an entity does not jump across a cut unless a set says so",
+        ),
+        SemanticCheck(
             "meta_duration",
             _core_meta_duration,
             stage="finish",
