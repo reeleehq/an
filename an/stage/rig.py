@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import warnings
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Callable, Optional
@@ -32,7 +33,13 @@ from typing import TYPE_CHECKING, Annotated, Any, Callable, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 from an.ir.assets import AssetSource
-from an.ir.migrate import DocumentKind, migrate
+from an.ir.migrate import (
+    KINDS,
+    DocumentKind,
+    migrate,
+    register_migration,
+    version_tuple,
+)
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.stage.serialize import (
     AssetJSON,
@@ -65,7 +72,7 @@ _Finite = Annotated[float, Field(allow_inf_nan=False)]
 #: The fields :class:`RigDocument` adds, each written out of the stored
 #: document when unset (:func:`omit_unset_rig_fields`), so every descriptor
 #: that never set one reads back, and hashes, as it did before the field existed.
-RIG_DOCUMENT_OPTIONAL_FIELDS: tuple[str, ...] = ("origin",)
+RIG_DOCUMENT_OPTIONAL_FIELDS: tuple[str, ...] = ("origin", "rest_rotation")
 
 
 def omit_unset_rig_fields(data: Any) -> Any:
@@ -85,6 +92,110 @@ def omit_unset_rig_fields(data: Any) -> Any:
             if data.get(name) is None:
                 data.pop(name, None)
     return data
+
+
+def bones_carry_a_rest_pose(doc: Any) -> bool:
+    """Whether any bone of a (raw or model) rig document has a non-zero
+    ``rotation_deg`` or a non-unit ``scale_x``/``scale_y``.
+
+    >>> bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})
+    True
+    >>> bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})
+    False
+    """
+    for bone in _field_of(doc, "bones") or []:
+        rotation = _field_of(bone, "rotation_deg", 0.0) or 0.0
+        sx = _field_of(bone, "scale_x", 1.0)
+        sy = _field_of(bone, "scale_y", 1.0)
+        if rotation != 0 or (sx is not None and sx != 1) or (sy is not None and sy != 1):
+            return True
+    return False
+
+
+def protect_legacy_rest_pose(doc: dict[str, Any]) -> dict[str, Any]:
+    """The migration step every rig kind runs onto the version that applies the rest pose (an#339).
+
+    Before it, a bone's ``rotation_deg`` and scale reached no node, so a rig
+    whose bones carry one was drawn with that pose in its pixels. Such a
+    document gets ``rest_rotation: false`` and keeps its picture; a document
+    whose bones carry none gets nothing (and every document on the
+    maintainer's machine was of that kind when this shipped). Returns ``doc``,
+    edited in place; the caller sets the version.
+
+    >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]
+    False
+    >>> "rest_rotation" in protect_legacy_rest_pose({"bones": [{"name": "root"}]})
+    False
+    >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]
+    True
+    """
+    if "rest_rotation" not in doc and bones_carry_a_rest_pose(doc):
+        doc["rest_rotation"] = False
+    return doc
+
+
+class RestPoseWarning(UserWarning):
+    """A rig's bone rest pose was NOT applied, because the document may predate it."""
+
+
+def legacy_rest_pose_unknown(raw: Mapping[str, Any], kind: DocumentKind, *, since: str) -> bool:
+    """The builder guard (an#339): whether ``raw`` may be a pre-rest-pose
+    document that its migration could not see.
+
+    ``DocumentKind.version_of`` reads a document with no version field as
+    CURRENT, so the protective migration never runs on it. A document like
+    that whose bones carry a pose, and which says nothing about
+    ``rest_rotation``, is built flat (as it would have been) and warned
+    about. A version older than ``since`` is caught too, should a read skip
+    the migration.
+
+    >>> k = DocumentKind("Demo", "schema_version", "0.2.0")
+    >>> legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+    True
+    >>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
+    False
+    """
+    if "rest_rotation" in raw or not bones_carry_a_rest_pose(raw):
+        return False
+    declared = raw.get(kind.version_field)
+    if declared is None:
+        return True
+    have, want = version_tuple(declared), version_tuple(since)
+    return have is not None and want is not None and have < want
+
+
+#: ``{rig document kind: the version from which its bones' rest pose is applied}``,
+#: filled by :func:`register_rest_pose_migration` (an#339). The builder guard
+#: reads it to recognise a document older than that version.
+REST_POSE_SINCE: dict[str, str] = {}
+
+
+def register_rest_pose_migration(kind: str, from_version: str, to_version: str) -> None:
+    """Register the protective rest-pose step for one rig kind (an#339).
+
+    One call from the module that owns the kind's schema (``an.stage.props``
+    for ``PropDescriptor``, ``cutan`` for ``CharacterDescriptor``): it registers
+    :func:`protect_legacy_rest_pose` as that kind's ``from -> to`` migration and
+    records ``to`` as the version the builder applies the rest pose from.
+
+    >>> register_rest_pose_migration("DemoRig", "1.0", "2.0")
+    >>> REST_POSE_SINCE["DemoRig"]
+    '2.0'
+    >>> from an.ir.migrate import MIGRATIONS
+    >>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
+    {'version': '1.0', 'bones': []}
+    """
+    version_field = KINDS[kind].version_field if kind in KINDS else "schema_version"
+
+    @register_migration(kind, from_version, to_version)
+    def _step(doc: dict[str, Any]) -> dict[str, Any]:
+        protect_legacy_rest_pose(doc)
+        if version_field in doc:
+            doc[version_field] = to_version
+        return doc
+
+    _step.__doc__ = f"{kind} {from_version} -> {to_version}: the bones' rest pose is applied (an#339)."
+    REST_POSE_SINCE[kind] = to_version
 
 
 class RigDocument(RigModel):
@@ -111,6 +222,15 @@ class RigDocument(RigModel):
     #: rig did before the field existed; a prop declares its foot (a tripod's,
     #: a figurine's stand) so it stands where it is put whatever its extent.
     origin: tuple[_Finite, _Finite] | None = None
+
+    #: Whether the bones' ``rotation_deg``/``scale_x``/``scale_y`` pose the
+    #: built parts (an#339). Unset (or ``True``) they do: the rest pose is the
+    #: bones'. ``False`` is written ONLY by the migration onto a document from
+    #: before that rule whose bones carry a rotation or scale, because such a
+    #: rig was drawn with the pose already in its pixels (the fields were
+    #: ignored) and applying them now would pose it twice
+    #: (:func:`protect_legacy_rest_pose`).
+    rest_rotation: bool | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_rig_fields(self, handler):
@@ -612,6 +732,81 @@ def rig_origin_problems(desc: Any) -> list[str]:
     return []
 
 
+def rig_rest_problems(desc: Any) -> list[str]:
+    """Warnings about a rig's rest pose (an#339), on a model or a raw document.
+
+    A part turns about its NODE's origin, which is the bone plus the drawn
+    attachment's ``x``/``y`` offset. A bone with a rest rotation whose part is
+    offset therefore turns that part about a point that is not the joint, the
+    usual way a splayed leg ends up detached from its hip. The way to turn a
+    part about its joint is ``x: 0, y: 0`` on the attachment and the art's
+    ``anchor`` at the joint. Nothing is said about a rig that keeps its legacy
+    pose (``rest_rotation: false``), since its bones pose nothing.
+
+    >>> doc = {"bones": [{"name": "leg", "rotation_deg": 20}],
+    ...        "slots": [{"name": "leg", "bone": "leg"}],
+    ...        "skins": {"default": {"slots": {"leg": {"leg": {"path": "p.svg", "y": 40}}}}}}
+    >>> rig_rest_problems(doc)[0].startswith("bone 'leg' rests at 20")
+    True
+    >>> doc["skins"]["default"]["slots"]["leg"]["leg"]["y"] = 0
+    >>> rig_rest_problems(doc)
+    []
+    """
+    if _field_of(desc, "rest_rotation") is False:
+        return []
+    rotated = {
+        _field_of(b, "name"): float(_field_of(b, "rotation_deg", 0.0) or 0.0)
+        for b in _field_of(desc, "bones") or []
+        if (_field_of(b, "rotation_deg", 0.0) or 0.0) != 0
+    }
+    if not rotated:
+        return []
+    skins = _field_of(desc, "skins") or {}
+    skin = skins.get("default") or next(iter(skins.values()), None)
+    skin_slots = _field_of(skin, "slots") or {} if skin is not None else {}
+    out = []
+    for slot in _field_of(desc, "slots") or []:
+        bone = _field_of(slot, "bone")
+        if bone not in rotated:
+            continue
+        available = skin_slots.get(_field_of(slot, "name")) or {}
+        if not available:
+            continue
+        wanted = _field_of(slot, "attachment")
+        attachment = available.get(wanted) if wanted in available else next(iter(available.values()))
+        dx = float(_field_of(attachment, "x", 0.0) or 0.0)
+        dy = float(_field_of(attachment, "y", 0.0) or 0.0)
+        if dx or dy:
+            out.append(
+                f"bone {bone!r} rests at {rotated[bone]:g} degrees, but slot "
+                f"{_field_of(slot, 'name')!r} draws its part offset ({dx:g}, {dy:g}) "
+                "from it, so the part turns about that offset point, not the "
+                "joint: put the joint in the art's `anchor` and the offset at 0"
+            )
+    return out
+
+
+def rest_transform(bone: Any) -> dict[str, float]:
+    """The node transform fields a bone's rest pose sets (an#339): its
+    ``rotation_deg`` in radians and its scales, ``-0.0`` normalised to ``0.0``.
+
+    Every rest reader composes on the built transform (``play`` deviations,
+    swap poses, the face solver, presets, a from-less tween, the runtime's
+    load), so this is the whole change. An authored ``rotation`` tween stays
+    ABSOLUTE: ``to: 0`` straightens a part whose rest is splayed.
+
+    >>> rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]
+    -0.3839724354387525
+    >>> rest_transform(Bone(name="leg", rotation_deg=-0.0))
+    {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
+    """
+    return {
+        "rotation": math.radians(float(bone.rotation_deg)) + 0.0,
+        "scale_x": float(bone.scale_x) + 0.0,
+        "scale_y": float(bone.scale_y) + 0.0,
+    }
+
+
 def build_rig_subtree(
     entity: AssetRef,
     desc_data: dict[str, Any],
@@ -672,9 +867,29 @@ def build_rig_subtree(
     # the rig maths reads — view_box, bones, slots, skins, asset_sets,
     # face_overlay — and differs only in what it seeds when they are empty, so
     # the code below never asks which kind it has (an#108).
-    desc = descriptor_model.model_validate(
-        migrate(dict(desc_data), kind=document_kind.name)
+    raw = dict(desc_data)
+    legacy_pose = legacy_rest_pose_unknown(
+        raw, document_kind, since=REST_POSE_SINCE.get(document_kind.name)
     )
+    migrated = migrate(raw, kind=document_kind.name)
+    # A migration that saw the document decided already (it writes
+    # `rest_rotation` when it must); the guard is for one it could not see.
+    legacy_pose = legacy_pose and "rest_rotation" not in migrated
+    desc = descriptor_model.model_validate(migrated)
+    if legacy_pose:
+        warnings.warn(
+            f"{entity.id!r}: its {document_kind.name} declares no "
+            f"`{document_kind.version_field}` (or an old one) and its bones carry "
+            "a rotation or scale, so it may have been drawn before bones posed "
+            "their parts (an#339): built WITHOUT the rest pose, as it always was. "
+            f"Add `{document_kind.version_field}` (this build writes "
+            f"{document_kind.current_version!r}) to apply the pose, or "
+            "`rest_rotation: false` to keep it as drawn and silence this.",
+            RestPoseWarning,
+            stacklevel=2,
+        )
+    apply_rest_pose = _field_of(desc, "rest_rotation") is not False and not legacy_pose
+    bone_of = {b.name: b for b in desc.bones}
     ref = entity.ref or entity.id
     _, _, _, view_box_height = desc.view_box
     k = SCENE_PX_PER_VIEW_BOX / float(view_box_height or 1)
@@ -812,9 +1027,16 @@ def build_rig_subtree(
             if geometry:
                 visual.asset_geometry = geometry
 
+        # The bone's rest pose (an#339) poses the part that IS on it; a slot
+        # nested under its bone's primary slot gets it from that parent.
+        rest = (
+            rest_transform(bone_of[slot.bone])
+            if apply_rest_pose and not nested and slot.bone in bone_of
+            else {}
+        )
         node = NodeJSON(
             name=slot.name,
-            transform=TransformJSON(x=bone_x * k, y=bone_y * k),
+            transform=TransformJSON(x=bone_x * k, y=bone_y * k, **rest),
             visual=visual,
         )
         nodes[slot.name] = node

@@ -1,0 +1,149 @@
+{
+  "origin": [
+    150.0,
+    290.0
+  ],
+  "schema_version": "0.2.0",
+  "kind": "PropDescriptor",
+  "name": "tripod",
+  "display_name": "Tripod with splayed legs",
+  "view_box": [
+    0,
+    0,
+    300,
+    300
+  ],
+  "source_svg": null,
+  "bones": [
+    {
+      "name": "root",
+      "parent": null,
+      "x": 150.0,
+      "y": 120.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "leg_l",
+      "parent": "root",
+      "x": 0.0,
+      "y": 0.0,
+      "rotation_deg": 22.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "leg_c",
+      "parent": "root",
+      "x": 0.0,
+      "y": 0.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "leg_r",
+      "parent": "root",
+      "x": 0.0,
+      "y": 0.0,
+      "rotation_deg": -22.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    }
+  ],
+  "slots": [
+    {
+      "name": "leg_c",
+      "bone": "leg_c",
+      "draw_order": 0,
+      "attachment": "leg"
+    },
+    {
+      "name": "leg_l",
+      "bone": "leg_l",
+      "draw_order": 1,
+      "attachment": "leg"
+    },
+    {
+      "name": "leg_r",
+      "bone": "leg_r",
+      "draw_order": 2,
+      "attachment": "leg"
+    },
+    {
+      "name": "body",
+      "bone": "root",
+      "draw_order": 3,
+      "attachment": "body"
+    }
+  ],
+  "skins": {
+    "default": {
+      "name": "default",
+      "slots": {
+        "leg_l": {
+          "leg": {
+            "path": "parts/leg.svg",
+            "anchor": [
+              0.5,
+              0.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "leg_c": {
+          "leg": {
+            "path": "parts/leg.svg",
+            "anchor": [
+              0.5,
+              0.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "leg_r": {
+          "leg": {
+            "path": "parts/leg.svg",
+            "anchor": [
+              0.5,
+              0.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "body": {
+          "body": {
+            "path": "parts/body.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        }
+      }
+    }
+  },
+  "asset_sets": {},
+  "animations": {},
+  "face_overlay": true,
+  "source": null,
+  "metadata": {}
+}

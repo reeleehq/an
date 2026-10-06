@@ -21,6 +21,8 @@ transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
            toppling about it, beside the same rig placed by its bones' extent
+rig_rest   a tripod whose legs are ONE drawing splayed by their bones' rest
+           rotation (an#339), tilting as a whole with the splay intact
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -40,7 +42,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -253,6 +255,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "that ignored `origin` (both posts at one height), placed parts "
             "about the wrong point, or broke the shared rig builder moves a "
             "golden."
+        ),
+    ),
+    "rig_rest": Fixture(
+        path=f"{CORPUS_DIRNAME}/rig_rest",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a tripod prop whose three legs are ONE drawing on three bones "
+            "with `rotation_deg` 22 / 0 / -22 (an#339): the splay is the bones' "
+            "rest pose, not pixels. The whole tripod tweens `rotation` 0 -> 0.3 "
+            "rad about its declared origin (the centre foot), and the splayed "
+            "legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay "
+            "intact. A regression that dropped the rest pose (three parallel "
+            "legs), applied it twice, or let the entity's rotation replace a "
+            "leg's instead of composing with it moves a golden."
         ),
     ),
 }

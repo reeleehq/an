@@ -55,6 +55,7 @@ from an.stage.rig import (
     RigDocument,
     Skin,
     Slot,
+    register_rest_pose_migration,
 )
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, register_kind
@@ -67,7 +68,9 @@ __all__ = [
     "default_prop_slots",
 ]
 
-PROP_SCHEMA_VERSION = "0.1.0"
+#: 0.2.0 (an#339): the bones' rest pose (``rotation_deg``, ``scale_*``) poses
+#: the built parts; the migration protects a 0.1.0 rig that carried one.
+PROP_SCHEMA_VERSION = "0.2.0"
 
 #: Its own versioned document, registered from the module that owns the schema
 #: — the same rule `CharacterDescriptor` follows, and the reason the migration
@@ -80,6 +83,8 @@ PROP_DOCUMENT_KIND: DocumentKind = register_kind(
         current_version=PROP_SCHEMA_VERSION,
     )
 )
+
+register_rest_pose_migration(PROP_DOCUMENT_KIND.name, "0.1.0", "0.2.0")
 
 #: The one bone a prop gets when it declares none. Named `root` rather than
 #: `body` so the bone and the slot resting on it are not the same word — the
