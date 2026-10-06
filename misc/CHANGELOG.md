@@ -4,7 +4,6 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-06
-- **`step_hz` is validated against the render's fps** (an#435): `validate_semantic(fps=)` (already used by the dialogue checks) now drives the meta and per-shot `step_hz` checks too, and the message says whose fps it used; `validate_project(dir, *, fps=None)` and `an validate <dir> --fps N` pass it through.
 - **Skill: the counter recipe** (an#398, end-user test findings 4 and 5): a `TextDescriptor` takes exactly one of `text`, `texts` or `counter` (the recipe said it needs `text`); the counter's Python form without `text`; even counter steps (tween from `first − 0.49` to `last + 0.49`, or one `set` per value).
 - **Skill: the counter recipe** (an#398, end-user test findings 4 and 5): a `TextDescriptor` takes exactly one of `text`, `texts` or `counter` (the recipe said it needs `text`); the counter's Python form without `text`; even counter steps (tween from `first − 0.5` to `last + 0.49`, or one `set` per value).
 - **Locomotion resolution tests move to cutan** (an#427, thorwhalen/cutan#79): `an` tests the matcher's chain, request and policy rules over a demo genre; the cut-out genre's `loco.*` pins live in cutan; the MCP surface test reads the aspect's own chain.

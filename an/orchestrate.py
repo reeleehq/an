@@ -81,10 +81,6 @@ def validate_project(
 ) -> ValidationReport:
     """Schema + semantic validation of the scene at ``project_dir``.
 
-    ``fps`` is the frame rate the render will use when it is not the scene's
-    (``an.render.render_project(fps=)``): the checks that depend on it
-    (``step_hz``, the dialogue timing) are made against it (an#435).
-
     A ``scene.md`` that does not PARSE — a dialogue line in no accepted shape
     (an#96), a malformed YAML block — is a Finding, not a traceback: `an
     validate` exists to print findings, and it used to be the one tool that
