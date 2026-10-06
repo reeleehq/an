@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../../../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1982,9 +1982,44 @@ window.runMermaid = runMermaid;</script>
 
             <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="p">(</span><span class="n">md_mtime</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">))</span>
             <span class="n">result</span><span class="o">.</span><span class="n">wrote_json</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="c1"># else: within tolerance, no rewrite needed.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The same age: the pair the store writes always says the same</span>
+            <span class="c1"># thing (its merge is checked), so a disagreement here is an edit</span>
+            <span class="c1"># made OUTSIDE the store within the tolerance -- a `cp -r` then a</span>
+            <span class="c1"># `sed` in the same second (an#412). The JSON used to win silently,</span>
+            <span class="c1"># and the next store write then reverted the author's edit in</span>
+            <span class="c1"># scene.md (an#411). The Markdown is the human source of truth.</span>
+            <span class="n">_settle_a_tie</span><span class="p">(</span><span class="n">md_path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
 
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SyncTieWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``scene.md`` and ``ir/scene.json`` had the same age and disagreed."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_settle_a_tie</span><span class="p">(</span><span class="n">md_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">md_text</span> <span class="o">=</span> <span class="n">_read_text</span><span class="p">(</span><span class="n">md_path</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">json_scene</span> <span class="o">=</span> <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">)),</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span> <span class="o">==</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">json_scene</span><span class="p">)):</span>
+            <span class="k">return</span>
+        <span class="n">scene</span> <span class="o">=</span> <span class="n">markdown_to_ir</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - an unreadable side: the read that follows says why</span>
+        <span class="k">return</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">md_path</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">json_path</span><span class="si">}</span><span class="s2"> have the same modification time but say "</span>
+        <span class="s2">"different things (an edit made outside `an` within half a second of "</span>
+        <span class="s2">"the other file's write); scene.md, the source of truth, was taken and "</span>
+        <span class="s2">"ir/scene.json regenerated from it."</span><span class="p">,</span>
+        <span class="n">SyncTieWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_write_json</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()))</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="p">(</span><span class="n">md_mtime</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">))</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">wrote_json</span> <span class="o">=</span> <span class="kc">True</span>
 
 
 <span class="n">_attach_core_md_hooks</span><span class="p">()</span>

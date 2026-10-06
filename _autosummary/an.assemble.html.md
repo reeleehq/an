@@ -68,11 +68,11 @@ whatever the transitions do.
 
 ### Classes
 
-| [`FilmTimeline`](#an.assemble.FilmTimeline)(fps, frames, starts, ...[, closing])   | Where each shot's frames land in the film, and what blends them.                                                                                                                                                                                       |
-|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Segment`](#an.assemble.Segment)(kind, shot, start, stop)                    | One independently encoded run of the film's picture, film frames `[start, stop)`: a whole shot's own stream (`"shot"`), a shot's encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).                                                 |
-| [`ShotParts`](#an.assemble.ShotParts)(window, frames[, body])                   | What a film takes from a shot its transitions touch: the PNGs inside its [`ShotWindow`](#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its body, encoded once (`body`; `None` when the window covers the shot). |
-| [`ShotWindow`](#an.assemble.ShotWindow)(frames[, head, tail])                    | Which of one shot's `frames` its film needs as PNGs: the first `head` and the last `tail`.                                                                                                                                                             |
+| [`FilmTimeline`](#an.assemble.FilmTimeline)(fps, frames, starts, ...[, ...])   | Where each shot's frames land in the film, and what blends them.                                                                                                                                                                                       |
+|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Segment`](#an.assemble.Segment)(kind, shot, start, stop)                | One independently encoded run of the film's picture, film frames `[start, stop)`: a whole shot's own stream (`"shot"`), a shot's encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).                                                 |
+| [`ShotParts`](#an.assemble.ShotParts)(window, frames[, body])               | What a film takes from a shot its transitions touch: the PNGs inside its [`ShotWindow`](#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its body, encoded once (`body`; `None` when the window covers the shot). |
+| [`ShotWindow`](#an.assemble.ShotWindow)(frames[, head, tail])                | Which of one shot's `frames` its film needs as PNGs: the first `head` and the last `tail`.                                                                                                                                                             |
 
 ### Exceptions
 
@@ -85,7 +85,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The shots cannot be assembled as the scene asks. Carries the fix.
 
-### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames, closing=False)
+### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames, closing=False, wipe_in=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -112,6 +112,11 @@ Film time of shot `i`’s first frame.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+#### wipe_in *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None), ...]* *= ()*
+
+Per shot, the direction its incoming overlap WIPES in (an#390); `None`
+for a dissolve (or no overlap).
 
 ### an.assemble.MIN_SEGMENT_FRAMES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 

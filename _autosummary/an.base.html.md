@@ -30,6 +30,7 @@ fraction of a second so the CLI is snappy.
 | [`RendererName`](#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                                                                                    |
 | [`SUPPORTED_RENDERERS`](#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.                                                                     |
 | [`TRANSITION_KINDS`](#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                                                                                                  |
+| [`WIPE_DIRECTIONS`](#an.base.WIPE_DIRECTIONS)                    | The ways a `wipe`'s edge can travel across the frame (an#390).                                                                                                                                                                                                                                                  |
 | [`DEFAULT_TRANSITION_DURATION`](#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                                                                                             |
 | [`DEFAULT_TRANSITION_COLOR`](#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                                                                                          |
 | [`FILM_AUDIO_SAMPLE_RATE`](#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                                                                                                   |
@@ -270,7 +271,7 @@ as a path segment and `::` is the runtime’s pose-key separator.
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
 
-### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve')*
+### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve', 'wipe')*
 
 The transition kinds a shot may be entered by. `cut` is the default and
 what every document written before transitions existed means.
@@ -280,6 +281,10 @@ what every document written before transitions existed means.
 The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the
 name predates `dash_offset`, an#161): trim and the dash phase. A node that
 draws no path refuses all of them.
+
+### an.base.WIPE_DIRECTIONS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left', 'right', 'up', 'down')*
+
+The ways a `wipe`’s edge can travel across the frame (an#390).
 
 ### an.base.swap_set_name_problem(name)
 

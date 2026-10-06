@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../../../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1225,7 +1225,8 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
     <span class="n">bones_mode</span> <span class="o">=</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">==</span> <span class="n">BONES_NESTING</span>
     <span class="n">parent_bone</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="p">}</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
@@ -1297,7 +1298,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">bones</span><span class="p">:</span>
         <span class="n">parent</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span> <span class="s2">"parent"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> names parent </span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2">, which the rig does not declare"</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">bone</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> names parent </span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2">, which the rig does not declare"</span>
+            <span class="p">)</span>
     <span class="n">reported</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
         <span class="n">path</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">start</span>
@@ -1305,7 +1308,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
             <span class="n">cursor</span> <span class="o">=</span> <span class="n">parent_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">loop</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cursor</span><span class="p">):]</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span> <span class="p">:]</span>
             <span class="n">key</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reported</span><span class="p">:</span>
                 <span class="n">reported</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
@@ -1345,7 +1348,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">order</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"draw_order"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"draw_order"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="p">}</span>
     <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1410,7 +1416,10 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
     <span class="n">bones</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"bones"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
-    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="p">}</span>
     <span class="n">out</span><span class="p">,</span> <span class="n">said</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1422,7 +1431,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="o">!=</span> <span class="n">stop</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
             <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
             <span class="n">bone</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">bone</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">said</span> <span class="ow">and</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">({</span><span class="s2">"bones"</span><span class="p">:</span> <span class="p">[</span><span class="n">bone</span><span class="p">]}):</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">bone</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">cursor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">said</span>
+                <span class="ow">and</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">({</span><span class="s2">"bones"</span><span class="p">:</span> <span class="p">[</span><span class="n">bone</span><span class="p">]})</span>
+            <span class="p">):</span>
                 <span class="n">said</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"bone </span><span class="si">{</span><span class="n">cursor</span><span class="si">!r}</span><span class="s2"> carries no slot, but sits in the chain from "</span>
@@ -1471,7 +1484,10 @@ window.runMermaid = runMermaid;</script>
             <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
             <span class="n">cursor</span> <span class="o">=</span> <span class="n">parents</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span>
         <span class="n">chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">chain</span><span class="p">)))</span>
-    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]}</span>
+    <span class="n">slot_bone</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"bone"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">joints</span><span class="p">(</span><span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="c1"># Links between DIFFERENT bones: a face part on the head's own bone is</span>
@@ -1952,11 +1968,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"face_overlay"</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="n">head</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="p">)</span>
     <span class="c1"># The face is the slots ON the head bone (not parts of its child bones,</span>
     <span class="c1"># which nest under the head too in `nesting: bones`).</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">head</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">head</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span>
+        <span class="k">if</span> <span class="n">head</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">head</span>
     <span class="p">}</span>
 
 
@@ -2077,9 +2097,16 @@ window.runMermaid = runMermaid;</script>
             <span class="o">+</span> <span class="n">chain_pose_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">broken</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">RigError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"rig </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> cannot be built with `nesting: bones`: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">broken</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">RigError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"rig </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> cannot be built with `nesting: bones`: "</span>
+                <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">broken</span><span class="p">)</span>
+            <span class="p">)</span>
     <span class="n">slot_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">}</span>
-    <span class="n">skip</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">skip_slots</span><span class="p">)</span> <span class="k">if</span> <span class="n">skip_slots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_legacy_baked_face_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span><span class="n">skip_slots</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">skip_slots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">_legacy_baked_face_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">(</span><span class="n">slot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="c1"># Slot-qualified on purpose: attachment names are a PER-SLOT namespace</span>

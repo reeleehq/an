@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1008,7 +1008,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: The transition kinds a shot may be entered by. ``cut`` is the default and</span>
 <span class="c1">#: what every document written before transitions existed means.</span>
-<span class="n">TRANSITION_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">)</span>
+<span class="n">TRANSITION_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">,</span> <span class="s2">"wipe"</span><span class="p">)</span>
+
+<span class="c1">#: The ways a ``wipe``'s edge can travel across the frame (an#390).</span>
+<span class="n">WIPE_DIRECTIONS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="s2">"up"</span><span class="p">,</span> <span class="s2">"down"</span><span class="p">)</span>
 
 <span class="c1">#: Seconds, when a ``fade`` or ``dissolve`` names no duration: half a second</span>
 <span class="c1">#: is a conventional editor's default, short enough not to eat a line of</span>

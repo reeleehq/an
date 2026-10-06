@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../../../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -761,7 +761,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="validate_prop">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.prop_validate.html#an.stage.prop_validate.validate_prop">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">validate_prop</span><span class="p">(</span><span class="n">prop_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationReport</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_prop</span><span class="p">(</span>
+    <span class="n">prop_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Check a prop folder (``prop.json`` + ``parts/``) against the rig contract, offline.</span>
 
 <span class="sd">    Blocking: no or an unreadable descriptor, a structural rig problem (an</span>
@@ -796,7 +798,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BLOCKING</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PROP_META_NAME</span><span class="si">}</span><span class="s2">#rig"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">chain_draw_order_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">+</span> <span class="n">chain_pose_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ADVISORY</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PROP_META_NAME</span><span class="si">}</span><span class="s2">#rig"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> (compiling a shot refuses it)"</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">ADVISORY</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PROP_META_NAME</span><span class="si">}</span><span class="s2">#rig"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> (compiling a shot refuses it)"</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">rig_origin_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">+</span> <span class="n">rig_rest_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ADVISORY</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PROP_META_NAME</span><span class="si">}</span><span class="s2">#rig"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 

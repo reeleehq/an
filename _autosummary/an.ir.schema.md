@@ -878,6 +878,15 @@ from nothing.
   seconds are each shot’s “handle”). Dialogue stays in sync with its own
   shot’s picture; audio from both shots is heard in the overlap. Not
   allowed on the first shot.
+- `wipe` — overlaps like a dissolve, but a hard edge sweeps across the
+  frame in `direction` (the way the edge travels: `left` brings this
+  shot in from the right), this shot on the side it has passed (an#390).
+  The edge stands where a dissolve’s mix would: `(j + 1) / (k + 1)` of
+  the way across on overlap frame `j` of `k`. Not on the first shot.
+
+#### direction *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['left', 'right', 'up', 'down']*
+
+A `wipe`’s direction; omitted from a dump for every other kind.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../../../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1535,11 +1535,25 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      seconds are each shot's "handle"). Dialogue stays in sync with its own</span>
 <span class="sd">      shot's picture; audio from both shots is heard in the overlap. Not</span>
 <span class="sd">      allowed on the first shot.</span>
+<span class="sd">    - ``wipe`` — overlaps like a dissolve, but a hard edge sweeps across the</span>
+<span class="sd">      frame in ``direction`` (the way the edge travels: ``left`` brings this</span>
+<span class="sd">      shot in from the right), this shot on the side it has passed (an#390).</span>
+<span class="sd">      The edge stands where a dissolve's mix would: ``(j + 1) / (k + 1)`` of</span>
+<span class="sd">      the way across on overlap frame ``j`` of ``k``. Not on the first shot.</span>
 <span class="sd">    """</span>
 
-    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"cut"</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">,</span> <span class="s2">"wipe"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"cut"</span>
     <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_TRANSITION_DURATION</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_TRANSITION_COLOR</span>
+    <span class="c1">#: A ``wipe``'s direction; omitted from a dump for every other kind.</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="s2">"up"</span><span class="p">,</span> <span class="s2">"down"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"left"</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_direction_only_for_a_wipe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"wipe"</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"direction"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_hex_color</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Transition"</span><span class="p">:</span>
@@ -1914,9 +1928,9 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"closing_transition"</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_closing_is_a_fade</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"dissolve"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"dissolve"</span><span class="p">,</span> <span class="s2">"wipe"</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"closing_transition: a dissolve has nothing to dissolve into at the "</span>
+                <span class="sa">f</span><span class="s2">"closing_transition: a </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> has nothing to </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> into at the "</span>
                 <span class="s2">"film's end; use a fade (to a colour) or a cut"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">t</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=2ee56bdf"></script>
+    <script src="../_static/documentation_options.js?v=cf225cc4"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.voices" href="an.audio.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.199" />
+  <meta name="docsearch:version" content="0.1.200" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -664,16 +664,19 @@ fraction of a second so the CLI is snappy.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.TRANSITION_KINDS" title="an.base.TRANSITION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></p></td>
 <td><p>The transition kinds a shot may be entered by.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.WIPE_DIRECTIONS" title="an.base.WIPE_DIRECTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></p></td>
+<td><p>The ways a <code class="docutils literal notranslate"><span class="pre">wipe</span></code>'s edge can travel across the frame (an#390).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_DURATION" title="an.base.DEFAULT_TRANSITION_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_DURATION</span></code></a></p></td>
 <td><p>half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_TRANSITION_COLOR" title="an.base.DEFAULT_TRANSITION_COLOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_TRANSITION_COLOR</span></code></a></p></td>
 <td><p>The colour a <code class="docutils literal notranslate"><span class="pre">fade</span></code> passes through when it names none.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.FILM_AUDIO_SAMPLE_RATE" title="an.base.FILM_AUDIO_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FILM_AUDIO_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The film mix's sample rate and channel count.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.DEFAULT_DUCK_DB" title="an.base.DEFAULT_DUCK_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code></a></p></td>
 <td><p>how far a ducked cue drops under dialogue, and how fast it gets there and comes back.</p></td>
 </tr>
 </tbody>
@@ -946,7 +949,7 @@ only inside the audio pipeline where drift matters.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.TRANSITION_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">TRANSITION_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cut',</span> <span class="pre">'fade',</span> <span class="pre">'dissolve')</span></span><a class="headerlink" href="#an.base.TRANSITION_KINDS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">TRANSITION_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cut',</span> <span class="pre">'fade',</span> <span class="pre">'dissolve',</span> <span class="pre">'wipe')</span></span><a class="headerlink" href="#an.base.TRANSITION_KINDS" title="Link to this definition">#</a></dt>
 <dd><p>The transition kinds a shot may be entered by. <code class="docutils literal notranslate"><span class="pre">cut</span></code> is the default and
 what every document written before transitions existed means.</p>
 </dd></dl>
@@ -957,6 +960,12 @@ what every document written before transitions existed means.</p>
 <dd><p>The path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160; the
 name predates <code class="code docutils literal notranslate"><span class="pre">dash_offset</span></code>, an#161): trim and the dash phase. A node that
 draws no path refuses all of them.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.WIPE_DIRECTIONS">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">WIPE_DIRECTIONS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('left',</span> <span class="pre">'right',</span> <span class="pre">'up',</span> <span class="pre">'down')</span></span><a class="headerlink" href="#an.base.WIPE_DIRECTIONS" title="Link to this definition">#</a></dt>
+<dd><p>The ways a <code class="docutils literal notranslate"><span class="pre">wipe</span></code>’s edge can travel across the frame (an#390).</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1048,6 +1057,7 @@ draws no path refuses all of them.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.Seconds"><code class="docutils literal notranslate"><span class="pre">Seconds</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.TRANSITION_KINDS"><code class="docutils literal notranslate"><span class="pre">TRANSITION_KINDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.TRIM_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.WIPE_DIRECTIONS"><code class="docutils literal notranslate"><span class="pre">WIPE_DIRECTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.swap_set_name_problem"><code class="docutils literal notranslate"><span class="pre">swap_set_name_problem()</span></code></a></li>
 </ul>
   </nav></div>
