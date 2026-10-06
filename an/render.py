@@ -692,7 +692,9 @@ def portable_text(text: str, *, root=None, home=None, tmp=None) -> str:
     roots = _spellings(str(root), resolve=not explicit) if root is not None else []
     tmps = [
         p
-        for t in ((tmp,) if tmp is not None else (tempfile.gettempdir(), *POSIX_TEMP_DIRS))
+        for t in (
+            (tmp,) if tmp is not None else (tempfile.gettempdir(), *POSIX_TEMP_DIRS)
+        )
         for p in _spellings(str(t), resolve=tmp is None)
     ]
     homes = _spellings(str(home) if explicit else str(Path.home()), resolve=False)

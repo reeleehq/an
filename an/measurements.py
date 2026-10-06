@@ -241,7 +241,9 @@ def findings_record(
         k, f = item if isinstance(item, tuple) else (kind, item)
         fields = asdict(f)
         if text is not None:
-            fields = {n: text(v) if isinstance(v, str) else v for n, v in fields.items()}
+            fields = {
+                n: text(v) if isinstance(v, str) else v for n, v in fields.items()
+            }
         out.append({**fields, "kind": k})
     return out
 

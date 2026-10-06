@@ -108,7 +108,9 @@ def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
     eol = "\r\n" if "\r\n" in text else "\n"
     if text and not text.endswith(("\n", "\r")):
         text += eol
-    path.write_bytes((text + "".join(f"{line}{eol}" for line in missing)).encode("utf-8"))
+    path.write_bytes(
+        (text + "".join(f"{line}{eol}" for line in missing)).encode("utf-8")
+    )
 
 
 def keep_reports_out_of_git(pdir: Path) -> None:
