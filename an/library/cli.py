@@ -120,11 +120,7 @@ def _license_parts(
             extra[key] = val
         if "provider" not in extra:
             cls = license_class(AssetSource(provider="-", license=licence))
-            if (
-                asset is None
-                or cls == "attribution"
-                or cls != license_class(asset)
-            ):
+            if asset is None or cls == "attribution" or cls != license_class(asset):
                 raise SystemExit(
                     f"an library publish: --license-part {value!r} needs its own "
                     "provider=… (a part whose licence class differs from the "

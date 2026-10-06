@@ -179,6 +179,8 @@ def _version_0_1_to_0_2(doc: dict[str, Any]) -> dict[str, Any]:
     reading its per-file statements as the asset-level label alone.
     """
     return {**doc, "schema_version": "0.2.0"}
+
+
 LABEL_KIND: DocumentKind = register_kind(
     DocumentKind(
         name="LibraryLabel",
@@ -1411,10 +1413,12 @@ class _PerFileRule:
         """Whether ``version`` or any version of its lineage carries ``file_sources``."""
         return self._cached(
             ("applies", *self._vid(version, holder)),
-            lambda: FILE_SOURCES_FIELD in version
-            or any(
-                parent is not None and self.applies(parent, at)
-                for _, parent, at in self.parents(version, holder)
+            lambda: (
+                FILE_SOURCES_FIELD in version
+                or any(
+                    parent is not None and self.applies(parent, at)
+                    for _, parent, at in self.parents(version, holder)
+                )
             ),
         )
 
@@ -1447,9 +1451,7 @@ class _PerFileRule:
                         said.append(deeper)
             return _strictest(*said) if said else None
 
-        return self._cached(
-            ("per_file", *self._vid(version, holder), digest), compute
-        )
+        return self._cached(("per_file", *self._vid(version, holder), digest), compute)
 
     def own_label(self, version: Mapping[str, Any], holder: Library | None) -> str:
         return self._cached(
@@ -1480,9 +1482,7 @@ class _PerFileRule:
                 said.append((cls, f"{ref}: {why}"))
             return _strictest(*said) if said else None
 
-        return self._cached(
-            ("lineage", *self._vid(version, holder), digest), compute
-        )
+        return self._cached(("lineage", *self._vid(version, holder), digest), compute)
 
     def said(
         self, version: Mapping[str, Any], holder: Library | None, digest: str
@@ -1530,9 +1530,7 @@ class _PerFileRule:
                 *(self._at_path(version, holder, p, digest) for p in paths)
             )
 
-        return self._cached(
-            ("statement", *self._vid(version, holder), digest), compute
-        )
+        return self._cached(("statement", *self._vid(version, holder), digest), compute)
 
     def _at_path(
         self, version: Mapping[str, Any], holder: Library | None, path: str, digest: str
@@ -2000,11 +1998,16 @@ def _given_file_sources(
                 "other file takes must be given too (--license and --provider)"
             )
         given.update(
-            {path: src for path, (_, src) in match_license_parts(license_parts, hashes).items()}
+            {
+                path: src
+                for path, (_, src) in match_license_parts(license_parts, hashes).items()
+            }
         )
     for path, src in (file_sources or {}).items():
         if path not in hashes:
-            raise LibraryError(f"file_sources names {path!r}, which the asset does not store")
+            raise LibraryError(
+                f"file_sources names {path!r}, which the asset does not store"
+            )
         given[path] = src
     out: dict[str, dict[str, Any]] = {}
     for path, src in sorted(given.items()):
