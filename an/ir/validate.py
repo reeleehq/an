@@ -909,6 +909,19 @@ def _check_camera(shot, path: str, report: "ValidationReport", stores=None) -> N
     except CameraError as e:
         report.add("error", path, f"{e} Rendering this shot raises.")
         return
+    if (
+        camera.follow is not None
+    ):  # an#445: resolved at compile, from the target's motion
+        entity = camera.follow.target.split("/", 1)[0]
+        if entity not in {e.id for e in shot.entities}:
+            report.add(
+                "error",
+                f"{path}/follow/target",
+                f"the camera follows {camera.follow.target!r}, but {entity!r} is not "
+                f"an entity of this shot (it has: {sorted(e.id for e in shot.entities)}). "
+                "Rendering this shot raises.",
+            )
+        return
     if camera.keys is not None and len(keys) < 2:
         report.add(
             "warning",

@@ -167,21 +167,43 @@ class CameraShake(_IRModel):
     seed: int = 0
 
 
+class CameraFollow(_IRModel):
+    """A camera that follows an entity (an#445): the frame keeps ``target``
+    where it stood at the shot's start.
+
+    >>> CameraFollow(target="bob").axes
+    'x'
+
+    ``target`` is an entity id or one of its nodes (``bob/head``); ``axes`` is
+    which way the camera tracks it (``x``: a side-scrolling walk, ``xy``: both).
+    Resolved at compile time from the compiled motion (the target's position at
+    every frame), so planes parallax with it like any camera move.
+    """
+
+    target: PathStr
+    axes: Literal["x", "y", "xy"] = "x"
+
+
 class _CameraShakes(_IRModel):
-    """The camera's shakes (an#429), kept apart from :class:`Camera`'s own block
-    so its move vocabulary reads only moves (``test_loud_discards``)."""
+    """The camera's layers beside its move: shakes (an#429) and a follow
+    (an#445), kept apart from :class:`Camera`'s own block so its move
+    vocabulary reads only moves (``test_loud_discards``)."""
 
     #: Jolts of the frame layered on the move or keys. `None`, not `[]`, for
     #: the reason `Camera.keys` gives.
     shake: list[CameraShake] | None = None
+    #: Track an entity instead of a named move or keys (an#445).
+    follow: CameraFollow | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_shake(self, handler):
-        """No shake, no key: every document written before an#429 dumps
-        byte-identically (the round-trip guard reads every committed scene)."""
+        """No shake or follow, no key: every document written before an#429
+        dumps byte-identically (the round-trip guard reads every committed scene)."""
         data = handler(self)
-        if isinstance(data, dict) and data.get("shake") is None:
-            data.pop("shake", None)
+        if isinstance(data, dict):
+            for name in ("shake", "follow"):
+                if data.get(name) is None:
+                    data.pop(name, None)
         return data
 
 

@@ -126,6 +126,18 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
             "same camera and there is no reading that is not a guess. Keep the "
             "one you meant."
         )
+    if camera.follow is not None:
+        if camera.move not in (None, "", "hold") or camera.keys is not None:
+            raise CameraError(
+                f"shot {shot.id!r} sets camera.follow (on "
+                f"{camera.follow.target!r}) and also "
+                f"{'camera.keys' if camera.keys is not None else f'camera.move={camera.move!r}'}. "
+                "A follow IS the camera's path, so the two cannot both drive it. "
+                "Keep the follow, or the move."
+            )
+        # A follow's keys come from the COMPILED motion (an#445): the compiler
+        # resolves them (`camera_follow_keys`); at the IR level there are none.
+        return []
     duration = max(0.001, float(shot.duration))
     if camera.keys is not None:
         keys = list(camera.keys)
