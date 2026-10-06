@@ -2790,6 +2790,17 @@ def _compile_actions(
             resolutions=resolutions,
             products=products,
         )
+    # The core's own timeline rule (an#365): a tween with no `from` starts from
+    # the value its node shows at its start. A genre's lowering above may have
+    # resolved its own already; what is left is resolved here, so the stage
+    # alone (no genre registered) compiles the same document.
+    flat_list = _resolve_from_less_tweens(
+        flat_list,
+        vocab=vocab,
+        fps=fps,
+        step_hz=step_hz,
+        default_easing=default_easing,
+    )
     # AFTER the tint expansion, like the swap dispatch: a `tint` set on a
     # character root is a colour, not a whole-character swap (an#197 review).
     flat_list = _fan_out_entity_swaps(
@@ -3478,6 +3489,71 @@ def _check_keyframe_easings(
                         f"shot {shot_id!r}: {ch.target}:{ch.property} keyframe at "
                         f"t={k.time} in {anim_id!r}: {e}"
                     ) from e
+
+
+def _resolve_from_less_tweens(
+    flat_list: list[FlatAction],
+    *,
+    vocab: _SwapVocabulary | None,
+    fps: int,
+    step_hz: float | None,
+    default_easing: Any,
+) -> list[FlatAction]:
+    """Give every tween with no ``from`` on a runtime-applied property the
+    value its (target, property) shows at the tween's start (an#212, an#365):
+    the BUILT value (a ``stage`` placement, a bone's rest, a laid-out ``x``, a
+    path's own trim; :func:`_built_value`), overridden by the ``set``s and
+    tweens before it as the runtime evaluates them (:func:`_value_at`).
+
+    Leaves are resolved in time order (authoring order at one instant), each
+    seeing the ones before it resolved; the output keeps authoring order,
+    which is what the tracks' later-wins reads. A tween a genre's lowering
+    already resolved has a ``from`` and is left alone, so with the cut-out
+    genre registered the document does not change; without it, it no longer
+    snaps to the property's identity at the tween's first frame.
+
+    Without a vocabulary (no built scene) nothing is resolved: the identity
+    rule of :func:`_rest_value_for` applies, as before.
+    """
+    if vocab is None or not any(
+        isinstance(f.action, TweenAction)
+        and f.action.from_value is None
+        and f.action.property in _PROPERTY_REST_VALUES
+        for f in flat_list
+    ):
+        return flat_list
+    from an.stage.timeline import write_group
+
+    history: dict[tuple[str, str], list[tuple[tuple[int, int], FlatAction]]] = {}
+    resolved: dict[int, FlatAction] = {}
+    for i in sorted(range(len(flat_list)), key=lambda k: (flat_list[k].start, k)):
+        flat = flat_list[i]
+        action = flat.action
+        if (
+            isinstance(action, TweenAction)
+            and action.from_value is None
+            and action.property in _PROPERTY_REST_VALUES
+        ):
+            key = (action.target, write_group(action.property))
+            base = _built_value(action.target, action.property, vocab=vocab)
+            start_value = _value_at(
+                history.get(key, []),
+                action.property,
+                flat.start,
+                base,
+                vocab=vocab,
+                fps=fps,
+                step_hz=step_hz,
+                default_easing=default_easing,
+            )
+            flat = dataclasses.replace(
+                flat, action=action.model_copy(update={"from_value": start_value})
+            )
+        resolved[i] = flat
+        if isinstance(flat.action, (SetAction, TweenAction)):
+            key = (flat.action.target, write_group(flat.action.property))
+            history.setdefault(key, []).append(((i, 0), flat))
+    return [resolved[i] for i in range(len(flat_list))]
 
 
 def _built_value(target: str, prop: str, *, vocab: _SwapVocabulary | None) -> float:
