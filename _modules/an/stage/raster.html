@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=9c1506ea"></script>
+    <script src="../../../_static/documentation_options.js?v=579c9627"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.213" />
+  <meta name="docsearch:version" content="0.1.214" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -734,9 +734,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  loader ignores a re-added alias on hot reload, an#155) and a different</span>
 <span class="sd">  compiled contract, so the contract hash covers the pixels it will draw.</span>
 
-<span class="sd">**Known limit: EXIF orientation.** The header size is the stored size. A</span>
-<span class="sd">JPEG whose EXIF says "rotate 90°" (a phone photo) is decoded upright by</span>
-<span class="sd">Chromium, so its box would be transposed — export such art rotated.</span>
+<span class="sd">**EXIF orientation** (an#218). A JPEG whose EXIF says "rotate 90°" (a phone</span>
+<span class="sd">photo) is decoded upright by Chromium, so its box is the stored size</span>
+<span class="sd">transposed: :func:`image_size` reads the orientation tag and swaps width and</span>
+<span class="sd">height for the four orientations that turn the picture a quarter (5-8).</span>
 
 <span class="sd">**Why a raster part is never recoloured.** A StylePack recolours SVG art by</span>
 <span class="sd">rewriting the literal colours its descriptor tags (`colour_roles`). A raster</span>
@@ -1067,9 +1068,47 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="c1">#: The EXIF orientations that turn the picture a quarter turn (transposing its box).</span>
+<span class="n">_QUARTER_TURNS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">})</span>
+<span class="c1">#: The EXIF tag holding the orientation.</span>
+<span class="n">_ORIENTATION_TAG</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mh">0x0112</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_exif_orientation</span><span class="p">(</span><span class="n">segment</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The orientation an APP1 payload's EXIF IFD0 records, if any.</span>
+
+<span class="sd">    &gt;&gt;&gt; tiff = b"MM" + struct.pack("&gt;HI", 42, 8) + struct.pack("&gt;H", 1) + struct.pack("&gt;HHIHH", 0x0112, 3, 1, 6, 0)</span>
+<span class="sd">    &gt;&gt;&gt; _exif_orientation(b"Exif" + bytes(2) + tiff)</span>
+<span class="sd">    6</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">segment</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">"Exif"</span> <span class="o">+</span> <span class="nb">bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">tiff</span> <span class="o">=</span> <span class="n">segment</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="p">{</span><span class="sa">b</span><span class="s2">"II"</span><span class="p">:</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="sa">b</span><span class="s2">"MM"</span><span class="p">:</span> <span class="s2">"&gt;"</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tiff</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tiff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="p">(</span><span class="n">ifd</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="s2">"I"</span><span class="p">,</span> <span class="n">tiff</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">ifd</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tiff</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="p">(</span><span class="n">count</span><span class="p">,)</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="s2">"H"</span><span class="p">,</span> <span class="n">tiff</span><span class="p">[</span><span class="n">ifd</span> <span class="p">:</span> <span class="n">ifd</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="n">ifd</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">at</span> <span class="o">+</span> <span class="mi">12</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tiff</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">tag</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">_n</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="s2">"HHI"</span><span class="p">,</span> <span class="n">tiff</span><span class="p">[</span><span class="n">at</span> <span class="p">:</span> <span class="n">at</span> <span class="o">+</span> <span class="mi">8</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">_ORIENTATION_TAG</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># SHORT, stored in the value field</span>
+            <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="s2">"H"</span><span class="p">,</span> <span class="n">tiff</span><span class="p">[</span><span class="n">at</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">:</span> <span class="n">at</span> <span class="o">+</span> <span class="mi">10</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_jpeg_size</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Walk the marker segments to the first SOFn (EXIF/ICC may precede it)."""</span>
+<span class="w">    </span><span class="sd">"""Walk the marker segments to the first SOFn (EXIF/ICC may precede it).</span>
+
+<span class="sd">    The size is as DISPLAYED: transposed when the EXIF orientation turns the</span>
+<span class="sd">    picture a quarter (an#218).</span>
+<span class="sd">    """</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">_read</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">orientation</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">while</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mh">0xFF</span><span class="p">:</span>
@@ -1079,10 +1118,14 @@ window.runMermaid = runMermaid;</script>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">continue</span>
         <span class="n">length</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&gt;H"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">4</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">marker</span> <span class="o">==</span> <span class="mh">0xE1</span> <span class="ow">and</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># APP1: EXIF</span>
+            <span class="n">orientation</span> <span class="o">=</span> <span class="n">_exif_orientation</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">length</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">_JPEG_SOF_MARKERS</span><span class="p">:</span>
             <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&gt;HH"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">5</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">9</span><span class="p">])</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">w</span> <span class="ow">and</span> <span class="n">h</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">RasterFormatError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"JPEG with a zero dimension (</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">_QUARTER_TURNS</span><span class="p">:</span>
+                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span>
             <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">length</span>
     <span class="k">raise</span> <span class="n">RasterFormatError</span><span class="p">(</span><span class="s2">"JPEG with no start-of-frame marker"</span><span class="p">)</span>

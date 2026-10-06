@@ -24,9 +24,10 @@ needed was three answers it previously got only from an SVG:
   loader ignores a re-added alias on hot reload, an#155) and a different
   compiled contract, so the contract hash covers the pixels it will draw.
 
-**Known limit: EXIF orientation.** The header size is the stored size. A
-JPEG whose EXIF says “rotate 90°” (a phone photo) is decoded upright by
-Chromium, so its box would be transposed — export such art rotated.
+**EXIF orientation** (an#218). A JPEG whose EXIF says “rotate 90°” (a phone
+photo) is decoded upright by Chromium, so its box is the stored size
+transposed: [`image_size()`](#an.stage.raster.image_size) reads the orientation tag and swaps width and
+height for the four orientations that turn the picture a quarter (5-8).
 
 **Why a raster part is never recoloured.** A StylePack recolours SVG art by
 rewriting the literal colours its descriptor tags (`colour_roles`). A raster
