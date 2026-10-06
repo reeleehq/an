@@ -183,6 +183,31 @@ def _libraries(
     return search_path(package, extra=names, roots=roots)
 
 
+def _link_command(project: Path, folder: Path, ref: Any) -> str:
+    """The check-out that links ``folder`` to the version just published from it (an#346).
+
+    It names the folder's key when the folder is unpinned or pinned to this
+    same asset id, and ``--upgrade`` when pinned to an earlier version of it; a
+    folder pinned to ANOTHER asset is never offered (L2-6).
+    """
+    from an.library.lock import lock_key
+    from an.stores.library_lock import ProjectLock
+
+    base = f"an library checkout {project} {ref}"
+    folder = folder.expanduser().absolute()
+    try:
+        pin = ProjectLock(project).get(lock_key(folder.parent.name, folder.name))
+        held = parse_ref(pin["library"]) if pin else None
+    except Exception:  # noqa: BLE001 — an unreadable lockfile or pin: the plain command
+        return base
+    if held is None:
+        return f"{base} --key {folder.name}"
+    if held.asset_id != ref.asset_id:
+        return base
+    upgrade = " --upgrade" if held.version != ref.version else ""
+    return f"{base} --key {folder.name}{upgrade}"
+
+
 def _project_of(folder: str) -> Path | None:
     """The project an asset folder sits in (``<project>/assets/<store>/<key>``), if any."""
     here = Path(folder).expanduser().absolute()
@@ -292,8 +317,8 @@ def publish(
     project = _project_of(folder)
     if project is not None:
         lines.append(
-            f"to link the project's copy to it (pin it in assets.lock.json): "
-            f"an library checkout {project} {result.ref}"
+            "to link the project's copy to it (pin it in assets.lock.json): "
+            + _link_command(project, Path(folder), result.ref)
         )
     return "\n".join(lines)
 
@@ -513,6 +538,7 @@ def checkout(
     ref: str,
     key: str = "",
     overwrite: bool = False,
+    upgrade: bool = False,
     package: str = "",
     root: str = "",
     extra: str = "",
@@ -523,6 +549,7 @@ def checkout(
     ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no --package needed. A kit.<slug> reference checks out every member of the kit, each pinned, and records the kit in the lockfile
     key: the key in the project store (default: the asset's slug)
     overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
+    upgrade: update in place the entry pinned to an earlier version of this asset, if unedited; the pin moves (then update the scene's library: line)
     package: the library to read first, then the core an library (default: the reference's <library>: prefix, else an)
     root: that library's root (with no --package, the root of the library the reference names)
     extra: further libraries, by package name, comma-separated
@@ -534,12 +561,19 @@ def checkout(
                 "an library checkout: --key names one asset's key; a kit's members "
                 "carry their own keys (set them with `an library kit --key-for`)"
             )
-        results = _checkout_kit(libraries, project_dir, ref, overwrite=overwrite)
+        results = _checkout_kit(
+            libraries, project_dir, ref, overwrite=overwrite, upgrade=upgrade
+        )
         lines = [f"kit {ref}: {len(results)} members", *map(str, results)]
         castable = [r for r in results if entity_kind(r.ref.kind) is not None]
         return "\n".join([*lines, *_entities_block(castable)])
     result = _checkout(
-        libraries, project_dir, ref, key=key or None, overwrite=overwrite
+        libraries,
+        project_dir,
+        ref,
+        key=key or None,
+        overwrite=overwrite,
+        upgrade=upgrade,
     )
     return "\n".join([str(result), *_entities_block([result])])
 
