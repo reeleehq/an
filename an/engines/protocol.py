@@ -33,6 +33,8 @@ session member         unlocks                                                  
                        session's ``space`` when it has one) and the engine
                        draws the state it is handed (``previz``, ``burns``)
 ``frames(requests)``   several instants per round trip, in order                 ``batch``
+``render_states(       a STATE-driven session's batch: several evaluated states  ``batch``
+states)``              per round trip (an#286); the core evaluates them
 ``resolve(samples,     the engine's own normalisation of its raw frames (e.g.    ``resolve``
 ...)``                 refusing a non-opaque RGBA canvas); without it, the
                        core's resolve, which passes a lone frame through
@@ -104,6 +106,8 @@ TIER_LIVE: str = "live"
 FEATURE_MEMBERS: dict[str, str] = {
     "state": "readback",
     "frames": "batch",
+    # A state-driven session's batch (an#286): the states of a round trip at once.
+    "render_states": "batch",
     "resolve": "resolve",
     "bounds": "bounds",
     "project": "project",

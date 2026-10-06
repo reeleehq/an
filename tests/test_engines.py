@@ -319,7 +319,80 @@ def test_the_state_adapter_reads_back_what_it_handed_over():
     session = _CropSession(None, _crop_timeline(), (W, H))
     adapter = StateDrivenAdapter(session)
     assert adapter.state(0.5) == {("camera", "x"): 2.0}
-    assert not hasattr(adapter, "frames"), "a state-driven batch would bypass `state`"
+
+
+# ------------------------------- state-driven batching and adapted members (an#286)
+
+
+class _BatchedCrop(_CropSession):
+    """A state-driven session with ``render_states``: one round trip per batch."""
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.round_trips = 0
+
+    def render_states(self, states):
+        self.round_trips += 1
+        return [self.render(state) for state in states]
+
+    def frames(self, requests):  # never reached: it would take TIMES, not states
+        raise AssertionError("a session's own `frames` bypasses `state`")
+
+
+def _still():
+    still = np.zeros((H, W + 4, 3), np.uint8)
+    still[:, :, 0] = np.arange(W + 4) * 20
+    return still
+
+
+def test_a_state_driven_session_with_render_states_is_batched_in_round_trips(tmp_path):
+    session = _BatchedCrop(_still(), _crop_timeline(), (W, H))
+    adapter = StateDrivenAdapter(session)
+    requests = [FrameRequest(i, (i / 8,)) for i in range(7)]
+    capture_frames(adapter, requests, tmp_path, size=(W, H), batch=3)
+    assert session.round_trips == 3
+    assert session.states == [dict(adapter.state(r.times[0])) for r in requests]
+    lefts = [int(_decoded(frame_path(tmp_path, i))[0, 0, 0]) for i in range(7)]
+    assert lefts == [int(adapter.state(i / 8)[("camera", "x")]) * 20 for i in range(7)]
+
+
+def test_without_render_states_the_adapter_draws_state_by_state():
+    session = _CropSession(_still(), _crop_timeline(), (W, H))
+    adapter = StateDrivenAdapter(session)
+    reqs = [FrameRequest(0, (0.0, 0.25)), FrameRequest(1, (0.5,))]
+    out = adapter.frames(reqs)
+    assert [len(x) for x in out] == [2, 1]
+    assert out[0][1] == adapter.frame(0.25) and out[1][0] == adapter.frame(0.5)
+
+
+def test_a_short_render_states_reply_is_refused():
+    class Short(_BatchedCrop):
+        def render_states(self, states):
+            return super().render_states(states)[:-1]
+
+    adapter = StateDrivenAdapter(Short(_still(), _crop_timeline(), (W, H)))
+    with pytest.raises(FrameStageError, match="returned 1 frame"):
+        adapter.frames([FrameRequest(0, (0.0,)), FrameRequest(1, (0.5,))])
+
+
+def test_project_and_bounds_receive_the_evaluated_state():
+    class Projecting(_CropSession):
+        def project(self, point, state):
+            return (point[0] - state[("camera", "x")], point[1])
+
+        def bounds(self, state):
+            return {"camera_x": state[("camera", "x")]}
+
+    adapter = StateDrivenAdapter(Projecting(None, _crop_timeline(), (W, H)))
+    assert adapter.project((10.0, 3.0), 0.5) == (8.0, 3.0)
+    assert adapter.bounds(0.25) == {"camera_x": 1.0}
+    bare = StateDrivenAdapter(_CropSession(None, _crop_timeline(), (W, H)))
+    assert not hasattr(bare, "project") and not hasattr(bare, "bounds")
+
+
+def test_render_states_is_a_batch_capability():
+    assert "batch" in describe(_BatchedCrop(None, None, (W, H))).features
+    assert "batch" not in describe(_CropSession(None, None, (W, H))).features
 
 
 def test_an_engine_with_neither_drive_mode_says_what_to_add(tmp_path, no_mux):
