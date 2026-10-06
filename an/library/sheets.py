@@ -22,10 +22,6 @@ import tempfile
 from collections.abc import Iterable
 from pathlib import Path
 
-import numpy as np
-
-from an.bench.png import encode_png
-
 __all__ = ["DFLT_SHEET", "sheet"]
 
 #: Where a sheet is written by default (relative to the current folder).
@@ -35,6 +31,11 @@ PLACEHOLDER_GREY: int = 200
 
 
 def _placeholder(cell: int) -> bytes:
+    # Imported here: `an.library` imports this module, and stays as light as it was.
+    import numpy as np
+
+    from an.bench.png import encode_png
+
     return encode_png(np.full((cell, cell, 3), PLACEHOLDER_GREY, np.uint8))
 
 
