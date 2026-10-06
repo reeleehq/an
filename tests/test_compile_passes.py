@@ -31,8 +31,9 @@ def _quiet_compile(shot, **kw):
 @pytest.mark.genre("cutout_animation")
 def test_the_passes_run_in_the_order_the_document_was_always_built_in():
     assert [p.name for p in compile_passes_for_stage()] == [
-        "scene", "speech", "actions", "swap_pose", "view_spans", "visemes", "face",
-        "camera", "parallax", "checks",
+        # cutan#32: a style's `policy:` block resolves right after the scene
+        "scene", "style_policy", "speech", "actions", "swap_pose", "view_spans",
+        "visemes", "face", "camera", "parallax", "checks",
     ]
 
 

@@ -352,6 +352,7 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
         "cutout.hidden_mouth_while_speaking",
         "cutout.character_refs",
         "cutout.declared_speech",
+        "cutout.shot_policy",
         "cutout.view_continuity",
     }
 
@@ -688,6 +689,7 @@ def test_the_report_order_is_pinned():
         "cutout.expression",
         "cutout.brow_acting",  # an#252: right after the expression check it extends
         "cutout.walk_gait",  # an#224: a walk's requested gait applies
+        "cutout.shot_policy",  # cutan#32: a shot's style policy, after the walks it orders
         "swap_references",
         "cutout.turns",
         "cutout.hidden_mouth_while_speaking",
