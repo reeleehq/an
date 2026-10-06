@@ -1280,7 +1280,9 @@ class SyncTieWarning(UserWarning):
 def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> None:
     md_text = _read_text(md_path)
     try:
-        json_scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
+        json_scene = scene_from_json_doc(
+            json.loads(_read_text(json_path)), source=json_path
+        )
         if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
             return
         scene = markdown_to_ir(md_text)
