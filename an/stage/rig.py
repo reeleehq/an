@@ -589,9 +589,7 @@ def rig_problems(desc: Any) -> list[str]:
     return out
 
 
-def chain_paint_order(
-    desc: Any, *, built: Any = None
-) -> dict[str | None, list[str]]:
+def chain_paint_order(desc: Any, *, built: Any = None) -> dict[str | None, list[str]]:
     """How each container of a nested chain must order what it holds (an#403).
 
     The stage draws a container's items in order: its slot's own visual and its
@@ -620,14 +618,19 @@ def chain_paint_order(
         parent = parents.get(name)
         # A slot caught in a bone cycle maps to itself (`slot_parent_chain`):
         # it is a root here; `rig_problems` refuses the cycle.
-        kids.setdefault(parent if parent in names and parent != name else None, []).append(name)
+        kids.setdefault(
+            parent if parent in names and parent != name else None, []
+        ).append(name)
 
     def span(name: str, seen: frozenset = frozenset()) -> tuple:
         below = [span(k, seen | {name}) for k in kids.get(name, []) if k not in seen]
         own = keys[name][0]
         return (min([own, *(b[0] for b in below)]), max([own, *(b[1] for b in below)]))
 
-    held = {None: kids.get(None, []), **{n: [n, *kids[n]] for n in names if kids.get(n)}}
+    held = {
+        None: kids.get(None, []),
+        **{n: [n, *kids[n]] for n in names if kids.get(n)},
+    }
     natural = natural_paint_order(held, keys)
     return {
         container: sorted(
