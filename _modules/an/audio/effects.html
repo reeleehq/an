@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=5e4102fe"></script>
+    <script src="../../../_static/documentation_options.js?v=fa3986e7"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.182" />
+  <meta name="docsearch:version" content="0.1.183" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1102,7 +1102,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]</span>
 <span class="sd">    's.wav'</span>
 <span class="sd">    """</span>
-    <span class="n">head</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-hide_banner"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-nostdin"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"-i"</span><span class="p">,</span> <span class="s2">"pipe:0"</span><span class="p">]</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"ffmpeg"</span><span class="p">,</span>
+        <span class="s2">"-hide_banner"</span><span class="p">,</span>
+        <span class="s2">"-loglevel"</span><span class="p">,</span>
+        <span class="s2">"error"</span><span class="p">,</span>
+        <span class="s2">"-nostdin"</span><span class="p">,</span>
+        <span class="s2">"-y"</span><span class="p">,</span>
+        <span class="s2">"-i"</span><span class="p">,</span>
+        <span class="s2">"pipe:0"</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="k">if</span> <span class="n">source_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">head</span><span class="p">,</span> <span class="s2">"-af"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="o">*</span><span class="n">_WAV_OUT</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">)]</span>
     <span class="n">graph</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"[0:a]asplit=2[fx][src];[fx]</span><span class="si">{</span><span class="n">chain</span><span class="si">}</span><span class="s2">[out];[src]</span><span class="si">{</span><span class="n">decode_chain</span><span class="p">()</span><span class="si">}</span><span class="s2">[raw]"</span>
