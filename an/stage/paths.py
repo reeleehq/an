@@ -147,7 +147,9 @@ class PathDescriptor(BaseModel):
     sampling: Literal["parameter", "arclength"] = "parameter"
     #: ``#rrggbb``.
     color: str = DFLT_STROKE_COLOUR
-    width: float = Field(default=DFLT_STROKE_WIDTH, gt=0, allow_inf_nan=False)
+    #: Stroke width, scene px. ``0`` = no stroke, only for a ``fill``ed shape
+    #: (a region without a border).
+    width: float = Field(default=DFLT_STROKE_WIDTH, ge=0, allow_inf_nan=False)
     cap: Literal["round", "butt", "square"] = "round"
     join: Literal["round", "miter", "bevel"] = "round"
     #: The visible span before anything animates it, as fractions of arc
@@ -172,6 +174,18 @@ class PathDescriptor(BaseModel):
     #: Scene pixels; ``None`` = a multiple of ``width``.
     head_length: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     head_width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: A closed shape (an#161): the path returns to its first point (a straight
+    #: closing leg is added when the last point is elsewhere) and the stroke
+    #: joins there instead of ending in two caps. Trim still runs from the
+    #: first point round to it again.
+    closed: bool = False
+    #: The region a closed path encloses, ``#rrggbb``; ``None`` = unfilled.
+    #: Drawn under the stroke and NOT trimmed: a draw-on draws the border and
+    #: the fill is there throughout. To fade a region in separately, make it
+    #: its own entity (``width: 0``, filled) and tween that node's ``alpha``.
+    fill: str | None = None
+    #: The fill's opacity, ``0..1``.
+    fill_alpha: float = Field(default=1.0, ge=0.0, le=1.0)
     #: A hand-drawn wobble (an#161): the stroke wanders up to this many scene
     #: px either side of its line, by seeded smooth noise applied at compile
     #: (:mod:`an.stage.path_wobble`), its ends left where they are. ``0`` = a
@@ -200,6 +214,13 @@ class PathDescriptor(BaseModel):
             if not (math.isfinite(x) and math.isfinite(y)):
                 raise ValueError(f"path points must be finite; got {(x, y)!r}")
         return points
+
+    @field_validator("fill")
+    @classmethod
+    def _hex_fill(cls, fill):
+        if fill is not None and not _HEX_COLOUR.fullmatch(fill):
+            raise ValueError(f"`fill` takes a #rrggbb string; got {fill!r}")
+        return fill
 
     @field_validator("color")
     @classmethod
@@ -256,6 +277,35 @@ class PathDescriptor(BaseModel):
                 "samples_per_segment (and sampling) only applies to curve='cubic'; "
                 "a polyline is drawn through its points as given"
             )
+        if self.fill is not None and not self.closed:
+            raise ValueError(
+                "`fill` is set on an open path; a fill needs a region: set "
+                "`closed: true`"
+            )
+        if self.fill is None and given & {"fill_alpha"}:
+            raise ValueError(
+                "fill_alpha is set but `fill` is not, so it would draw nothing; "
+                "set `fill` or drop it"
+            )
+        if self.fill is not None and len(set(self.points)) < 3:
+            raise ValueError(
+                "a filled shape needs at least three distinct points; fewer "
+                "enclose no area"
+            )
+        if not self.width:
+            if self.fill is None:
+                raise ValueError(
+                    "`width` is 0 and there is no `fill`, so the path would draw "
+                    "nothing; give it a width or a fill"
+                )
+            inert = sorted(
+                given & {"dash", "gap", "dash_offset", "cap", "join", "color", "trim_start", "trim_end"}
+            ) + [n for n in ("arrowhead", "tail_arrowhead") if getattr(self, n)]
+            if inert:
+                raise ValueError(
+                    f"{inert} draw on the stroke, and `width` is 0 (a fill with "
+                    "no border); give it a width or drop them"
+                )
         if not self.wobble and given & {"wobble_wavelength", "wobble_seed"}:
             raise ValueError(
                 "wobble_wavelength/wobble_seed are set but `wobble` is 0, so the "

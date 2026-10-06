@@ -34,9 +34,11 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 
 - **Static wobble** (`an/stage/path_wobble.py`): `wobble` / `wobble_wavelength` / `wobble_seed` on the document. `_build_path_subtree` resamples the flattened polyline every wavelength/8 (keeping the original vertices, displaced along their legs' bisector) and moves each sample along its normal by value noise: knots one wavelength apart from `sha256("<entity id>:<seed>:k")`, joined by a cubic smoothstep, an end envelope ramping over one wavelength so the ends stay put. No trigonometry, so the bytes are the same on every machine (`test_the_wobble_is_the_same_bytes_on_every_machine` pins a digest). The descriptor refuses a wobble whose point count (bounded by the control polygon's length) would pass `MAX_WOBBLE_POINTS`. Corpus scene `path_wobble`.
 
+- **Closed and filled shapes**: `closed` / `fill` / `fill_alpha` on the document, and `PathJSON.closed/fill/fill_alpha` (omitted when off, so no path document moved). The compiler appends the first point when a closed path ends elsewhere, so arc length, trim and dashes include the closing leg and `pathGeometry` is untouched (no parity change). `drawPath` fills `spec.points` under the stroke (never trimmed) and, when a closed path is drawn WHOLE (full trim, no dashes, no heads), replaces the last `lineTo` with `closePath()` so the seam is a join, not two caps. `width: 0` is a fill with no border: the descriptor refuses stroke-only fields on it, and a trim/`dash_offset` on it raises at compile, validate and runtime (`path_trims` is empty for it). Answer to the issue's open question: trim draws the border; fading a region is a second entity's `alpha`. Corpus scene `path_shape`.
+
 ## Not built (still in #161)
 
-Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); closed and filled shapes (borders as regions, fill colour and alpha); per-point trim easing; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
+Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); per-point trim easing; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
 
 ## A style layer on top (hand-drawn wobble, stroke jitter)
 

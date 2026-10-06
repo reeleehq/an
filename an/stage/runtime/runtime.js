@@ -654,7 +654,19 @@
         );
         const color = parseColor(spec.color);
         g.clear();
-        const strokes = geo.dashes || [geo.stroke];
+        if (spec.fill) {
+            // A closed shape's region (an#161): under the stroke, never trimmed.
+            g.lineStyle(0);
+            g.beginFill(parseColor(spec.fill), spec.fill_alpha != null ? spec.fill_alpha : 1.0);
+            g.drawPolygon(spec.points.flat());
+            g.endFill();
+        }
+        // A closed path drawn whole joins at its first point instead of ending
+        // in two caps there: its last point (the first again) becomes closePath.
+        const whole = spec.closed && !geo.dashes && !geo.head && !geo.tail
+            && Math.min(st.trim_start, st.trim_end) <= 0
+            && Math.max(st.trim_start, st.trim_end) >= 1;
+        const strokes = spec.stroke_width > 0 ? (geo.dashes || [geo.stroke]) : [];
         for (const line of strokes) {
             if (line.length < 2) continue;
             g.lineStyle({
@@ -665,9 +677,11 @@
                 join: spec.join || 'round',
             });
             g.moveTo(line[0][0], line[0][1]);
-            for (let i = 1; i < line.length; i++) {
+            const last = whole ? line.length - 1 : line.length;
+            for (let i = 1; i < last; i++) {
                 g.lineTo(line[i][0], line[i][1]);
             }
+            if (whole) g.closePath();
         }
         for (const tri of [geo.head, geo.tail]) {
             if (!tri) continue;
@@ -704,6 +718,13 @@
             throw new Error(
                 'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
                 ': only a stroked path has a trim, and this node draws none.'
+            );
+        }
+        if (!(child._anPath.spec.stroke_width > 0)) {
+            throw new Error(
+                'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
+                ': this path has no stroke (a fill with no border), so a trim or ' +
+                'dash phase would draw nothing.'
             );
         }
         if (prop === 'dash_offset' && !(child._anPath.spec.dash > 0)) {

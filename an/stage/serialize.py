@@ -108,6 +108,13 @@ class PathJSON(_JSONModel):
     #: from the wire when off, so no existing path document's hash moves.
     tail_head_length: float = 0.0
     tail_head_width: float = 0.0
+    #: A closed shape and its fill (an#161): ``closed`` joins the stroke at the
+    #: first point (the polyline already returns there); ``fill`` (``#rrggbb``)
+    #: is drawn under the stroke at ``fill_alpha`` and is not trimmed. Omitted
+    #: from the wire when off, so no existing path document's hash moves.
+    closed: bool = False
+    fill: str | None = None
+    fill_alpha: float = 1.0
 
     @model_serializer(mode="wrap")
     def _omit_absent_tail(self, handler):
@@ -115,6 +122,11 @@ class PathJSON(_JSONModel):
         if isinstance(data, dict) and not self.tail_head_length:
             data.pop("tail_head_length", None)
             data.pop("tail_head_width", None)
+        if isinstance(data, dict) and not self.closed:
+            data.pop("closed", None)
+        if isinstance(data, dict) and self.fill is None:
+            data.pop("fill", None)
+            data.pop("fill_alpha", None)
         return data
 
 

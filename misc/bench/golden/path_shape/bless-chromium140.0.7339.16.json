@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T15:12:01Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 669,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "a22bd88c84066e1301973e2f8e6c29dee2781118ed203506fd5b1b84a6c55d9f",
+      "shot_id": "draw",
+      "time": 0.0
+    },
+    {
+      "bytes": 1636,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "623f66dfc262e8372dcedcbb130c7ba60826e76df74a9e1da28cd7c3eb1ee506",
+      "shot_id": "draw",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "path-closed-161",
+    "dirty": true,
+    "sha": "a52f11bcfd9d49b5bb4fee4a8735a188a3175bf1"
+  },
+  "reason": "new core fixture: closed and filled paths (an#161)",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "path_shape",
+  "scene_contract_sha256": "c5d9d9568e4d35d13abff5da72a90a754ebd64820d4991b42824eea4efdd88f6",
+  "shot_ids": [
+    "draw"
+  ],
+  "source": "misc/bench/corpus/path_shape",
+  "what_moves": "closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node `alpha` fades 0 -> 1 under a closed border that draws itself on (`trim_end` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a `width: 0` path drawing a stroke moves a golden."
+}

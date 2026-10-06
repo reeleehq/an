@@ -31,6 +31,7 @@ from an.adapters.cutout.serialize import VisualJSON, to_dict
 from an.ir.schema import (
     AssetRef,
     Meta,
+    Resolution,
     SceneIR,
     SequenceAction,
     DelayAction,
@@ -326,7 +327,7 @@ _FAKE_GRAPHICS = """
 function FakeGraphics() {
   this.calls = [];
   const self = this;
-  ['clear','lineStyle','moveTo','lineTo','beginFill','endFill','drawPolygon']
+  ['clear','lineStyle','moveTo','lineTo','beginFill','endFill','drawPolygon','closePath']
     .forEach(m => { self[m] = function() { self.calls.push([m].concat([].slice.call(arguments))); }; });
 }
 function parseColor(s) { return parseInt(s.slice(1), 16); }
@@ -899,3 +900,86 @@ def test_the_descriptor_refuses_an_inert_or_runaway_wobble():
     with pytest.raises(ValueError, match="lengthen `wobble_wavelength`"):
         PathDescriptor(name="r", points=[(0, 0), (100_000, 0)], wobble=2.0, wobble_wavelength=1.0)
     assert PathDescriptor(name="r", points=L_POINTS, wobble=2.0).wobble_wavelength_px == 80.0
+
+
+# --- closed and filled shapes (an#161) ----------------------------------------------
+
+SQUARE = [(0.0, 0.0), (100.0, 0.0), (100.0, 100.0), (0.0, 100.0)]
+
+
+def test_a_closed_path_returns_to_its_first_point_on_the_wire():
+    p = _compile(_shot(), {"points": SQUARE, "closed": True, "fill": "#3498db", "fill_alpha": 0.5})
+    path = p.scene.children[0].visual.path
+    assert path.points == [*SQUARE, SQUARE[0]]
+    assert (path.closed, path.fill, path.fill_alpha) == (True, "#3498db", 0.5)
+
+
+def test_an_open_unfilled_path_carries_no_new_wire_fields():
+    """Byte identity: every pre-existing path document serializes as before."""
+    d = json.dumps(to_dict(_compile(_shot(), {"arrowhead": True})))
+    assert '"closed"' not in d and '"fill' not in d
+
+
+def test_the_descriptor_refuses_a_fill_it_cannot_draw():
+    with pytest.raises(ValueError, match="closed: true"):
+        PathDescriptor(name="r", points=SQUARE, fill="#000000")
+    with pytest.raises(ValueError, match="fill_alpha is set"):
+        PathDescriptor(name="r", points=SQUARE, closed=True, fill_alpha=0.5)
+    with pytest.raises(ValueError, match="three distinct points"):
+        PathDescriptor(name="r", points=[(0, 0), (10, 0)], closed=True, fill="#000000")
+    with pytest.raises(ValueError, match="draw nothing"):
+        PathDescriptor(name="r", points=SQUARE, width=0)
+    with pytest.raises(ValueError, match="arrowhead"):
+        PathDescriptor(name="r", points=SQUARE, width=0, closed=True, fill="#000000", arrowhead=True)
+    assert PathDescriptor(name="r", points=SQUARE, width=0, closed=True, fill="#000000").width == 0
+
+
+def test_a_trim_on_a_fill_with_no_border_is_refused_and_validate_agrees():
+    region = {"points": SQUARE, "closed": True, "fill": "#3498db", "width": 0}
+    with pytest.raises(CutoutCompileError, match="no stroke"):
+        _compile(_shot(actions=[_draw_on()]), region)
+    scene = SceneIR(
+        meta=Meta(duration=1.0, resolution=Resolution(width=320, height=240)),
+        timeline=[_shot(actions=[_draw_on()])],
+    )
+    report = validate_semantic(scene, available_props={"route": _doc(**region)})
+    assert any("no stroke" in f.description for f in report.findings if f.severity == "error")
+
+
+def _draw(spec: dict, **state) -> list:
+    script = "\n".join(
+        [
+            _FAKE_GRAPHICS,
+            _apply_property_source(),
+            f"const g = new FakeGraphics(); g._anPath = Object.assign({{spec: {json.dumps(spec)},"
+            " trim_start: 0, trim_end: 1, dash_offset: 0}, " + json.dumps(state) + ");",
+            "drawPath(g); console.log(JSON.stringify(g.calls));",
+        ]
+    )
+    return node_json(script)
+
+
+@requires_node
+def test_the_runtime_fills_under_the_stroke_and_joins_a_whole_closed_path():
+    closed = [list(p) for p in [*SQUARE, SQUARE[0]]]
+    spec = {"points": closed, "stroke_width": 4, "color": "#ff0000", "closed": True,
+            "fill": "#0000ff", "fill_alpha": 0.25}
+    calls = _draw(spec)
+    names = [c[0] for c in calls]
+    assert names.index("beginFill") < names.index("moveTo")  # the fill is under the stroke
+    assert ["beginFill", 0x0000FF, 0.25] in calls and "closePath" in names
+    lines = [c for c in calls if c[0] == "lineTo"]
+    assert len(lines) == 3  # the closing leg is closePath, not a lineTo onto the start
+    # trimmed, it is an open stroke again; the fill stays whole
+    calls = _draw(spec, trim_end=0.5)
+    assert "closePath" not in [c[0] for c in calls]
+    (poly,) = [c for c in calls if c[0] == "drawPolygon"]
+    assert len(poly[1]) == 2 * len(closed)
+
+
+@requires_node
+def test_the_runtime_draws_no_stroke_for_a_fill_with_no_border():
+    spec = {"points": [list(p) for p in [*SQUARE, SQUARE[0]]], "stroke_width": 0,
+            "color": "#ff0000", "closed": True, "fill": "#0000ff"}
+    names = [c[0] for c in _draw(spec)]
+    assert "drawPolygon" in names and "moveTo" not in names

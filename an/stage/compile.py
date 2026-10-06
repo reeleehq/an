@@ -610,10 +610,12 @@ def _swap_vocabulary(
         if v is not None and v.kind == "path":
             path_nodes.add(path)
             if v.path is not None:
-                path_trims[path] = {
-                    "trim_start": v.path.trim_start,
-                    "trim_end": v.path.trim_end,
-                }
+                # A fill with no border (an#161) has no stroke to trim.
+                path_trims[path] = (
+                    {"trim_start": v.path.trim_start, "trim_end": v.path.trim_end}
+                    if v.path.stroke_width > 0
+                    else {}
+                )
                 if v.path.dash > 0:  # only a dashed path has an offset
                     path_trims[path]["dash_offset"] = v.path.dash_offset
         if v is not None and v.asset_sets:
@@ -2642,6 +2644,8 @@ def _build_path_subtree(
         samples=desc.samples_per_segment,
         sampling=desc.sampling,
     )
+    if desc.closed and points[-1] != points[0]:
+        points.append(points[0])
     if desc.wobble:
         points = wobble_polyline(
             points,
@@ -2670,6 +2674,9 @@ def _build_path_subtree(
                 dash_offset=desc.dash_offset,
                 tail_head_length=desc.head_length_px if desc.tail_arrowhead else 0.0,
                 tail_head_width=desc.head_width_px if desc.tail_arrowhead else 0.0,
+                closed=desc.closed,
+                fill=desc.fill,
+                fill_alpha=desc.fill_alpha,
             ),
         ),
     )
@@ -3950,11 +3957,13 @@ def _check_trim_target(flat: FlatAction, *, vocab: _SwapVocabulary) -> None:
     if prop not in TRIM_PROPERTIES:
         return
     target = action.target
-    if (
-        prop == "dash_offset"
-        and target in vocab.path_nodes
-        and prop not in vocab.path_trims.get(target, {})
-    ):
+    if target in vocab.path_nodes and prop not in vocab.path_trims.get(target, {}):
+        if not vocab.path_trims.get(target):
+            raise CutoutCompileError(
+                f"action targets {target!r}:{prop!r}, but the path {target!r} has "
+                "no stroke (`width: 0`, a fill with no border), and trim and "
+                "dashes draw only on a stroke; fade a region with `alpha`."
+            )
         raise CutoutCompileError(
             f"action targets {target!r}:'dash_offset', but the path {target!r} "
             "has no dash pattern, so an offset would draw nothing. Give the "

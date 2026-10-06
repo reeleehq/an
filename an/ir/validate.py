@@ -442,14 +442,18 @@ def _check_trim_targets(
             if e.kind == "prop" and _path_document_problem(e, props) is not False
         }
     undashed_ids: set[str] = set()
+    unstroked_ids: set[str] = set()
     if props is not None:
         from an.stage.paths import resolve_path
 
         for e in shot.entities:
             if e.id in path_ids and e.kind == "prop":
                 try:
-                    if resolve_path(props[e.ref], e.overrides).dash is None:
+                    resolved = resolve_path(props[e.ref], e.overrides)
+                    if resolved.dash is None:
                         undashed_ids.add(e.id)
+                    if not resolved.width:
+                        unstroked_ids.add(e.id)
                 except (ValueError, KeyError, TypeError):
                     pass  # an invalid path is reported by its own check
     for k, action in enumerate(shot.actions):
@@ -465,6 +469,16 @@ def _check_trim_targets(
                     f"{prop!r} targets {target!r}, which is not a stroked path "
                     f"(paths in this shot: {sorted(path_ids) or 'none'}) — "
                     "compiling this shot raises.",
+                )
+                continue
+            if target in unstroked_ids:
+                report.add(
+                    "error",
+                    f"{path}/actions/{k}",
+                    f"{prop!r} targets {target!r}, a path with no stroke "
+                    "(`width: 0`, a fill with no border) — trim and dashes draw "
+                    "only on a stroke and compiling this shot raises. Fade a "
+                    "region with `alpha`.",
                 )
                 continue
             if prop == "dash_offset" and target in undashed_ids:
