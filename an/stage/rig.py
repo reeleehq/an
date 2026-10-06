@@ -325,9 +325,7 @@ CHARACTER_ART_PREFIX: str = "characters/"
 PROP_ART_PREFIX: str = "props/"
 
 
-def art_src(
-    ref: str, rel_path: str, *, art_prefix: str = CHARACTER_ART_PREFIX
-) -> str:
+def art_src(ref: str, rel_path: str, *, art_prefix: str = CHARACTER_ART_PREFIX) -> str:
     """Path used inside the runtime dir, relative to ``index.html``.
 
     >>> art_src("maya", "parts/head.svg")

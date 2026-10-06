@@ -1700,7 +1700,9 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         )
 
 
-def _check_rig_origin(doc: dict, entity, ir_path: str, report: "ValidationReport") -> None:
+def _check_rig_origin(
+    doc: dict, entity, ir_path: str, report: "ValidationReport"
+) -> None:
     """A rig's declared ``origin`` is finite and inside its view_box (an#338).
 
     Warnings, the stage's own rule (:func:`an.stage.rig.rig_origin_problems`),
