@@ -916,10 +916,21 @@ class Shot(_IRModel):
     transition: Transition | None = None
     #: Sound cues in SHOT-local time (:class:`SoundCue`).
     sounds: list[SoundCue] = Field(default_factory=list)
+    #: This shot's **policy** (an#348): per aspect, the methods it prefers in
+    #: order, over the style pack's (``StylePack.policy``) and under an author's
+    #: request — ``{"locomotion": ["loco.glide"]}``. ``None``: the style's.
+    policy: dict[str, Any] | None = None
+
+    @field_validator("policy")
+    @classmethod
+    def _policy_shape(cls, v: Any) -> Any:
+        from an.semantic.entries import check_policy_block
+
+        return check_policy_block(v)
 
     @model_serializer(mode="wrap")
     def _omit_unset_assembly(self, handler):
-        """Serialize ``transition``/``sounds`` out of existence when unset.
+        """Serialize ``transition``/``sounds``/``policy`` out of existence when unset.
 
         `AssetRef._omit_unset_stage`'s rule: every committed ``ir/scene.json``
         predates these fields, and a defaulted ``null`` / ``[]`` on every shot
@@ -931,6 +942,8 @@ class Shot(_IRModel):
                 data.pop("transition", None)
             if not self.sounds:
                 data.pop("sounds", None)
+            if self.policy is None:
+                data.pop("policy", None)
         return data
 
 

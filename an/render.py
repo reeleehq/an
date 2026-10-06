@@ -850,6 +850,7 @@ def _post_synthesis(project: Project, scene, *, fps) -> list[tuple[str, object]]
             available_characters=mall.get("characters"),
             available_props=mall.get("props"),
             available_environments=mall.get("environments"),
+            available_styles=mall.get("styles"),
         )
     except Exception as e:  # noqa: BLE001 — the film is made; say what is unknown
         return [

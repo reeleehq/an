@@ -636,3 +636,55 @@ def test_a_policy_choice_on_an_aspect_that_records_its_fallback_stays_informatio
     r = resolve("speech", {"face.mouth": {}}, policy={"speech": ["pulse"]})
     assert r.method.id == "speech.pose_only" and r.source == "policy"
     assert r.substitution.reason == "policy" and not r.substitution.fatal
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_declared_method_is_the_request_unless_the_switch_puts_the_policy_first(monkeypatch):
+    """cutan#36 is the maintainer's: ``DECLARED_OUTRANKS_POLICY`` is the one line
+    that decides whether a character's declared gait beats a style's order."""
+    from an.semantic import matcher
+
+    south_park = {"locomotion": ["loco.rock"]}
+    r = resolve("locomotion", LEGS, declared="legs", policy=south_park)
+    assert r.method.id == "loco.legged_cycle" and r.source == "request" and r.substitution is None
+    r = resolve("locomotion", {}, declared="hem", policy=south_park)
+    assert r.substitution.reason == "missing" and r.substitution.fatal  # a declaration is honoured or said
+    # the author's explicit request outranks the declaration either way
+    r = resolve("locomotion", LEGS, requested="hop", declared="legs", policy=south_park)
+    assert r.method.id == "loco.hop"
+
+    monkeypatch.setattr(matcher, "DECLARED_OUTRANKS_POLICY", False)
+    r = resolve("locomotion", LEGS, declared="legs", policy=south_park)
+    assert r.method.id == "loco.rock" and r.source == "policy"
+    # the declaration is now the order's last entry: with no policy it still decides
+    r = resolve("locomotion", LEGS, declared="hop")
+    assert r.method.id == "loco.hop" and r.source == "policy"
+    # and one that cannot be honoured is a skipped entry, not a fatal record
+    r = resolve("locomotion", {}, declared="hem")
+    assert r.method.id == "loco.glide" and r.substitution is None
+    assert [m for m, _ in r.skipped] == ["loco.hem_sway"]
+    r = resolve("locomotion", LEGS, requested="hop", declared="legs", policy=south_park)
+    assert r.method.id == "loco.hop"
+    # the chosen entry, as written: its own args, not the method's defaults
+    r = resolve("locomotion", {}, declared={"method": "hop", "args": {"hop_height": 9}})
+    assert r.choice.method == "hop" and dict(r.choice.args) == {"hop_height": 9}
+    assert resolve("locomotion", {}).choice is None  # a chain link
+
+
+@pytest.mark.genre("cutout_animation")
+def test_describe_says_what_each_aspect_resolves_to_under_a_policy():
+    from an.semantic.describe import describe_profile, format_description
+
+    d = describe_profile(LEGS, aspects=("locomotion",), policy={"locomotion": ["profile", "bounce"]})
+    under = d["aspects"]["locomotion"]["under_policy"]
+    assert under["method"] == "loco.bounce" and under["source"] == "policy"
+    assert under["substitution"]["reason"] == "policy"
+    assert under["skipped"] == [{"method": "loco.profile_cycle", "missing": ["swap.view:side"]}]
+    assert d["aspects"]["locomotion"]["default"] == "loco.legged_cycle"  # the policy-free answer stays
+    text = format_description(d, policy_label="south_park")
+    assert "under south_park: loco.bounce (policy)" in text and "skipped loco.profile_cycle" in text
+    d = describe_profile(LEGS, aspects=("locomotion",), policy={"locomotion": ["shuffle"]})
+    assert "under the policy: loco.shuffle (policy; needs limbs.legs)" in format_description(d)
+    # a declared gait outranks the policy (today's rule), as the compiler does
+    d = describe_profile(LEGS, aspects=("locomotion",), declared={"gait": "legs"}, policy={"locomotion": ["bounce"]})
+    assert d["aspects"]["locomotion"]["under_policy"]["method"] == "loco.legged_cycle"

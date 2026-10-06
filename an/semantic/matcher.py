@@ -58,12 +58,24 @@ from an.semantic.registry import entry as _entry
 from an.semantic.registry import lookup, methods_of
 
 __all__ = [
+    "DECLARED_OUTRANKS_POLICY",
     "Missing",
     "Resolution",
     "applicable",
     "resolve",
     "why_not",
 ]
+
+
+#: Does an asset's DECLARED method (a character's ``gait`` or ``speech``, the
+#: field its aspect names in ``Aspect.declared_by``) outrank a policy? ``True``
+#: (today's rule): the declaration is the request, so a character keeps its
+#: personality across styles, and one it cannot honour is a ``missing``
+#: substitution. ``False`` (ADR 0002 read the other way): the declaration is
+#: the LAST entry of the policy's order, so a style looks like itself and the
+#: declaration is its fallback. The maintainer's decision is cutan#36; this
+#: flag is the whole switch, for :func:`resolve` and every caller of it.
+DECLARED_OUTRANKS_POLICY: bool = True
 
 
 @dataclass(frozen=True)
@@ -86,7 +98,9 @@ class Resolution:
     (``None`` when it did not); ``considered`` is the trail of methods tried
     before it, each with what it was missing; ``skipped`` the policy's entries
     among them (a policy is an order: an entry that does not apply is passed
-    over, information for whoever records the choice, never a substitution).
+    over, information for whoever records the choice, never a substitution);
+    ``choice`` the request or policy entry that was chosen, as written (its own
+    ``args``, without the method's defaults), ``None`` for a chain link.
     """
 
     aspect: str
@@ -96,6 +110,7 @@ class Resolution:
     substitution: Substitution | None = None
     considered: tuple[tuple[str, tuple[str, ...]], ...] = ()
     skipped: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    choice: Choice | None = None
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -172,6 +187,7 @@ def resolve(
     subjects: ProfileLike,
     requested: Method | Choice | str | Mapping[str, Any] | None = None,
     *,
+    declared: Method | Choice | str | Mapping[str, Any] | None = None,
     policy: Policy | Mapping[str, Any] | None = None,
     entity: str = "",
     entity_kind: str | None = None,
@@ -180,6 +196,9 @@ def resolve(
 
     ``requested`` is the author's explicit choice (a method id, its spelling
     in the aspect — ``"hem"`` for locomotion —, or ``{method, args, version}``);
+    ``declared`` the asset's own declaration for the aspect (the field
+    ``Aspect.declared_by`` names), placed by :data:`DECLARED_OUTRANKS_POLICY`
+    (the request when nothing was requested, or the policy's last entry);
     ``policy`` the layered shot/style policy; ``entity_kind`` the asset's kind,
     checked against the aspect's ``applies_to``. Never raises for a method that
     does not apply: it falls back and records why.
@@ -197,6 +216,12 @@ def resolve(
         )
     asked = _as_choice(requested, aspect_name)
     policy_choices = Policy.of(policy).choices(aspect_name)
+    own = _as_choice(declared, aspect_name) if asked is None else None
+    if own is not None:
+        if DECLARED_OUTRANKS_POLICY:
+            asked = own
+        else:
+            policy_choices = (*policy_choices, own)
     considered: list[tuple[str, tuple[str, ...]]] = []
     skipped: list[tuple[str, tuple[str, ...]]] = []
 
@@ -263,7 +288,14 @@ def resolve(
                 remedies={t: head.remedies.get(t) or remedy_for(t) for t in gaps},
             )
         return Resolution(
-            aspect_name, m, args, source, sub, tuple(considered), tuple(skipped)
+            aspect_name,
+            m,
+            args,
+            source,
+            sub,
+            tuple(considered),
+            tuple(skipped),
+            choice,
         )
 
     if asked is not None:

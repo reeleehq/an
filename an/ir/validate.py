@@ -1283,6 +1283,7 @@ def validate_semantic(
     available_environments: Mapping[str, Any] | None = None,
     available_sounds: Mapping[str, Any] | None = None,
     available_library_lock: Mapping[str, Any] | None = None,
+    available_styles: Mapping[str, Any] | None = None,
     only: "Collection[str] | None" = None,
     fps: float | None = None,
 ) -> ValidationReport:
@@ -1300,6 +1301,10 @@ def validate_semantic(
     skipping them is what it sounds like: a `play` or a swap the compiler
     will refuse passes silently without the store (the CLI, `an validate`,
     always passes it).
+
+    ``available_styles`` is the project's ``styles`` store: a check reads the
+    StylePack the scene names (``meta.style_pack``) from ``ctx.stores["styles"]``
+    (a style's ``policy``, an#348).
 
     ``available_library_lock`` is the project's asset-library lockfile
     (``mall["library_lock"]``): with it, every scene ``library:`` pin is checked
@@ -1328,6 +1333,7 @@ def validate_semantic(
                 ("characters", available_characters),
                 ("props", available_props),
                 ("environments", available_environments),
+                ("styles", available_styles),
             )
             if store is not None
         },

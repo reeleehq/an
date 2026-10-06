@@ -916,6 +916,7 @@ def _actions_pass(state: CompileState) -> None:
         step_hz=state.step_hz,
         default_easing=state.default_easing,
         entity_swaps=state.entity_swaps,
+        products=state.products,
     )
 
 
@@ -2253,17 +2254,27 @@ class ActionLowering(Protocol):
     Registered as :attr:`an.genres.ActionKind.lowering`. The stage knows no
     kind by name beyond its own (``tween``, ``set``); a genre's kind supplies:
 
-    - ``extent_resolver(vocab)``: ``action -> seconds`` for a leaf that names no
-      duration (or ``None``);
-    - ``expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)``:
-      the flat list with this kind's leaves replaced by what they stand for;
+    - ``extent_resolver(vocab, *, products)``: ``action -> seconds`` for a leaf
+      that names no duration (or ``None``);
+    - ``expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions,
+      products)``: the flat list with this kind's leaves replaced by what they
+      stand for.
+
+    ``products`` is the shot's :attr:`CompileState.products` (an#348): what a
+    genre's earlier compile pass left for later work, by key (a style's
+    policy, which decides a walk's gait and so its length). Read it; the
+    lowering has no other view of the compile state.
+
+    And, per kind:
     - ``view_of(entity_swaps, vocab, *, duration)``: ``flat -> view name | None``
       (or ``None``), for kinds whose clips depend on the view in force;
     - ``clip(action, *, anim_id, vocab, fps, view)``: the animation clip of one
       leaf that survived ``expand``.
     """
 
-    def extent_resolver(self, vocab: Any) -> Callable[[Any], float] | None: ...
+    def extent_resolver(
+        self, vocab: Any, *, products: Mapping[str, Any]
+    ) -> Callable[[Any], float] | None: ...
 
     def expand(self, flat_list: list, **kw: Any) -> list: ...
 
@@ -2300,12 +2311,15 @@ def _compile_actions(
     step_hz: float | None = None,
     default_easing: Any = None,
     entity_swaps: list["_EntitySwap"] | None = None,
+    products: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, AnimationClipJSON], list[TrackJSON]]:
     """Flatten authoring actions and convert to animation clips.
 
     A ``set`` of a swap set on the ENTITY ITSELF fans out to every slot the
     set projects onto (:func:`_fan_out_entity_swaps`, an#197); each such swap
     is appended to ``entity_swaps`` when given, for the pose layer.
+    ``products`` (the compile passes' products, an#348) reach every genre
+    lowering's ``extent_resolver`` and ``expand``.
 
     A ``play`` of a MOTION PRESET is replaced by the tweens and settling sets
     it stands for before anything else looks (the ``play`` lowering's ``expand``,
@@ -2342,8 +2356,16 @@ def _compile_actions(
     # A duration-less play advances a `sequence` by its NATURAL length, read
     # through the entity's descriptor: the resolver `an validate` uses too.
     lowerings = _lowerings()
+    products = products if products is not None else {}
     extent = next(
-        (r for r in (low.extent_resolver(vocab) for low in lowerings) if r), None
+        (
+            r
+            for r in (
+                low.extent_resolver(vocab, products=products) for low in lowerings
+            )
+            if r
+        ),
+        None,
     )
     for action in actions:
         flat_list.extend(flatten(action, play_extent=extent))
@@ -2362,6 +2384,7 @@ def _compile_actions(
             step_hz=step_hz,
             default_easing=default_easing,
             resolutions=resolutions,
+            products=products,
         )
     # AFTER the tint expansion, like the swap dispatch: a `tint` set on a
     # character root is a colour, not a whole-character swap (an#197 review).
