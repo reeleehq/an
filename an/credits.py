@@ -948,9 +948,9 @@ def factory_recorded(
         bytes from the recipe the descriptor records (the genre's
         :data:`FACTORY_REDRAW_SERVICE`). The bytes the replay draws at
         ``path`` equal ``digest`` only if the factory draws exactly them, so
-        a recipe cannot vouch for carved or hand-drawn bytes. The replay,
-        being the factory's drawing code, records what it draws on this
-        machine, so it runs once.
+        a recipe cannot vouch for carved or hand-drawn bytes. The replay is
+        the factory's own drawing code (memoised per recipe by the genre), and
+        records what it draws on this machine as any drawing does.
     """
     from an.library.registry import generated_by
 

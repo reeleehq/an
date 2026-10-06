@@ -722,6 +722,10 @@ def test_a_file_swapped_in_while_the_factory_runs_is_not_recorded(tmp_path, monk
     monkeypatch.setattr(factory, "stamp_factory_parts", swap_then_stamp)
     # no views or gaze: the one stamping call is the last step, after every draw
     char = new_character(tmp_path, name="amy", use_dicebear=False, views=False, gaze=False).parent
+    # The swap happened during THAT run; the factory itself is unchanged. Since
+    # an#292 a publish may re-derive the factory's bytes by replaying its recipe,
+    # and the replay must run the real factory, not this run's sabotage.
+    monkeypatch.setattr(factory, "stamp_factory_parts", original)
     assert registry.generated_by(library_api.content_hash(CARVED)) == frozenset()
     assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
     # the parts it did write are still its own

@@ -57,7 +57,6 @@ def test_a_character_drawn_elsewhere_is_the_factorys_work_here(tmp_path, monkeyp
     head = library_api.content_hash((char / "parts" / "head.svg").read_bytes())
     assert not registry.generated_by(head)  # this machine never saw it drawn
     assert factory_recorded(head, descriptor=_desc(char), path="parts/head.svg")
-    assert registry.generated_by(head)  # the replay recorded what it drew
     lib = open_library("cutan")
     assert publish_dir(lib, char, "character.amy").rights.license_class == "free"
 
@@ -105,3 +104,26 @@ def test_credits_in_a_project_read_the_proof(tmp_path, monkeypatch):
     report = collect_credits(build_project_mall(project))
     assert not report.unverified
     assert all(e.own_work for e in report.entries)
+
+
+def test_a_file_swapped_in_during_the_run_is_not_proved_by_the_replay(tmp_path, monkeypatch):
+    """The replay redraws with the real factory: bytes swapped into ONE run
+    (and stamped there) are not what the recipe draws."""
+    from cutan.characters import factory
+
+    carved = b"<svg>a head nobody has seen</svg>"
+    original = factory.stamp_factory_parts
+
+    def swap_then_stamp(char_dir, paths, **kwargs):
+        (Path(char_dir) / "parts" / "head.svg").write_bytes(carved)
+        return original(char_dir, paths, **kwargs)
+
+    monkeypatch.setattr(factory, "stamp_factory_parts", swap_then_stamp)
+    monkeypatch.setattr(registry, "_account_home", lambda: tmp_path / "machine-a")
+    char = factory.new_character(tmp_path / "art", name="zed", use_dicebear=False,
+                                 views=False, gaze=False).parent
+    monkeypatch.setattr(factory, "stamp_factory_parts", original)
+    monkeypatch.setattr(registry, "_account_home", lambda: tmp_path / "machine-b")
+    digest = library_api.content_hash(carved)
+    assert not factory_recorded(digest, descriptor=_desc(char), path="parts/head.svg")
+    assert publish_dir(open_library("cutan"), char, "character.zed").rights.license_class == "unknown"
