@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=31b0162a"></script>
+    <script src="../../../_static/documentation_options.js?v=95c89233"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.184" />
+  <meta name="docsearch:version" content="0.1.185" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1656,7 +1656,9 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_check_unique_paths</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">overlay</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_unique_paths</span><span class="p">(</span>
+    <span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">overlay</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">dupes</span> <span class="o">=</span> <span class="n">duplicate_paths</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">overlay</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dupes</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
@@ -2200,7 +2202,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">atoms</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"entity"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">in_front</span><span class="p">:</span>
-        <span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="s2">"plane"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">scope</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+        <span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">"plane"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">scope</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span>
+        <span class="p">)</span>
     <span class="n">placed</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">atoms</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span><span class="p">}</span>
     <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">:</span>
@@ -3104,7 +3108,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
         <span class="n">TrackJSON</span><span class="p">(</span>
             <span class="n">target_root</span><span class="o">=</span><span class="s2">"__parallax__"</span><span class="p">,</span>
-            <span class="n">clips</span><span class="o">=</span><span class="p">[</span><span class="n">PlacedClipJSON</span><span class="p">(</span><span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)],</span>
+            <span class="n">clips</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">PlacedClipJSON</span><span class="p">(</span><span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+            <span class="p">],</span>
         <span class="p">)</span>
     <span class="p">)</span>
 
