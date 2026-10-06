@@ -296,7 +296,12 @@ _DIALOGUE_MOD_RE = re.compile(
 #: ``Dialogue`` fields that ``scene.md`` spells ONLY through registered sugar
 #: (``maya [happy]: …``). The field is core in v1 (ADR 0001 "stays awkward");
 #: its spelling is the genre's.
-_SUGAR_ONLY_FIELDS: tuple[str, ...] = ("emotion",)
+_SUGAR_ONLY_FIELDS: tuple[str, ...] = ("emotion", "emotion_intensity")
+
+
+def _sugar_fills(sugar, field_name: str) -> bool:
+    """Whether ``sugar`` spells ``field_name`` (its own field, or one it declares)."""
+    return field_name == sugar.field or field_name in sugar.fields
 
 
 def _sugar_providers(field_name: str) -> tuple[str, ...]:
@@ -304,7 +309,7 @@ def _sugar_providers(field_name: str) -> tuple[str, ...]:
     from an.genres import genres_declaring
 
     return genres_declaring(
-        lambda g: any(sugar.field == field_name for sugar in g.dialogue_sugar)
+        lambda g: any(_sugar_fills(sugar, field_name) for sugar in g.dialogue_sugar)
     )
 
 
@@ -379,12 +384,12 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
             if sugar is None:
                 raise refuse(_unregistered_sugar_message("[", content))
             try:
-                value = sugar.parse(content)
+                values = sugar.values(content)
             except ValueError as e:
                 raise refuse(str(e)) from None
             if sugar.field in kwargs:
                 raise refuse(f"names two {sugar.name}s")
-            kwargs[sugar.field] = value
+            kwargs.update(values)
             continue
         timing = _DIALOGUE_TIMING_RE.match(mod.group("paren"))
         if not timing:
@@ -411,8 +416,9 @@ def _format_dialogue_line(line: Dialogue) -> str:
         if content:
             head += f" {sugar.opener}{content}{sugar.closer}"
     for field_name in _SUGAR_ONLY_FIELDS:
-        if getattr(line, field_name, None) and not any(
-            s.field == field_name for s in dialogue_sugars()
+        # `is not None` but not empty: an intensity of 0 is a value to keep
+        if getattr(line, field_name, None) not in (None, "") and not any(
+            _sugar_fills(s, field_name) for s in dialogue_sugars()
         ):
             # Writing the line without it would drop it from scene.md, and
             # the next md edit would drop it from the JSON: refuse instead.

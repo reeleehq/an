@@ -33,6 +33,7 @@ import pytest
 import an.genres as genres
 from an.genres import (
     ActionKind,
+    DialogueSugar,
     EntityKind,
     Genre,
     RegistryError,
@@ -769,3 +770,45 @@ def test_value_typed_is_a_reserved_space_name():
 
     with pytest.raises(SpaceError, match="reserved"):
         register_space(PropertySpace("value-typed"))
+
+
+def test_a_dialogue_sugar_can_carry_a_typed_parameter():
+    """an#253: one bracket, two fields — `[angry 0.4]` sets the emotion and its
+    intensity. A sugar names the extra fields it may set; anything else is
+    refused, and the writer round-trips them."""
+    from an.ir.schema import Dialogue
+    from an.ir.sync import _format_dialogue_line, _parse_dialogue_line
+
+    def parse(content):
+        name, _, level = content.strip().partition(" ")
+        out = {"emotion": name}
+        if level:
+            out["emotion_intensity"] = float(level)
+        return out
+
+    def fmt(line):
+        if not line.emotion:
+            return None
+        if line.emotion_intensity is None:
+            return line.emotion
+        return f"{line.emotion} {line.emotion_intensity:g}"
+
+    sugar = DialogueSugar("demo_emotion", "[", "emotion", parse=parse, format=fmt,
+                          fields=("emotion_intensity",))
+    with without_genres():
+        register_genre(Genre("demo_sugar", dialogue_sugar=(sugar,)))
+        line = _parse_dialogue_line("maya [angry 0.4]: Fine.", where="t")
+        assert (line.emotion, line.emotion_intensity) == ("angry", 0.4)
+        assert _format_dialogue_line(line) == "maya [angry 0.4]: Fine."
+        assert _parse_dialogue_line("maya [happy]: Hi.", where="t").emotion_intensity is None
+        assert "emotion_intensity" not in Dialogue(speaker="m", text="x").model_dump(mode="json")
+        with pytest.raises(ValueError):
+            Dialogue(speaker="m", text="x", emotion="angry", emotion_intensity=1.5)
+    bad = DialogueSugar("demo_bad", "[", "emotion", parse=lambda c: {"voice_ref": c},
+                        format=lambda line: None, fields=("emotion_intensity",))
+    with pytest.raises(RegistryError, match="does not declare"):
+        bad.values("x")
+    # with no genre spelling it, a line carrying an intensity cannot be written
+    with without_genres():
+        with pytest.raises(UnregisteredKindError):
+            _format_dialogue_line(Dialogue(speaker="m", text="x", emotion_intensity=0.4))

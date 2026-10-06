@@ -20,7 +20,7 @@ False
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -221,12 +221,18 @@ DIALOGUE_BRACKETS: dict[str, str] = {"[": "]"}
 
 @dataclass(frozen=True)
 class DialogueSugar:
-    """``scene.md`` sugar on a dialogue line: one bracket pair, one ``Dialogue`` field.
+    """``scene.md`` sugar on a dialogue line: one bracket pair, one ``Dialogue`` field
+    (and, declared in ``fields``, the parameters it may carry).
 
     ``parse(content) -> value`` turns what is between the brackets into the
     field's value (raise ``ValueError(why)`` to refuse it); ``format(line) ->
     str | None`` is the inverse (the content, without brackets, or ``None`` when
     the line carries none). The cut-out genre's ``[emotion]`` is one.
+
+    A sugar that also sets other ``Dialogue`` fields (``[angry 0.4]``: the
+    emotion and its ``emotion_intensity``, an#253) names them in ``fields``;
+    its ``parse`` then returns ``{field name: value}`` over ``field`` and any
+    of ``fields``, and ``format`` writes them back.
     """
 
     name: str
@@ -235,6 +241,26 @@ class DialogueSugar:
     parse: Callable[[str], Any]
     format: Callable[[Any], str | None]
     description: str = ""
+    fields: tuple[str, ...] = ()
+
+    def values(self, content: str) -> dict[str, Any]:
+        """``{Dialogue field: value}`` for the bracket ``content`` (``parse``,
+        checked against what the sugar declares)."""
+        value = self.parse(content)
+        if not self.fields:
+            return {self.field: value}
+        if not isinstance(value, Mapping):
+            raise RegistryError(
+                f"dialogue sugar {self.name!r} declares fields {list(self.fields)}, "
+                f"so its parse must return a mapping, got {type(value).__name__}"
+            )
+        unknown = set(value) - {self.field, *self.fields}
+        if unknown:
+            raise RegistryError(
+                f"dialogue sugar {self.name!r} set {sorted(unknown)}, which it does "
+                f"not declare (fields: {[self.field, *self.fields]})"
+            )
+        return dict(value)
 
     def __post_init__(self) -> None:
         if self.opener not in DIALOGUE_BRACKETS:
