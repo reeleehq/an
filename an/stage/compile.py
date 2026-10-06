@@ -885,17 +885,8 @@ def _scene_pass(state: CompileState) -> None:
                 style_pack.grain, width=width, height=height, textures=state.textures
             ),
         )
-    # The vocabulary sees the overlay too: its nodes are indexed by the
-    # runtime under their own paths (`title/word_0`), exactly like the scene's,
-    # so an authored tween on one is checked like any other target.
+    _rebuild_vocabulary(state)
     scene_root = state.scene_root
-    state.vocab = _swap_vocabulary(
-        NodeJSON(name="root", children=scene_root.children + overlay_children)
-        if overlay_children
-        else scene_root,
-        shot,
-        state.mall,
-    )
     _check_text_unit_targets(shot, state.fonts, state.vocab)
     clash = {n.name for n in overlay_children} & {n.name for n in scene_root.children}
     if clash:
@@ -903,6 +894,32 @@ def _scene_pass(state: CompileState) -> None:
             f"overlay and scene both build a node named {sorted(clash)}; the "
             "runtime indexes both layers by path, so one would shadow the other"
         )
+
+
+def _rebuild_vocabulary(state: CompileState) -> None:
+    """The swap vocabulary of the scene as built so far (a pass that rebuilds a
+    node, the ``counters`` pass, asks again).
+
+    It sees the overlay too: its nodes are indexed by the runtime under their
+    own paths (`title/word_0`), exactly like the scene's, so an authored tween
+    on one is checked like any other target.
+    """
+    scene_root, overlay_children = state.scene_root, state.overlay_children
+    state.vocab = _swap_vocabulary(
+        NodeJSON(name="root", children=scene_root.children + overlay_children)
+        if overlay_children
+        else scene_root,
+        state.shot,
+        state.mall,
+    )
+
+
+def _counters_pass(state: CompileState) -> None:
+    """Counter text blocks (an#342): their ``value`` channel, lowered to a
+    replacement set of the strings the frames show (:mod:`an.stage.counters`)."""
+    from an.stage.counters import lower_counters
+
+    lower_counters(state)
 
 
 def _actions_pass(state: CompileState) -> None:
@@ -986,6 +1003,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         _scene_pass,
         order=100,
         description="the scene tree, overlay, grain, vocabulary",
+    ),
+    CompilePass(
+        "counters",
+        _counters_pass,
+        order=195,
+        description="counter text blocks: `value` -> a set of strings (an#342)",
     ),
     CompilePass(
         "actions", _actions_pass, order=200, description="authored actions -> clips"
@@ -3207,6 +3230,16 @@ def _value_at(
     return float(value)
 
 
+def _value_hint(prop: str) -> str:
+    """For a refused ``value``: the only place the core lowers one (an#342)."""
+    if prop != "value":
+        return ""
+    return (
+        " `value` is a counter text block's number: give the text document a "
+        "`counter` (with `unit: block`) and target the block."
+    )
+
+
 def _check_swap_action(
     flat: FlatAction,
     *,
@@ -3258,7 +3291,7 @@ def _check_swap_action(
                 f"action targets {target!r}:{prop!r}, which is not a transform "
                 f"property, and {entity_id!r} declares no asset sets (no "
                 "descriptor, and no built node carries a set). Transform "
-                f"properties are: {sorted(TRANSFORM_PROPERTIES)}."
+                f"properties are: {sorted(TRANSFORM_PROPERTIES)}." + _value_hint(prop)
             )
 
     if prop not in declared_sets:
@@ -3266,7 +3299,7 @@ def _check_swap_action(
             f"action targets {target!r}:{prop!r}, but {entity_id!r}'s "
             f"descriptor declares no asset set named {prop!r} (it has: "
             f"{sorted(declared_sets)}). A property that is not a transform "
-            "must name a declared swap set."
+            "must name a declared swap set." + _value_hint(prop)
         )
     for v in values:
         if not isinstance(v, str) or v not in declared_sets[prop]:

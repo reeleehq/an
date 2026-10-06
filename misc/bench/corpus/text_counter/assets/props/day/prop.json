@@ -1,0 +1,13 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "day",
+  "unit": "block",
+  "counter": {
+    "format": "{d}",
+    "start": 1
+  },
+  "align": "right",
+  "size": 0.3,
+  "color": "#1c1c1c"
+}

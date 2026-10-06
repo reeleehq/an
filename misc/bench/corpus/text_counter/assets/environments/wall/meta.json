@@ -1,0 +1,50 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "EnvironmentDescriptor",
+  "name": "wall",
+  "planes": [
+    {
+      "name": "bg",
+      "art": {
+        "kind": "fill",
+        "color": "#c9b79c",
+        "src": null
+      },
+      "depth": 0.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": null,
+      "fit": "contain"
+    },
+    {
+      "name": "page",
+      "art": {
+        "kind": "fill",
+        "color": "#fbf7ee",
+        "src": null
+      },
+      "depth": 0.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        140.0,
+        150.0
+      ],
+      "fit": "contain"
+    }
+  ]
+}

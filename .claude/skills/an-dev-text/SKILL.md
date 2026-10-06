@@ -22,6 +22,13 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) �
 - validate's `_check_swap_references` asks the kind's hook when there is no rig document (`_declared_swap_sets`); `_check_text_blocks` typesets EVERY key, so a glyph only one key uses is reported.
 - Runtime: nothing new. A `text` value is a `discrete` string under `stage.node`'s `*`; `applySwap` + `applyKeyGeometry` draw it.
 
+## A counter (an#342)
+
+- `counter: {format, start}` + `unit: block`. `format` is `an/formats.py`'s d3-format subset; rounding is half-even on the float's exact value (Python's formatting), NOT d3's ties-away — a JS reproduction must match it.
+- `value` is block-scoped and never in `AUTHORABLE_PROPERTIES` (that set is skipped by validate's field-kind check; a global `value` would un-validate every genre's own). `_check_text_blocks` owns `value` on text blocks; swap and field-kind checks defer; elsewhere the undeclared-set refusal carries `_value_hint`.
+- The stage pass `counters` (order 195) must stay after every pass that adds `extra_actions` and immediately before `actions`; `tests/test_text_counter.py` and `tests/test_compile_passes.py` pin it. It samples through `_compile_actions` + the kernel evaluator (never a second interpolation), gives a from-less tween an explicit `from` (the compiler's own from-less rule ignores a set at the same instant), rebuilds the block as a `texts` set and swaps leaves for `delay`s of their length.
+- Not built: tabular figures (an#362, tituli#4); the embedded face's digits are already equal-width.
+
 ## Silent failures this prevents — keep each one refused
 
 1. **A fallback face.** `tituli.resolve_face` NEVER fails: a font path that is missing or unparseable silently becomes Aileron. So `_font_request` checks the file exists AND `layout_text` checks the face tituli used came from that file (`face.path == request`). Remove either and a scene renders in the wrong face with no signal. Tested: missing file, non-font bytes.

@@ -353,10 +353,16 @@ def _check_text_blocks(
                 f"{problem} — compiling this shot raises",
             )
         built[entity.id] = {f"{entity.id}/{u.name}" for u in lay.units}
+    counters = counter_block_ids(shot, stores)
     for k, action in enumerate(shot.actions):
         for flat in flatten(action):
             target = getattr(flat.action, "target", "") or ""
             root = target.split("/", 1)[0]
+            if getattr(flat.action, "property", None) == "value" and root in text_ids:
+                _check_counter_value(
+                    flat.action, root, counters, f"{path}/actions/{k}", report
+                )
+                continue
             if "/" in target and root in built and target not in built[root]:
                 report.add(
                     "error",
@@ -365,6 +371,50 @@ def _check_text_blocks(
                     f"{sorted(built[root])}) — compiling this shot raises.",
                 )
     return text_ids
+
+
+def counter_block_ids(shot, stores: Mapping[str, Any]) -> frozenset[str]:
+    """The ids of ``shot``'s counter text blocks (an#342): the only targets a
+    ``value`` is authored on in the core. Empty without the props store."""
+    props = stores.get("props") if stores else None
+    if props is None:
+        return frozenset()
+    from an.stage.counters import counter_blocks
+
+    return frozenset(counter_blocks(shot, props))
+
+
+def _check_counter_value(action, root: str, counters, where: str, report) -> None:
+    """``value`` on a text block: a number, on a counter block's entity or its
+    ``block_0`` — what the compiler's ``counters`` pass lowers."""
+    if root not in counters:
+        report.add(
+            "error",
+            where,
+            f"`value` is a counter block's number, and text block {root!r} "
+            f"declares no `counter` (counter blocks in this shot: "
+            f"{sorted(counters) or 'none'}) — compiling this shot raises.",
+        )
+        return
+    if action.target not in (root, f"{root}/block_0"):
+        report.add(
+            "error",
+            where,
+            f"`value` targets {action.target!r}; a counter's number is set on "
+            f"the block ({root!r} or '{root}/block_0') — compiling this shot raises.",
+        )
+    for v in (
+        getattr(action, "value", None),
+        getattr(action, "from_value", None),
+        getattr(action, "to_value", None),
+    ):
+        if v is not None and (isinstance(v, bool) or not isinstance(v, (int, float))):
+            report.add(
+                "error",
+                where,
+                f"counter {root!r}: `value` is a number, got {v!r} — compiling "
+                "this shot raises.",
+            )
 
 
 def _check_trim_targets(
@@ -458,6 +508,17 @@ def _declared_swap_sets(entity, stores: Mapping[str, Any], *, cache: dict) -> An
     return cache[entity.id]
 
 
+def _value_hint(prop: str, shot, stores: Mapping[str, Any]) -> str:
+    """For a refused ``value``: where the core accepts one (an#342)."""
+    if prop != "value":
+        return ""
+    counters = counter_block_ids(shot, stores)
+    return (
+        " `value` is a counter text block's number (counter blocks in this "
+        f"shot: {sorted(counters) or 'none'})."
+    )
+
+
 def _report_undeclared_swap(
     action, prop: str, declared: Mapping, entity_id: str, where: str, report
 ) -> None:
@@ -487,7 +548,12 @@ def _report_undeclared_swap(
 
 
 def _check_swap_references(
-    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+    shot,
+    path: str,
+    report: "ValidationReport",
+    stores: Mapping[str, Any],
+    *,
+    text_blocks: frozenset[str] = frozenset(),
 ) -> None:
     """A set/tween on a non-transform property must name a declared asset set
     and key of its target entity's descriptor — checked HERE, before the
@@ -526,6 +592,8 @@ def _check_swap_references(
         entity_id = target.split("/", 1)[0]
         if entity_id in unchecked:
             continue
+        if prop == "value" and entity_id in text_blocks:
+            continue  # a text block's `value`: `_check_text_blocks` owns it (an#342)
         entity = rigs.get(entity_id)
         desc = _rig_document(entity, stores) if entity is not None else None
         registered = entity_kind(entity.kind) if entity is not None else None
@@ -557,7 +625,8 @@ def _check_swap_references(
                     f"property {prop!r} is not a transform, and "
                     f"{entity_id!r} has no descriptor declaring asset sets — "
                     "compiling this shot raises. Procedural rigs support "
-                    f"exactly {sorted(_PROCEDURAL_SWAP_SETS)} on their mouth.",
+                    f"exactly {sorted(_PROCEDURAL_SWAP_SETS)} on their mouth."
+                    + _value_hint(prop, shot, stores),
                 )
             continue
         declared = desc.get("asset_sets") or {}
@@ -568,7 +637,8 @@ def _check_swap_references(
                 f"property {prop!r} names no declared asset set of "
                 f"{entity_id!r} (it has: {sorted(declared)}) — compiling "
                 "this shot raises."
-                + (swap_checks.missing_set_hint(prop) if swap_checks else ""),
+                + (swap_checks.missing_set_hint(prop) if swap_checks else "")
+                + _value_hint(prop, shot, stores),
             )
             continue
         keys = declared.get(prop) or {}
@@ -1570,7 +1640,16 @@ def _core_framing(ctx: ValidationContext) -> None:
 
 
 def _core_swap_references(ctx: ValidationContext) -> None:
-    _check_swap_references(ctx.shot, ctx.path, ctx.report, ctx.stores)
+    _check_swap_references(
+        ctx.shot, ctx.path, ctx.report, ctx.stores, text_blocks=frozenset(_text_ids(ctx))
+    )
+
+
+def _counter_ids(ctx: ValidationContext) -> frozenset[str]:
+    """The current shot's counter text blocks (an#342), asked once."""
+    return ctx.cached(
+        ("counter ids", ctx.index), lambda: counter_block_ids(ctx.shot, ctx.stores)
+    )
 
 
 def _core_trim_targets(ctx: ValidationContext) -> None:
@@ -1623,6 +1702,7 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
     shot = ctx.shot
     space_of = entity_space_resolver(shot.entities)
     kinds = {e.id: e.kind for e in shot.entities}
+    counters = _counter_ids(ctx)
     for k, top in enumerate(shot.actions):
         for flat in flatten(top):
             leaf = flat.action
@@ -1631,6 +1711,8 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
             prop = leaf.property
             if prop in _AUTHORING_SUGAR_PROPERTIES:
                 continue  # expanded by the compiler before any channel exists
+            if prop == "value" and leaf.target.split("/", 1)[0] in counters:
+                continue  # a counter's number, lowered to `text` keys (an#342)
             owner = kinds.get(leaf.target.split("/", 1)[0])
             registered = entity_kind(owner) if owner is not None else None
             if owner is not None and (registered is None or registered.space is None):

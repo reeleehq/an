@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T11:10:21Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1216,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "d0fb8167f6cd0e8edff2983ccc1619c2f3d615097b8abf3e6fdfbb4adc5fe439",
+      "shot_id": "calendar",
+      "time": 0.0
+    },
+    {
+      "bytes": 2689,
+      "file": "f0012-chromium140.0.7339.16.png",
+      "frame_key": "f0012",
+      "index": 12,
+      "local_index": 12,
+      "sha256": "211f665a6e5ba7c7f16a8de85d93c212bfabbe3287f0002cb1d36a77b3b46aeb",
+      "shot_id": "calendar",
+      "time": 0.5
+    }
+  ],
+  "git": {
+    "branch": "text-counter-t2",
+    "dirty": true,
+    "sha": "8366d83020d5c8d2b0d35200c849197ece71ccb5"
+  },
+  "reason": "new core scene (an#342): a counter block counting 1 to 30, lowered at compile",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "text_counter",
+  "scene_contract_sha256": "79806bcb2a8bcf62581ac4096f4e565b686c002c3d0734f1c0fb3f91f8b9361c",
+  "shot_ids": [
+    "calendar"
+  ],
+  "source": "misc/bench/corpus/text_counter",
+  "what_moves": "a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned `counter: {format: '{d}', start: 1}` under one linear `tween day value -> 30` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."
+}
