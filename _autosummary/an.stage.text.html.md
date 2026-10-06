@@ -57,11 +57,13 @@ recorded in the compiled document.
 
 ### Module Attributes
 
-| [`TEXT_DOCUMENT_KIND`](#an.stage.text.TEXT_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).   |
-|-----------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_TEXT_SIZE`](#an.stage.text.DFLT_TEXT_SIZE)       | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                |
-| [`DFLT_TEXT_COLOUR`](#an.stage.text.DFLT_TEXT_COLOUR)     | Ink when the document names none — a near-black that reads on the default white background.                                                 |
-| [`RESERVED_TEXT_IDS`](#an.stage.text.RESERVED_TEXT_IDS)    | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                    |
+| [`TEXT_DOCUMENT_KIND`](#an.stage.text.TEXT_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).                        |
+|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_TEXT_SIZE`](#an.stage.text.DFLT_TEXT_SIZE)       | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                                     |
+| [`DFLT_TEXT_COLOUR`](#an.stage.text.DFLT_TEXT_COLOUR)     | Ink when the document names none — a near-black that reads on the default white background.                                                                      |
+| [`RESERVED_TEXT_IDS`](#an.stage.text.RESERVED_TEXT_IDS)    | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                                         |
+| [`BLOCK_UNIT`](#an.stage.text.BLOCK_UNIT)           | The unit that typesets the whole string as ONE node, `block_0` (an#341): what a replacement set swaps, since per-word units of different strings do not line up. |
+| [`TEXT_SET`](#an.stage.text.TEXT_SET)             | The swap set a text block with `texts` declares (an#341).                                                                                                        |
 
 ### Functions
 
@@ -71,6 +73,8 @@ recorded in the compiled document.
 | [`text_entity_problem`](#an.stage.text.text_entity_problem)(entity, desc)                 | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
 | [`layout_text`](#an.stage.text.layout_text)(desc, \*, width, height[, base_dir])  | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
 | [`unit_names`](#an.stage.text.unit_names)(desc, \*, width, height[, base_dir])   | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
+| [`layout_text_set`](#an.stage.text.layout_text_set)(desc, \*, width, height[, ...])   | Every string of a block's replacement set, set once: `{key: layout}`.                                                                                                                                                                                                                     |
+| [`text_set_keys`](#an.stage.text.text_set_keys)(desc)                               | `{key: key}` for a block's replacement set — the `text` set as a swap declaration states it (`{}` for a single-string block).                                                                                                                                                             |
 | [`reveal_units`](#an.stage.text.reveal_units)(entity_id, count, property, \*, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
 
 ### Classes
@@ -78,7 +82,7 @@ recorded in the compiled document.
 | [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                   |
 |------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
 | [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.     |
-| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font)               | A placed block: its units, its reference point, and the face that set it. |
+| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it. |
 | [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                     |
 
 ### Exceptions
@@ -86,6 +90,12 @@ recorded in the compiled document.
 | [`TextFontError`](#an.stage.text.TextFontError)   | A text block's font cannot be used: not a file, not a font, or not the face the typesetter actually used.   |
 |------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [`TextLayoutError`](#an.stage.text.TextLayoutError) | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
+
+### an.stage.text.BLOCK_UNIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'block'*
+
+The unit that typesets the whole string as ONE node, `block_0` (an#341):
+what a replacement set swaps, since per-word units of different strings do
+not line up.
 
 ### an.stage.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
@@ -137,6 +147,10 @@ camera’s node in the runtime’s index and take the push-in with it.
 Its own versioned document kind, registered from the module that owns the
 schema (the rule `PathDescriptor` and `PropDescriptor` follow).
 
+### an.stage.text.TEXT_SET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'text'*
+
+The swap set a text block with `texts` declares (an#341).
+
 ### *class* an.stage.text.TextDescriptor(\*\*data)
 
 Bases: `BaseModel`
@@ -169,6 +183,10 @@ on the node origin (the frame centre, or `stage.at`).
 
 `#rrggbb`.
 
+#### *property* content *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The string the block draws at rest.
+
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
@@ -181,13 +199,36 @@ Wrap width as a fraction of frame WIDTH; `None` = break only at newlines.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### rest *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the first key.
+
+* **Type:**
+  The key drawn when nothing has been set; default
+
+#### *property* rest_key *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The key a block with `texts` shows at rest (`rest`, else the
+first key); `None` for a single-string block.
+
 #### size *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Fraction of frame height.
 
-#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-The words. Explicit newlines break lines; `max_width` wraps.
+The words. Explicit newlines break lines; `max_width` wraps. Exactly
+one of `text` and `texts` is given.
+
+#### texts *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`{key: string}`, every string one drawing
+of the block, swapped by `set <id> text <key>` — replacement animation
+applied to text. Keys obey the swap-key rules (no `/`, no `::`).
+Requires `unit="block"`.
+
+* **Type:**
+  A replacement set (an#341)
 
 #### tracking *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -197,9 +238,10 @@ tracked string one run per glyph, so a word unit would not exist.
 * **Type:**
   Extra advance per glyph, in em. Only with `unit="glyph"`
 
-#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line']*
+#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line', 'block']*
 
-a word, a glyph, or a whole line.
+a word, a glyph, a whole line, or the
+whole block (`block_0`, one node however many lines).
 
 * **Type:**
   What one addressable node is
@@ -212,7 +254,7 @@ A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
 a fallback face is a different picture wearing the right one’s clothes.
 
-### *class* an.stage.text.TextLayout(units, origin, font)
+### *class* an.stage.text.TextLayout(units, origin, font, bounds=(0.0, 0.0, 0.0, 0.0))
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -221,6 +263,15 @@ A placed block: its units, its reference point, and the face that set it.
 `origin` is the block’s reference point in frame pixels — the frame
 centre, or its title-safe anchor position — which is where the block’s own
 node sits; each unit’s node is placed relative to it.
+
+#### bounds *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.0, 0.0, 0.0, 0.0)*
+
+advances
+and line heights, not ink, so two strings of one face share a baseline
+and their `align` edges can be lined up (an#341).
+
+* **Type:**
+  The block’s LAYOUT box `(x0, y0, x1, y1)` in frame pixels
 
 ### *exception* an.stage.text.TextLayoutError
 
@@ -262,7 +313,8 @@ directory (which would make the picture depend on where you ran it).
 Set `desc` on a `width` x `height` frame and take each unit’s contours.
 
 `base_dir` is what a relative `font` path resolves against — the text
-document’s own directory in the props store.
+document’s own directory in the props store. A block with `texts` is set
+with its rest string ([`layout_text_set()`](#an.stage.text.layout_text_set) sets every one).
 
 * **Return type:**
   [`TextLayout`](#an.stage.text.TextLayout)
@@ -275,6 +327,26 @@ document’s own directory in the props store.
 (960.0, 540.0)
 >>> lay.font.family, lay.font.embedded
 ('Aileron', True)
+>>> [u.name for u in layout_text(TextDescriptor(name="t", text="two\nlines", unit="block"), width=1920, height=1080).units]
+['block_0']
+```
+
+### an.stage.text.layout_text_set(desc, , width, height, base_dir=None)
+
+Every string of a block’s replacement set, set once: `{key: layout}`.
+
+Each is set exactly as a single-string block would be, so each is centred
+(or anchored) on its own; lining their `align` edges up is the
+builder’s job ([`an.stage.text_layout.build_text_subtree()`](an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)). A block
+with no `texts` returns `{}`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](#an.stage.text.TextLayout)]
+
+```pycon
+>>> lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)
+>>> sorted(lays), [lay.units[0].name for lay in lays.values()]
+(['a', 'b'], ['block_0', 'block_0'])
 ```
 
 ### an.stage.text.resolve_text(document, overrides=None)
@@ -335,6 +407,19 @@ raises) and by `an validate` (which reports) so the two agree:
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stage.text.text_set_keys(desc)
+
+`{key: key}` for a block’s replacement set — the `text` set as a
+swap declaration states it (`{}` for a single-string block).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))
+{'a': 'a', 'b': 'b'}
+```
 
 ### an.stage.text.unit_names(desc, , width, height, base_dir=None)
 

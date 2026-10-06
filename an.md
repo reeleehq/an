@@ -1,4 +1,4 @@
-> built 2026-10-06 11:01 UTC from 024f11f (main) · an 0.1.170. Details: build_info.json
+> built 2026-10-06 11:29 UTC from 8ef53d8 (main) · an 0.1.171. Details: build_info.json
 
 # index.html.md
 
@@ -5678,7 +5678,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'stage_pan', 'text_card', 'transitions']
+['path_draw', 'stage_pan', 'text_card', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5726,7 +5726,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5945,7 +5945,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -24877,7 +24877,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -24886,7 +24886,9 @@ What [`resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve) chose: 
 `source` is `request`, `policy`, `chain` or `noop`;
 `substitution` is the record when the choice departs from what was asked
 (`None` when it did not); `considered` is the trail of methods tried
-before it, each with what it was missing.
+before it, each with what it was missing; `skipped` the policy’s entries
+among them (a policy is an order: an entry that does not apply is passed
+over, information for whoever records the choice, never a substitution).
 
 ### *exception* an.semantic.UnknownEntryError
 
@@ -25045,8 +25047,11 @@ the methods the vocabulary registry holds for an aspect.
   applicable choice of the policy (shot before style, `Policy.layered()`);
   else the aspect’s default chain. Every departure from what was asked is a
   [`Substitution`](_autosummary/an.capabilities.html.md#an.capabilities.Substitution) on the result: `missing` when what
-  > was asked does not apply, `policy` when a policy chose against the chain
-  > (information, never fatal), `noop` when the aspect does not apply at all.
+  > the author asked does not apply, `policy` when a policy chose against the
+  > chain (information, never fatal), `noop` when the aspect does not apply at
+  > all. A policy is an order, not a request: its entries passed over on the way
+  > to its first applicable one are listed in `Resolution.skipped`, never
+  > recorded as a `missing` substitution (an#334).
 
 ```pycon
 >>> from an.semantic.entries import Aspect, Method
@@ -25083,7 +25088,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -25092,7 +25097,9 @@ What [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.
 `source` is `request`, `policy`, `chain` or `noop`;
 `substitution` is the record when the choice departs from what was asked
 (`None` when it did not); `considered` is the trail of methods tried
-before it, each with what it was missing.
+before it, each with what it was missing; `skipped` the policy’s entries
+among them (a policy is an order: an entry that does not apply is passed
+over, information for whoever records the choice, never a substitution).
 
 ### an.semantic.matcher.applicable(aspect_name, subjects)
 
@@ -29540,11 +29547,13 @@ recorded in the compiled document.
 
 ### Module Attributes
 
-| [`TEXT_DOCUMENT_KIND`](_autosummary/an.stage.text.html.md#an.stage.text.TEXT_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).   |
-|-----------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_TEXT_SIZE`](_autosummary/an.stage.text.html.md#an.stage.text.DFLT_TEXT_SIZE)       | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                |
-| [`DFLT_TEXT_COLOUR`](_autosummary/an.stage.text.html.md#an.stage.text.DFLT_TEXT_COLOUR)     | Ink when the document names none — a near-black that reads on the default white background.                                                 |
-| [`RESERVED_TEXT_IDS`](_autosummary/an.stage.text.html.md#an.stage.text.RESERVED_TEXT_IDS)    | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                    |
+| [`TEXT_DOCUMENT_KIND`](_autosummary/an.stage.text.html.md#an.stage.text.TEXT_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).                        |
+|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_TEXT_SIZE`](_autosummary/an.stage.text.html.md#an.stage.text.DFLT_TEXT_SIZE)       | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                                     |
+| [`DFLT_TEXT_COLOUR`](_autosummary/an.stage.text.html.md#an.stage.text.DFLT_TEXT_COLOUR)     | Ink when the document names none — a near-black that reads on the default white background.                                                                      |
+| [`RESERVED_TEXT_IDS`](_autosummary/an.stage.text.html.md#an.stage.text.RESERVED_TEXT_IDS)    | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                                         |
+| [`BLOCK_UNIT`](_autosummary/an.stage.text.html.md#an.stage.text.BLOCK_UNIT)           | The unit that typesets the whole string as ONE node, `block_0` (an#341): what a replacement set swaps, since per-word units of different strings do not line up. |
+| [`TEXT_SET`](_autosummary/an.stage.text.html.md#an.stage.text.TEXT_SET)             | The swap set a text block with `texts` declares (an#341).                                                                                                        |
 
 ### Functions
 
@@ -29554,6 +29563,8 @@ recorded in the compiled document.
 | [`text_entity_problem`](_autosummary/an.stage.text.html.md#an.stage.text.text_entity_problem)(entity, desc)                 | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
 | [`layout_text`](_autosummary/an.stage.text.html.md#an.stage.text.layout_text)(desc, \*, width, height[, base_dir])  | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
 | [`unit_names`](_autosummary/an.stage.text.html.md#an.stage.text.unit_names)(desc, \*, width, height[, base_dir])   | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
+| [`layout_text_set`](_autosummary/an.stage.text.html.md#an.stage.text.layout_text_set)(desc, \*, width, height[, ...])   | Every string of a block's replacement set, set once: `{key: layout}`.                                                                                                                                                                                                                     |
+| [`text_set_keys`](_autosummary/an.stage.text.html.md#an.stage.text.text_set_keys)(desc)                               | `{key: key}` for a block's replacement set — the `text` set as a swap declaration states it (`{}` for a single-string block).                                                                                                                                                             |
 | [`reveal_units`](_autosummary/an.stage.text.html.md#an.stage.text.reveal_units)(entity_id, count, property, \*, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
 
 ### Classes
@@ -29561,7 +29572,7 @@ recorded in the compiled document.
 | [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                   |
 |------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
 | [`TextUnit`](_autosummary/an.stage.text.html.md#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.     |
-| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font)               | A placed block: its units, its reference point, and the face that set it. |
+| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it. |
 | [`FontIdentity`](_autosummary/an.stage.text.html.md#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                     |
 
 ### Exceptions
@@ -29569,6 +29580,12 @@ recorded in the compiled document.
 | [`TextFontError`](_autosummary/an.stage.text.html.md#an.stage.text.TextFontError)   | A text block's font cannot be used: not a file, not a font, or not the face the typesetter actually used.   |
 |------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [`TextLayoutError`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayoutError) | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
+
+### an.stage.text.BLOCK_UNIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'block'*
+
+The unit that typesets the whole string as ONE node, `block_0` (an#341):
+what a replacement set swaps, since per-word units of different strings do
+not line up.
 
 ### an.stage.text.DFLT_TEXT_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
 
@@ -29620,6 +29637,10 @@ camera’s node in the runtime’s index and take the push-in with it.
 Its own versioned document kind, registered from the module that owns the
 schema (the rule `PathDescriptor` and `PropDescriptor` follow).
 
+### an.stage.text.TEXT_SET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'text'*
+
+The swap set a text block with `texts` declares (an#341).
+
 ### *class* an.stage.text.TextDescriptor(\*\*data)
 
 Bases: `BaseModel`
@@ -29652,6 +29673,10 @@ on the node origin (the frame centre, or `stage.at`).
 
 `#rrggbb`.
 
+#### *property* content *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The string the block draws at rest.
+
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
@@ -29664,13 +29689,36 @@ Wrap width as a fraction of frame WIDTH; `None` = break only at newlines.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### rest *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the first key.
+
+* **Type:**
+  The key drawn when nothing has been set; default
+
+#### *property* rest_key *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The key a block with `texts` shows at rest (`rest`, else the
+first key); `None` for a single-string block.
+
 #### size *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Fraction of frame height.
 
-#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+#### text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-The words. Explicit newlines break lines; `max_width` wraps.
+The words. Explicit newlines break lines; `max_width` wraps. Exactly
+one of `text` and `texts` is given.
+
+#### texts *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`{key: string}`, every string one drawing
+of the block, swapped by `set <id> text <key>` — replacement animation
+applied to text. Keys obey the swap-key rules (no `/`, no `::`).
+Requires `unit="block"`.
+
+* **Type:**
+  A replacement set (an#341)
 
 #### tracking *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -29680,9 +29728,10 @@ tracked string one run per glyph, so a word unit would not exist.
 * **Type:**
   Extra advance per glyph, in em. Only with `unit="glyph"`
 
-#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line']*
+#### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line', 'block']*
 
-a word, a glyph, or a whole line.
+a word, a glyph, a whole line, or the
+whole block (`block_0`, one node however many lines).
 
 * **Type:**
   What one addressable node is
@@ -29695,7 +29744,7 @@ A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
 a fallback face is a different picture wearing the right one’s clothes.
 
-### *class* an.stage.text.TextLayout(units, origin, font)
+### *class* an.stage.text.TextLayout(units, origin, font, bounds=(0.0, 0.0, 0.0, 0.0))
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -29704,6 +29753,15 @@ A placed block: its units, its reference point, and the face that set it.
 `origin` is the block’s reference point in frame pixels — the frame
 centre, or its title-safe anchor position — which is where the block’s own
 node sits; each unit’s node is placed relative to it.
+
+#### bounds *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.0, 0.0, 0.0, 0.0)*
+
+advances
+and line heights, not ink, so two strings of one face share a baseline
+and their `align` edges can be lined up (an#341).
+
+* **Type:**
+  The block’s LAYOUT box `(x0, y0, x1, y1)` in frame pixels
 
 ### *exception* an.stage.text.TextLayoutError
 
@@ -29745,7 +29803,8 @@ directory (which would make the picture depend on where you ran it).
 Set `desc` on a `width` x `height` frame and take each unit’s contours.
 
 `base_dir` is what a relative `font` path resolves against — the text
-document’s own directory in the props store.
+document’s own directory in the props store. A block with `texts` is set
+with its rest string ([`layout_text_set()`](_autosummary/an.stage.text.html.md#an.stage.text.layout_text_set) sets every one).
 
 * **Return type:**
   [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)
@@ -29758,6 +29817,26 @@ document’s own directory in the props store.
 (960.0, 540.0)
 >>> lay.font.family, lay.font.embedded
 ('Aileron', True)
+>>> [u.name for u in layout_text(TextDescriptor(name="t", text="two\nlines", unit="block"), width=1920, height=1080).units]
+['block_0']
+```
+
+### an.stage.text.layout_text_set(desc, , width, height, base_dir=None)
+
+Every string of a block’s replacement set, set once: `{key: layout}`.
+
+Each is set exactly as a single-string block would be, so each is centred
+(or anchored) on its own; lining their `align` edges up is the
+builder’s job ([`an.stage.text_layout.build_text_subtree()`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)). A block
+with no `texts` returns `{}`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)]
+
+```pycon
+>>> lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)
+>>> sorted(lays), [lay.units[0].name for lay in lays.values()]
+(['a', 'b'], ['block_0', 'block_0'])
 ```
 
 ### an.stage.text.resolve_text(document, overrides=None)
@@ -29819,6 +29898,19 @@ raises) and by `an validate` (which reports) so the two agree:
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
+### an.stage.text.text_set_keys(desc)
+
+`{key: key}` for a block’s replacement set — the `text` set as a
+swap declaration states it (`{}` for a single-string block).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))
+{'a': 'a', 'b': 'b'}
+```
+
 ### an.stage.text.unit_names(desc, , width, height, base_dir=None)
 
 The node names a block builds — what `<id>/<name>` targets may address.
@@ -29846,7 +29938,11 @@ unit’s contours. So:
   the scene contract hash covers the glyphs themselves, so a different face
   moves it;
 - each unit node sits at its box centre with the sprite anchored at 0.5, so a
-  `scale_x`/`scale_y` pop or a `rotation` pivots about the unit’s middle.
+  `scale_x`/`scale_y` pop or a `rotation` pivots about the unit’s middle;
+- a block with a replacement set (`texts`, an#341) is one `block_0` node
+  whose visual carries a `text` swap set, one texture per string and a box
+  per string on the `align` edge — replacement animation, which the runtime
+  already draws (`applySwap`).
 
 **Crispness.** The SVG declares `TEXT_TEXTURE_OVERSAMPLE` x its box as its
 intrinsic size, and the sprite is fitted back into the box (`fit="contain"`),
@@ -29864,11 +29960,12 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 
 ### Functions
 
-| [`build_text_subtree`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)   | The block's node and its unit children, plus what it resolved to.                               |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| [`svg_data_uri`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.svg_data_uri)(svg)                               | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix. |
-| [`text_document`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                      |
-| [`unit_svg`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                     |
+| [`build_text_subtree`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)   | The block's node and its unit children, plus what it resolved to.                                                                                                                               |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`svg_data_uri`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.svg_data_uri)(svg)                               | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix.                                                                                                 |
+| [`text_document`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                                                                                                                      |
+| [`text_swap_declaration`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.text_swap_declaration)(entity, mall)             | The core `prop` kind's swap declaration (an#341): a text block with `texts` declares its `text` set, `{key: key}`; any other prop declares nothing (its built nodes' sets are its declaration). |
+| [`unit_svg`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                                                                                                                     |
 
 ### an.stage.text_layout.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
@@ -29912,6 +30009,22 @@ The stored document behind a prop entity if it is a text block, else None.
 
 * **Return type:**
   [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.stage.text_layout.text_swap_declaration(entity, mall)
+
+The core `prop` kind’s swap declaration (an#341): a text block with
+`texts` declares its `text` set, `{key: key}`; any other prop
+declares nothing (its built nodes’ sets are its declaration).
+
+Through [`an.genres.EntityKind.swap_declaration`](_autosummary/an.genres.html.md#an.genres.EntityKind.swap_declaration), so the compiler’s
+swap vocabulary, its swap checks and `an validate` learn the set the way
+they learn a rig’s. `descriptor` stays `None`: the text block has no
+lowering, and a descriptor is what a genre’s passes read as a rig. A
+document that does not resolve declares nothing here; the builder raises
+on it, naming why.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.text_layout.unit_svg(d, box, , color)
 
@@ -35213,7 +35326,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 11:01 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/024f11fc1bba46e5999e8a05df9d33ed43c12c03"><code>024f11f</code></a> on branch <code>main</code>, for **an 0.1.170** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 11:29 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8ef53d8c2f8ebb856839d1b6db7f54db3cb36d89"><code>8ef53d8</code></a> on branch <code>main</code>, for **an 0.1.171** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -35222,9 +35335,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/024f11fc1bba46e5999e8a05df9d33ed43c12c03"><code>024f11fc1bba46e5999e8a05df9d33ed43c12c03</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/8ef53d8c2f8ebb856839d1b6db7f54db3cb36d89"><code>8ef53d8c2f8ebb856839d1b6db7f54db3cb36d89</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.170</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.171</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -35233,9 +35346,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37452993335">37452993335</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37456100998">37456100998</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>ff737badd07c40f4cc9a848e55b3209e87c8ea4d</code> (in the history of the built commit) |
+| Event commit | <code>8dad7b3f8ada0f0be6fd7c13df4cd0713af0ac98</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -35260,13 +35373,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.170/">0.1.170</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.171/">0.1.171</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 024f11fc1bba46e5999e8a05df9d33ed43c12c03
+git checkout 8ef53d8c2f8ebb856839d1b6db7f54db3cb36d89
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

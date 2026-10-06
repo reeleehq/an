@@ -12,6 +12,8 @@ an.stage.text
       DFLT_TEXT_SIZE
       DFLT_TEXT_COLOUR
       RESERVED_TEXT_IDS
+      BLOCK_UNIT
+      TEXT_SET
    
    .. rubric:: Functions
 
@@ -22,6 +24,8 @@ an.stage.text
       text_entity_problem
       layout_text
       unit_names
+      layout_text_set
+      text_set_keys
       reveal_units
    
    .. rubric:: Classes

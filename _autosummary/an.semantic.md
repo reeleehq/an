@@ -215,7 +215,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -224,7 +224,9 @@ What [`resolve()`](#an.semantic.resolve) chose: the method, its args, where the 
 `source` is `request`, `policy`, `chain` or `noop`;
 `substitution` is the record when the choice departs from what was asked
 (`None` when it did not); `considered` is the trail of methods tried
-before it, each with what it was missing.
+before it, each with what it was missing; `skipped` the policy’s entries
+among them (a policy is an order: an entry that does not apply is passed
+over, information for whoever records the choice, never a substitution).
 
 ### *exception* an.semantic.UnknownEntryError
 

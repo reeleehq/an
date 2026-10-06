@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.text" href="an.stage.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -608,7 +608,11 @@ an#155); text reaches the frame path as SVG art, exactly as rig parts do;</p></l
 the scene contract hash covers the glyphs themselves, so a different face
 moves it;</p></li>
 <li><p>each unit node sits at its box centre with the sprite anchored at 0.5, so a
-<code class="docutils literal notranslate"><span class="pre">scale_x</span></code>/<code class="docutils literal notranslate"><span class="pre">scale_y</span></code> pop or a <code class="docutils literal notranslate"><span class="pre">rotation</span></code> pivots about the unit’s middle.</p></li>
+<code class="docutils literal notranslate"><span class="pre">scale_x</span></code>/<code class="docutils literal notranslate"><span class="pre">scale_y</span></code> pop or a <code class="docutils literal notranslate"><span class="pre">rotation</span></code> pivots about the unit’s middle;</p></li>
+<li><p>a block with a replacement set (<code class="docutils literal notranslate"><span class="pre">texts</span></code>, an#341) is one <code class="docutils literal notranslate"><span class="pre">block_0</span></code> node
+whose visual carries a <code class="docutils literal notranslate"><span class="pre">text</span></code> swap set, one texture per string and a box
+per string on the <code class="docutils literal notranslate"><span class="pre">align</span></code> edge — replacement animation, which the runtime
+already draws (<code class="docutils literal notranslate"><span class="pre">applySwap</span></code>).</p></li>
 </ul>
 <p><strong>Crispness.</strong> The SVG declares <code class="docutils literal notranslate"><span class="pre">TEXT_TEXTURE_OVERSAMPLE</span></code> x its box as its
 intrinsic size, and the sprite is fitted back into the box (<code class="docutils literal notranslate"><span class="pre">fit=&quot;contain&quot;</span></code>),
@@ -645,7 +649,10 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.text_document" title="an.stage.text_layout.text_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_document</span></code></a>(entity, props_store)</p></td>
 <td><p>The stored document behind a prop entity if it is a text block, else None.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.text_swap_declaration" title="an.stage.text_layout.text_swap_declaration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_swap_declaration</span></code></a>(entity, mall)</p></td>
+<td><p>The core <code class="docutils literal notranslate"><span class="pre">prop</span></code> kind's swap declaration (an#341): a text block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> declares its <code class="docutils literal notranslate"><span class="pre">text</span></code> set, <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code>; any other prop declares nothing (its built nodes' sets are its declaration).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color)</p></td>
 <td><p>One unit's texture: its contours in a viewBox equal to its frame-pixel box.</p></td>
 </tr>
 </tbody>
@@ -709,6 +716,25 @@ loader recognises by prefix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.text_layout.text_swap_declaration">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">text_swap_declaration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#text_swap_declaration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.text_swap_declaration" title="Link to this definition">#</a></dt>
+<dd><p>The core <code class="docutils literal notranslate"><span class="pre">prop</span></code> kind’s swap declaration (an#341): a text block with
+<code class="docutils literal notranslate"><span class="pre">texts</span></code> declares its <code class="docutils literal notranslate"><span class="pre">text</span></code> set, <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code>; any other prop
+declares nothing (its built nodes’ sets are its declaration).</p>
+<p>Through <a class="reference internal" href="an.genres.html#an.genres.EntityKind.swap_declaration" title="an.genres.EntityKind.swap_declaration"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.EntityKind.swap_declaration</span></code></a>, so the compiler’s
+swap vocabulary, its swap checks and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> learn the set the way
+they learn a rig’s. <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> stays <code class="docutils literal notranslate"><span class="pre">None</span></code>: the text block has no
+lowering, and a descriptor is what a genre’s passes read as a rig. A
+document that does not resolve declares nothing here; the builder raises
+on it, naming why.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -784,6 +810,7 @@ loader recognises by prefix.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.build_text_subtree"><code class="docutils literal notranslate"><span class="pre">build_text_subtree()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.svg_data_uri"><code class="docutils literal notranslate"><span class="pre">svg_data_uri()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.text_document"><code class="docutils literal notranslate"><span class="pre">text_document()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.text_swap_declaration"><code class="docutils literal notranslate"><span class="pre">text_swap_declaration()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.unit_svg"><code class="docutils literal notranslate"><span class="pre">unit_svg()</span></code></a></li>
 </ul>
   </nav></div>

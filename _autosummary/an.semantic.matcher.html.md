@@ -13,8 +13,11 @@ the methods the vocabulary registry holds for an aspect.
   applicable choice of the policy (shot before style, `Policy.layered()`);
   else the aspect’s default chain. Every departure from what was asked is a
   [`Substitution`](an.capabilities.html.md#an.capabilities.Substitution) on the result: `missing` when what
-  > was asked does not apply, `policy` when a policy chose against the chain
-  > (information, never fatal), `noop` when the aspect does not apply at all.
+  > the author asked does not apply, `policy` when a policy chose against the
+  > chain (information, never fatal), `noop` when the aspect does not apply at
+  > all. A policy is an order, not a request: its entries passed over on the way
+  > to its first applicable one are listed in `Resolution.skipped`, never
+  > recorded as a `missing` substitution (an#334).
 
 ```pycon
 >>> from an.semantic.entries import Aspect, Method
@@ -51,7 +54,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=())
+### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -60,7 +63,9 @@ What [`resolve()`](#an.semantic.matcher.resolve) chose: the method, its args, wh
 `source` is `request`, `policy`, `chain` or `noop`;
 `substitution` is the record when the choice departs from what was asked
 (`None` when it did not); `considered` is the trail of methods tried
-before it, each with what it was missing.
+before it, each with what it was missing; `skipped` the policy’s entries
+among them (a policy is an order: an entry that does not apply is passed
+over, information for whoever records the choice, never a substitution).
 
 ### an.semantic.matcher.applicable(aspect_name, subjects)
 

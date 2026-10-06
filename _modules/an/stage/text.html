@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../../../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -797,6 +797,10 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"RESERVED_TEXT_IDS"</span><span class="p">,</span>
     <span class="s2">"layout_text"</span><span class="p">,</span>
     <span class="s2">"unit_names"</span><span class="p">,</span>
+    <span class="s2">"layout_text_set"</span><span class="p">,</span>
+    <span class="s2">"text_set_keys"</span><span class="p">,</span>
+    <span class="s2">"TEXT_SET"</span><span class="p">,</span>
+    <span class="s2">"BLOCK_UNIT"</span><span class="p">,</span>
     <span class="s2">"reveal_units"</span><span class="p">,</span>
     <span class="s2">"DFLT_TEXT_COLOUR"</span><span class="p">,</span>
     <span class="s2">"DFLT_TEXT_SIZE"</span><span class="p">,</span>
@@ -849,7 +853,15 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_HEX_COLOUR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">Layer</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"world"</span><span class="p">,</span> <span class="s2">"overlay"</span><span class="p">]</span>
-<span class="n">Unit</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"word"</span><span class="p">,</span> <span class="s2">"glyph"</span><span class="p">,</span> <span class="s2">"line"</span><span class="p">]</span>
+<span class="n">Unit</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"word"</span><span class="p">,</span> <span class="s2">"glyph"</span><span class="p">,</span> <span class="s2">"line"</span><span class="p">,</span> <span class="s2">"block"</span><span class="p">]</span>
+
+<span class="c1">#: The unit that typesets the whole string as ONE node, ``block_0`` (an#341):</span>
+<span class="c1">#: what a replacement set swaps, since per-word units of different strings do</span>
+<span class="c1">#: not line up.</span>
+<span class="n">BLOCK_UNIT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"block"</span>
+
+<span class="c1">#: The swap set a text block with ``texts`` declares (an#341).</span>
+<span class="n">TEXT_SET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"text"</span>
 
 
 <div class="viewcode-block" id="TextFontError">
@@ -890,10 +902,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"TextDescriptor"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"TextDescriptor"</span>
     <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">TEXT_SCHEMA_VERSION</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="c1">#: The words. Explicit newlines break lines; ``max_width`` wraps.</span>
-    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#: The words. Explicit newlines break lines; ``max_width`` wraps. Exactly</span>
+    <span class="c1">#: one of ``text`` and ``texts`` is given.</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#: A replacement set (an#341): ``{key: string}``, every string one drawing</span>
+    <span class="c1">#: of the block, swapped by ``set &lt;id&gt; text &lt;key&gt;`` — replacement animation</span>
+    <span class="c1">#: applied to text. Keys obey the swap-key rules (no ``/``, no ``::``).</span>
+    <span class="c1">#: Requires ``unit="block"``.</span>
+    <span class="n">texts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The key drawn when nothing has been set; default: the first key.</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">layer</span><span class="p">:</span> <span class="n">Layer</span> <span class="o">=</span> <span class="s2">"world"</span>
-    <span class="c1">#: What one addressable node is: a word, a glyph, or a whole line.</span>
+    <span class="c1">#: What one addressable node is: a word, a glyph, a whole line, or the</span>
+    <span class="c1">#: whole block (``block_0``, one node however many lines).</span>
     <span class="n">unit</span><span class="p">:</span> <span class="n">Unit</span> <span class="o">=</span> <span class="s2">"word"</span>
     <span class="c1">#: Fraction of frame height.</span>
     <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_TEXT_SIZE</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -933,12 +954,71 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_something_to_draw</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"`text` is only whitespace, so it would draw nothing"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span>
 
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"texts"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_a_set_of_drawings</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">texts</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">texts</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">texts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"`texts` is empty, so the block would draw nothing"</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">bad</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">bad</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"`texts` key </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> cannot be a swap key"</span>
+                    <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" (it contains </span><span class="si">{</span><span class="n">bad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2">, which is reserved)"</span> <span class="k">if</span> <span class="n">bad</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"`texts[</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">]` is only whitespace, so it would draw nothing"</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">texts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rest_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The key a block with ``texts`` shows at rest (``rest``, else the</span>
+<span class="sd">        first key); ``None`` for a single-string block."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The string the block draws at rest."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rest_key</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span>
+
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_nothing_set_is_ignored</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TextDescriptor"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a text block draws `text` (one string) or `texts` (a "</span>
+                <span class="s2">"replacement set, an#341); "</span>
+                <span class="o">+</span> <span class="p">(</span><span class="s2">"both were given"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"neither was given"</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">!=</span> <span class="n">BLOCK_UNIT</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`texts` swaps the WHOLE string, so it needs unit='block' (one "</span>
+                <span class="sa">f</span><span class="s2">"node, `block_0`); got unit=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">!r}</span><span class="s2">. Per-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> units "</span>
+                <span class="s2">"of different strings do not line up, and a tween on one could "</span>
+                <span class="s2">"not say which string it meant."</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"`rest` names the key a replacement set shows at rest; it "</span>
+                    <span class="s2">"needs `texts`"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"`rest` is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="si">!r}</span><span class="s2">, which is not a key of `texts` "</span>
+                    <span class="sa">f</span><span class="s2">"(it has: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"overlay"</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1079,7 +1159,11 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">units</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">origin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="n">font</span><span class="p">:</span> <span class="n">FontIdentity</span></div>
+    <span class="n">font</span><span class="p">:</span> <span class="n">FontIdentity</span>
+    <span class="c1">#: The block's LAYOUT box ``(x0, y0, x1, y1)`` in frame pixels: advances</span>
+    <span class="c1">#: and line heights, not ink, so two strings of one face share a baseline</span>
+    <span class="c1">#: and their ``align`` edges can be lined up (an#341).</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
 
 
 
@@ -1119,7 +1203,8 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Set ``desc`` on a ``width`` x ``height`` frame and take each unit's contours.</span>
 
 <span class="sd">    ``base_dir`` is what a relative ``font`` path resolves against — the text</span>
-<span class="sd">    document's own directory in the props store.</span>
+<span class="sd">    document's own directory in the props store. A block with ``texts`` is set</span>
+<span class="sd">    with its rest string (:func:`layout_text_set` sets every one).</span>
 
 <span class="sd">    &gt;&gt;&gt; lay = layout_text(TextDescriptor(name="t", text="Hello big world"), width=1920, height=1080)</span>
 <span class="sd">    &gt;&gt;&gt; [u.name for u in lay.units]</span>
@@ -1128,7 +1213,63 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (960.0, 540.0)</span>
 <span class="sd">    &gt;&gt;&gt; lay.font.family, lay.font.embedded</span>
 <span class="sd">    ('Aileron', True)</span>
+<span class="sd">    &gt;&gt;&gt; [u.name for u in layout_text(TextDescriptor(name="t", text="two\\nlines", unit="block"), width=1920, height=1080).units]</span>
+<span class="sd">    ['block_0']</span>
 <span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_layout_string</span><span class="p">(</span>
+        <span class="n">desc</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="n">base_dir</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="text_set_keys">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.text_set_keys">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">text_set_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{key: key}`` for a block's replacement set — the ``text`` set as a</span>
+<span class="sd">    swap declaration states it (``{}`` for a single-string block).</span>
+
+<span class="sd">    &gt;&gt;&gt; text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))</span>
+<span class="sd">    {'a': 'a', 'b': 'b'}</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">texts</span> <span class="ow">or</span> <span class="p">{})}</span></div>
+
+
+
+<div class="viewcode-block" id="layout_text_set">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.layout_text_set">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">layout_text_set</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TextLayout</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every string of a block's replacement set, set once: ``{key: layout}``.</span>
+
+<span class="sd">    Each is set exactly as a single-string block would be, so each is centred</span>
+<span class="sd">    (or anchored) on its own; lining their ``align`` edges up is the</span>
+<span class="sd">    builder's job (:func:`an.stage.text_layout.build_text_subtree`). A block</span>
+<span class="sd">    with no ``texts`` returns ``{}``.</span>
+
+<span class="sd">    &gt;&gt;&gt; lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)</span>
+<span class="sd">    &gt;&gt;&gt; sorted(lays), [lay.units[0].name for lay in lays.values()]</span>
+<span class="sd">    (['a', 'b'], ['block_0', 'block_0'])</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">_layout_string</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="n">base_dir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">string</span> <span class="ow">in</span> <span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">texts</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_layout_string</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextLayout</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">TextStyle</span><span class="p">,</span>
         <span class="n">block</span><span class="p">,</span>
@@ -1148,10 +1289,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">align</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">align</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">max_w</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">max_width</span> <span class="o">*</span> <span class="n">width</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">max_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">text</span>
     <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">_WHITESPACE_NORMALISATION</span><span class="p">:</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
-    <span class="n">lay</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">max_width</span><span class="o">=</span><span class="n">max_w</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+    <span class="c1"># tituli sets lines; a block is its lines drawn as ONE unit (below).</span>
+    <span class="n">typeset_unit</span> <span class="o">=</span> <span class="s2">"line"</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">BLOCK_UNIT</span> <span class="k">else</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span>
+    <span class="n">lay</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">max_width</span><span class="o">=</span><span class="n">max_w</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">typeset_unit</span><span class="p">)</span>
     <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">runs</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> lays out to nothing drawable"</span><span class="p">)</span>
@@ -1174,8 +1316,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">dx</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">bb</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
     <span class="n">dy</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">bb</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
 
-    <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">translated</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">):</span>
+    <span class="n">inked</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># (run, outline) of every run with ink, in reading order</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">translated</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">outline</span> <span class="o">=</span> <span class="n">run_outline</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">MissingGlyphError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -1184,20 +1326,30 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"refuses a character the face cannot draw rather than drawing a "</span>
                 <span class="s2">"box; give a `font` file that has it, or change the words."</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
-        <span class="k">if</span> <span class="n">outline</span><span class="o">.</span><span class="n">bbox</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">box</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">bbox</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">outline</span><span class="o">.</span><span class="n">bbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inked</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">run</span><span class="p">,</span> <span class="n">outline</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">BLOCK_UNIT</span><span class="p">:</span>
+        <span class="c1"># One unit for the whole block: the lines' contours in one path, the</span>
+        <span class="c1"># union of their boxes (an#341).</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">inked</span><span class="p">]</span> <span class="k">if</span> <span class="n">inked</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="n">pair</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">inked</span><span class="p">]</span>
+    <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bbox</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">run</span><span class="p">,</span> <span class="n">outline</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">bbox</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
         <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">TextUnit</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="n">text</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">text</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">run</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">group</span><span class="p">),</span>
                 <span class="n">box</span><span class="o">=</span><span class="p">(</span>
                     <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">-</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
                     <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">y0</span><span class="p">)</span> <span class="o">-</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
                     <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
                     <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">+</span> <span class="n">UNIT_BOX_PAD_PX</span><span class="p">,</span>
                 <span class="p">),</span>
-                <span class="n">d</span><span class="o">=</span><span class="n">outline</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+                <span class="n">d</span><span class="o">=</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">d</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">outline</span> <span class="ow">in</span> <span class="n">group</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="n">identity</span> <span class="o">=</span> <span class="n">FontIdentity</span><span class="p">(</span>
@@ -1207,8 +1359,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">embedded</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layout_engine</span><span class="o">=</span><span class="n">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">),</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">TextLayout</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">units</span><span class="p">),</span> <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span></div>
-
+    <span class="k">return</span> <span class="n">TextLayout</span><span class="p">(</span>
+        <span class="n">units</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+        <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span>
+        <span class="n">font</span><span class="o">=</span><span class="n">identity</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">bb</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">dy</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">x1</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y1</span> <span class="o">+</span> <span class="n">dy</span><span class="p">),</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../../../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -725,7 +725,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  the scene contract hash covers the glyphs themselves, so a different face</span>
 <span class="sd">  moves it;</span>
 <span class="sd">- each unit node sits at its box centre with the sprite anchored at 0.5, so a</span>
-<span class="sd">  ``scale_x``/``scale_y`` pop or a ``rotation`` pivots about the unit's middle.</span>
+<span class="sd">  ``scale_x``/``scale_y`` pop or a ``rotation`` pivots about the unit's middle;</span>
+<span class="sd">- a block with a replacement set (``texts``, an#341) is one ``block_0`` node</span>
+<span class="sd">  whose visual carries a ``text`` swap set, one texture per string and a box</span>
+<span class="sd">  per string on the ``align`` edge — replacement animation, which the runtime</span>
+<span class="sd">  already draws (``applySwap``).</span>
 
 <span class="sd">**Crispness.** The SVG declares ``TEXT_TEXTURE_OVERSAMPLE`` x its box as its</span>
 <span class="sd">intrinsic size, and the sprite is fitted back into the box (``fit="contain"``),</span>
@@ -748,7 +752,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">TransformJSON</span><span class="p">,</span>
     <span class="n">VisualJSON</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">TextLayout</span><span class="p">,</span> <span class="n">layout_text</span><span class="p">,</span> <span class="n">resolve_text</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TEXT_SET</span><span class="p">,</span>
+    <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="n">TextLayout</span><span class="p">,</span>
+    <span class="n">TextUnit</span><span class="p">,</span>
+    <span class="n">layout_text</span><span class="p">,</span>
+    <span class="n">layout_text_set</span><span class="p">,</span>
+    <span class="n">resolve_text</span><span class="p">,</span>
+    <span class="n">text_set_keys</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1">#: Texels per scene pixel in a unit's texture. See the module docstring.</span>
 <span class="n">TEXT_TEXTURE_OVERSAMPLE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
@@ -810,6 +823,126 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="text_swap_declaration">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text_layout.html#an.stage.text_layout.text_swap_declaration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">text_swap_declaration</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core ``prop`` kind's swap declaration (an#341): a text block with</span>
+<span class="sd">    ``texts`` declares its ``text`` set, ``{key: key}``; any other prop</span>
+<span class="sd">    declares nothing (its built nodes' sets are its declaration).</span>
+
+<span class="sd">    Through :attr:`an.genres.EntityKind.swap_declaration`, so the compiler's</span>
+<span class="sd">    swap vocabulary, its swap checks and ``an validate`` learn the set the way</span>
+<span class="sd">    they learn a rig's. ``descriptor`` stays ``None``: the text block has no</span>
+<span class="sd">    lowering, and a descriptor is what a genre's passes read as a rig. A</span>
+<span class="sd">    document that does not resolve declares nothing here; the builder raises</span>
+<span class="sd">    on it, naming why.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">SwapDeclaration</span>
+
+    <span class="n">props</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">text_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span> <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">document</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">resolve_text</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">SwapDeclaration</span><span class="p">(</span><span class="n">sets</span><span class="o">=</span><span class="p">{</span><span class="n">TEXT_SET</span><span class="p">:</span> <span class="n">text_set_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">)})</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unit_texture</span><span class="p">(</span>
+    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="n">TextUnit</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Register one unit's texture and return its alias.</span>
+
+<span class="sd">    CONTENT-addressed: the alias changes whenever the glyphs do. A name-only</span>
+<span class="sd">    alias (`text.title.word_0`) survives an edit of the words, and the</span>
+<span class="sd">    runtime's loader ignores a re-added alias on hot reload, so `an preview`</span>
+<span class="sd">    would keep showing the old word — and two blocks sharing an id would</span>
+<span class="sd">    silently share one texture. Two keys of one set with one string share one</span>
+<span class="sd">    texture.</span>
+<span class="sd">    """</span>
+    <span class="n">src</span> <span class="o">=</span> <span class="n">svg_data_uri</span><span class="p">(</span><span class="n">unit_svg</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">unit</span><span class="o">.</span><span class="n">box</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">color</span><span class="p">))</span>
+    <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"ascii"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="n">TEXT_ALIAS_DIGEST_LEN</span><span class="p">]</span>
+    <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TEXT_TEXTURE_PREFIX</span><span class="si">}{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">unit</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">textures</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">AssetJSON</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">alias</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_align_offset</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">TextLayout</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">TextLayout</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How far ``other`` moves horizontally so its ``align`` edge sits on the</span>
+<span class="sd">    rest string's: a right-aligned counter grows leftwards, a left-aligned one</span>
+<span class="sd">    rightwards, a centred one both ways (an#341). Layout boxes, not ink, so</span>
+<span class="sd">    "1" and "11" share their right edge where their advances end."""</span>
+    <span class="p">(</span><span class="n">r0</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="p">(</span><span class="n">o0</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">o1</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">bounds</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">align</span> <span class="o">==</span> <span class="s2">"right"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">r1</span> <span class="o">-</span> <span class="n">o1</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">align</span> <span class="o">==</span> <span class="s2">"left"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">r0</span> <span class="o">-</span> <span class="n">o0</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">r0</span> <span class="o">+</span> <span class="n">r1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">o0</span> <span class="o">+</span> <span class="n">o1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_text_set_visual</span><span class="p">(</span>
+    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">TextLayout</span><span class="p">,</span>
+    <span class="n">layouts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TextLayout</span><span class="p">],</span>
+    <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisualJSON</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``block_0``'s visual for a replacement set: the rest key's sprite, the</span>
+<span class="sd">    ``text`` set naming every key's texture, and a box per key whose geometry</span>
+<span class="sd">    differs from the rest's, placed on the ``align`` edge."""</span>
+    <span class="p">(</span><span class="n">rest_unit</span><span class="p">,)</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">units</span>
+    <span class="n">rest_alias</span> <span class="o">=</span> <span class="n">_unit_texture</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">rest_unit</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">textures</span><span class="p">)</span>
+    <span class="n">rest_cx</span><span class="p">,</span> <span class="n">rest_cy</span> <span class="o">=</span> <span class="n">rest_unit</span><span class="o">.</span><span class="n">center</span>
+    <span class="n">built</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">rest_unit</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">rest_unit</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="s2">"anchor_x"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s2">"anchor_y"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">ry0</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">ry1</span><span class="p">)</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">bounds</span>
+    <span class="n">key_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">geometry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">layouts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="p">(</span><span class="n">unit</span><span class="p">,)</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">alias</span> <span class="o">=</span> <span class="n">_unit_texture</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">textures</span><span class="p">)</span>
+        <span class="n">key_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">alias</span>
+        <span class="k">if</span> <span class="n">alias</span> <span class="o">==</span> <span class="n">rest_alias</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">oy0</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">oy1</span><span class="p">)</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">bounds</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">center</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"width"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">),</span>
+            <span class="s2">"height"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">),</span>
+            <span class="s2">"anchor_x"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">"anchor_y"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">"x"</span><span class="p">:</span> <span class="n">cx</span> <span class="o">+</span> <span class="n">_align_offset</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">lay</span><span class="p">)</span> <span class="o">-</span> <span class="n">rest_cx</span><span class="p">,</span>
+            <span class="c1"># Vertically every key is centred where the rest string is, by</span>
+            <span class="c1"># layout box, so one-line keys share a baseline.</span>
+            <span class="s2">"y"</span><span class="p">:</span> <span class="n">cy</span> <span class="o">+</span> <span class="p">((</span><span class="n">ry0</span> <span class="o">+</span> <span class="n">ry1</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">oy0</span> <span class="o">+</span> <span class="n">oy1</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="n">rest_cy</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">box</span> <span class="o">!=</span> <span class="n">built</span><span class="p">:</span>  <span class="c1"># only keys drawn differently are listed (an#211)</span>
+            <span class="n">geometry</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">rest_unit</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">return</span> <span class="n">VisualJSON</span><span class="p">(</span>
+        <span class="n">kind</span><span class="o">=</span><span class="s2">"svg_sprite"</span><span class="p">,</span>
+        <span class="n">fit</span><span class="o">=</span><span class="s2">"contain"</span><span class="p">,</span>
+        <span class="n">asset_id</span><span class="o">=</span><span class="n">rest_alias</span><span class="p">,</span>
+        <span class="n">asset_sets</span><span class="o">=</span><span class="p">{</span><span class="n">TEXT_SET</span><span class="p">:</span> <span class="n">key_map</span><span class="p">},</span>
+        <span class="n">asset_geometry</span><span class="o">=</span><span class="n">geometry</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">),</span>
+        <span class="n">height</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">),</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="build_text_subtree">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text_layout.html#an.stage.text_layout.build_text_subtree">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_text_subtree</span><span class="p">(</span>
@@ -831,16 +964,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">lay</span> <span class="o">=</span> <span class="n">layout_text</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="n">base_dir</span><span class="p">)</span>
     <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">origin</span>
     <span class="n">children</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
-        <span class="n">src</span> <span class="o">=</span> <span class="n">svg_data_uri</span><span class="p">(</span><span class="n">unit_svg</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">unit</span><span class="o">.</span><span class="n">box</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">color</span><span class="p">))</span>
-        <span class="c1"># CONTENT-addressed: the alias changes whenever the glyphs do. A</span>
-        <span class="c1"># name-only alias (`text.title.word_0`) survives an edit of the words,</span>
-        <span class="c1"># and the runtime's loader ignores a re-added alias on hot reload, so</span>
-        <span class="c1"># `an preview` would keep showing the old word — and two blocks</span>
-        <span class="c1"># sharing an id would silently share one texture.</span>
-        <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"ascii"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="n">TEXT_ALIAS_DIGEST_LEN</span><span class="p">]</span>
-        <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TEXT_TEXTURE_PREFIX</span><span class="si">}{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">unit</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">textures</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">AssetJSON</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A replacement set (an#341): one `block_0` node drawing the rest</span>
+        <span class="c1"># string, swapping to any other key's drawing — a `discrete` string</span>
+        <span class="c1"># the runtime's `applySwap` already handles.</span>
+        <span class="n">layouts</span> <span class="o">=</span> <span class="n">layout_text_set</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="n">base_dir</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">unit</span><span class="p">,)</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">center</span>
+        <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">NodeJSON</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">unit</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cx</span> <span class="o">-</span> <span class="n">ox</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">cy</span> <span class="o">-</span> <span class="n">oy</span><span class="p">),</span>
+                <span class="n">visual</span><span class="o">=</span><span class="n">_text_set_visual</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">lay</span><span class="p">,</span> <span class="n">layouts</span><span class="p">,</span> <span class="n">textures</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">():</span>
+        <span class="n">alias</span> <span class="o">=</span> <span class="n">_unit_texture</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">textures</span><span class="p">)</span>
         <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">center</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">size</span>
         <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>

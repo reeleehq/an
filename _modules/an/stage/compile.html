@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../../../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1359,7 +1359,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">declared_maps</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">channel</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">decl</span><span class="o">.</span><span class="n">sets</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
-        <span class="n">descriptors</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">decl</span><span class="o">.</span><span class="n">descriptor</span>
+        <span class="c1"># Only a declaration that carries a descriptor puts one here: it is</span>
+        <span class="c1"># what a genre's lowering reads as a rig, and a text block's `text`</span>
+        <span class="c1"># set (an#341) has none.</span>
+        <span class="k">if</span> <span class="n">decl</span><span class="o">.</span><span class="n">descriptor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">descriptors</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">decl</span><span class="o">.</span><span class="n">descriptor</span>
         <span class="n">art_exists</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">decl</span><span class="o">.</span><span class="n">art_exists</span>
         <span class="n">entity_scale</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">decl</span><span class="o">.</span><span class="n">scale</span>
 
@@ -3801,8 +3805,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    the descriptor's ``swap_poses``. Set-name-agnostic: ``view`` is a</span>
 <span class="sd">    convention, and a ``hands`` set fans out to both hands the same way.</span>
 
-<span class="sd">    Only a character with a descriptor, and only when the entity node does not</span>
-<span class="sd">    carry the set itself; a tween of a swap on the entity is left to the</span>
+<span class="sd">    Only an entity whose kind declares the set (a character's descriptor, a</span>
+<span class="sd">    text block's ``texts``), and only when the entity node does not carry the</span>
+<span class="sd">    set itself; a tween of a swap on the entity is left to the</span>
 <span class="sd">    ordinary check, which names the nodes that carry the set.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3817,7 +3822,7 @@ window.runMermaid = runMermaid;</script>
             <span class="ow">or</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">_PROPERTY_REST_VALUES</span>
             <span class="ow">or</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">TRANSFORM_PROPERTIES</span>
             <span class="ow">or</span> <span class="n">prop</span> <span class="o">==</span> <span class="n">TINT_PROPERTY</span>
-            <span class="ow">or</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span>
+            <span class="ow">or</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">declared</span>
             <span class="ow">or</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="p">{})</span>
         <span class="p">):</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
@@ -3863,7 +3868,9 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"target"</span><span class="p">:</span> <span class="n">path</span><span class="p">}),</span>
                 <span class="p">)</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The pose layer reads the descriptor's `swap_poses`; an entity that</span>
+        <span class="c1"># declares sets without one (a text block, an#341) poses nothing.</span>
+        <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="p">:</span>
             <span class="n">record</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_EntitySwap</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="n">action</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span>
 

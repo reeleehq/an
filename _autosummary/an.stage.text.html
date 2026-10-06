@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.surface" href="an.stage.surface.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -656,6 +656,12 @@ recorded in the compiled document.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.RESERVED_TEXT_IDS" title="an.stage.text.RESERVED_TEXT_IDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESERVED_TEXT_IDS</span></code></a></p></td>
 <td><p>the runtime indexes the scene's container as <code class="docutils literal notranslate"><span class="pre">root</span></code> (the camera's target), and the overlay container is named <code class="docutils literal notranslate"><span class="pre">overlay</span></code>.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.BLOCK_UNIT" title="an.stage.text.BLOCK_UNIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BLOCK_UNIT</span></code></a></p></td>
+<td><p>The unit that typesets the whole string as ONE node, <code class="docutils literal notranslate"><span class="pre">block_0</span></code> (an#341): what a replacement set swaps, since per-word units of different strings do not line up.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.TEXT_SET" title="an.stage.text.TEXT_SET"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TEXT_SET</span></code></a></p></td>
+<td><p>The swap set a text block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> declares (an#341).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -677,6 +683,12 @@ recorded in the compiled document.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.unit_names" title="an.stage.text.unit_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_names</span></code></a>(desc, *, width, height[, base_dir])</p></td>
 <td><p>The node names a block builds — what <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/&lt;name&gt;</span></code> targets may address.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.layout_text_set" title="an.stage.text.layout_text_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">layout_text_set</span></code></a>(desc, *, width, height[, ...])</p></td>
+<td><p>Every string of a block's replacement set, set once: <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">layout}</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.text_set_keys" title="an.stage.text.text_set_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_set_keys</span></code></a>(desc)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code> for a block's replacement set — the <code class="docutils literal notranslate"><span class="pre">text</span></code> set as a swap declaration states it (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for a single-string block).</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.reveal_units" title="an.stage.text.reveal_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reveal_units</span></code></a>(entity_id, count, property, *, ...)</p></td>
 <td><p>Tween <code class="docutils literal notranslate"><span class="pre">property</span></code> from <code class="docutils literal notranslate"><span class="pre">from_</span></code> to <code class="docutils literal notranslate"><span class="pre">to</span></code> on units <code class="docutils literal notranslate"><span class="pre">0..count-1</span></code> of a text block, each <code class="docutils literal notranslate"><span class="pre">step</span></code> seconds after the last — a word-by-word (or letter-by-letter) reveal.</p></td>
 </tr>
@@ -692,7 +704,7 @@ recorded in the compiled document.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.TextUnit" title="an.stage.text.TextUnit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TextUnit</span></code></a>(name, text, box, d)</p></td>
 <td><p>One addressable unit: its node name, its string, its box and its ink.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.TextLayout" title="an.stage.text.TextLayout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TextLayout</span></code></a>(units, origin, font)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text.TextLayout" title="an.stage.text.TextLayout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TextLayout</span></code></a>(units, origin, font[, bounds])</p></td>
 <td><p>A placed block: its units, its reference point, and the face that set it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text.FontIdentity" title="an.stage.text.FontIdentity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FontIdentity</span></code></a>(family, style, sha256, embedded)</p></td>
@@ -713,6 +725,14 @@ recorded in the compiled document.</p>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.text.BLOCK_UNIT">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">BLOCK_UNIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'block'</span></span><a class="headerlink" href="#an.stage.text.BLOCK_UNIT" title="Link to this definition">#</a></dt>
+<dd><p>The unit that typesets the whole string as ONE node, <code class="docutils literal notranslate"><span class="pre">block_0</span></code> (an#341):
+what a replacement set swaps, since per-word units of different strings do
+not line up.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.text.DFLT_TEXT_COLOUR">
 <span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">DFLT_TEXT_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.stage.text.DFLT_TEXT_COLOUR" title="Link to this definition">#</a></dt>
@@ -784,6 +804,12 @@ camera’s node in the runtime’s index and take the push-in with it.</p>
 schema (the rule <code class="code docutils literal notranslate"><span class="pre">PathDescriptor</span></code> and <code class="code docutils literal notranslate"><span class="pre">PropDescriptor</span></code> follow).</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.text.TEXT_SET">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TEXT_SET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'text'</span></span><a class="headerlink" href="#an.stage.text.TEXT_SET" title="Link to this definition">#</a></dt>
+<dd><p>The swap set a text block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> declares (an#341).</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TextDescriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#TextDescriptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.TextDescriptor" title="Link to this definition">#</a></dt>
@@ -821,6 +847,12 @@ on the node origin (the frame centre, or <code class="docutils literal notransla
 <dd><p><code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.content">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">content</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.content" title="Link to this definition">#</a></dt>
+<dd><p>The string the block draws at rest.</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.font">
 <span class="sig-name descname"><span class="pre">font</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.font" title="Link to this definition">#</a></dt>
@@ -840,6 +872,24 @@ on the node origin (the frame centre, or <code class="docutils literal notransla
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.rest">
+<span class="sig-name descname"><span class="pre">rest</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.rest" title="Link to this definition">#</a></dt>
+<dd><p>the first key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The key drawn when nothing has been set; default</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.rest_key">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">rest_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.rest_key" title="Link to this definition">#</a></dt>
+<dd><p>The key a block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> shows at rest (<code class="docutils literal notranslate"><span class="pre">rest</span></code>, else the
+first key); <code class="docutils literal notranslate"><span class="pre">None</span></code> for a single-string block.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.size">
 <span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.size" title="Link to this definition">#</a></dt>
 <dd><p>Fraction of frame height.</p>
@@ -847,8 +897,23 @@ on the node origin (the frame centre, or <code class="docutils literal notransla
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.text">
-<span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.text" title="Link to this definition">#</a></dt>
-<dd><p>The words. Explicit newlines break lines; <code class="docutils literal notranslate"><span class="pre">max_width</span></code> wraps.</p>
+<span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.text" title="Link to this definition">#</a></dt>
+<dd><p>The words. Explicit newlines break lines; <code class="docutils literal notranslate"><span class="pre">max_width</span></code> wraps. Exactly
+one of <code class="docutils literal notranslate"><span class="pre">text</span></code> and <code class="docutils literal notranslate"><span class="pre">texts</span></code> is given.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.texts">
+<span class="sig-name descname"><span class="pre">texts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.texts" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">string}</span></code>, every string one drawing
+of the block, swapped by <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">&lt;id&gt;</span> <span class="pre">text</span> <span class="pre">&lt;key&gt;</span></code> — replacement animation
+applied to text. Keys obey the swap-key rules (no <code class="docutils literal notranslate"><span class="pre">/</span></code>, no <code class="docutils literal notranslate"><span class="pre">::</span></code>).
+Requires <code class="docutils literal notranslate"><span class="pre">unit=&quot;block&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A replacement set (an#341)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -865,8 +930,9 @@ tracked string one run per glyph, so a word unit would not exist.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.unit">
-<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'word'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'glyph'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'line'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.text.TextDescriptor.unit" title="Link to this definition">#</a></dt>
-<dd><p>a word, a glyph, or a whole line.</p>
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'word'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'glyph'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'line'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'block'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.text.TextDescriptor.unit" title="Link to this definition">#</a></dt>
+<dd><p>a word, a glyph, a whole line, or the
+whole block (<code class="docutils literal notranslate"><span class="pre">block_0</span></code>, one node however many lines).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>What one addressable node is</p>
@@ -887,7 +953,7 @@ a fallback face is a different picture wearing the right one’s clothes.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.text.TextLayout">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TextLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#TextLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.TextLayout" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">TextLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#TextLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.TextLayout" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A placed block: its units, its reference point, and the face that set it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">origin</span></code> is the block’s reference point in frame pixels — the frame
@@ -895,6 +961,19 @@ centre, or its title-safe anchor position — which is where the block’s own
 node sits; each unit’s node is placed relative to it.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextLayout.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0)</span></span><a class="headerlink" href="#an.stage.text.TextLayout.bounds" title="Link to this definition">#</a></dt>
+<dd><p>advances
+and line heights, not ink, so two strings of one face share a baseline
+and their <code class="docutils literal notranslate"><span class="pre">align</span></code> edges can be lined up (an#341).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The block’s LAYOUT box <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> in frame pixels</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py exception">
@@ -948,7 +1027,8 @@ directory (which would make the picture depend on where you ran it).</p>
 <span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">layout_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#layout_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.layout_text" title="Link to this definition">#</a></dt>
 <dd><p>Set <code class="docutils literal notranslate"><span class="pre">desc</span></code> on a <code class="docutils literal notranslate"><span class="pre">width</span></code> x <code class="docutils literal notranslate"><span class="pre">height</span></code> frame and take each unit’s contours.</p>
 <p><code class="docutils literal notranslate"><span class="pre">base_dir</span></code> is what a relative <code class="docutils literal notranslate"><span class="pre">font</span></code> path resolves against — the text
-document’s own directory in the props store.</p>
+document’s own directory in the props store. A block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> is set
+with its rest string (<a class="reference internal" href="#an.stage.text.layout_text_set" title="an.stage.text.layout_text_set"><code class="xref py py-func docutils literal notranslate"><span class="pre">layout_text_set()</span></code></a> sets every one).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.stage.text.TextLayout" title="an.stage.text.TextLayout"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextLayout</span></code></a></span></p>
@@ -961,6 +1041,28 @@ document’s own directory in the props store.</p>
 <span class="go">(960.0, 540.0)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lay</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">family</span><span class="p">,</span> <span class="n">lay</span><span class="o">.</span><span class="n">font</span><span class="o">.</span><span class="n">embedded</span>
 <span class="go">('Aileron', True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">layout_text</span><span class="p">(</span><span class="n">TextDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"two</span><span class="se">\n</span><span class="s2">lines"</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"block"</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1080</span><span class="p">)</span><span class="o">.</span><span class="n">units</span><span class="p">]</span>
+<span class="go">['block_0']</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.text.layout_text_set">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">layout_text_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#layout_text_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.layout_text_set" title="Link to this definition">#</a></dt>
+<dd><p>Every string of a block’s replacement set, set once: <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">layout}</span></code>.</p>
+<p>Each is set exactly as a single-string block would be, so each is centred
+(or anchored) on its own; lining their <code class="docutils literal notranslate"><span class="pre">align</span></code> edges up is the
+builder’s job (<a class="reference internal" href="an.stage.text_layout.html#an.stage.text_layout.build_text_subtree" title="an.stage.text_layout.build_text_subtree"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.text_layout.build_text_subtree()</span></code></a>). A block
+with no <code class="docutils literal notranslate"><span class="pre">texts</span></code> returns <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#an.stage.text.TextLayout" title="an.stage.text.TextLayout"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextLayout</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lays</span> <span class="o">=</span> <span class="n">layout_text_set</span><span class="p">(</span><span class="n">TextDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">texts</span><span class="o">=</span><span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="s2">"22"</span><span class="p">},</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"block"</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">240</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">lays</span><span class="p">),</span> <span class="p">[</span><span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">lays</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+<span class="go">(['a', 'b'], ['block_0', 'block_0'])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1031,6 +1133,22 @@ camera’s node in the runtime’s index;</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.text.text_set_keys">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">text_set_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#text_set_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.text_set_keys" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code> for a block’s replacement set — the <code class="docutils literal notranslate"><span class="pre">text</span></code> set as a
+swap declaration states it (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for a single-string block).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text_set_keys</span><span class="p">(</span><span class="n">TextDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">texts</span><span class="o">=</span><span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="s2">"2"</span><span class="p">},</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"block"</span><span class="p">))</span>
+<span class="go">{'a': 'a', 'b': 'b'}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.text.unit_names">
 <span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">unit_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#unit_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.unit_names" title="Link to this definition">#</a></dt>
 <dd><p>The node names a block builds — what <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/&lt;name&gt;</span></code> targets may address.</p>
@@ -1090,6 +1208,7 @@ camera’s node in the runtime’s index;</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.BLOCK_UNIT"><code class="docutils literal notranslate"><span class="pre">BLOCK_UNIT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.DFLT_TEXT_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_TEXT_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.DFLT_TEXT_SIZE"><code class="docutils literal notranslate"><span class="pre">DFLT_TEXT_SIZE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.FontIdentity"><code class="docutils literal notranslate"><span class="pre">FontIdentity</span></code></a><ul class="nav section-nav flex-column">
@@ -1099,20 +1218,28 @@ camera’s node in the runtime’s index;</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.RESERVED_TEXT_IDS"><code class="docutils literal notranslate"><span class="pre">RESERVED_TEXT_IDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TEXT_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">TEXT_DOCUMENT_KIND</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TEXT_SET"><code class="docutils literal notranslate"><span class="pre">TEXT_SET</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor"><code class="docutils literal notranslate"><span class="pre">TextDescriptor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.anchor"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.anchor</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.color"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.color</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.content"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.content</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.font"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.font</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.max_width"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.max_width</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.rest"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.rest</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.rest_key"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.rest_key</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.size"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.size</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.text"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.text</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.texts"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.texts</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.tracking"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.tracking</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.unit"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.unit</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextFontError"><code class="docutils literal notranslate"><span class="pre">TextFontError</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextLayout"><code class="docutils literal notranslate"><span class="pre">TextLayout</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextLayout"><code class="docutils literal notranslate"><span class="pre">TextLayout</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextLayout.bounds"><code class="docutils literal notranslate"><span class="pre">TextLayout.bounds</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextLayoutError"><code class="docutils literal notranslate"><span class="pre">TextLayoutError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextUnit"><code class="docutils literal notranslate"><span class="pre">TextUnit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextUnit.center"><code class="docutils literal notranslate"><span class="pre">TextUnit.center</span></code></a></li>
@@ -1121,9 +1248,11 @@ camera’s node in the runtime’s index;</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.font_base_dir"><code class="docutils literal notranslate"><span class="pre">font_base_dir()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.layout_text"><code class="docutils literal notranslate"><span class="pre">layout_text()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.layout_text_set"><code class="docutils literal notranslate"><span class="pre">layout_text_set()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.resolve_text"><code class="docutils literal notranslate"><span class="pre">resolve_text()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.reveal_units"><code class="docutils literal notranslate"><span class="pre">reveal_units()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.text_entity_problem"><code class="docutils literal notranslate"><span class="pre">text_entity_problem()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.text_set_keys"><code class="docutils literal notranslate"><span class="pre">text_set_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.unit_names"><code class="docutils literal notranslate"><span class="pre">unit_names()</span></code></a></li>
 </ul>
   </nav></div>

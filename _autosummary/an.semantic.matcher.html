@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.semantic.export" href="an.semantic.export.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -607,8 +607,11 @@ applicable choice of the policy (shot before style, <code class="xref py py-meth
 else the aspect’s default chain. Every departure from what was asked is a
 <a class="reference internal" href="an.capabilities.html#an.capabilities.Substitution" title="an.capabilities.Substitution"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substitution</span></code></a> on the result: <code class="docutils literal notranslate"><span class="pre">missing</span></code> when what</p>
 <blockquote>
-<div><p>was asked does not apply, <code class="docutils literal notranslate"><span class="pre">policy</span></code> when a policy chose against the chain
-(information, never fatal), <code class="docutils literal notranslate"><span class="pre">noop</span></code> when the aspect does not apply at all.</p>
+<div><p>the author asked does not apply, <code class="docutils literal notranslate"><span class="pre">policy</span></code> when a policy chose against the
+chain (information, never fatal), <code class="docutils literal notranslate"><span class="pre">noop</span></code> when the aspect does not apply at
+all. A policy is an order, not a request: its entries passed over on the way
+to its first applicable one are listed in <code class="xref py py-attr docutils literal notranslate"><span class="pre">Resolution.skipped</span></code>, never
+recorded as a <code class="docutils literal notranslate"><span class="pre">missing</span></code> substitution (an#334).</p>
 </div></blockquote>
 </li>
 </ul>
@@ -665,13 +668,15 @@ else the aspect’s default chain. Every departure from what was asked is a
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.semantic.matcher.Resolution">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substitution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">considered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.Resolution" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substitution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">considered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.Resolution" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What <a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve()</span></code></a> chose: the method, its args, where the choice came from.</p>
 <p><code class="docutils literal notranslate"><span class="pre">source</span></code> is <code class="docutils literal notranslate"><span class="pre">request</span></code>, <code class="docutils literal notranslate"><span class="pre">policy</span></code>, <code class="docutils literal notranslate"><span class="pre">chain</span></code> or <code class="docutils literal notranslate"><span class="pre">noop</span></code>;
 <code class="docutils literal notranslate"><span class="pre">substitution</span></code> is the record when the choice departs from what was asked
 (<code class="docutils literal notranslate"><span class="pre">None</span></code> when it did not); <code class="docutils literal notranslate"><span class="pre">considered</span></code> is the trail of methods tried
-before it, each with what it was missing.</p>
+before it, each with what it was missing; <code class="docutils literal notranslate"><span class="pre">skipped</span></code> the policy’s entries
+among them (a policy is an order: an entry that does not apply is passed
+over, information for whoever records the choice, never a substitution).</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

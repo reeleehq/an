@@ -15,7 +15,11 @@ unit’s contours. So:
   the scene contract hash covers the glyphs themselves, so a different face
   moves it;
 - each unit node sits at its box centre with the sprite anchored at 0.5, so a
-  `scale_x`/`scale_y` pop or a `rotation` pivots about the unit’s middle.
+  `scale_x`/`scale_y` pop or a `rotation` pivots about the unit’s middle;
+- a block with a replacement set (`texts`, an#341) is one `block_0` node
+  whose visual carries a `text` swap set, one texture per string and a box
+  per string on the `align` edge — replacement animation, which the runtime
+  already draws (`applySwap`).
 
 **Crispness.** The SVG declares `TEXT_TEXTURE_OVERSAMPLE` x its box as its
 intrinsic size, and the sprite is fitted back into the box (`fit="contain"`),
@@ -33,11 +37,12 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 
 ### Functions
 
-| [`build_text_subtree`](#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)   | The block's node and its unit children, plus what it resolved to.                               |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| [`svg_data_uri`](#an.stage.text_layout.svg_data_uri)(svg)                               | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix. |
-| [`text_document`](#an.stage.text_layout.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                      |
-| [`unit_svg`](#an.stage.text_layout.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                     |
+| [`build_text_subtree`](#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)   | The block's node and its unit children, plus what it resolved to.                                                                                                                               |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`svg_data_uri`](#an.stage.text_layout.svg_data_uri)(svg)                               | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix.                                                                                                 |
+| [`text_document`](#an.stage.text_layout.text_document)(entity, props_store)              | The stored document behind a prop entity if it is a text block, else None.                                                                                                                      |
+| [`text_swap_declaration`](#an.stage.text_layout.text_swap_declaration)(entity, mall)             | The core `prop` kind's swap declaration (an#341): a text block with `texts` declares its `text` set, `{key: key}`; any other prop declares nothing (its built nodes' sets are its declaration). |
+| [`unit_svg`](#an.stage.text_layout.unit_svg)(d, box, \*, color)                     | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                                                                                                                     |
 
 ### an.stage.text_layout.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
@@ -81,6 +86,22 @@ The stored document behind a prop entity if it is a text block, else None.
 
 * **Return type:**
   [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Mapping`](https://docs.python.org/3/library/typing.html#typing.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.stage.text_layout.text_swap_declaration(entity, mall)
+
+The core `prop` kind’s swap declaration (an#341): a text block with
+`texts` declares its `text` set, `{key: key}`; any other prop
+declares nothing (its built nodes’ sets are its declaration).
+
+Through [`an.genres.EntityKind.swap_declaration`](an.genres.html.md#an.genres.EntityKind.swap_declaration), so the compiler’s
+swap vocabulary, its swap checks and `an validate` learn the set the way
+they learn a rig’s. `descriptor` stays `None`: the text block has no
+lowering, and a descriptor is what a genre’s passes read as a rig. A
+document that does not resolve declares nothing here; the builder raises
+on it, naming why.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.text_layout.unit_svg(d, box, , color)
 

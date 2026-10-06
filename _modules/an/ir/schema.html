@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b843b5b2"></script>
+    <script src="../../../_static/documentation_options.js?v=1c3b31ab"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.170" />
+  <meta name="docsearch:version" content="0.1.171" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1879,6 +1879,15 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The property space a 2D stage engine's node lives in (:mod:`an.timing.spaces`).</span>
 <span class="n">STAGE_NODE_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_prop_swap_declaration</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``prop`` kind's swap declaration: a text block's ``text`` set</span>
+<span class="sd">    (an#341), nothing for any other prop. The stage owns text, so it is</span>
+<span class="sd">    imported when a shot is compiled or validated, never with the IR."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text_layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">text_swap_declaration</span>
+
+    <span class="k">return</span> <span class="n">text_swap_declaration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+
+
 <span class="n">CORE_ENTITY_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EntityKind</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">EntityKind</span><span class="p">(</span>
         <span class="s2">"environment"</span><span class="p">,</span>
@@ -1891,6 +1900,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">space</span><span class="o">=</span><span class="n">STAGE_NODE_SPACE</span><span class="p">,</span>
         <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">"a prop or piece of set dressing; also stroked paths and text blocks"</span><span class="p">,</span>
+        <span class="n">swap_declaration</span><span class="o">=</span><span class="n">_prop_swap_declaration</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">EntityKind</span><span class="p">(</span>
         <span class="s2">"voice"</span><span class="p">,</span>

@@ -20,5 +20,6 @@ an.stage.text\_layout
       build_text_subtree
       svg_data_uri
       text_document
+      text_swap_declaration
       unit_svg
    
