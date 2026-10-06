@@ -1829,7 +1829,9 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
             continue  # store not supplied → this check did not run
         doc = _rig_document(entity, mall_stores)
         if doc is not None:
-            _check_rig_document(doc, entity, f"{path}/entities/{j}", report)
+            _check_rig_document(
+                doc, entity, f"{path}/entities/{j}", report, raw=store[entity.ref]
+            )
             continue
         registered = entity_kind(entity.kind)
         if registered is not None and registered.placeholder_on_missing:
@@ -1867,7 +1869,7 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
 
 
 def _check_rig_document(
-    doc: dict, entity, ir_path: str, report: "ValidationReport"
+    doc: dict, entity, ir_path: str, report: "ValidationReport", *, raw: Any = None
 ) -> None:
     """A rig's declared ``origin`` is finite and inside its view_box (an#338),
     a bone's rest rotation turns its part about the joint (an#339), and a
@@ -1885,9 +1887,13 @@ def _check_rig_document(
         rig_origin_problems,
         rig_problems,
         rig_rest_problems,
+        rest_pose_protection,
     )
 
-    for problem in rig_origin_problems(doc) + rig_rest_problems(doc):
+    protected = rest_pose_protection(raw, doc)
+    for problem in (
+        rig_origin_problems(doc) + rig_rest_problems(doc) + ([protected] if protected else [])
+    ):
         report.add("warning", ir_path, f"{entity.kind} ref {entity.ref!r}: {problem}")
     # A nested chain the stage cannot build is a compile raise (an#340), so its
     # pre-flight is an ERROR; a flat rig's dangling bone only misplaces a part.

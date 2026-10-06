@@ -115,12 +115,15 @@ def test_the_migration_protects_only_a_legacy_rig_that_carried_a_pose(tmp_path):
     migrated = migrate(copy.deepcopy(legacy), kind=PROP_DOCUMENT_KIND.name)
     assert migrated["schema_version"] == PROP_SCHEMA_VERSION == REST_POSE_SINCE["PropDescriptor"]
     assert migrated["rest_rotation"] is False
-    # ...and it keeps its pixels: built flat, as it always was, and silently
-    # (the migration decided; the guard is for documents it cannot see).
-    with warnings.catch_warnings():
-        warnings.simplefilter("error", RestPoseWarning)
+    # ...and it keeps its pixels: built flat, as it always was, and SAYS so
+    # (an#407): an author who added the rotation to an old file must hear why
+    # nothing moved, and how to apply it.
+    with pytest.warns(RestPoseWarning, match="rest_rotation: true"):
         legs = _legs(compile_shot(_shot(), mall=_mall(tmp_path, legacy)))
     assert set(legs.values()) == {0.0}
+    legacy["rest_rotation"] = True  # the way out the warning names
+    legs = _legs(compile_shot(_shot(), mall=_mall(tmp_path / "applied", legacy)))
+    assert legs["leg_l"] == pytest.approx(math.radians(22))
     # A legacy rig with no pose gets nothing but the version.
     plain = {"kind": "PropDescriptor", "schema_version": "0.1.0", "name": "lamp"}
     assert migrate(dict(plain), kind=PROP_DOCUMENT_KIND.name) == {**plain, "schema_version": "0.2.0"}
@@ -169,3 +172,17 @@ def test_validate_warns_on_a_rest_rotated_bone_with_an_offset_part(tmp_path):
     found = [f for f in report.findings if "rests at 22" in f.description]
     assert found and found[0].severity == "warning" and report.passed
     assert rig_rest_problems(doc) and not rig_rest_problems(_doc())
+
+
+def test_validate_says_a_protected_rig_keeps_its_pose_unapplied(tmp_path):
+    """an#407: the end-user test edited an old character's arm rotation and
+    nothing moved, with no warning. `an validate` names the flag and the way out."""
+    from an.ir.schema import Meta, SceneIR
+    from an.ir.validate import validate_semantic
+
+    doc = _doc()
+    doc["schema_version"] = "0.1.0"  # an old file, hand-edited to add the splay
+    mall = _mall(tmp_path, doc)
+    report = validate_semantic(SceneIR(meta=Meta(), timeline=[_shot()]), available_props=mall["props"])
+    found = [f for f in report.findings if "rest_rotation: true" in f.description]
+    assert found and found[0].severity == "warning"

@@ -117,7 +117,8 @@ class GenreError(RegistryError):
 #:     ``rig_rest_problems``, ``RigDocument.rest_rotation``.
 #: 5 = nested chains (an#340): ``build_rig_subtree(skip_slots=)``, ``slot_parent_chain``,
 #:     ``slot_node_paths``, ``rig_problems``, ``rig_affordances``, ``RigError``, ``rig.hierarchy``.
-API_LEVEL: int = 5
+#: 6 = the rest pose's protection said aloud (an#407): ``an.stage.rig.rest_pose_protection``.
+API_LEVEL: int = 6
 
 
 class GenreAPILevelError(GenreError, ImportError):

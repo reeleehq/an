@@ -144,6 +144,33 @@ class RestPoseWarning(UserWarning):
     """A rig's bone rest pose was NOT applied, because the document may predate it."""
 
 
+def rest_pose_protection(raw: Any, migrated: Any, *, kind: str = "rig document") -> str | None:
+    """What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).
+
+    The protective step writes ``rest_rotation: false`` onto a document from
+    before the rest pose whose bones carry one, guessing the pose is already in
+    its pixels. An author who added a rotation to such a file is the other
+    case, and nothing else would tell them why the part did not move. A flag
+    the AUTHOR wrote (present in the stored document) is a choice, and silent.
+
+    >>> old = {"schema_version": "0.1.0", "bones": [{"name": "leg", "rotation_deg": 20}]}
+    >>> rest_pose_protection(old, {**old, "rest_rotation": False}).startswith("its bones carry")
+    True
+    >>> rest_pose_protection({**old, "rest_rotation": False}, {**old, "rest_rotation": False}) is None
+    True
+    """
+    if not isinstance(raw, Mapping) or "rest_rotation" in raw:
+        return None
+    if _field_of(migrated, "rest_rotation") is not False or not bones_carry_a_rest_pose(migrated):
+        return None
+    return (
+        "its bones carry a rotation or scale that is NOT applied: `rest_rotation: "
+        f"false` keeps the rig as drawn (the migration writes it onto a {kind} from "
+        "before bones posed their parts, an#339). If the pose is yours, set "
+        "`rest_rotation: true` (or delete the key) and the bones pose the parts"
+    )
+
+
 def legacy_rest_pose_unknown(
     raw: Mapping[str, Any], kind: DocumentKind, *, since: str
 ) -> bool:
@@ -1247,7 +1274,7 @@ def build_rig_subtree(
     legacy_pose = legacy_rest_pose_unknown(
         raw, document_kind, since=REST_POSE_SINCE.get(document_kind.name)
     )
-    migrated = migrate(raw, kind=document_kind.name)
+    migrated = migrate(dict(raw), kind=document_kind.name)  # raw stays as stored
     # A migration that saw the document decided already (it writes
     # `rest_rotation` when it must); the guard is for one it could not see.
     legacy_pose = legacy_pose and "rest_rotation" not in migrated
@@ -1265,6 +1292,11 @@ def build_rig_subtree(
             stacklevel=2,
         )
     apply_rest_pose = _field_of(desc, "rest_rotation") is not False and not legacy_pose
+    protected = rest_pose_protection(raw, migrated, kind=document_kind.name)
+    if protected:
+        # The protection is a guess about an old document (an#407): say so, or
+        # an author who added a rotation to an old file sees nothing happen.
+        warnings.warn(f"{entity.id!r}: {protected}", RestPoseWarning, stacklevel=2)
     bone_of = {b.name: b for b in desc.bones}
     ref = entity.ref or entity.id
     _, _, _, view_box_height = desc.view_box
