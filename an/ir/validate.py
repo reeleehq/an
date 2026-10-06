@@ -1170,11 +1170,16 @@ def _check_step_hz(
     fps: float,
     path: str,
     report: "ValidationReport",
+<<<<<<< HEAD
     render_fps: float | None = None,
+=======
+    render_fps: bool = False,
+>>>>>>> aac2f3aaa (Validate step_hz against the render's fps; an validate --fps (an#435))
 ) -> None:
     """``0 < step_hz <= fps`` (an#89): a pose grid finer than the frame rate
     cannot be shown, and zero or negative is not a rate. The schema already
     refuses ``<= 0`` (``Field(gt=0)``) and the compiler re-checks the whole
+<<<<<<< HEAD
     range, because a render never runs validate. ``render_fps`` (an#435) is the
     frame rate the render will use when it is not the scene's (``an render
     --fps``): the compiler checks against THAT, so validate does too."""
@@ -1192,7 +1197,32 @@ def _check_step_hz(
             path,
             f"step_hz must satisfy 0 < step_hz <= fps ({whose}); got {step_hz!r}. "
             f"At {rate:g} fps, {rate / 2:g} is 'on twos' and {rate / 3:g} 'on threes'.",
+=======
+    range, because a render never runs validate.
+
+    ``fps`` is the frame rate the render will use: the scene's ``meta.fps``,
+    or the render's own when validation is told it (``render_fps``, an#435),
+    which is the one the compiler checks against.
+    """
+    if step_hz is None or fps <= 0:  # fps <= 0 is already its own error
+        return
+    if not (0 < step_hz <= fps):
+        whose = "the render's fps" if render_fps else "meta.fps"
+        report.add(
+            "error",
+            path,
+            f"step_hz must satisfy 0 < step_hz <= fps ({fps:g}, {whose}); got "
+            f"{step_hz!r}. At {fps:g} fps, {fps / 2:g} is 'on twos' and "
+            f"{fps / 3:g} 'on threes'.",
+>>>>>>> aac2f3aaa (Validate step_hz against the render's fps; an validate --fps (an#435))
         )
+
+
+def _step_hz_fps(ctx: "ValidationContext") -> tuple[float, bool]:
+    """``(fps, is it the render's)``: the frame rate step_hz is checked
+    against, the render's when validation was told it (an#435)."""
+    render = ctx.memo.get(_RENDER_FPS)
+    return (render, True) if render is not None else (ctx.scene.meta.fps, False)
 
 
 def _check_default_easing(spec: Any, *, report: "ValidationReport") -> None:
@@ -1488,12 +1518,20 @@ def _core_meta(ctx: ValidationContext) -> None:
         report.add("error", "meta/duration", "duration must be non-negative")
     if scene.meta.fps <= 0:
         report.add("error", "meta/fps", "fps must be positive")
+    fps, render_fps = _step_hz_fps(ctx)
     _check_step_hz(
         scene.meta.step_hz,
+<<<<<<< HEAD
         fps=scene.meta.fps,
         path="meta/step_hz",
         report=report,
         render_fps=ctx.memo.get(_RENDER_FPS),
+=======
+        fps=fps,
+        path="meta/step_hz",
+        report=report,
+        render_fps=render_fps,
+>>>>>>> aac2f3aaa (Validate step_hz against the render's fps; an validate --fps (an#435))
     )
 
 
@@ -1647,12 +1685,20 @@ def require_registered_kinds(scene: SceneIR, *, where: str = "") -> SceneIR:
 
 def _core_shot_basics(ctx: ValidationContext) -> None:
     shot, path, report = ctx.shot, ctx.path, ctx.report
+    fps, render_fps = _step_hz_fps(ctx)
     _check_step_hz(
         shot.step_hz,
+<<<<<<< HEAD
         fps=ctx.scene.meta.fps,
         path=f"{path}/step_hz",
         report=report,
         render_fps=ctx.memo.get(_RENDER_FPS),
+=======
+        fps=fps,
+        path=f"{path}/step_hz",
+        report=report,
+        render_fps=render_fps,
+>>>>>>> aac2f3aaa (Validate step_hz against the render's fps; an validate --fps (an#435))
     )
     seen_shot_ids = ctx.memo.setdefault("seen shot ids", set())
     if not shot.id:
