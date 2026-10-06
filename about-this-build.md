@@ -2,20 +2,18 @@
 
 # About this build
 
-This documentation was built on **2026-10-06 12:30 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/f9fdff214744722eb3446e9259d071b4892eb2c5"><code>f9fdff2</code></a> on branch <code>main</code>, for **an 0.1.179** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:31 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b9a6cba8ac23034dc87ed737464916924731c9b4"><code>b9a6cba</code></a> on branch <code>main</code>, for **an 0.1.180** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.179) is behind the latest release on PyPI (0.1.180): `pip install an` gives newer code than these docs describe.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/f9fdff214744722eb3446e9259d071b4892eb2c5"><code>f9fdff214744722eb3446e9259d071b4892eb2c5</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b9a6cba8ac23034dc87ed737464916924731c9b4"><code>b9a6cba8ac23034dc87ed737464916924731c9b4</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.179</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.180</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -24,9 +22,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37462997137">37462997137</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37463138652">37463138652</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>20360ad3a46a58ff614816ad7a1d09d396c5918a</code> (in the history of the built commit) |
+| Event commit | <code>3b79621eb1324d920f5d9ffe6142da340695dba0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51,13 +49,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.180/">0.1.180</a>, newer than the documented version (0.1.179).
+Latest release: <a href="https://pypi.org/project/an/0.1.180/">0.1.180</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout f9fdff214744722eb3446e9259d071b4892eb2c5
+git checkout b9a6cba8ac23034dc87ed737464916924731c9b4
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
