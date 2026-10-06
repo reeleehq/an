@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.effects" href="an.audio.effects.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -682,6 +682,17 @@ Every other model would speak the brackets, so it never receives a tag.</p>
 <code class="docutils literal notranslate"><span class="pre">synthesis_options</span></code> hook the audio pipeline reads (an#209).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.billed">
+<span class="sig-name descname"><span class="pre">billed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.billed" title="Link to this definition">#</a></dt>
+<dd><p>what may never run in memory).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Every request is charged (an#311</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.billed_characters">
 <span class="sig-name descname"><span class="pre">billed_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.billed_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.billed_characters" title="Link to this definition">#</a></dt>
@@ -899,6 +910,7 @@ of range raise, so a typo cannot silently fall back to the account default.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES"><code class="docutils literal notranslate"><span class="pre">AUDIO_TAG_MODEL_PREFIXES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.billed"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.billed_characters"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed_characters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.check_available"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.check_available()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.client_factory"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.client_factory</span></code></a></li>

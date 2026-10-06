@@ -61,6 +61,13 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+what may never run in memory).
+
+* **Type:**
+  Every request is charged (an#311
+
 #### billed_characters(text, , audio_tags=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.
@@ -164,6 +171,13 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same audio, so best-of-N takes never apply
@@ -184,6 +198,14 @@ synthesized and the track it gets is empty – nothing draws a mouth anyway.
 0.5
 ```
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a reader
+of the cache keys may run it in memory (an#311).
+
+* **Type:**
+  The same request gives the same track, and nothing is billed
+
 ### *class* an.audio.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -191,6 +213,13 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
+
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
 
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 

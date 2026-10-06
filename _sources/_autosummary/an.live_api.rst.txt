@@ -17,4 +17,5 @@ an.live\_api
    .. autosummary::
    
       live_api_enabled
+      paid_provider_key_vars
    

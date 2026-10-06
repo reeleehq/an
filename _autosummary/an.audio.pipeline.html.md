@@ -30,27 +30,35 @@ than its voice declares is a [`VoiceStandInWarning`](#an.audio.pipeline.VoiceSta
 | [`DEFAULT_TTS_NAME`](#an.audio.pipeline.DEFAULT_TTS_NAME)            | Who speaks a line whose voice declares no provider, when no `tts` overrides it.                             |
 | [`TakeScorerFactory`](#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
 | [`OVERRUN_TOLERANCE_S`](#an.audio.pipeline.OVERRUN_TOLERANCE_S)         | a frame at 60 fps (the same as `an validate`'s).                                                            |
+| [`AUDIO_OUTPUT_STORES`](#an.audio.pipeline.AUDIO_OUTPUT_STORES)         | The stores the audio pipeline writes what it makes to.                                                      |
 | [`REROLL_ONLY_HINT`](#an.audio.pipeline.REROLL_ONLY_HINT)            | only a new roll (new keys) replaces it.                                                                     |
 | [`LEGACY_DURATION_TOLERANCE_S`](#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S) | How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps. |
 
 ### Functions
 
-| [`audio_key`](#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).                                  |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                            |
-| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                            |
-| [`dialogue_overruns`](#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                                                    |
-| [`is_voice_tts`](#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](#an.audio.pipeline.VOICE_TTS).                                                                                                                                       |
-| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                  |
-| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                |
-| [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                             |
-| [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                    |
-| [`stamp_from_stores`](#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only. |
-| [`synthesis_options`](#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                |
-| [`takes_cost_message`](#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                     |
-| [`tts_chooser`](#an.audio.pipeline.tts_chooser)(tts, mall, \*[, make])                | `voice_id -> provider`: who speaks a line in that voice (an#305).                                                                                                                                                                                                  |
-| [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                                              |
-| [`voice_stand_ins`](#an.audio.pipeline.voice_stand_ins)(lines, mall, \*, overridden)      | One message per voice whose lines are spoken by another provider than its document declares; `lines` is `(voice_id, provider)` per line, and `overridden` says whether a `tts` was given for every line.                                                           |
+| [`audio_key`](#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).                                                      |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                                                |
+| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                                                |
+| [`dialogue_overruns`](#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                                                                        |
+| [`free_and_repeatable`](#an.audio.pipeline.free_and_repeatable)(provider)                     | Whether `provider` may be run where nothing may be spent or written (an#311): it DECLARES `repeatable = True` (the same request gives the same bytes: `offline`, `mac_say`) and `billed = False` — stated, never inferred from a missing method — and has no `billed_characters` hook. |
+| [`in_memory_audio_mall`](#an.audio.pipeline.in_memory_audio_mall)(mall)                        | `mall` with its audio and visemes stores behind [`InMemoryOverlay`](#an.audio.pipeline.InMemoryOverlay) s — hand it to [`stamp_from_stores()`](#an.audio.pipeline.stamp_from_stores) (`free_in_memory=True`) and then to whatever keys the stamped scene (an#311).     |
+| [`is_voice_tts`](#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](#an.audio.pipeline.VOICE_TTS).                                                                                                                                                           |
+| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                                      |
+| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                                    |
+| [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                                                 |
+| [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                                        |
+| [`stamp_from_stores`](#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only.                     |
+| [`synthesis_options`](#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                                    |
+| [`takes_cost_message`](#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                                         |
+| [`tts_chooser`](#an.audio.pipeline.tts_chooser)(tts, mall, \*[, make])                | `voice_id -> provider`: who speaks a line in that voice (an#305).                                                                                                                                                                                                                      |
+| [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                                                                  |
+| [`voice_stand_ins`](#an.audio.pipeline.voice_stand_ins)(lines, mall, \*, overridden)      | One message per voice whose lines are spoken by another provider than its document declares; `lines` is `(voice_id, provider)` per line, and `overridden` says whether a `tts` was given for every line.                                                                               |
+
+### Classes
+
+| [`InMemoryOverlay`](#an.audio.pipeline.InMemoryOverlay)(store)   | A store view that reads through and keeps every write IN MEMORY: what a reader of a render's cache keys stamps free audio into (an#311), so the keys it computes next see that audio while the store itself is untouched.   |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Exceptions
 
@@ -61,6 +69,10 @@ than its voice declares is a [`VoiceStandInWarning`](#an.audio.pipeline.VoiceSta
 | [`TakeDigestWarning`](#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                                |
 | [`VoiceStandInError`](#an.audio.pipeline.VoiceStandInError)      | Under `strict`: a line would be spoken by another provider than its voice declares.                                                             |
 | [`VoiceStandInWarning`](#an.audio.pipeline.VoiceStandInWarning)    | A line is spoken by another provider than its voice document declares — an override for every line, or a provider `an` has no TTS for (an#305). |
+
+### an.audio.pipeline.AUDIO_OUTPUT_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('audio', 'visemes')*
+
+The stores the audio pipeline writes what it makes to.
 
 ### *exception* an.audio.pipeline.AudioNotCachedError
 
@@ -84,6 +96,15 @@ Who speaks a line whose voice declares no provider, when no `tts` overrides it.
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A synthesized line runs past its shot’s end, so its tail is cut.
+
+### *class* an.audio.pipeline.InMemoryOverlay(store)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+A store view that reads through and keeps every write IN MEMORY: what a
+reader of a render’s cache keys stamps free audio into (an#311), so the
+keys it computes next see that audio while the store itself is untouched.
+Deleting is refused.
 
 ### an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -201,6 +222,33 @@ be lost silently. It is `an validate`’s own check
 >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
 "shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
+
+### an.audio.pipeline.free_and_repeatable(provider)
+
+Whether `provider` may be run where nothing may be spent or written
+(an#311): it DECLARES `repeatable = True` (the same request gives the
+same bytes: `offline`, `mac_say`) and `billed = False` — stated, never
+inferred from a missing method — and has no `billed_characters` hook.
+Re-running it reproduces exactly what a render stored; anything else would
+give new bytes, so new keys, or cost money.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> from an.audio.offline_tts import OfflineTTS
+>>> free_and_repeatable(OfflineTTS()), free_and_repeatable(object())
+(True, False)
+```
+
+### an.audio.pipeline.in_memory_audio_mall(mall)
+
+`mall` with its audio and visemes stores behind [`InMemoryOverlay`](#an.audio.pipeline.InMemoryOverlay)
+s — hand it to [`stamp_from_stores()`](#an.audio.pipeline.stamp_from_stores) (`free_in_memory=True`) and then
+to whatever keys the stamped scene (an#311).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.pipeline.is_voice_tts(tts)
 
@@ -343,13 +391,21 @@ without the pipeline there is no authority to say that stamp is stale.
 [0.0, 2.0]
 ```
 
-### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None)
+### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None, free_in_memory=False)
 
 Stamp `scene`’s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene)
 would with these providers — `tts` as it takes it: `None` for each
 voice’s own (an#305) — from the content-keyed `audio` and `visemes`
 stores only. Synthesises, aligns, writes and announces nothing; a line the
 stores cannot answer raises [`AudioNotCachedError`](#an.audio.pipeline.AudioNotCachedError).
+
+`free_in_memory` (an#311): a line the stores cannot answer whose
+provider is free and repeatable ([`free_and_repeatable()`](#an.audio.pipeline.free_and_repeatable): offline
+speech) is synthesised and aligned for real — it reproduces the bytes a
+render stored — into the mall’s [`InMemoryOverlay`](#an.audio.pipeline.InMemoryOverlay) s, which
+[`in_memory_audio_mall()`](#an.audio.pipeline.in_memory_audio_mall) puts in front of the audio and visemes stores
+(required: nothing is ever written to a store). Billed or non-repeatable
+providers still raise. Still nothing is announced.
 
 What a reader of the render’s cache keys needs (an#274): a `scene.md`
 edit drops every stamp on re-sync, and the next render re-stamps the same

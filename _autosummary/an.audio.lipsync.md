@@ -69,6 +69,14 @@ synthesized and the track it gets is empty – nothing draws a mouth anyway.
 0.5
 ```
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a reader
+of the cache keys may run it in memory (an#311).
+
+* **Type:**
+  The same request gives the same track, and nothing is billed
+
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)

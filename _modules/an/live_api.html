@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -759,6 +759,22 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Set by every CI provider we care about. CI must never spend, whatever else</span>
 <span class="c1">#: is configured, because nobody is watching the bill in a CI run.</span>
 <span class="n">CI_ENV_VAR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"CI"</span>
+
+
+<div class="viewcode-block" id="paid_provider_key_vars">
+<a class="viewcode-back" href="../../_autosummary/an.live_api.html#an.live_api.paid_provider_key_vars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">paid_provider_key_vars</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every environment variable a paid provider reads its API key from — the</span>
+<span class="sd">    ``env.key.*`` capabilities' (:data:`an.capabilities.subjects.ENV_KEYS`), so a</span>
+<span class="sd">    new paid provider is listed once.</span>
+
+<span class="sd">    &gt;&gt;&gt; {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} &lt;= set(paid_provider_key_vars())</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities.subjects</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENV_KEYS</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">names</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ENV_KEYS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">names</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="live_api_enabled">

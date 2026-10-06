@@ -44,8 +44,9 @@ would be a second answer to “may this run spend?”, and the two would drift.
 
 ### Functions
 
-| [`live_api_enabled`](#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.   |
-|----------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`live_api_enabled`](#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.                                                                                                                                                                                                      |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`paid_provider_key_vars`](#an.live_api.paid_provider_key_vars)()  | Every environment variable a paid provider reads its API key from — the `env.key.*` capabilities' ([`an.capabilities.subjects.ENV_KEYS`](an.capabilities.subjects.md#an.capabilities.subjects.ENV_KEYS)), so a new paid provider is listed once. |
 
 ### an.live_api.CI_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'CI'*
 
@@ -85,4 +86,18 @@ False
 True
 >>> live_api_enabled({LIVE_API_ENV_VAR: "1", CI_ENV_VAR: "true"})
 False
+```
+
+### an.live_api.paid_provider_key_vars()
+
+Every environment variable a paid provider reads its API key from — the
+`env.key.*` capabilities’ ([`an.capabilities.subjects.ENV_KEYS`](an.capabilities.subjects.md#an.capabilities.subjects.ENV_KEYS)), so a
+new paid provider is listed once.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} <= set(paid_provider_key_vars())
+True
 ```

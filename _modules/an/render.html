@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1837,16 +1837,31 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    stores only (`an.audio.pipeline.stamp_from_stores`): a ``scene.md`` edit</span>
 <span class="sd">    drops every stamp on re-sync, and the next render re-stamps the same audio</span>
 <span class="sd">    from the stores, so those are the keys it will use. A line the stores</span>
-<span class="sd">    cannot answer (new text, another provider) raises</span>
-<span class="sd">    `an.audio.pipeline.AudioNotCachedError`: its shot's next key is unknowable</span>
-<span class="sd">    without a synthesis, and a collector must not guess.</span>
+<span class="sd">    cannot answer whose provider is free and repeatable (offline speech) is</span>
+<span class="sd">    re-made IN MEMORY, writing nothing (an#311): a later render re-makes the</span>
+<span class="sd">    same bytes. Any other (new text in a billed voice, a non-repeatable</span>
+<span class="sd">    provider) raises `an.audio.pipeline.AudioNotCachedError`: its shot's next</span>
+<span class="sd">    key is unknowable without a paid or random synthesis, and a collector must</span>
+<span class="sd">    not guess.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">retime_dialogue</span><span class="p">,</span> <span class="n">stamp_from_stores</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">InMemoryOverlay</span><span class="p">,</span>
+        <span class="n">in_memory_audio_mall</span><span class="p">,</span>
+        <span class="n">retime_dialogue</span><span class="p">,</span>
+        <span class="n">stamp_from_stores</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
     <span class="k">if</span> <span class="n">_has_any_audio_content</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_lipsync</span>
 
+        <span class="c1"># Free, repeatable speech missing from the stores is re-made in memory</span>
+        <span class="c1"># (an#311) and the keys below read it from there; no store is written.</span>
+        <span class="c1"># A caller keying several knob sets passes one overlaid mall for all.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">),</span> <span class="n">InMemoryOverlay</span><span class="p">):</span>
+            <span class="n">project</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">in_memory_audio_mall</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">))</span>
         <span class="n">stamp_from_stores</span><span class="p">(</span>
             <span class="n">scene</span><span class="p">,</span>
             <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
@@ -1856,6 +1871,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
                 <span class="k">else</span> <span class="n">lipsync</span>
             <span class="p">),</span>
+            <span class="n">free_in_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">timed_shots_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

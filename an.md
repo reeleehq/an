@@ -1,4 +1,4 @@
-> built 2026-10-05 16:06 UTC from 7ea09c5 (main) · an 0.1.164. Details: build_info.json
+> built 2026-10-06 01:17 UTC from c447c2d (main) · an 0.1.165. Details: build_info.json
 
 # index.html.md
 
@@ -2394,6 +2394,13 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+what may never run in memory).
+
+* **Type:**
+  Every request is charged (an#311
+
 #### billed_characters(text, , audio_tags=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.
@@ -2590,6 +2597,13 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+what may never run in memory).
+
+* **Type:**
+  Every request is charged (an#311
+
 #### billed_characters(text, , audio_tags=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.
@@ -2693,6 +2707,13 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same audio, so best-of-N takes never apply
@@ -2713,6 +2734,14 @@ synthesized and the track it gets is empty – nothing draws a mouth anyway.
 0.5
 ```
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a reader
+of the cache keys may run it in memory (an#311).
+
+* **Type:**
+  The same request gives the same track, and nothing is billed
+
 ### *class* an.audio.OfflineTTS(, sample_rate=22050, channels=1, seconds_per_char=0.06)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -2720,6 +2749,13 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
+
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
 
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -3051,6 +3087,14 @@ synthesized and the track it gets is empty – nothing draws a mouth anyway.
 0.5
 ```
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+a reader
+of the cache keys may run it in memory (an#311).
+
+* **Type:**
+  The same request gives the same track, and nothing is billed
+
 ### *class* an.audio.lipsync.Viseme(time, code, intensity=1.0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -3153,6 +3197,13 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same audio, so best-of-N takes never apply
@@ -3204,6 +3255,13 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
+
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
 
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
@@ -3272,27 +3330,35 @@ than its voice declares is a [`VoiceStandInWarning`](_autosummary/an.audio.pipel
 | [`DEFAULT_TTS_NAME`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DEFAULT_TTS_NAME)            | Who speaks a line whose voice declares no provider, when no `tts` overrides it.                             |
 | [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)           | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.                             |
 | [`OVERRUN_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.OVERRUN_TOLERANCE_S)         | a frame at 60 fps (the same as `an validate`'s).                                                            |
+| [`AUDIO_OUTPUT_STORES`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AUDIO_OUTPUT_STORES)         | The stores the audio pipeline writes what it makes to.                                                      |
 | [`REROLL_ONLY_HINT`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.REROLL_ONLY_HINT)            | only a new roll (new keys) replaces it.                                                                     |
 | [`LEGACY_DURATION_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S) | How far a legacy sidecar's duration may sit from its audio's and still be the same take: a frame at 60 fps. |
 
 ### Functions
 
-| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).                                  |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                            |
-| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                            |
-| [`dialogue_overruns`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                                                    |
-| [`is_voice_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS).                                                                                                                                       |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                  |
-| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                |
-| [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                             |
-| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                    |
-| [`stamp_from_stores`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only. |
-| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                |
-| [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                     |
-| [`tts_chooser`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser)(tts, mall, \*[, make])                | `voice_id -> provider`: who speaks a line in that voice (an#305).                                                                                                                                                                                                  |
-| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                                              |
-| [`voice_stand_ins`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.voice_stand_ins)(lines, mall, \*, overridden)      | One message per voice whose lines are spoken by another provider than its document declares; `lines` is `(voice_id, provider)` per line, and `overridden` says whether a `tts` was given for every line.                                                           |
+| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).                                                      |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                                                |
+| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                                                                |
+| [`dialogue_overruns`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                                                                        |
+| [`free_and_repeatable`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.free_and_repeatable)(provider)                     | Whether `provider` may be run where nothing may be spent or written (an#311): it DECLARES `repeatable = True` (the same request gives the same bytes: `offline`, `mac_say`) and `billed = False` — stated, never inferred from a missing method — and has no `billed_characters` hook. |
+| [`in_memory_audio_mall`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.in_memory_audio_mall)(mall)                        | `mall` with its audio and visemes stores behind [`InMemoryOverlay`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.InMemoryOverlay) s — hand it to [`stamp_from_stores()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores) (`free_in_memory=True`) and then to whatever keys the stamped scene (an#311).     |
+| [`is_voice_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.is_voice_tts)(tts)                                 | Whether `tts` means "each voice's own provider": `None`, `""` or [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS).                                                                                                                                                           |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                                                      |
+| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                                    |
+| [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                                                 |
+| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                                        |
+| [`stamp_from_stores`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only.                     |
+| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                                    |
+| [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                                         |
+| [`tts_chooser`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.tts_chooser)(tts, mall, \*[, make])                | `voice_id -> provider`: who speaks a line in that voice (an#305).                                                                                                                                                                                                                      |
+| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                                                                  |
+| [`voice_stand_ins`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.voice_stand_ins)(lines, mall, \*, overridden)      | One message per voice whose lines are spoken by another provider than its document declares; `lines` is `(voice_id, provider)` per line, and `overridden` says whether a `tts` was given for every line.                                                                               |
+
+### Classes
+
+| [`InMemoryOverlay`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.InMemoryOverlay)(store)   | A store view that reads through and keeps every write IN MEMORY: what a reader of a render's cache keys stamps free audio into (an#311), so the keys it computes next see that audio while the store itself is untouched.   |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Exceptions
 
@@ -3303,6 +3369,10 @@ than its voice declares is a [`VoiceStandInWarning`](_autosummary/an.audio.pipel
 | [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                                |
 | [`VoiceStandInError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInError)      | Under `strict`: a line would be spoken by another provider than its voice declares.                                                             |
 | [`VoiceStandInWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VoiceStandInWarning)    | A line is spoken by another provider than its voice document declares — an override for every line, or a provider `an` has no TTS for (an#305). |
+
+### an.audio.pipeline.AUDIO_OUTPUT_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('audio', 'visemes')*
+
+The stores the audio pipeline writes what it makes to.
 
 ### *exception* an.audio.pipeline.AudioNotCachedError
 
@@ -3326,6 +3396,15 @@ Who speaks a line whose voice declares no provider, when no `tts` overrides it.
 Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
 
 A synthesized line runs past its shot’s end, so its tail is cut.
+
+### *class* an.audio.pipeline.InMemoryOverlay(store)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+A store view that reads through and keeps every write IN MEMORY: what a
+reader of a render’s cache keys stamps free audio into (an#311), so the
+keys it computes next see that audio while the store itself is untouched.
+Deleting is refused.
 
 ### an.audio.pipeline.LEGACY_DURATION_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -3443,6 +3522,33 @@ be lost silently. It is `an validate`’s own check
 >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
 "shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
+
+### an.audio.pipeline.free_and_repeatable(provider)
+
+Whether `provider` may be run where nothing may be spent or written
+(an#311): it DECLARES `repeatable = True` (the same request gives the
+same bytes: `offline`, `mac_say`) and `billed = False` — stated, never
+inferred from a missing method — and has no `billed_characters` hook.
+Re-running it reproduces exactly what a render stored; anything else would
+give new bytes, so new keys, or cost money.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> from an.audio.offline_tts import OfflineTTS
+>>> free_and_repeatable(OfflineTTS()), free_and_repeatable(object())
+(True, False)
+```
+
+### an.audio.pipeline.in_memory_audio_mall(mall)
+
+`mall` with its audio and visemes stores behind [`InMemoryOverlay`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.InMemoryOverlay)
+s — hand it to [`stamp_from_stores()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.stamp_from_stores) (`free_in_memory=True`) and then
+to whatever keys the stamped scene (an#311).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.pipeline.is_voice_tts(tts)
 
@@ -3585,13 +3691,21 @@ without the pipeline there is no authority to say that stamp is stale.
 [0.0, 2.0]
 ```
 
-### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None)
+### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None, free_in_memory=False)
 
 Stamp `scene`’s dialogue exactly as [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)
 would with these providers — `tts` as it takes it: `None` for each
 voice’s own (an#305) — from the content-keyed `audio` and `visemes`
 stores only. Synthesises, aligns, writes and announces nothing; a line the
 stores cannot answer raises [`AudioNotCachedError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioNotCachedError).
+
+`free_in_memory` (an#311): a line the stores cannot answer whose
+provider is free and repeatable ([`free_and_repeatable()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.free_and_repeatable): offline
+speech) is synthesised and aligned for real — it reproduces the bytes a
+render stored — into the mall’s [`InMemoryOverlay`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.InMemoryOverlay) s, which
+[`in_memory_audio_mall()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.in_memory_audio_mall) puts in front of the audio and visemes stores
+(required: nothing is ever written to a store). Billed or non-repeatable
+providers still raise. Still nothing is announced.
 
 What a reader of the render’s cache keys needs (an#274): a `scene.md`
 edit drops every stamp on re-sync, and the next render re-stamps the same
@@ -5327,7 +5441,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -5546,7 +5660,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -21313,8 +21427,9 @@ would be a second answer to “may this run spend?”, and the two would drift.
 
 ### Functions
 
-| [`live_api_enabled`](_autosummary/an.live_api.html.md#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.   |
-|----------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`live_api_enabled`](_autosummary/an.live_api.html.md#an.live_api.live_api_enabled)([env])   | Whether this run has explicitly opted in to paid API calls.                                                                                                                                                                                                      |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`paid_provider_key_vars`](_autosummary/an.live_api.html.md#an.live_api.paid_provider_key_vars)()  | Every environment variable a paid provider reads its API key from — the `env.key.*` capabilities' ([`an.capabilities.subjects.ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)), so a new paid provider is listed once. |
 
 ### an.live_api.CI_ENV_VAR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'CI'*
 
@@ -21354,6 +21469,20 @@ False
 True
 >>> live_api_enabled({LIVE_API_ENV_VAR: "1", CI_ENV_VAR: "true"})
 False
+```
+
+### an.live_api.paid_provider_key_vars()
+
+Every environment variable a paid provider reads its API key from — the
+`env.key.*` capabilities’ ([`an.capabilities.subjects.ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)), so a
+new paid provider is listed once.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} <= set(paid_provider_key_vars())
+True
 ```
 
 
@@ -23429,9 +23558,12 @@ render’s audio pipeline stamps it, from the content-keyed audio and viseme
 stores only (`an.audio.pipeline.stamp_from_stores`): a `scene.md` edit
 drops every stamp on re-sync, and the next render re-stamps the same audio
 from the stores, so those are the keys it will use. A line the stores
-cannot answer (new text, another provider) raises
-`an.audio.pipeline.AudioNotCachedError`: its shot’s next key is unknowable
-without a synthesis, and a collector must not guess.
+cannot answer whose provider is free and repeatable (offline speech) is
+re-made IN MEMORY, writing nothing (an#311): a later render re-makes the
+same bytes. Any other (new text in a billed voice, a non-repeatable
+provider) raises `an.audio.pipeline.AudioNotCachedError`: its shot’s next
+key is unknowable without a paid or random synthesis, and a collector must
+not guess.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -34480,18 +34612,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-05 16:06 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/7ea09c54e9c6c0be941d8dacfb76b3137bb0e966"><code>7ea09c5</code></a> on branch <code>main</code>, for **an 0.1.164** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 01:17 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/c447c2dc2b5cca26fc936655eb7aa3f6f165286d"><code>c447c2d</code></a> on branch <code>main</code>, for **an 0.1.165** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.165) is ahead of the latest release on PyPI (0.1.164): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/7ea09c54e9c6c0be941d8dacfb76b3137bb0e966"><code>7ea09c54e9c6c0be941d8dacfb76b3137bb0e966</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/c447c2dc2b5cca26fc936655eb7aa3f6f165286d"><code>c447c2dc2b5cca26fc936655eb7aa3f6f165286d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.164</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.165</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34500,9 +34634,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37337584760">37337584760</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37397934876">37397934876</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f00f84c499c5214f9efe7473feb6131031aeae9e</code> (in the history of the built commit) |
+| Event commit | <code>3917518710f84a3123f7d8da922ba59dc06dfd42</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34527,13 +34661,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.164/">0.1.164</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.164/">0.1.164</a>, older than the documented version (0.1.165).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 7ea09c54e9c6c0be941d8dacfb76b3137bb0e966
+git checkout c447c2dc2b5cca26fc936655eb7aa3f6f165286d
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

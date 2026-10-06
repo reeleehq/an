@@ -12,6 +12,7 @@ an.audio.pipeline
       DEFAULT_TTS_NAME
       TakeScorerFactory
       OVERRUN_TOLERANCE_S
+      AUDIO_OUTPUT_STORES
       REROLL_ONLY_HINT
       LEGACY_DURATION_TOLERANCE_S
    
@@ -23,6 +24,8 @@ an.audio.pipeline
       default_lipsync
       default_tts
       dialogue_overruns
+      free_and_repeatable
+      in_memory_audio_mall
       is_voice_tts
       produce_audio_for_dialogue
       produce_audio_for_scene
@@ -34,6 +37,12 @@ an.audio.pipeline
       tts_chooser
       viseme_key
       voice_stand_ins
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      InMemoryOverlay
    
    .. rubric:: Exceptions
 

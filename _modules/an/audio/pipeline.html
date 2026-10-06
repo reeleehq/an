@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../../../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1382,6 +1382,120 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 
+<div class="viewcode-block" id="free_and_repeatable">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.free_and_repeatable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">free_and_repeatable</span><span class="p">(</span><span class="n">provider</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``provider`` may be run where nothing may be spent or written</span>
+<span class="sd">    (an#311): it DECLARES ``repeatable = True`` (the same request gives the</span>
+<span class="sd">    same bytes: ``offline``, ``mac_say``) and ``billed = False`` — stated, never</span>
+<span class="sd">    inferred from a missing method — and has no ``billed_characters`` hook.</span>
+<span class="sd">    Re-running it reproduces exactly what a render stored; anything else would</span>
+<span class="sd">    give new bytes, so new keys, or cost money.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.audio.offline_tts import OfflineTTS</span>
+<span class="sd">    &gt;&gt;&gt; free_and_repeatable(OfflineTTS()), free_and_repeatable(object())</span>
+<span class="sd">    (True, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"repeatable"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+        <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"billed"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span>
+        <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_InMemoryProvider</span><span class="p">(</span><span class="n">_CacheOnlyProvider</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A free, repeatable provider (:func:`free_and_repeatable`), run for real:</span>
+<span class="sd">    what it makes lands in the in-memory overlay, never in a store.</span>
+
+<span class="sd">    A provider this machine cannot run (its ``check_available`` fails:</span>
+<span class="sd">    ``say`` off macOS) makes its lines unkeyable — :class:`AudioNotCachedError`,</span>
+<span class="sd">    as for any provider whose audio is missing. A failure AFTER it said it can</span>
+<span class="sd">    run is a bug, and propagates: a collector refuses rather than skip a knob</span>
+<span class="sd">    set (and, forced, drop what renders under it used) on a bug's word.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unavailable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">,</span> <span class="s2">"check_available"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unavailable: unkeyable, not fatal</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unavailable</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_refuse_if_unavailable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unavailable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AudioNotCachedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) is not in the store, and this "</span>
+                <span class="sa">f</span><span class="s2">"machine cannot make it (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_unavailable</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refuse_if_unavailable</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the audio of </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">synthesize</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refuse_if_unavailable</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the visemes of </span><span class="si">{</span><span class="n">transcript</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">transcript</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="InMemoryOverlay">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.InMemoryOverlay">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InMemoryOverlay</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A store view that reads through and keeps every write IN MEMORY: what a</span>
+<span class="sd">    reader of a render's cache keys stamps free audio into (an#311), so the</span>
+<span class="sd">    keys it computes next see that audio while the store itself is untouched.</span>
+<span class="sd">    Deleting is refused."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">store</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">written</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">written</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">written</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AudioNotCachedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> would have to be deleted from a store"</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: The stores the audio pipeline writes what it makes to.</span>
+<span class="n">AUDIO_OUTPUT_STORES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"audio"</span><span class="p">,</span> <span class="s2">"visemes"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="in_memory_audio_mall">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.in_memory_audio_mall">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">in_memory_audio_mall</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``mall`` with its audio and visemes stores behind :class:`InMemoryOverlay`</span>
+<span class="sd">    s — hand it to :func:`stamp_from_stores` (``free_in_memory=True``) and then</span>
+<span class="sd">    to whatever keys the stamped scene (an#311)."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">InMemoryOverlay</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">AUDIO_OUTPUT_STORES</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">_ReadOnlyStore</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A store view that reads through and refuses every write."""</span>
 
@@ -1416,6 +1530,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span><span class="p">,</span>
     <span class="n">tts_factory</span><span class="p">:</span> <span class="n">TtsFactory</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">free_in_memory</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Stamp ``scene``'s dialogue exactly as :func:`produce_audio_for_scene`</span>
 <span class="sd">    would with these providers — ``tts`` as it takes it: ``None`` for each</span>
@@ -1423,15 +1538,45 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    stores only. Synthesises, aligns, writes and announces nothing; a line the</span>
 <span class="sd">    stores cannot answer raises :class:`AudioNotCachedError`.</span>
 
+<span class="sd">    ``free_in_memory`` (an#311): a line the stores cannot answer whose</span>
+<span class="sd">    provider is free and repeatable (:func:`free_and_repeatable`: offline</span>
+<span class="sd">    speech) is synthesised and aligned for real — it reproduces the bytes a</span>
+<span class="sd">    render stored — into the mall's :class:`InMemoryOverlay` s, which</span>
+<span class="sd">    :func:`in_memory_audio_mall` puts in front of the audio and visemes stores</span>
+<span class="sd">    (required: nothing is ever written to a store). Billed or non-repeatable</span>
+<span class="sd">    providers still raise. Still nothing is announced.</span>
+
 <span class="sd">    What a reader of the render's cache keys needs (an#274): a ``scene.md``</span>
 <span class="sd">    edit drops every stamp on re-sync, and the next render re-stamps the same</span>
 <span class="sd">    audio from the stores, so the keys a render WILL use are these, not the</span>
 <span class="sd">    unstamped IR's. Mutates ``scene`` in place and returns it.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">free_in_memory</span><span class="p">:</span>
+        <span class="n">bare</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">AUDIO_OUTPUT_STORES</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">mall</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mall</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">InMemoryOverlay</span><span class="p">)</span>
+        <span class="p">]</span>  <span class="c1"># fmt: skip</span>
+        <span class="k">if</span> <span class="n">bare</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"free_in_memory needs the </span><span class="si">{</span><span class="n">bare</span><span class="si">}</span><span class="s2"> store(s) behind an InMemoryOverlay "</span>
+                <span class="s2">"(an.audio.pipeline.in_memory_audio_mall): nothing may be written"</span>
+            <span class="p">)</span>
     <span class="n">view</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">_ReadOnlyStore</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"audio"</span><span class="p">,</span> <span class="s2">"visemes"</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">k</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">v</span>
+            <span class="k">if</span> <span class="n">free_in_memory</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">AUDIO_OUTPUT_STORES</span>
+            <span class="k">else</span> <span class="n">_ReadOnlyStore</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="o">*</span><span class="n">AUDIO_OUTPUT_STORES</span><span class="p">,</span> <span class="s2">"takes"</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">v</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">provider</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">free_in_memory</span> <span class="ow">and</span> <span class="n">free_and_repeatable</span><span class="p">(</span><span class="n">provider</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_InMemoryProvider</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">tts_factory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span> <span class="k">as</span> <span class="n">tts_factory</span>
     <span class="n">make</span> <span class="o">=</span> <span class="n">tts_factory</span>
@@ -1441,10 +1586,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">tts</span><span class="o">=</span><span class="p">(</span>
             <span class="n">tts</span>
             <span class="k">if</span> <span class="n">is_voice_tts</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">guard</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tts</span><span class="p">)</span>
         <span class="p">),</span>
-        <span class="n">lipsync</span><span class="o">=</span><span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span>
-        <span class="n">tts_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="n">_CacheOnlyProvider</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">name</span><span class="p">)),</span>
+        <span class="n">lipsync</span><span class="o">=</span><span class="n">guard</span><span class="p">(</span><span class="n">lipsync</span><span class="p">),</span>
+        <span class="n">tts_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="n">guard</span><span class="p">(</span><span class="n">make</span><span class="p">(</span><span class="n">name</span><span class="p">)),</span>
         <span class="n">announce</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">overruns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span></div>

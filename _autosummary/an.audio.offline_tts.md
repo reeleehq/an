@@ -36,6 +36,13 @@ Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+an#311).
+
+* **Type:**
+  Costs nothing per request (stated, never inferred
+
 #### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
 
 The same request gives the same audio, so best-of-N takes never apply

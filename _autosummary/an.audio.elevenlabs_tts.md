@@ -68,6 +68,13 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+what may never run in memory).
+
+* **Type:**
+  Every request is charged (an#311
+
 #### billed_characters(text, , audio_tags=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.

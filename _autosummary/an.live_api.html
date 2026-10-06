@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.stores" href="an.library.stores.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -639,6 +639,9 @@ would be a second answer to “may this run spend?”, and the two would drift.<
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.live_api.live_api_enabled" title="an.live_api.live_api_enabled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api_enabled</span></code></a>([env])</p></td>
 <td><p>Whether this run has explicitly opted in to paid API calls.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.live_api.paid_provider_key_vars" title="an.live_api.paid_provider_key_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paid_provider_key_vars</span></code></a>()</p></td>
+<td><p>Every environment variable a paid provider reads its API key from — the <code class="docutils literal notranslate"><span class="pre">env.key.*</span></code> capabilities' (<a class="reference internal" href="an.capabilities.subjects.html#an.capabilities.subjects.ENV_KEYS" title="an.capabilities.subjects.ENV_KEYS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.capabilities.subjects.ENV_KEYS</span></code></a>), so a new paid provider is listed once.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -685,6 +688,23 @@ callers into copying the whole environment to satisfy it.</p>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">live_api_enabled</span><span class="p">({</span><span class="n">LIVE_API_ENV_VAR</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span> <span class="n">CI_ENV_VAR</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">})</span>
 <span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.live_api.paid_provider_key_vars">
+<span class="sig-prename descclassname"><span class="pre">an.live_api.</span></span><span class="sig-name descname"><span class="pre">paid_provider_key_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/live_api.html#paid_provider_key_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.live_api.paid_provider_key_vars" title="Link to this definition">#</a></dt>
+<dd><p>Every environment variable a paid provider reads its API key from — the
+<code class="docutils literal notranslate"><span class="pre">env.key.*</span></code> capabilities’ (<a class="reference internal" href="an.capabilities.subjects.html#an.capabilities.subjects.ENV_KEYS" title="an.capabilities.subjects.ENV_KEYS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.capabilities.subjects.ENV_KEYS</span></code></a>), so a
+new paid provider is listed once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">{</span><span class="s2">"ELEVEN_API_KEY"</span><span class="p">,</span> <span class="s2">"ANTHROPIC_API_KEY"</span><span class="p">}</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">paid_provider_key_vars</span><span class="p">())</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -742,6 +762,7 @@ callers into copying the whole environment to satisfy it.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.live_api.LIVE_API_ENV_VAR"><code class="docutils literal notranslate"><span class="pre">LIVE_API_ENV_VAR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.live_api.TRUTHY_VALUES"><code class="docutils literal notranslate"><span class="pre">TRUTHY_VALUES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.live_api.live_api_enabled"><code class="docutils literal notranslate"><span class="pre">live_api_enabled()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.live_api.paid_provider_key_vars"><code class="docutils literal notranslate"><span class="pre">paid_provider_key_vars()</span></code></a></li>
 </ul>
   </nav></div>
 

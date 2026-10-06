@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=20fd7f51"></script>
+    <script src="../_static/documentation_options.js?v=8485fb48"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.raster" href="an.raster.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.164" />
+  <meta name="docsearch:version" content="0.1.165" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -727,9 +727,12 @@ render’s audio pipeline stamps it, from the content-keyed audio and viseme
 stores only (<code class="code docutils literal notranslate"><span class="pre">an.audio.pipeline.stamp_from_stores</span></code>): a <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> edit
 drops every stamp on re-sync, and the next render re-stamps the same audio
 from the stores, so those are the keys it will use. A line the stores
-cannot answer (new text, another provider) raises
-<code class="code docutils literal notranslate"><span class="pre">an.audio.pipeline.AudioNotCachedError</span></code>: its shot’s next key is unknowable
-without a synthesis, and a collector must not guess.</p>
+cannot answer whose provider is free and repeatable (offline speech) is
+re-made IN MEMORY, writing nothing (an#311): a later render re-makes the
+same bytes. Any other (new text in a billed voice, a non-repeatable
+provider) raises <code class="code docutils literal notranslate"><span class="pre">an.audio.pipeline.AudioNotCachedError</span></code>: its shot’s next
+key is unknowable without a paid or random synthesis, and a collector must
+not guess.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>

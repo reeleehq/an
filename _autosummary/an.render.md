@@ -88,9 +88,12 @@ render’s audio pipeline stamps it, from the content-keyed audio and viseme
 stores only (`an.audio.pipeline.stamp_from_stores`): a `scene.md` edit
 drops every stamp on re-sync, and the next render re-stamps the same audio
 from the stores, so those are the keys it will use. A line the stores
-cannot answer (new text, another provider) raises
-`an.audio.pipeline.AudioNotCachedError`: its shot’s next key is unknowable
-without a synthesis, and a collector must not guess.
+cannot answer whose provider is free and repeatable (offline speech) is
+re-made IN MEMORY, writing nothing (an#311): a later render re-makes the
+same bytes. Any other (new text in a billed voice, a non-repeatable
+provider) raises `an.audio.pipeline.AudioNotCachedError`: its shot’s next
+key is unknowable without a paid or random synthesis, and a collector must
+not guess.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
