@@ -599,6 +599,12 @@ class Dialogue(_IRModel):
     start: Seconds | None = None
     duration: Seconds | None = None
     emotion: str | None = None
+    #: How strongly ``emotion`` shows, 0..1 (an#253): ``maya [angry 0.4]: …``
+    #: in ``scene.md``, a typed parameter on the (b-name) emotion. ``None`` is
+    #: full strength, and is omitted from JSON.
+    emotion_intensity: float | None = Field(
+        default=None, ge=0, le=1, allow_inf_nan=False
+    )
     viseme_track: VisemeTrack | None = None
     #: The provider's word timings, line-relative; ``None`` when the provider
     #: has none (offline, Rhubarb) or the line was stamped before an#96.
@@ -684,7 +690,7 @@ class Dialogue(_IRModel):
         """
         data = handler(self)
         if isinstance(data, dict):
-            for key in ("pause", "at", "direction", "leveled"):
+            for key in ("pause", "at", "direction", "leveled", "emotion_intensity"):
                 if getattr(self, key) is None:
                     data.pop(key, None)
         return data
