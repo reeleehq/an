@@ -232,6 +232,8 @@ changing what CI does or does not verify, and before writing any sentence of the
 "verified in CI", which is the one claim this repo has agreed never to make about a
 rendering behaviour.
 
+**A test that renders twice and asserts reuse uses `frozen_source_digests`** (an#379): the shot key re-reads the render path's source (the genre's too, from a checkout other sessions edit) at every key, so without it the test also asserts that nobody touched a file in between.
+
 **Every regression guard is mutation-tested.** Delete the fix, confirm the test goes red.
 An unproven guard is decoration, and this is not theoretical here — a guard that tested an
 ordering *helper* in isolation passed while `applyPose` never called it, and a meta-test for

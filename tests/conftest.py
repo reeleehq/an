@@ -1051,3 +1051,28 @@ def _the_interpreter_survived_the_test():
         f"`subprocess` module, catching `file -b <sys.executable>` from "
         f"`platform.platform()`."
     )
+
+
+@pytest.fixture
+def frozen_source_digests(monkeypatch):
+    """Hold the shot key's SOURCE parts still for one test (an#379).
+
+    The shot key hashes the render path's Python source (an's and every
+    registered genre's), the JS runtime and the genres' runtime scripts, read
+    from disk at each key. A test that renders twice and asserts reuse
+    therefore also asserts that no source file changed between its two
+    renders, which other sessions editing a shared checkout (the genre's, on a
+    busy machine) do not promise: measured, one edit to a cutan module between
+    the renders re-renders the cut-out shot ("an's render code changed") and
+    reuses the Manim one. The real digests are taken once, at the start, so
+    the key still covers the code; they just cannot move mid-test.
+    """
+    from an.bench import environment
+    from an.stage import cache_key, render
+
+    code = cache_key.render_code_digest()
+    runtime = environment.runtime_sha256()
+    extensions = render.runtime_extensions()
+    monkeypatch.setattr(cache_key, "render_code_digest", lambda: code)
+    monkeypatch.setattr(environment, "runtime_sha256", lambda: runtime)
+    monkeypatch.setattr(render, "runtime_extensions", lambda: extensions)

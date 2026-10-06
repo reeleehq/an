@@ -51,6 +51,10 @@ from tests.test_shot_cache import (  # noqa: F401 — the fixture, by name
     fake_render,
 )
 
+#: Renders twice and asserts reuse: the source the shot key hashes must not
+#: move between the renders, whatever else edits a shared checkout (an#379).
+pytestmark = pytest.mark.usefixtures("frozen_source_digests")
+
 #: Collections run "a minute from now", so entries the test wrote a moment ago
 #: are past the protection horizon (which spares what was written in the last
 #: `CLOCK_SLACK_S` seconds — a render's own writes).
@@ -1303,3 +1307,33 @@ def test_a_free_provider_this_machine_cannot_run_skips_and_a_broken_one_refuses(
     monkeypatch.setitem(providers.TTS_FACTORIES, "freebie", lambda: _FreeTTS(broken=True))
     with pytest.raises(CacheGcError, match=r"reaches under \{.*TypeError: a bug in the provider"):
         _gc(root, dry_run=True)
+
+
+@pytest.mark.ffmpeg
+def test_reuse_is_not_at_the_mercy_of_a_source_edit_between_the_two_renders(
+    tmp_path, solid, monkeypatch
+):
+    """an#379: the flake was a render-path source file changing between the
+    test's two renders (another session editing a shared checkout), which moves
+    the cut-out shot's `code` part and leaves the Manim shot's alone. Here a
+    module on the render path IS edited between them; the module's
+    `frozen_source_digests` keeps the key's source parts as they were when
+    the test began, so both shots are reused."""
+    from an.stage import cache_key
+    from tests.test_manim_renderer import FakeRenderCheck
+    import an.adapters.manim_adapter as ma
+
+    monkeypatch.setattr(ma, "manim_version", lambda: "0.0.0-fake")
+    check = FakeRenderCheck(seconds=2.0)
+    monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
+    extra = tmp_path / "an_probe_379.py"
+    extra.write_text("X = 1\n")
+    real = cache_key.render_path_modules
+    monkeypatch.setattr(
+        cache_key, "render_path_modules", lambda *a, **k: {**real(*a, **k), "an_probe_379": extra}
+    )
+    root = _manim_film(tmp_path)
+    _render_film(root, solid)
+    extra.write_text("X = 2\n")
+    warm, rendered, _, _ = _render_film(root, solid)
+    assert warm.reused == ["chart", "c"] and rendered == [], warm.summary()
