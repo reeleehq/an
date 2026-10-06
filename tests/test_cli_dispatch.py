@@ -290,7 +290,7 @@ def test_a_single_command_app_still_needs_its_subcommand_name():
 
 @pytest.mark.genre("cutout_animation")
 def test_the_command_set_is_pinned_by_literal():
-    """MUTATION: delete any command from `_dispatch_funcs` or `_character_dispatch_funcs`.
+    """MUTATION: delete any command from `_dispatch_funcs`.
 
     Measured before this test existed: **11 of the 17 commands could be deleted
     with a fully green suite**. `test_every_dispatched_function_reaches_the_cli`
@@ -299,7 +299,13 @@ def test_the_command_set_is_pinned_by_literal():
     "a guard that asserts data passes for any data" shape this wave keeps
     losing mutants to, unapplied here until now.
 
-    So the names are spelled out, the way an#40 spells out `SCENE_KEYS`.
+    So the names are spelled out, the way an#40 spells out `SCENE_KEYS`. Only
+    the CORE's: a genre's sub-commands (`an character ...`) are pinned in the
+    genre's own repository, beside the list they pin, so a new genre command
+    does not break `an` (the cure an#354 and an#382 applied to the vocabulary
+    rows and the semantic checks; cutan#71's `add-half-lid` broke every lane).
+    Here the genre's group only has to be MOUNTED, with what the genre
+    registered.
     """
     assert _registered(_app()) == [
         "init",
@@ -315,18 +321,11 @@ def test_the_command_set_is_pinned_by_literal():
         "bench-compare",
         "bench-mutants",
     ]
-    assert _group_commands(_app(), "character") == [
-        "new",
-        "mouths",
-        "add-gaze",
-        "add-views",
-        "validate",
-        "capabilities",
-        "contract",
-        "silhouette",
-        "preview",
-        "record",
-    ]
+    from an.genres import services
+
+    mounted = _group_commands(_app(), "character")
+    registered = [f.__name__.replace("_", "-") for f in services("cli.")["character"]]
+    assert mounted and mounted == registered
 
 
 @pytest.mark.genre("cutout_animation")
