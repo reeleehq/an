@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=69b98894"></script>
+    <script src="../../../_static/documentation_options.js?v=5e4102fe"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.181" />
+  <meta name="docsearch:version" content="0.1.182" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -735,15 +735,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">rather than in the IR.</span>
 
 <span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 4})</span>
-<span class="sd">{'pitch_semitones': 4.0}</span>
+<span class="sd">{'pitch_semitones': 4.0, 'chain_version': 2}</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}</span>
 <span class="sd">True</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"tempo": 1.1, "pitch_semitones": -2})</span>
-<span class="sd">{'pitch_semitones': -2.0, 'tempo': 1.1}</span>
+<span class="sd">{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}</span>
 <span class="sd">&gt;&gt;&gt; round(_pitch_filter(12), 3)</span>
 <span class="sd">0.5</span>
 <span class="sd">&gt;&gt;&gt; filter_chain({"tempo": 1.25})</span>
-<span class="sd">'aresample=44100,atempo=1.250000000'</span>
+<span class="sd">'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": True})["trim_silence"]</span>
 <span class="sd">{'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": False}) == {}</span>
@@ -843,8 +843,16 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: any change to :func:`filter_chain`, :func:`ffmpeg_argv` or their constants</span>
 <span class="c1">#: — a test pins them to the version. Moving the key re-processes each line</span>
 <span class="c1">#: from its raw take, which is cached: nothing is billed.</span>
-<span class="n">CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1">#:</span>
+<span class="c1">#: 2 (an#350): silence padded before the ``atempo`` stages and the output cut</span>
+<span class="c1">#: to exactly ``input / tempo`` — ``atempo`` dropped the last 20-40 ms.</span>
+<span class="n">CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">_FIRST_CHAIN_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1">#: Seconds of silence appended before the ``atempo`` stages, so their window</span>
+<span class="c1">#: never eats the line's tail (it dropped 20-40 ms of every short padded clip,</span>
+<span class="c1">#: an#350); the output is then cut to the exact length the tempo gives.</span>
+<span class="c1">#: Enough for the slowest stage of :data:`TEMPO_LIMITS` at every pitch.</span>
+<span class="n">TEMPO_PAD_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
 <span class="c1">#: The prefix of the ``LIST``/``INFO`` comment a trimmed WAV carries.</span>
 <span class="n">TRIM_RECORD_TAG</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an:trim_silence "</span>
 
@@ -1020,7 +1028,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">factor</span> <span class="o">=</span> <span class="n">tempo</span> <span class="o">/</span> <span class="n">ratio</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">head</span><span class="p">,</span> <span class="n">factor</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">tempo</span>
-    <span class="k">return</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"atempo=</span><span class="si">{</span><span class="n">f</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">atempo_stages</span><span class="p">(</span><span class="n">factor</span><span class="p">))])</span></div>
+    <span class="k">return</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">head</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"apad=pad_dur=</span><span class="si">{</span><span class="n">TEMPO_PAD_S</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"atempo=</span><span class="si">{</span><span class="n">f</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">atempo_stages</span><span class="p">(</span><span class="n">factor</span><span class="p">)),</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1064,20 +1078,38 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1">#: The output options of every WAV the chain writes: bit-exact 16-bit PCM.</span>
+<span class="n">_WAV_OUT</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"-map_metadata"</span><span class="p">,</span> <span class="s2">"-1"</span><span class="p">,</span> <span class="s2">"-fflags"</span><span class="p">,</span> <span class="s2">"+bitexact"</span><span class="p">,</span> <span class="s2">"-flags:a"</span><span class="p">,</span> <span class="s2">"+bitexact"</span><span class="p">,</span>
+    <span class="s2">"-c:a"</span><span class="p">,</span> <span class="s2">"pcm_s16le"</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># fmt: skip</span>
+
+
 <div class="viewcode-block" id="ffmpeg_argv">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.ffmpeg_argv">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ffmpeg_argv</span><span class="p">(</span><span class="n">chain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ffmpeg_argv</span><span class="p">(</span>
+    <span class="n">chain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">source_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The argv that runs ``chain`` over audio on stdin into a bit-exact 16-bit</span>
 <span class="sd">    PCM WAV at ``out_path`` (part of :data:`CHAIN_VERSION`).</span>
 
+<span class="sd">    source_path: also write the input, decoded (:func:`decode_chain`) and</span>
+<span class="sd">        untouched, there — in the same run, so its length is known whatever</span>
+<span class="sd">        container came in (an#350: a tempo chain's output is cut to it)</span>
+
 <span class="sd">    &gt;&gt;&gt; ffmpeg_argv("aresample=44100", "o.wav")[-3:]</span>
 <span class="sd">    ['-c:a', 'pcm_s16le', 'o.wav']</span>
+<span class="sd">    &gt;&gt;&gt; ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]</span>
+<span class="sd">    's.wav'</span>
 <span class="sd">    """</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-hide_banner"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-nostdin"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"-i"</span><span class="p">,</span> <span class="s2">"pipe:0"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">source_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">head</span><span class="p">,</span> <span class="s2">"-af"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="o">*</span><span class="n">_WAV_OUT</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">)]</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"[0:a]asplit=2[fx][src];[fx]</span><span class="si">{</span><span class="n">chain</span><span class="si">}</span><span class="s2">[out];[src]</span><span class="si">{</span><span class="n">decode_chain</span><span class="p">()</span><span class="si">}</span><span class="s2">[raw]"</span>
     <span class="k">return</span> <span class="p">[</span>
-        <span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-hide_banner"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"-nostdin"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span>
-        <span class="s2">"-i"</span><span class="p">,</span> <span class="s2">"pipe:0"</span><span class="p">,</span> <span class="s2">"-af"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span>
-        <span class="s2">"-map_metadata"</span><span class="p">,</span> <span class="s2">"-1"</span><span class="p">,</span> <span class="s2">"-fflags"</span><span class="p">,</span> <span class="s2">"+bitexact"</span><span class="p">,</span> <span class="s2">"-flags:a"</span><span class="p">,</span> <span class="s2">"+bitexact"</span><span class="p">,</span>
-        <span class="s2">"-c:a"</span><span class="p">,</span> <span class="s2">"pcm_s16le"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
+        <span class="o">*</span><span class="n">head</span><span class="p">,</span> <span class="s2">"-filter_complex"</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span>
+        <span class="s2">"-map"</span><span class="p">,</span> <span class="s2">"[out]"</span><span class="p">,</span> <span class="o">*</span><span class="n">_WAV_OUT</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
+        <span class="s2">"-map"</span><span class="p">,</span> <span class="s2">"[raw]"</span><span class="p">,</span> <span class="o">*</span><span class="n">_WAV_OUT</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_path</span><span class="p">),</span>
     <span class="p">]</span>  <span class="c1"># fmt: skip</span></div>
 
 
@@ -1094,8 +1126,11 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># every downstream duration read wrong.</span>
     <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
         <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"shifted.wav"</span>
+        <span class="c1"># A tempo chain also writes the decoded input: its length is what the</span>
+        <span class="c1"># output is cut to (an#350; `atempo` drops the tail of its window).</span>
+        <span class="n">source_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"source.wav"</span> <span class="k">if</span> <span class="s2">"atempo="</span> <span class="ow">in</span> <span class="n">chain</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="n">ffmpeg_argv</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">out_path</span><span class="p">),</span>
+            <span class="n">ffmpeg_argv</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">source_path</span><span class="o">=</span><span class="n">source_path</span><span class="p">),</span>
             <span class="nb">input</span><span class="o">=</span><span class="n">audio</span><span class="p">,</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1105,7 +1140,38 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"ffmpeg failed applying </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span><span class="si">}</span><span class="s2">: "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s1">'replace'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">source_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="n">_seconds</span><span class="p">(</span><span class="n">source_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_exact_frames</span><span class="p">(</span><span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="nb">round</span><span class="p">(</span><span class="n">seconds</span> <span class="o">*</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_seconds</span><span class="p">(</span><span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The length of a 16-bit PCM WAV, seconds."""</span>
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">wav</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">getnframes</span><span class="p">()</span> <span class="o">/</span> <span class="n">w</span><span class="o">.</span><span class="n">getframerate</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_exact_frames</span><span class="p">(</span><span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``wav`` (16-bit PCM) cut, or padded with silence, to exactly ``frames`` frames.</span>
+
+<span class="sd">    &gt;&gt;&gt; import array</span>
+<span class="sd">    &gt;&gt;&gt; buf = io.BytesIO()</span>
+<span class="sd">    &gt;&gt;&gt; with wave.open(buf, "wb") as w:</span>
+<span class="sd">    ...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(8); w.writeframes(array.array("h", [1] * 10).tobytes())</span>
+<span class="sd">    &gt;&gt;&gt; [_seconds(_exact_frames(buf.getvalue(), n)) for n in (4, 12)]</span>
+<span class="sd">    [0.5, 1.5]</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">wav</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">getparams</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">readframes</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">getnframes</span><span class="p">()))</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">sampwidth</span> <span class="o">*</span> <span class="n">params</span><span class="o">.</span><span class="n">nchannels</span>
+    <span class="n">data</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\x00</span><span class="s2">"</span> <span class="o">*</span> <span class="p">(</span><span class="n">frames</span> <span class="o">*</span> <span class="n">width</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setparams</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_pcm16_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

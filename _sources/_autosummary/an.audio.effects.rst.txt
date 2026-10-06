@@ -21,6 +21,7 @@ an.audio.effects
       TRIM_WINDOW_S
       TRIM_VERSION
       CHAIN_VERSION
+      TEMPO_PAD_S
       TRIM_RECORD_TAG
    
    .. rubric:: Functions

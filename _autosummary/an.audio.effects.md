@@ -26,15 +26,15 @@ rather than in the IR.
 
 ```pycon
 >>> normalize_effects({"pitch_semitones": 4})
-{'pitch_semitones': 4.0}
+{'pitch_semitones': 4.0, 'chain_version': 2}
 >>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
 >>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
-{'pitch_semitones': -2.0, 'tempo': 1.1}
+{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}
 >>> round(_pitch_filter(12), 3)
 0.5
 >>> filter_chain({"tempo": 1.25})
-'aresample=44100,atempo=1.250000000'
+'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'
 >>> normalize_effects({"trim_silence": True})["trim_silence"]
 {'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}
 >>> normalize_effects({"trim_silence": False}) == {}
@@ -95,20 +95,21 @@ Design, in the order the pipeline uses it:
 | [`TRIM_WINDOW_S`](#an.audio.effects.TRIM_WINDOW_S)           | a change to it (or to anything else that moves a trimmed line's bytes) is a [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION) bump — a test pins the trim's output to the version (an#309).                                                   |
 | [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION)            | Bumped whenever a trimmed line's bytes would change (algorithm, window, record tag, rounding); part of every trimmed line's key.                                                                                                                          |
 | [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)           | The version of the ffmpeg chain every effected line passes (pitch, tempo, and the decode of a non-WAV line before its trim): its filters, rate ([`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)), `atempo` stages and flags (an#309). |
+| [`TEMPO_PAD_S`](#an.audio.effects.TEMPO_PAD_S)             | Seconds of silence appended before the `atempo` stages, so their window never eats the line's tail (it dropped 20-40 ms of every short padded clip, an#350); the output is then cut to the exact length the tempo gives.                                  |
 | [`TRIM_RECORD_TAG`](#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                                                                                                                                                                                            |
 
 ### Functions
 
-| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                                            |
-|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                                                        |
-| [`decode_chain`](#an.audio.effects.decode_chain)()                             | The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).                 |
-| [`ffmpeg_argv`](#an.audio.effects.ffmpeg_argv)(chain, out_path)               | The argv that runs `chain` over audio on stdin into a bit-exact 16-bit PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)). |
-| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                                                       |
-| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                                              |
-| [`trim_record`](#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.                                |
-| [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns.                             |
-| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                                                |
+| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)             | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                                            |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])             | `factor` as a product of `atempo` stages, each inside `limits`.                                                                                                        |
+| [`decode_chain`](#an.audio.effects.decode_chain)()                                  | The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).                 |
+| [`ffmpeg_argv`](#an.audio.effects.ffmpeg_argv)(chain, out_path, \*[, source_path]) | The argv that runs `chain` over audio on stdin into a bit-exact 16-bit PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)). |
+| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                           | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                                                       |
+| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                          | The canonical effects dict for a voice's `effects` value.                                                                                                              |
+| [`trim_record`](#an.audio.effects.trim_record)(wav)                                | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.                                |
+| [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...])      | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns.                             |
+| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)                   | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                                                |
 
 ### Classes
 
@@ -124,7 +125,7 @@ Design, in the order the pipeline uses it:
 
 One `atempo` stage’s clean range; a factor beyond it is chained in stages.
 
-### an.audio.effects.CHAIN_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+### an.audio.effects.CHAIN_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 The version of the ffmpeg chain every effected line passes (pitch, tempo,
 and the decode of a non-WAV line before its trim): its filters, rate
@@ -133,6 +134,9 @@ only once it is not the first, so introducing it moved no key; bump it with
 any change to [`filter_chain()`](#an.audio.effects.filter_chain), [`ffmpeg_argv()`](#an.audio.effects.ffmpeg_argv) or their constants
 — a test pins them to the version. Moving the key re-processes each line
 from its raw take, which is cached: nothing is billed.
+
+2 (an#350): silence padded before the `atempo` stages and the output cut
+to exactly `input / tempo` — `atempo` dropped the last 20-40 ms.
 
 ### an.audio.effects.DFLT_TRIM_KEEP_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
 
@@ -192,6 +196,13 @@ half to double speed. Outside it speech stops being speech.
 
 * **Type:**
   `tempo` bounds
+
+### an.audio.effects.TEMPO_PAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
+
+Seconds of silence appended before the `atempo` stages, so their window
+never eats the line’s tail (it dropped 20-40 ms of every short padded clip,
+an#350); the output is then cut to the exact length the tempo gives.
+Enough for the slowest stage of [`TEMPO_LIMITS`](#an.audio.effects.TEMPO_LIMITS) at every pitch.
 
 ### an.audio.effects.TRIM_KEEP_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.0, 2.0)*
 
@@ -267,7 +278,7 @@ trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.effects.ffmpeg_argv(chain, out_path)
+### an.audio.effects.ffmpeg_argv(chain, out_path, , source_path=None)
 
 The argv that runs `chain` over audio on stdin into a bit-exact 16-bit
 PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
@@ -275,9 +286,15 @@ PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+source_path: also write the input, decoded ([`decode_chain()`](#an.audio.effects.decode_chain)) and
+: untouched, there — in the same run, so its length is known whatever
+  container came in (an#350: a tempo chain’s output is cut to it)
+
 ```pycon
 >>> ffmpeg_argv("aresample=44100", "o.wav")[-3:]
 ['-c:a', 'pcm_s16le', 'o.wav']
+>>> ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]
+'s.wav'
 ```
 
 ### an.audio.effects.filter_chain(effects)
