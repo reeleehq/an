@@ -144,6 +144,7 @@
 - [an.semantic.registry](_autosummary/an.semantic.registry.html.md): The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
 - [an.semantic.seeds](_autosummary/an.semantic.seeds.html.md): The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
 - [an.semantic.views](_autosummary/an.semantic.views.html.md): View spaces: what a camera move moves through, defined once for every engine (an#257).
+- [an.sound_anchors](_autosummary/an.sound_anchors.html.md): Sound cues timed by the picture (an#317): &#96;at: {when: &lt;node&gt;, reaches: {y: px}}&#96; and &#96;until:&#96;.
 - [an.sound_fetch](_autosummary/an.sound_fetch.html.md): Add a sound from a URL, with its provenance and the cut taken (an#318).
 - [an.sounds](_autosummary/an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
 - [an.sounds_cli](_autosummary/an.sounds_cli.html.md): &#96;an sounds …&#96;: the project’s sounds store from the shell (an#318).
@@ -206,7 +207,7 @@
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 13:09 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-06 13:13 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

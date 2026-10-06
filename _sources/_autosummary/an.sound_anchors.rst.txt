@@ -1,0 +1,18 @@
+an.sound\_anchors
+=================
+
+.. automodule:: an.sound_anchors
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_cue_anchors
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      SoundAnchorError
+   

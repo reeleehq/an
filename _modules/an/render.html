@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=a2301859"></script>
+    <script src="../../_static/documentation_options.js?v=06489c40"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.186" />
+  <meta name="docsearch:version" content="0.1.187" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1319,6 +1319,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_finish_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
     <span class="n">findings</span> <span class="o">+=</span> <span class="p">[(</span><span class="s2">"measurement"</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">shot_findings</span><span class="p">]</span>
+    <span class="n">findings</span> <span class="o">+=</span> <span class="p">[(</span><span class="s2">"sound"</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">prep</span><span class="o">.</span><span class="n">sound_findings</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">findings</span><span class="p">,</span> <span class="n">effective_fps</span>
 
 
@@ -1712,6 +1713,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">windows</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="n">scene</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">findings</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: Cues timed by the picture, as resolved (an#317): ``info`` findings.</span>
+    <span class="n">sound_findings</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_shots</span><span class="p">(</span>
@@ -1778,6 +1781,20 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">measure</span><span class="p">:</span>
         <span class="n">warn_findings</span><span class="p">(</span><span class="n">findings</span><span class="p">)</span>
 
+    <span class="c1"># Cues timed by the picture (an#317), on the settled copy: before the film</span>
+    <span class="c1"># timeline, captions, the mix and every key read a cue's `at`.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_anchors</span><span class="p">,</span> <span class="n">resolve_cue_anchors</span>
+
+    <span class="n">sound_findings</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">has_anchors</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
+        <span class="n">laid_out</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">),</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span>
+        <span class="n">scene</span><span class="p">,</span> <span class="n">sound_findings</span> <span class="o">=</span> <span class="n">resolve_cue_anchors</span><span class="p">(</span>
+            <span class="n">scene</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">find_for</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">],</span>
+            <span class="n">film_starts</span><span class="o">=</span><span class="p">[</span><span class="n">laid_out</span><span class="o">.</span><span class="n">start_seconds</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">))],</span>
+        <span class="p">)</span>
+
     <span class="n">shots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
     <span class="n">windows</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">):</span>
@@ -1823,6 +1840,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">windows</span><span class="o">=</span><span class="n">windows</span><span class="p">,</span>
         <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
         <span class="n">findings</span><span class="o">=</span><span class="n">findings</span><span class="p">,</span>
+        <span class="n">sound_findings</span><span class="o">=</span><span class="n">sound_findings</span><span class="p">,</span>
     <span class="p">)</span>
 
 

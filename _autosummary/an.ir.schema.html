@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a2301859"></script>
+    <script src="../_static/documentation_options.js?v=06489c40"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.186" />
+  <meta name="docsearch:version" content="0.1.187" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -464,6 +464,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_anchors.html">an.sound_anchors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sound_fetch.html">an.sound_fetch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds_cli.html">an.sounds_cli</a></li>
@@ -697,6 +698,12 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(**data)</p></td>
 <td><p>Captions for the whole film, built from the dialogue's word timings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(**data)</p></td>
+<td><p>A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(**data)</p></td>
+<td><p>Where a sound cue ends: at another cue's start, plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (an#317).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DelayAction" title="an.ir.schema.DelayAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DelayAction</span></code></a>(**data)</p></td>
 <td><p>Composition: an empty span that consumes time.</p></td>
@@ -1017,6 +1024,56 @@ a line that does not fit is REFUSED before the render, never clipped.</p>
 <span class="sig-name descname"><span class="pre">strict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.ir.schema.Captions.strict" title="Link to this definition">#</a></dt>
 <dd><p>A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; <code class="docutils literal notranslate"><span class="pre">strict</span></code> makes that an error.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.CueAnchor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CueAnchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CueAnchor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CueAnchor" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>A sound cue’s time, taken from the picture (an#317): when a node reaches a frame row or column.</p>
+<p><code class="docutils literal notranslate"><span class="pre">when</span></code> is a node path in a stage shot (<code class="docutils literal notranslate"><span class="pre">crawl/line_7</span></code>: a text block’s
+unit, a prop, a plane); <code class="docutils literal notranslate"><span class="pre">reaches</span></code> is <code class="docutils literal notranslate"><span class="pre">{&quot;y&quot;:</span> <span class="pre">px}</span></code> or <code class="docutils literal notranslate"><span class="pre">{&quot;x&quot;:</span> <span class="pre">px}</span></code> in
+the frame’s pixels (0 at the top or left), crossed in either direction by
+the node’s on-screen centre — the camera, parallax and a crawl’s tilt
+included. Resolved when the film is laid out, never written back into the
+scene: a layout change moves the sound with the picture. <code class="docutils literal notranslate"><span class="pre">offset</span></code> is
+added after. <code class="docutils literal notranslate"><span class="pre">shot</span></code> names the shot to look in, for a cue in
+<code class="docutils literal notranslate"><span class="pre">meta.sounds</span></code> (default: the first shot that has the node).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CueAnchor</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="s2">"crawl/line_7"</span><span class="p">,</span> <span class="n">reaches</span><span class="o">=</span><span class="p">{</span><span class="s2">"y"</span><span class="p">:</span> <span class="mi">840</span><span class="p">})</span><span class="o">.</span><span class="n">axis</span>
+<span class="go">('y', 840.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.ir.schema.CueAnchor.axis">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">axis</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.schema.CueAnchor.axis" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(axis,</span> <span class="pre">pixels)</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CueAnchor.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CueAnchor.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.CueUntil">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CueUntil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CueUntil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CueUntil" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>Where a sound cue ends: at another cue’s start, plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (an#317).</p>
+<p><code class="docutils literal notranslate"><span class="pre">cue</span></code> is the <code class="docutils literal notranslate"><span class="pre">sound</span></code> key of a cue in the same list (the shot’s, or
+<code class="docutils literal notranslate"><span class="pre">meta.sounds</span></code>); the first such cue is meant.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CueUntil.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CueUntil.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 </dd></dl>
@@ -1520,6 +1577,13 @@ whole thing).</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue.at">
+<span class="sig-name descname"><span class="pre">at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Annotated" title="(in Python v3.14)"><span class="pre">Annotated</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Ge</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">ge</span></span><span class="o"><span class="pre">=</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><span class="pre">CueAnchor</span></a></span><a class="headerlink" href="#an.ir.schema.SoundCue.at" title="Link to this definition">#</a></dt>
+<dd><p>Seconds, or a <a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-class docutils literal notranslate"><span class="pre">CueAnchor</span></code></a> resolved from the picture when the film
+is laid out (an#317).</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.SoundCue.duck_db">
 <span class="sig-name descname"><span class="pre">duck_db</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.SoundCue.duck_db" title="Link to this definition">#</a></dt>
 <dd><p>Attenuation, in dB, while any dialogue line plays; <code class="docutils literal notranslate"><span class="pre">None</span></code> never ducks.
@@ -1542,6 +1606,13 @@ A music bed usually wants <code class="docutils literal notranslate"><span class
 <dt class="sig sig-object py" id="an.ir.schema.SoundCue.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.SoundCue.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue.until">
+<span class="sig-name descname"><span class="pre">until</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><span class="pre">CueUntil</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.SoundCue.until" title="Link to this definition">#</a></dt>
+<dd><p>Ends the cue at another cue’s start (<a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-class docutils literal notranslate"><span class="pre">CueUntil</span></code></a>), instead of a
+fixed <code class="docutils literal notranslate"><span class="pre">duration</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1946,6 +2017,15 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Captions.strict"><code class="docutils literal notranslate"><span class="pre">Captions.strict</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor"><code class="docutils literal notranslate"><span class="pre">CueAnchor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.axis"><code class="docutils literal notranslate"><span class="pre">CueAnchor.axis</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.model_config"><code class="docutils literal notranslate"><span class="pre">CueAnchor.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueUntil"><code class="docutils literal notranslate"><span class="pre">CueUntil</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueUntil.model_config"><code class="docutils literal notranslate"><span class="pre">CueUntil.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DelayAction"><code class="docutils literal notranslate"><span class="pre">DelayAction</span></code></a><ul class="nav section-nav flex-column">
@@ -2021,9 +2101,11 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue"><code class="docutils literal notranslate"><span class="pre">SoundCue</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.at"><code class="docutils literal notranslate"><span class="pre">SoundCue.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.duck_db"><code class="docutils literal notranslate"><span class="pre">SoundCue.duck_db</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.duration"><code class="docutils literal notranslate"><span class="pre">SoundCue.duration</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.model_config"><code class="docutils literal notranslate"><span class="pre">SoundCue.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.until"><code class="docutils literal notranslate"><span class="pre">SoundCue.until</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement"><code class="docutils literal notranslate"><span class="pre">StagePlacement</span></code></a><ul class="nav section-nav flex-column">

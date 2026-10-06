@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a2301859"></script>
+    <script src="../../../_static/documentation_options.js?v=06489c40"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.186" />
+  <meta name="docsearch:version" content="0.1.187" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -739,7 +739,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentMigrationError</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneValidationError</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="n">SceneIR</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUPPORTED_RENDERERS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CORE_OWNER</span><span class="p">,</span>
@@ -3104,6 +3104,8 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">length</span> <span class="o">=</span> <span class="n">film_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">sounds</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">):</span>
+                <span class="k">continue</span>  <span class="c1"># timed by the picture: resolved (and checked) at render</span>
             <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span> <span class="o">&gt;=</span> <span class="n">length</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"warning"</span><span class="p">,</span>
@@ -3114,6 +3116,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">sounds</span><span class="p">):</span>
             <span class="n">cues</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/sounds"</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">):</span>
+                <span class="k">continue</span>  <span class="c1"># timed by the picture: resolved (and checked) at render</span>
             <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span> <span class="o">&gt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"warning"</span><span class="p">,</span>

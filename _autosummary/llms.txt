@@ -142,6 +142,7 @@
 - [an.semantic.registry](an.semantic.registry.html.md): The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
 - [an.semantic.seeds](an.semantic.seeds.html.md): The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
 - [an.semantic.views](an.semantic.views.html.md): View spaces: what a camera move moves through, defined once for every engine (an#257).
+- [an.sound_anchors](an.sound_anchors.html.md): Sound cues timed by the picture (an#317): &#96;at: {when: &lt;node&gt;, reaches: {y: px}}&#96; and &#96;until:&#96;.
 - [an.sound_fetch](an.sound_fetch.html.md): Add a sound from a URL, with its provenance and the cut taken (an#318).
 - [an.sounds](an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
 - [an.sounds_cli](an.sounds_cli.html.md): &#96;an sounds …&#96;: the project’s sounds store from the shell (an#318).

@@ -33,6 +33,8 @@ an.ir.schema
       Camera
       CameraKey
       Captions
+      CueAnchor
+      CueUntil
       DelayAction
       Dialogue
       ExtensionAction

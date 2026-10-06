@@ -85,6 +85,7 @@
    raster
    render
    semantic
+   sound_anchors
    sound_fetch
    sounds
    sounds_cli

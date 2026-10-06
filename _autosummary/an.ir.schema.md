@@ -64,6 +64,8 @@ True
 | [`Camera`](#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
 | [`Captions`](#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
+| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*\*data)       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
+| [`CueUntil`](#an.ir.schema.CueUntil)(\*\*data)        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)     | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)        | One line of spoken dialogue.                                                                                                                                        |
 | [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*\*data) | An action of a kind the core does not define: the IR's one open member.                                                                                             |
@@ -302,6 +304,47 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
+
+### *class* an.ir.schema.CueAnchor(\*\*data)
+
+Bases: `_IRModel`
+
+A sound cue’s time, taken from the picture (an#317): when a node reaches a frame row or column.
+
+`when` is a node path in a stage shot (`crawl/line_7`: a text block’s
+unit, a prop, a plane); `reaches` is `{"y": px}` or `{"x": px}` in
+the frame’s pixels (0 at the top or left), crossed in either direction by
+the node’s on-screen centre — the camera, parallax and a crawl’s tilt
+included. Resolved when the film is laid out, never written back into the
+scene: a layout change moves the sound with the picture. `offset` is
+added after. `shot` names the shot to look in, for a cue in
+`meta.sounds` (default: the first shot that has the node).
+
+```pycon
+>>> CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis
+('y', 840.0)
+```
+
+#### *property* axis *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
+
+`(axis, pixels)`.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.CueUntil(\*\*data)
+
+Bases: `_IRModel`
+
+Where a sound cue ends: at another cue’s start, plus `offset` (an#317).
+
+`cue` is the `sound` key of a cue in the same list (the shot’s, or
+`meta.sounds`); the first such cue is meant.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### an.ir.schema.DEFAULT_CAPTION_MAX_CHARS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 42*
 
@@ -691,6 +734,11 @@ whole thing).
 -12.0
 ```
 
+#### at *: [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[Ge(ge=0)])] | [CueAnchor](#an.ir.schema.CueAnchor)*
+
+Seconds, or a [`CueAnchor`](#an.ir.schema.CueAnchor) resolved from the picture when the film
+is laid out (an#317).
+
 #### duck_db *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Attenuation, in dB, while any dialogue line plays; `None` never ducks.
@@ -707,6 +755,11 @@ the asset’s own length, or — when
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### until *: [CueUntil](#an.ir.schema.CueUntil) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Ends the cue at another cue’s start ([`CueUntil`](#an.ir.schema.CueUntil)), instead of a
+fixed `duration`.
 
 ### *class* an.ir.schema.StagePlacement(\*\*data)
 
