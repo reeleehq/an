@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cf225cc4"></script>
+    <script src="../../../_static/documentation_options.js?v=6b5ad8dd"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.200" />
+  <meta name="docsearch:version" content="0.1.201" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2001,7 +2001,9 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_settle_a_tie</span><span class="p">(</span><span class="n">md_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">md_mtime</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">md_text</span> <span class="o">=</span> <span class="n">_read_text</span><span class="p">(</span><span class="n">md_path</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">json_scene</span> <span class="o">=</span> <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">)),</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span><span class="p">)</span>
+        <span class="n">json_scene</span> <span class="o">=</span> <span class="n">scene_from_json_doc</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_read_text</span><span class="p">(</span><span class="n">json_path</span><span class="p">)),</span> <span class="n">source</span><span class="o">=</span><span class="n">json_path</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span> <span class="o">==</span> <span class="n">_md_canonical</span><span class="p">(</span><span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">json_scene</span><span class="p">)):</span>
             <span class="k">return</span>
         <span class="n">scene</span> <span class="o">=</span> <span class="n">markdown_to_ir</span><span class="p">(</span><span class="n">md_text</span><span class="p">)</span>
