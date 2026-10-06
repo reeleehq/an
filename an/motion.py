@@ -602,25 +602,14 @@ def stage_poses(
             k: v for k, v in (("width", width), ("height", height)) if v is not None
         }
         doc = compile_shot(stage, mall, **size)
-    found: dict[str, dict[str, float]] = {}
+    from an.stage.tree import walk_document
 
-    def walk(node: Any, prefix: str) -> None:
-        path = f"{prefix}/{node.name}" if prefix else node.name
-        if prefix or node.name != "root":
-            found[path] = {
-                p: float(getattr(node.transform, p)) for p in POSE_PROPERTIES
-            }
-            child_prefix = path
-        else:
-            child_prefix = ""  # the synthetic root is not addressable
-        for child in node.children:
-            walk(child, child_prefix)
-
-    walk(doc.scene, "")
-    if doc.overlay is not None:  # an#155: overlay text is addressable too
-        for child in doc.overlay.children:
-            walk(child, "")
-    return found
+    # Every indexed node, the overlay's too (an#155), by the runtime's rule
+    # (an.stage.tree, `scope` included: an#343).
+    return {
+        path: {p: float(getattr(node.transform, p)) for p in POSE_PROPERTIES}
+        for path, node in walk_document(doc)
+    }
 
 
 def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:

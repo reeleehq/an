@@ -129,6 +129,12 @@ x = 0 probe excludes a zoom.
   — they are simply kept out of the corpus for that reason, and their pixel tests
   (`tests/test_raster_art.py`) sample flat-colour regions with a tolerance rather than bless bytes.
 
+## 3a. Paths: `scope` and `an.stage.tree` (an#343)
+
+- `runtime.js`'s path rule is `childPrefix` in `buildSceneTree`; its ONE Python twin is `an/stage/tree.py` (`walk`, `walk_document`, `lineage`, `chain`, `paths`, `node_at`). Never walk `children` joining names by hand: `tests/test_stage_tree.py` lints `an/stage`, `an/motion.py` and `an/bench`, and parity-tests `childPrefix` under node.
+- `NodeJSON.scope`: the node's CHILDREN are indexed as the children of the node named `scope` in the same parent (`""`: the parent's own). The foreground container `<env>__front` has `scope=<env>`, so every plane is `<env>/<plane>` and `plane_parents` returns `<env>` for all. `retire_front_spelling` rewrites `<env>__front/<plane>` (compile + validate, a warning) for one cycle; it walks with `an.ir.compose.map_leaves`, which reaches `loop.child`.
+- A scoped container is still a container: `tree.chain` includes it and `screen_position` composes its transform. `scope=""` children become top-level paths that the overlay clash checks do not see; D1 must check duplicates over the finished tree.
+
 ## 3b. Planes, and props
 
 **The environment descriptor** is versioned, `extra="allow"`, `DocumentKind`-registered, and

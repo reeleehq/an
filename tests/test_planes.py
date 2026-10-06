@@ -53,13 +53,12 @@ def _env_entity(ref="street") -> AssetRef:
     return AssetRef(kind="environment", id="street", store="environments", ref=ref)
 
 
-def _names(node, path=()):
-    """Every node name in draw order, as `parent/child` paths."""
-    here = path + (node.name,)
-    out = ["/".join(here[1:])] if len(here) > 1 else []
-    for c in node.children:
-        out += _names(c, here)
-    return out
+def _names(node):
+    """Every path the runtime indexes, in draw order (an.stage.tree: a plane in
+    the foreground container is `<env>/<plane>` since an#343)."""
+    from an.stage.tree import walk_children
+
+    return [path for path, _ in walk_children(node)]
 
 
 # --- byte-identity: the legacy path is not touched ---------------------------
@@ -527,5 +526,6 @@ def test_every_parallax_channel_targets_a_node_that_exists():
     }
     assert targets, "the fixture must actually parallax something"
     assert targets <= paths, sorted(targets - paths)
-    # …and the foreground plane's channel names the foreground container.
-    assert "street__front/railing" in targets, sorted(targets)
+    # …and the foreground plane's channel names the plane under the
+    # environment's own id, the container's `scope` (an#343).
+    assert "street/railing" in targets, sorted(targets)

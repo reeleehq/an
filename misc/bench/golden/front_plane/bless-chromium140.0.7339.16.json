@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T11:33:51Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 2323,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "b6fea77712b3f4229cbc1299d9599eaffb8c44f33ed6fc8bc091a7988529b480",
+      "shot_id": "rail",
+      "time": 0.0
+    },
+    {
+      "bytes": 1960,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "a5418fe9ed7892a2f09937f6c9639bbcc20cbf0c669465aa3798180a85789cc0",
+      "shot_id": "rail",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "stage-scope-d2",
+    "dirty": true,
+    "sha": "ef9a6e777e99e2d755364cd64010317c9aef6d68"
+  },
+  "reason": "new core scene (an#343): an animated foreground plane addressed through its container's scope",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "front_plane",
+  "scene_contract_sha256": "85f734d8b5ca4209ceba0efa653288d149580a5a9bafe2df58dd0cbae5296f02",
+  "shot_ids": [
+    "rail"
+  ],
+  "source": "misc/bench/corpus/front_plane",
+  "what_moves": "an environment cut by `characters_after` with an ANIMATED foreground plane (an#343): `stage` draws `sky` and `hill` behind a world text label and `rail` in front of it, in its own container with `scope: stage`, so the rail is addressed `stage/rail` (never `stage__front/rail`) and its `y` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."
+}
