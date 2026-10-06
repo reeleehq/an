@@ -217,7 +217,8 @@ class CreditsReport:
 
 def _detail(e: CreditEntry) -> str:
     """What a report line adds after the licence: a speech take's provider,
-    voice and model, and the files a source covers."""
+    voice and model, any other asset's provider-terms restriction, and the
+    files a source covers."""
     out = ""
     extra = e.source.extra or {}
     if SPEECH_EXTRA_MODEL in extra or e.asset.startswith(SPEECH_PREFIX):
@@ -229,6 +230,10 @@ def _detail(e: CreditEntry) -> str:
         if extra.get(SPEECH_EXTRA_TERMS):
             bits.append(str(extra[SPEECH_EXTRA_TERMS]))
         out += " (" + ", ".join(b for b in bits if b) + ")"
+    elif restriction := provider_terms_restriction(e.source):
+        # A provider's terms that hold beyond the class (an#332: Stable
+        # Audio's revenue cap), on any asset made under them.
+        out += f" ({restriction})"
     if e.covers:
         out += f" — covers {', '.join(e.covers)}"
     return out

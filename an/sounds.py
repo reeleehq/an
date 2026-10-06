@@ -236,9 +236,18 @@ def add_sound(
 
     ``source`` is required: a sound with no recorded origin is exactly the
     asset ``an credits`` cannot vouch for. Its ``license`` may be ``None`` —
-    that is recorded as UNKNOWN and reported as unverified, never as free.
+    that is recorded as UNKNOWN and reported as unverified, never as free. A
+    source whose terms forbid keeping the bytes (``cacheable=False``: a
+    Freesound API pull) is refused: the store keeps bytes (an#332).
     """
     source = AssetSource.model_validate(source)
+    if source.cacheable is False:
+        raise SoundError(
+            f"sound {key!r}: its source ({source.provider}) says its terms forbid "
+            "keeping the bytes (cacheable=False), and the sounds store keeps bytes; "
+            "keep it by reference where it was fetched, or get a copy whose terms "
+            "allow storing it"
+        )
     audio = well_formed_wav(audio)  # a pipe's streaming header, re-written (an#330)
     sample_rate, channels, frames = wav_info(audio)
     if not frames:
