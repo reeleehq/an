@@ -166,3 +166,22 @@ def test_a_private_sheet_is_refused_in_a_repo(tmp_path):
     with pytest.raises(PrivateOutputError):
         sheet(["an:prop.lamp@v001"], libraries=[lib], out=repo / "s.png")
     assert sheet(["an:prop.lamp@v001"], libraries=[lib], out=tmp_path / "s.png").is_file()
+
+
+@pytest.mark.browser
+def test_a_parts_sheet_captions_each_file_with_its_own_statement(tmp_path):
+    """an#345: a sheet of only the free files of a version with private parts is publishable."""
+    lib = open_library("an", records={}, versions={}, blobs={})
+    folder = CORPUS / "prop_swap" / "assets" / "props" / "lamp"
+    publish_dir(lib, folder, "prop.lamp", source=CC0,
+                license_parts={"parts/on.svg": PRIVATE})
+    repo = _git_repo(tmp_path / "repo")
+    with pytest.raises(PrivateOutputError, match="private"):
+        sheet(["an:prop.lamp@v001"], libraries=[lib], out=repo / "p.png", parts=True)
+    from an.library.sheets import _part_class
+    from an.library.api import read_version
+
+    version = read_version(lib, "prop.lamp", "v001")
+    off = (folder / "parts" / "off.svg").read_bytes()
+    on = (folder / "parts" / "on.svg").read_bytes()
+    assert (_part_class(lib, version, off), _part_class(lib, version, on)) == ("free", "private")

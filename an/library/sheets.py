@@ -61,6 +61,16 @@ def _canvas(version) -> int:
     return max(SPECIMEN_CANVAS, round(SPECIMEN_REACH * max(sides, default=0)))
 
 
+def _part_class(library, version, data: bytes) -> str:
+    """What ``version`` states about one of its files' bytes (an#345's per-file rule)."""
+    import hashlib
+
+    from an.library.api import _PerFileRule
+
+    rule = _PerFileRule([library])
+    return rule.statement(version, library, hashlib.sha256(data).hexdigest())[0]
+
+
 def _specimen_frame(libraries, ref: str, kind, *, canvas: int) -> bytes:
     """The first frame of ``kind``'s specimen of ``ref``, drawn in a temporary project
     on a ``canvas`` square and trimmed to what it shows."""
@@ -136,8 +146,11 @@ def sheet(
             files = sorted(verified_files(library, version).items())
             art = [(p, d) for p, d in files if drawable(p)]
             images += rasterise(art, size=cell) if art else []
-            labels += [f"{pinned} {p} [{cls}]" for p, _ in art]
-            classes += [cls] * len(art)
+            # Each file as the library states it (an#345: a carved head can
+            # be private while the drawn collar beside it is free).
+            part_classes = [_part_class(library, version, d) for _, d in art]
+            labels += [f"{pinned} {p} [{c}]" for (p, _), c in zip(art, part_classes)]
+            classes += part_classes
             continue
         kind = entity_kind(pinned.kind)
         if kind is None or getattr(kind, "specimen", None) is None:
