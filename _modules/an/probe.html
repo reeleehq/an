@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=73ca257f"></script>
+    <script src="../../_static/documentation_options.js?v=9bd086bd"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.177" />
+  <meta name="docsearch:version" content="0.1.178" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -828,9 +828,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="frame">
 <a class="viewcode-back" href="../../_autosummary/an.probe.html#an.probe.frame">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">frame</span><span class="p">(</span>
-    <span class="n">project</span><span class="p">:</span> <span class="n">Project</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">frame</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""PNG bytes of shot ``shot``'s film frame at ``t`` seconds (see :func:`frames`)."""</span>
     <span class="k">return</span> <span class="n">frames</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
@@ -841,7 +839,9 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">credits_for_scene</span>
 
     <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
-    <span class="n">only</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"timeline"</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">shot</span><span class="p">]})</span>
+    <span class="n">only</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
+        <span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"timeline"</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">shot</span><span class="p">]}</span>
+    <span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">only</span><span class="p">)</span>
     <span class="n">held</span> <span class="o">=</span> <span class="p">[</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">license_class</span><span class="si">}</span><span class="s2">)"</span>
