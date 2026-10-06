@@ -770,6 +770,68 @@ def _stored_picture(pictures: Any, record: Mapping[str, Any]) -> bytes | None:
     return video if bytes_digest(video) == name else None
 
 
+def record_names(data: bytes) -> dict[str, set[str]]:
+    """What one measurement record names (an#299): its picture (by sha256) and
+    its contact sheet. Bytes that are not a record raise
+    :class:`~an.build.derived.UnreadableRecordError`.
+
+    >>> sorted((k, sorted(v)) for k, v in record_names(
+    ...     b'{"picture": "p1", "contact_sheet": "s1"}').items())
+    [('contact_sheets', ['s1']), ('pictures', ['p1'])]
+    """
+    from an.build.derived import UnreadableRecordError
+
+    try:
+        record = json.loads(data)
+    except (ValueError, TypeError) as e:
+        raise UnreadableRecordError(f"not a measurement record ({e})") from None
+    if not isinstance(record, Mapping):
+        raise UnreadableRecordError("not a measurement record (not an object)")
+    out: dict[str, set[str]] = {}
+    if record.get("picture"):
+        out[PICTURE_STORE] = {str(record["picture"])}
+    if record.get("contact_sheet"):
+        out[CONTACT_SHEET_STORE] = {str(record["contact_sheet"])}
+    return out
+
+
+def _derived_entries(renderer: Any, shot: Shot, ctx: RenderContext) -> set[str]:
+    """The measurement record a render of ``shot`` reads: its picture key,
+    computed through the renderer's own resolver, never rendered."""
+    spec, source = renderer.resolve(shot, ctx)
+    return {picture_key(picture_inputs(spec, source, ctx))}
+
+
+def _provenance_entries(provenance: Mapping[str, Any]) -> dict[str, set[str]]:
+    """What a cached Manim shot's render provenance names."""
+    manim = (provenance or {}).get("manim") or {}
+    out: dict[str, set[str]] = {}
+    if manim.get("picture"):
+        out[MEASUREMENT_STORE] = {str(manim["picture"])}
+    sheet = (manim.get("contact_sheet") or {}).get("key")
+    if sheet:
+        out[CONTACT_SHEET_STORE] = {str(sheet)}
+    return out
+
+
+def _store_content(store: Any, key: str, data: bytes) -> None:
+    """Put content-addressed ``data`` under ``key`` — or, when it is there
+    already, refresh its mtime, so a collection racing this render sees it as
+    written now (an#299 review: a reused picture kept its old mtime, and a
+    record written after the collection listed the stores named it)."""
+    if key not in store:
+        store[key] = data
+        return
+    path_of = getattr(store, "path_of", None)
+    if path_of is not None:
+        try:
+            os.utime(path_of(key))
+            return
+        except OSError:
+            pass
+    store[key] = data
+
+
 def _trace_holds(record: Mapping[str, Any]) -> bool:
     """Whether a stored picture's read trace still holds (an#291).
 
@@ -1148,8 +1210,7 @@ class ManimRenderer:
             # The picture first, by its content: a record never points at
             # nothing, and two renders writing one key at once each leave a
             # record that names ITS picture (an#291 review).
-            if raw.picture not in pictures:
-                pictures[raw.picture] = raw.video
+            _store_content(pictures, raw.picture, raw.video)
             measurements[key] = json.dumps(raw.record(), sort_keys=True).encode("utf-8")
         else:
             self._memo[key] = raw
@@ -1241,8 +1302,7 @@ class ManimRenderer:
             data = Path(sheet_path).read_bytes()
             sheet = hashlib.sha256(data).hexdigest()
             if store is not None:
-                if sheet not in store:
-                    store[sheet] = data
+                _store_content(store, sheet, data)
                 for f in findings:
                     if f.suggested_fix and f.suggested_fix.endswith(
                         "look at the contact sheet"
@@ -1418,6 +1478,25 @@ register_shot_keyer(
     environment=manim_environment,
     renderer_type=ManimRenderer,
 )
+
+
+def _register_derived_stores() -> None:
+    from an.build.derived import DerivedStores, register_derived_stores
+
+    register_derived_stores(
+        RENDERER_NAME,
+        DerivedStores(
+            record_store=MEASUREMENT_STORE,
+            named_stores=(PICTURE_STORE, CONTACT_SHEET_STORE),
+            entries=_derived_entries,
+            provenance=_provenance_entries,
+            names=record_names,
+        ),
+        replace=True,
+    )
+
+
+_register_derived_stores()
 
 
 # -----------------------------------------------------------------------------

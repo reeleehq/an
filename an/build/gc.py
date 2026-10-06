@@ -271,6 +271,9 @@ class Reachability:
     profiles: list[dict] = field(default_factory=list)
     roots: list[str] = field(default_factory=list)
     skipped: list[tuple[dict, str]] = field(default_factory=list)
+    #: The renderers' derived-store entries the current scene reads, by store
+    #: (a Manim picture, its measurement and contact sheet; an#299).
+    derived: dict[str, set[str]] = field(default_factory=dict)
 
     @property
     def ids(self) -> set[str]:
@@ -333,7 +336,7 @@ def reachable_entries(
     unless ``force``.
     """
     from an.build.shot_cache import project_id
-    from an.render import cache_entries
+    from an.render import cache_reach
 
     now = time.time() if now is None else now
     entries = list(entries) if entries is not None else inventory(store)
@@ -385,7 +388,7 @@ def reachable_entries(
                 # A stand-in or a missing font warns at compile time; that is
                 # the render's message to give, not the collector's.
                 warnings.simplefilter("ignore")
-                ids = cache_entries(project, engine, **profile)
+                scene_reach = cache_reach(project, engine, **profile)
         except AudioNotCachedError as e:
             # No key until that line is synthesised: nothing cached can be its
             # shot's entry. What the renders under it used stays, whatever age.
@@ -401,7 +404,9 @@ def reachable_entries(
                 "it from rendering (`an validate`)"
             ) from e
         reach.profiles.append(profile)
-        reach.from_scene.update(ids)
+        reach.from_scene.update(scene_reach.ids)
+        for store, keys in scene_reach.derived.items():
+            reach.derived.setdefault(store, set()).update(keys)
     if not reach.profiles:
         why = "; ".join(sorted({why for _, why in reach.skipped}))
         raise CacheGcError(
@@ -432,6 +437,11 @@ class GcReport:
     failed: list[str] = field(default_factory=list)
     bytes_before: int = 0
     reach: Reachability | None = None
+    #: The renderers' derived stores (an#299): what was (or would be) deleted,
+    #: by store, and the bytes that frees.
+    deleted_derived: dict[str, list[str]] = field(default_factory=dict)
+    derived_freed: int = 0
+    kept_derived: int = 0
 
     @property
     def freed_bytes(self) -> int:
@@ -458,6 +468,15 @@ class GcReport:
             + f", {self.kept_retained} within --max-size/--max-age"
             + f", {len(self.kept_protected)} written during a render or this collection",
         ]
+        if self.deleted_derived or self.kept_derived:
+            n = sum(len(v) for v in self.deleted_derived.values())
+            what = ", ".join(
+                f"{len(v)} {store}" for store, v in self.deleted_derived.items() if v
+            ) or "nothing"
+            lines.append(
+                f"derived stores: {verb} {n} entries ({what}), "
+                f"{human_bytes(self.derived_freed)}; kept {self.kept_derived}"
+            )
         if self.reach is not None and self.reach.skipped:
             lines.append(_skipped_line(self.reach.skipped))
         if self.failed:
@@ -608,6 +627,13 @@ def collect_garbage(
     report.deleted = candidates
     if dry_run:
         report.deleted_blobs = doomed_blobs
+        doomed_ids = {e.id for e in candidates}
+        _collect_derived(
+            project, reach, [e for e in entries if e.id not in doomed_ids],
+            horizon=horizon, now=now, max_age=max_age, max_size=max_size,
+            shot_cache_kept_bytes=report.bytes_before - sum(doomed_blobs.values()),
+            dry_run=True, report=report,
+        )  # fmt: skip
         return report
     layout = _fs_layout(store)
     # Records first, then blobs: a record must never name a blob that is gone.
@@ -637,7 +663,223 @@ def collect_garbage(
             report.failed.append(h)
             continue
         report.deleted_blobs[h] = blob_size
+    # The derived stores, after the shot cache: a shot entry that stays keeps
+    # what its provenance names (an#299).
+    removed_ids = {e.id for e in removed}
+    _collect_derived(
+        project, reach, [e for e in entries if e.id not in removed_ids],
+        horizon=horizon, now=now, max_age=max_age, max_size=max_size,
+        shot_cache_kept_bytes=report.bytes_before - report.freed_bytes,
+        dry_run=False, report=report,
+    )  # fmt: skip
     return report
+
+
+# -----------------------------------------------------------------------------
+# The renderers' derived stores (an#299)
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DerivedEntry:
+    """One entry of a renderer's derived store (a Manim picture, measurement
+    record or contact sheet)."""
+
+    store: str
+    key: str
+    size: int
+    written_at: float | None
+
+
+def _merge(into: dict[str, set[str]], more: Mapping[str, Iterable[str]]) -> None:
+    for store, keys in more.items():
+        into.setdefault(store, set()).update(keys)
+
+
+def _derived_inventory(
+    mall: Mapping[str, Any], stores: Iterable[str]
+) -> dict[str, list[DerivedEntry]]:
+    """Each derived store's entries with their size and age. An entry whose
+    age cannot be read (a store with no files) has ``written_at=None``, which
+    nothing ever deletes."""
+    out: dict[str, list[DerivedEntry]] = {}
+    for name in stores:
+        store = mall.get(name)
+        if store is None:
+            continue
+        path_of = getattr(store, "path_of", None)
+        entries = []
+        for key in list(store):
+            size, mtime = 0, None
+            try:
+                if path_of is not None:
+                    st = Path(path_of(key)).stat()
+                    size, mtime = st.st_size, st.st_mtime
+                else:
+                    size = len(store[key])
+            except (OSError, KeyError, TypeError):
+                continue  # gone since the listing
+            entries.append(DerivedEntry(name, str(key), size, mtime))
+        out[name] = entries
+    return out
+
+
+def _derived_keep(
+    project: Any,
+    specs: Mapping[str, Any],
+    reach: Reachability,
+    kept_shot_entries: Iterable[CacheEntry],
+) -> dict[str, set[str]]:
+    """What the current scene reads, and what every kept shot entry's
+    provenance names (NOT yet closed over what records name)."""
+    keep: dict[str, set[str]] = {}
+    _merge(keep, reach.derived)
+    for e in kept_shot_entries:
+        if e.is_root or e.record is None:
+            continue
+        spec = specs.get(getattr(e.record, "renderer", None) or "")
+        if spec is not None:
+            _merge(keep, spec.provenance(e.record.render_provenance or {}))
+    return keep
+
+
+def _closure(
+    mall: Mapping[str, Any], specs: Mapping[str, Any], entries: Mapping[str, set[str]]
+) -> dict[str, set[str]]:
+    out = {store: set(keys) for store, keys in entries.items()}
+    for spec in specs.values():
+        _merge(out, spec.closure(mall, out))
+    return out
+
+
+def _collect_derived(
+    project: Any,
+    reach: Reachability,
+    kept_shot_entries: list[CacheEntry],
+    *,
+    horizon: float,
+    now: float,
+    max_age: float | None,
+    max_size: int | None,
+    shot_cache_kept_bytes: int,
+    dry_run: bool,
+    report: GcReport,
+) -> None:
+    """Collect the registered derived stores (:mod:`an.build.derived`) under
+    the shot cache's guarantees.
+
+    Kept: what the current scene reads, what every kept shot entry's
+    provenance names, every entry written since the protection horizon — each
+    with everything its records name. Unreachable history is trimmed by the
+    caps in UNITS — a record with what it alone names — newest first, against
+    the ONE ``max_size`` the shot cache's kept bytes already count toward.
+    Records go first; then the record stores are listed and read AGAIN, and a
+    named entry goes only if no record present now names it — so a render
+    racing the collection (a record written after the listing, naming an older
+    picture) keeps what it needs. A record that cannot be read (half written)
+    stops every named entry from going this run. ``dry_run`` deletes nothing.
+    """
+    from an.build.derived import UnreadableRecordError, registered_derived_stores
+
+    specs = registered_derived_stores()
+    if not specs:
+        return
+    mall = project.mall
+    stores = [s for spec in specs.values() for s in spec.stores]
+    record_stores = {spec.record_store for spec in specs.values()}
+    inventory_ = _derived_inventory(mall, stores)
+    young = {
+        store: {e.key for e in es if e.written_at is None or e.written_at >= horizon}
+        for store, es in inventory_.items()
+    }
+    keep = _derived_keep(project, specs, reach, kept_shot_entries)
+    _merge(keep, young)
+    try:
+        keep = _closure(mall, specs, keep)
+    except UnreadableRecordError as e:
+        report.failed.append(f"derived stores: a kept record is unreadable ({e}); nothing deleted")
+        return
+    by_key = {(e.store, e.key): e for es in inventory_.values() for e in es}
+    records = [
+        e for es in inventory_.values() for e in es
+        if e.store in record_stores and e.key not in keep.get(e.store, ())
+    ]  # fmt: skip
+
+    # A unit: an unreachable record and what it names that nothing kept names.
+    def unit(e: DerivedEntry) -> list[DerivedEntry]:
+        try:
+            named = _closure(mall, specs, {e.store: {e.key}})
+        except UnreadableRecordError:
+            named = {e.store: {e.key}}
+        return [
+            by_key[(store, k)]
+            for store, ks in named.items()
+            for k in ks
+            if (store, k) in by_key and k not in keep.get(store, ())
+        ]
+
+    if max_age is not None or max_size is not None:
+        size = shot_cache_kept_bytes + sum(
+            e.size for (store, k), e in by_key.items() if k in keep.get(store, ())
+        )
+        for e in sorted(records, key=lambda e: e.written_at or 0.0, reverse=True):
+            members = [m for m in unit(e) if m.key not in keep.get(m.store, ())]
+            extra = sum(m.size for m in members)
+            young_enough = max_age is None or now - (e.written_at or 0.0) <= max_age
+            if young_enough and (max_size is None or size + extra <= max_size):
+                _merge(keep, {m.store: {m.key} for m in members})
+                size += extra
+        records = [e for e in records if e.key not in keep.get(e.store, ())]
+
+    def gone(e: DerivedEntry) -> bool:
+        """Delete ``e`` now (unless re-written since the listing)."""
+        if dry_run:
+            return True
+        store = mall[e.store]
+        try:
+            path_of = getattr(store, "path_of", None)
+            if path_of is not None and Path(path_of(e.key)).stat().st_mtime >= horizon:
+                return False
+            del store[e.key]
+        except (OSError, KeyError):
+            report.failed.append(f"{e.store}/{e.key}")
+            return False
+        return True
+
+    removed_records = set()
+    for e in records:
+        if gone(e):
+            removed_records.add((e.store, e.key))
+            report.deleted_derived.setdefault(e.store, []).append(e.key)
+            report.derived_freed += e.size
+    # The record stores AGAIN, as they are now: whatever a present record
+    # names stays, however old its file.
+    try:
+        present = {
+            store: {
+                k for k in (mall[store] if mall.get(store) is not None else ())
+                if (store, str(k)) not in removed_records
+            }
+            for store in record_stores
+        }  # fmt: skip
+        named_now = _closure(mall, specs, present)
+    except UnreadableRecordError as e:
+        report.failed.append(
+            f"derived stores: a record is unreadable ({e}); nothing it could name deleted"
+        )
+        named_now = None
+    deleted = len(removed_records)
+    if named_now is not None:
+        for (store, k), e in by_key.items():
+            if store in record_stores or k in keep.get(store, ()):
+                continue
+            if k in named_now.get(store, ()):
+                continue
+            if gone(e):
+                deleted += 1
+                report.deleted_derived.setdefault(store, []).append(k)
+                report.derived_freed += e.size
+    report.kept_derived = len(by_key) - deleted
 
 
 # -----------------------------------------------------------------------------
@@ -658,6 +900,8 @@ class CacheInfo:
     roots: list[dict] = field(default_factory=list)
     reachability_error: str = ""
     skipped: list[tuple[dict, str]] = field(default_factory=list)
+    #: The renderers' derived stores (an#299), by store name.
+    derived: dict[str, "DerivedUsage"] = field(default_factory=dict)
 
     def summary(self) -> str:
         lines = [f"shot cache: {human_bytes(self.total_bytes)} at {self.path}"]
@@ -681,7 +925,31 @@ class CacheInfo:
                 f"  render of {r['output']!r}, {r['age']} ago, {r['entries']} entries"
                 + (f", knobs {r['knobs']}" if r["knobs"] else "")
             )
+        if self.derived:
+            lines.append("derived stores:")
+            for store, u in self.derived.items():
+                unreachable = (
+                    f"; unreachable: {u.unreachable_entries}, "
+                    f"{human_bytes(u.unreachable_bytes)}"
+                    if u.unreachable_entries is not None
+                    else ""
+                )
+                lines.append(
+                    f"  {store:<14} {u.entries:>5} entries  {human_bytes(u.bytes):>10}"
+                    + unreachable
+                )
         return "\n".join(lines)
+
+
+@dataclass
+class DerivedUsage:
+    """One derived store's size, and how much of it nothing reaches
+    (``None``: reachability unknown)."""
+
+    entries: int = 0
+    bytes: int = 0
+    unreachable_entries: int | None = None
+    unreachable_bytes: int | None = None
 
 
 def _age(seconds: float) -> str:
@@ -738,6 +1006,14 @@ def cache_info(
                     "knobs": knobs,
                 }
             )
+    from an.build.derived import UnreadableRecordError, registered_derived_stores
+
+    specs = registered_derived_stores()
+    derived_inventory = _derived_inventory(
+        project.mall, [s for spec in specs.values() for s in spec.stores]
+    )
+    for name, es in derived_inventory.items():
+        info.derived[name] = DerivedUsage(len(es), sum(e.size for e in es))
     if reachability:
         try:
             reach = reachable_entries(
@@ -751,6 +1027,16 @@ def cache_info(
         gone = [e for e in entries if e.id not in keep]
         info.reachable = (len(kept), _unique_size(kept, blobs))
         info.unreachable = (len(gone), _unique_size(gone, blobs, exclude=kept))
+        try:
+            derived_keep = _closure(
+                project.mall, specs, _derived_keep(project, specs, reach, kept)
+            )
+        except UnreadableRecordError:
+            return info  # unknown: a record cannot be read
+        for name, es in derived_inventory.items():
+            lost = [e for e in es if e.key not in derived_keep.get(name, ())]
+            info.derived[name].unreachable_entries = len(lost)
+            info.derived[name].unreachable_bytes = sum(e.size for e in lost)
     return info
 
 

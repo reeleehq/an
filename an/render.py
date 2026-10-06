@@ -1130,7 +1130,7 @@ def _film_parts(windows, shot_results, plans, engine, work_dir, *, fps, pix_fmt)
     return parts
 
 
-def cache_entries(
+def cache_reach(
     project: Project,
     engine: IncrementalEngine,
     *,
@@ -1144,10 +1144,13 @@ def cache_entries(
     tts: str | object | None = None,
     lipsync: str | object = "offline",
     language: str = "en",
-) -> list[str]:
-    """The shot-cache entry ids a render of ``project``'s CURRENT scene under
-    these knobs would read — computed by the render's own setup and the
-    engine's own key code, rendering and synthesising nothing.
+) -> CacheReach:
+    """What a render of ``project``'s CURRENT scene under these knobs would
+    read — the shot-cache entry ids, and the record-store entries of the
+    renderers' derived stores (a Manim shot's measurement record, which names
+    its picture and contact sheet: :mod:`an.build.derived`, an#299) — computed
+    by the render's own setup and the engine's own key code, rendering and
+    synthesising nothing.
 
     What `an.build.gc` keeps (an#274). The dialogue is stamped the way the
     render's audio pipeline stamps it, from the content-keyed audio and viseme
@@ -1167,6 +1170,7 @@ def cache_entries(
         retime_dialogue,
         stamp_from_stores,
     )
+    from an.build.derived import derived_stores_for
 
     scene = project.scene
     if _has_any_audio_content(scene):
@@ -1204,11 +1208,31 @@ def cache_entries(
         step_hz=step_hz,
     )
     engine.begin(project.mall, project_root=project.root)
-    ids: list[str] = []
+    reach = CacheReach()
     for i, (shot, renderer, shot_ctx) in enumerate(prep.shot_renderers):
         window = prep.windows[i] if prep.windows is not None else None
-        ids.extend(engine.entry_ids(shot, renderer, shot_ctx, window=window))
-    return ids
+        reach.ids.extend(engine.entry_ids(shot, renderer, shot_ctx, window=window))
+        spec = derived_stores_for(getattr(renderer, "name", "") or "")
+        if spec is not None:
+            reach.derived.setdefault(spec.record_store, set()).update(
+                spec.entries(renderer, shot, shot_ctx)
+            )
+    return reach
+
+
+@dataclass
+class CacheReach:
+    """:func:`cache_reach`'s answer: shot-cache ids, and derived-store entries
+    by store name."""
+
+    ids: list[str] = field(default_factory=list)
+    derived: dict[str, set[str]] = field(default_factory=dict)
+
+
+def cache_entries(project: Project, engine: IncrementalEngine, **knobs) -> list[str]:
+    """The shot-cache entry ids of :func:`cache_reach` (what `an.build.gc`
+    keeps of the shot cache, an#274)."""
+    return cache_reach(project, engine, **knobs).ids
 
 
 #: Where a run's process cannot be asked whether it lives (Windows), a run
