@@ -2130,6 +2130,127 @@ def _core_library_checkouts(ctx: ValidationContext) -> None:
 # -----------------------------------------------------------------------------
 
 
+#: What an entity's placement across a cut is compared on (an#394): position in
+#: scene px, and the size of its scale (its SIGN is facing, which the genre's
+#: view continuity check says, an#203).
+CUT_CONTINUITY_PROPS: tuple[str, ...] = ("x", "y", "scale_x", "scale_y")
+#: How far a value may move across a cut and still be "the same": a pixel, or
+#: a hundredth of the scale.
+CUT_CONTINUITY_TOLERANCE: dict[str, float] = {
+    "x": 1.0, "y": 1.0, "scale_x": 0.01, "scale_y": 0.01,
+}  # fmt: skip
+#: Properties a deliberate opening ``set``/``tween`` at the next shot's start
+#: answers for each compared one.
+_DELIBERATE: dict[str, frozenset[str]] = {
+    "x": frozenset({"x"}),
+    "y": frozenset({"y"}),
+    "scale_x": frozenset({"scale_x", "scale"}),
+    "scale_y": frozenset({"scale_y", "scale"}),
+}
+
+
+def _placements(shot: Any, ctx: ValidationContext) -> dict[str, tuple[dict, dict]] | None:
+    """``{entity id: (state at the start, state at the end)}`` of a stage shot's
+    entities, each state ``{prop: value}`` read off the document the stage
+    compiles; ``None`` when the shot is not a stage shot or does not compile
+    (its own checks say why)."""
+    import warnings
+
+    if shot.renderer not in ("stage", "cutout"):
+        return None
+    try:
+        from an.stage.compile import compile_shot
+        from an.stage.timeline import (
+            _node_chain,
+            _pose_for,
+            evaluate_timeline,
+            timeline_from_scene,
+            transform_of,
+        )
+
+        res = ctx.scene.meta.resolution
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            doc = compile_shot(
+                shot, mall=ctx.stores, fps=int(ctx.scene.meta.fps),
+                width=res.width, height=res.height,
+            )  # fmt: skip
+        timeline = timeline_from_scene(doc)
+        poses = (evaluate_timeline(timeline, 0.0), evaluate_timeline(timeline, shot.duration))
+    except Exception:  # noqa: BLE001 — a shot that cannot compile is reported elsewhere
+        return None
+    out: dict[str, tuple[dict, dict]] = {}
+    for entity in shot.entities:
+        try:
+            node, path = _node_chain(doc.scene, entity.id)[-1]
+        except Exception:  # noqa: BLE001 — not drawn on the stage (a voice)
+            continue
+        states = []
+        for pose in poses:
+            t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
+            states.append(
+                {"x": t.x, "y": t.y, "scale_x": abs(t.scale_x), "scale_y": abs(t.scale_y)}
+            )
+        out[entity.id] = (states[0], states[1])
+    return out
+
+
+def _opened(shot: Any, entity_id: str, *, fps: float) -> set[str]:
+    """The properties ``shot`` sets or tweens on ``entity_id`` at its very start."""
+    from an.ir.schema import SetAction, TweenAction
+
+    first_frame = 1.0 / float(fps or 30)
+    out: set[str] = set()
+    for action in shot.actions:
+        if not isinstance(action, (SetAction, TweenAction)) or action.target != entity_id:
+            continue
+        when = (
+            action.at
+            if isinstance(action, SetAction)
+            else getattr(action, "start", None) or (action.model_extra or {}).get("start")
+        )
+        if float(when or 0.0) < first_frame:
+            out.add(action.property)
+    return out
+
+
+def _core_cut_continuity(ctx: ValidationContext) -> None:
+    """An entity in two consecutive stage shots that JUMPS across the cut —
+    ends one at x=-120, starts the next at x=-100 — without the next shot
+    saying so (an#394). Shots compile alone, so a position, height or size
+    is carried across a cut only by hand (``stage.at``, a ``set``); a typo there
+    is a jump nobody asked for. Said as a warning with both values; a
+    ``set``/``tween`` of the property at the next shot's start is the author's
+    decision either way. Facing and view across a cut are the genre's check."""
+    scene, report = ctx.scene, ctx.report
+    fps = scene.meta.fps
+    placed = [_placements(shot, ctx) for shot in scene.timeline]
+    for i in range(1, len(scene.timeline)):
+        before, after = placed[i - 1], placed[i]
+        if not before or not after:
+            continue
+        prev, shot = scene.timeline[i - 1], scene.timeline[i]
+        for entity_id in [e for e in after if e in before]:
+            ended, starts = before[entity_id][1], after[entity_id][0]
+            opened = _opened(shot, entity_id, fps=fps)
+            jumps = [
+                f"{prop} {ended[prop]:g} → {starts[prop]:g}"
+                for prop in CUT_CONTINUITY_PROPS
+                if abs(ended[prop] - starts[prop]) > CUT_CONTINUITY_TOLERANCE[prop]
+                and not (_DELIBERATE[prop] & opened)
+            ]
+            if not jumps:
+                continue
+            report.add(
+                "warning",
+                f"timeline/{i}/entities",
+                f"{entity_id!r} jumps across the cut from shot {prev.id!r} to "
+                f"{shot.id!r} ({'; '.join(jumps)}): shots compile alone, so a "
+                "placement carries over only by hand. To continue it, give shot "
+                f"{shot.id!r} the values shot {prev.id!r} ends with (its "
+                "`stage.at`/`scale`); to jump on purpose, open the shot with a "
+                f"`set` of that property on {entity_id!r} at 0.",
+            )
 def _core_meta_duration(ctx: ValidationContext) -> None:
     """``meta.duration``, when set, says what the shots lay out (an#396).
 
@@ -2186,6 +2307,11 @@ def _register_core_checks() -> None:
         SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
         SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),
         SemanticCheck(
+            "cut_continuity",
+            _core_cut_continuity,
+            stage="finish",
+            order=11,
+            description="an entity does not jump across a cut unless a set says so",
             "meta_duration",
             _core_meta_duration,
             stage="finish",
