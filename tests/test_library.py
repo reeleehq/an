@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from cutan.characters.factory import new_character
+from cutan.characters.mouth_set import DEFAULT_MOUTH_VARIANTS
 from cutan.characters.schema import CharacterDescriptor
 from an.ir.assets import AssetSource
 from an.library import (
@@ -341,10 +342,9 @@ def test_a_complete_rig_affords_everything_the_first_analyser_knows(alice_dir):
     ]
     assert a["limbs.legs"]["slots"] == ["leg_l", "leg_r"]
     assert a["swap.view"]["keys"] == ["front", "three_quarter", "side", "back"]
-    assert a["face.mouth"]["keys"] == ["rhubarb9"] and a["face.mouth"]["variants"] == [
-        "happy",
-        "sad",
-    ]
+    # the factory's default forms are cutan's to choose (cutan#61 adds angry)
+    assert a["face.mouth"]["keys"] == ["rhubarb9"]
+    assert a["face.mouth"]["variants"] == sorted(DEFAULT_MOUTH_VARIANTS)
     assert lib.versions["character.alice@v001"]["analysers"] == {
         "character": CHARACTER_ANALYSER_VERSION
     }
