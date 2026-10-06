@@ -42,7 +42,7 @@ intact, so a cut-out render still fails with ``CutoutRenderError``.
 from __future__ import annotations
 
 import shutil
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -135,8 +135,20 @@ class StateDrivenAdapter:
 
     ``frame(t)`` is ``render(evaluate_timeline(timeline, t, space=space))`` and
     ``state(t)`` is the evaluated state, so the capture loop and the conformance
-    tests treat both drive modes alike. The session's other members (``resolve``,
-    ``provenance``, ...) are reached through attribute access.
+    tests treat both drive modes alike. The session's other members
+    (``resolve``, ``provenance``, ...) are reached through attribute access.
+
+    **Batched** (an#286): ``frames(requests)`` evaluates every instant here and
+    hands the session the STATES, through its optional ``render_states(states)``
+    (one round trip per batch, the member a JS-bridged view engine implements),
+    else ``render`` per state. A session's own ``frames`` is never forwarded: it
+    would take times and bypass ``state``.
+
+    **Adapted by drive mode** (an#286): ``project(point, t)`` and ``bounds(t)``
+    reach the session as ``project(point, state)`` and ``bounds(state)`` (the
+    state-driven signature, previz's ``project(point, {state, ...})``), and
+    exist only when the session has them, so :func:`~an.engines.protocol.describe`
+    still reads capabilities from real members.
     """
 
     session: Any
@@ -151,12 +163,41 @@ class StateDrivenAdapter:
     def frame(self, t: float) -> bytes:
         return self.session.render(self.state(t))
 
+    def frames(self, requests: Sequence[FrameRequest]) -> list[list[bytes]]:
+        """One list of frames per request, a frame per instant, in order."""
+        states = [self.state(t) for req in requests for t in req.times]
+        render_states = getattr(self.session, STATE_BATCH_MEMBER, None)
+        if callable(render_states):
+            drawn = list(render_states(states))
+            if len(drawn) != len(states):
+                raise FrameStageError(
+                    f"`{STATE_BATCH_MEMBER}` returned {len(drawn)} frame(s) for "
+                    f"{len(states)} state(s); a dropped frame is silent corruption"
+                )
+        else:
+            drawn = [self.session.render(state) for state in states]
+        out, k = [], 0
+        for req in requests:
+            out.append(drawn[k : k + len(req.times)])
+            k += len(req.times)
+        return out
+
     def __getattr__(self, name: str) -> Any:
-        # Only for members the adapter does not define; `frames` (batching) is
-        # not forwarded, because a state-driven batch would bypass `state`.
-        if name == "frames":
-            raise AttributeError(name)
+        # Only for members the adapter does not define.
+        if name in _STATE_ADAPTED:
+            member = getattr(self.session, name)  # AttributeError when absent
+
+            if name == "project":
+                return lambda point, t: member(point, self.state(t))
+            return lambda t: member(self.state(t))
         return getattr(self.session, name)
+
+
+#: The session member that draws several states in one round trip (an#286).
+STATE_BATCH_MEMBER: str = "render_states"
+
+#: Members whose ``t`` the adapter turns into the evaluated state (an#286).
+_STATE_ADAPTED: frozenset[str] = frozenset({"project", "bounds"})
 
 
 #: Slack when snapping an instant to the frame showing then: ``1.5`` s at 30 fps

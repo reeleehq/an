@@ -313,6 +313,9 @@ an/
 │   └── frame_stage.py       frame_stage_renderer(engine) -> Renderer: validation,
 │                            frame clock, workspace, loop, MP4 sink, provenance;
 │                            StateDrivenAdapter evaluates at(t) with an.timing
+│                            and batches the states (frames -> render_states,
+│                            else render per state); project/bounds get the state
+│                            (an#286)
 ├── media/                   frames -> deliverables, engine-independent (an#247)
 │   ├── frames.py            frame_%06d.png, frame_path, missing_frames
 │   ├── supersample.py       the SPATIAL resolve (exact k x k block mean)
