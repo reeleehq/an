@@ -65,7 +65,11 @@ def _crossing(
     shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
 ) -> float:
     """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""
-    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+    from an.stage.timeline import (
+        evaluate_timeline,
+        screen_position,
+        timeline_from_scene,
+    )
 
     doc = _stage_document(shot, ctx, renderer)
     timeline = timeline_from_scene(doc)
@@ -186,7 +190,10 @@ def resolve_cue_anchors(
         return cue.model_copy(update={"at": t})
 
     meta = _until(
-        [resolve(c, 0, path=f"meta/sounds/{j}", film=True) for j, c in enumerate(scene.meta.sounds)],
+        [
+            resolve(c, 0, path=f"meta/sounds/{j}", film=True)
+            for j, c in enumerate(scene.meta.sounds)
+        ],
         "meta/sounds",
     )
     shots = [
@@ -204,7 +211,10 @@ def resolve_cue_anchors(
         for i, shot in enumerate(scene.timeline)
     ]
     resolved = scene.model_copy(
-        update={"meta": scene.meta.model_copy(update={"sounds": meta}), "timeline": shots}
+        update={
+            "meta": scene.meta.model_copy(update={"sounds": meta}),
+            "timeline": shots,
+        }
     )
     return resolved, findings
 
