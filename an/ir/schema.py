@@ -130,6 +130,43 @@ class CameraKey(_IRModel):
     easing: EasingSpec | None = None
 
 
+#: A camera shake's defaults (an#429): how long a jolt lasts, how far the frame
+#: jumps (a fraction of the frame HEIGHT, so it reads the same at any
+#: resolution: 0.015 is about 11 px at 720p), and how many times a second it
+#: jumps. Art direction, chosen to read as an impact rather than a tremor.
+DFLT_SHAKE_DURATION: float = 0.4
+DFLT_SHAKE_AMPLITUDE: float = 0.015
+DFLT_SHAKE_FREQUENCY: float = 24.0
+
+
+class CameraShake(_IRModel):
+    """A jolt of the frame inside a shot (an#429): seeded screen-space jitter.
+
+    >>> CameraShake(at=1.0).duration
+    0.4
+
+    Layered on whatever the camera does (a `move`, `keys`, or nothing): the
+    pan and zoom are the root's pivot and scale, a shake is its screen
+    position, so the two add without either knowing the other. The jitter is
+    deterministic (``seed``) and, with ``decay``, falls linearly to rest by
+    the end; the frame is exactly at rest before ``at`` and after it.
+    """
+
+    #: When the jolt starts, in shot seconds.
+    at: Seconds = 0.0
+    #: How long it lasts.
+    duration: float = Field(default=DFLT_SHAKE_DURATION, gt=0.0, allow_inf_nan=False)
+    #: How far the frame jumps at most, as a fraction of the frame height.
+    amplitude: float = Field(default=DFLT_SHAKE_AMPLITUDE, ge=0.0, allow_inf_nan=False)
+    #: Jumps per second.
+    frequency: float = Field(default=DFLT_SHAKE_FREQUENCY, gt=0.0, allow_inf_nan=False)
+    #: Fall linearly to rest over the duration (an impact); off, it holds its
+    #: amplitude to the end (a rumble).
+    decay: bool = True
+    #: Which jitter: the same seed draws the same jolt on every machine.
+    seed: int = 0
+
+
 class Camera(_IRModel):
     """Camera state for a shot: a named move, or explicit keys.
 
@@ -160,6 +197,9 @@ class Camera(_IRModel):
     move: str | None = None
     #: The explicit door. `None` = use `move`.
     keys: list[CameraKey] | None = None
+    #: Jolts of the frame layered on the move or keys (an#429). `None`, not
+    #: `[]`, for the reason `keys` gives.
+    shake: list[CameraShake] | None = None
 
 
 # -----------------------------------------------------------------------------

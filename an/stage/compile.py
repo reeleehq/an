@@ -113,6 +113,7 @@ from an.stage.serialize import (
 from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError  # noqa: F401  (re-exported)
 from an.ir.camera import camera_keys as _camera_keys
+from an.ir.camera import camera_shake_offsets
 from an.ir.migrate import DocumentKind, migrate
 from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.stage.environments import (
@@ -973,8 +974,16 @@ def _actions_pass(state: CompileState) -> None:
 
 
 def _camera_pass(state: CompileState) -> None:
-    """The camera (Phase 7): `camera.move`/keys onto the scene root."""
+    """The camera (Phase 7): `camera.move`/keys onto the scene root, then its
+    shakes (an#429) onto the root's screen position."""
     _add_camera_clips(
+        state.shot,
+        state.animations,
+        state.tracks,
+        width=state.width,
+        height=state.height,
+    )
+    _add_camera_shake_clips(
         state.shot,
         state.animations,
         state.tracks,
@@ -3936,6 +3945,67 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
         return _camera_keys(shot, width=width, height=height)
     except CameraError as e:
         raise CutoutCompileError(str(e)) from e
+
+
+def _add_camera_shake_clips(
+    shot: Shot,
+    animations: dict[str, AnimationClipJSON],
+    tracks: list[TrackJSON],
+    *,
+    width: int,
+    height: int,
+) -> None:
+    """Emit the shot's camera shakes (an#429) as `root:x`/`root:y` channels.
+
+    The root sits at the canvas centre and the camera is its pivot and scale,
+    so its POSITION is free: a shake written there moves the composed frame in
+    screen pixels and adds to any pan or zoom without sampling it. The values
+    are the centre plus each offset of :func:`camera_shake_offsets` (the one
+    resolver validate also calls), held at the centre outside the shakes, so
+    the frame is exactly at rest before and after. No shake, no channel: a
+    shot without one compiles byte-identically.
+    """
+    offsets = camera_shake_offsets(shot, width=width, height=height)
+    if not offsets:
+        return
+    duration = max(0.001, float(shot.duration))
+    authored = {
+        (channel.target, channel.property)
+        for animation in animations.values()
+        for channel in animation.channels
+    }
+    for axis, centre, index in (("x", width / 2, 1), ("y", height / 2, 2)):
+        if ("root", axis) in authored:
+            raise CutoutCompileError(
+                f"shot {shot.id!r}: the camera shake drives `root:{axis}` and an "
+                "action also targets it. The shake is appended last and the "
+                "evaluators are later-wins, so the authored channel would be "
+                "discarded silently. Move the action to a child node."
+            )
+        points = [(0.0, 0.0), *[(o[0], o[index]) for o in offsets], (duration, 0.0)]
+        keyframes: list[KeyframeJSON] = []
+        for t, v in points:
+            if keyframes and float(t) <= keyframes[-1].time:
+                continue  # a shake at 0 or ending at the shot's end
+            keyframes.append(
+                KeyframeJSON(time=float(t), value=centre + v, easing="linear")
+            )
+        anim_id = f"__camera__{shot.id}_shake_{axis}"
+        animations[anim_id] = AnimationClipJSON(
+            name=anim_id,
+            duration=duration,
+            channels=[ChannelJSON(target="root", property=axis, keyframes=keyframes)],
+        )
+        tracks.append(
+            TrackJSON(
+                target_root="__camera__",
+                clips=[
+                    PlacedClipJSON(
+                        animation_id=anim_id, start_time=0.0, duration=duration
+                    )
+                ],
+            )
+        )
 
 
 def _add_camera_clips(

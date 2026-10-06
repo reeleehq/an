@@ -23,7 +23,7 @@ from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
 from an.audio.effects import TRIM_SILENCE, VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
 from an.stores._common import art_exists_for
-from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
+from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys, camera_shake_offsets
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
@@ -905,6 +905,7 @@ def _check_camera(shot, path: str, report: "ValidationReport", stores=None) -> N
     # cannot drift from what it predicts (an#109 review, H-1).
     try:
         keys = camera_keys(shot, width=1, height=1)
+        camera_shake_offsets(shot, width=1, height=1)  # an#429: its refusals too
     except CameraError as e:
         report.add("error", path, f"{e} Rendering this shot raises.")
         return

@@ -19,6 +19,7 @@ container as ``root``. `+x` moves the CAMERA right, which moves content left.
 
 from __future__ import annotations
 
+import random
 from typing import Callable
 
 from an.ir.schema import Camera, CameraKey, Shot
@@ -28,6 +29,7 @@ __all__ = [
     "PAN_FRACTION",
     "CameraError",
     "camera_keys",
+    "camera_shake_offsets",
 ]
 
 #: How far a pan travels, as a fraction of the canvas width (a tilt uses the
@@ -179,3 +181,55 @@ def _refuse_keys_that_cannot_play(
             f"(0 … {duration}). A keyframe past the end never plays; one before "
             "the start opens the shot mid-move."
         )
+
+
+def camera_shake_offsets(
+    shot: Shot, *, width: int, height: int
+) -> list[tuple[float, float, float]]:
+    """The shot's camera shakes as ``(time, dx, dy)`` screen offsets — the ONE resolver (an#429).
+
+    Empty when the shot has none. Each shake is at rest (``0, 0``) at its
+    start and its end; between, the frame jumps ``frequency`` times a second
+    to a seeded offset of at most ``amplitude`` × the frame height, scaled
+    down linearly to rest when ``decay``. Validate and the compiler both call
+    this, so a shake that validates cannot then raise (as with
+    :func:`camera_keys`).
+
+    >>> from an.ir.schema import Camera, CameraShake, Shot
+    >>> s = Shot(id="s", duration=2.0, camera=Camera(shake=[CameraShake(at=1.0, duration=0.25, frequency=8)]))
+    >>> [(t, round(dx, 2), round(dy, 2)) for t, dx, dy in camera_shake_offsets(s, width=1280, height=720)]
+    [(1.0, 0.0, 0.0), (1.125, 3.72, 2.79), (1.25, 0.0, 0.0)]
+    """
+    camera: Camera | None = shot.camera
+    if camera is None or not camera.shake:
+        return []
+    duration = max(0.001, float(shot.duration))
+    shakes = sorted(camera.shake, key=lambda k: float(k.at))
+    out: list[tuple[float, float, float]] = []
+    for i, k in enumerate(shakes):
+        start, length = float(k.at), float(k.duration)
+        end = start + length
+        if start < 0.0 or end > duration + 1e-9:
+            raise CameraError(
+                f"shot {shot.id!r}: the camera shake at {start:g}s lasts {length:g}s, "
+                f"past the shot (0 … {duration:g}s): its frames would never play. "
+                "Shorten it or move it earlier."
+            )
+        if i and start < float(shakes[i - 1].at) + float(shakes[i - 1].duration) - 1e-9:
+            raise CameraError(
+                f"shot {shot.id!r}: two camera shakes overlap (at "
+                f"{float(shakes[i - 1].at):g}s and {start:g}s). Write one longer shake, "
+                "or move the second after the first ends."
+            )
+        steps = max(1, round(length * float(k.frequency)))
+        amp = float(k.amplitude) * float(height)
+        rng = random.Random(int(k.seed))
+        for j in range(steps + 1):
+            t = start + length * j / steps
+            if j in (0, steps):
+                out.append((t, 0.0, 0.0))
+                continue
+            env = 1.0 - j / steps if k.decay else 1.0
+            dx, dy = (amp * env * rng.uniform(-1.0, 1.0) for _ in range(2))
+            out.append((t, dx, dy))
+    return out

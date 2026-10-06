@@ -452,3 +452,148 @@ def test_the_migration_does_not_mutate_the_callers_document():
     snapshot = json.loads(json.dumps(doc))
     _drop_dead_camera_fields(doc)
     assert doc == snapshot
+
+
+# --- camera shake (an#429) -------------------------------------------------------
+
+
+def _shake_shot(*shakes, move=None, duration=2.0, actions=()):
+    from an.ir.schema import CameraShake
+
+    return _shot(
+        Camera(move=move, shake=[CameraShake(**s) for s in shakes]),
+        duration=duration,
+        actions=actions,
+    )
+
+
+def test_a_shake_is_at_rest_at_its_ends_bounded_and_decays():
+    from an.ir.camera import camera_shake_offsets
+
+    shot = _shake_shot({"at": 0.5, "duration": 1.0, "amplitude": 0.05, "frequency": 20})
+    offsets = camera_shake_offsets(shot, width=320, height=240)
+    times = [t for t, *_ in offsets]
+    assert times[0] == 0.5 and times[-1] == pytest.approx(1.5) and len(times) == 21
+    assert offsets[0][1:] == (0.0, 0.0) and offsets[-1][1:] == (0.0, 0.0)
+    amp = 0.05 * 240
+    for j, (_, dx, dy) in enumerate(offsets):
+        bound = amp * (1 - j / 20) + 1e-9  # decays linearly to rest
+        assert abs(dx) <= bound and abs(dy) <= bound
+    assert max(abs(dx) for _, dx, _ in offsets) > amp / 4  # it does shake
+    # deterministic: the same seed draws the same jolt; another seed another
+    assert camera_shake_offsets(shot, width=320, height=240) == offsets
+    other = _shake_shot({"at": 0.5, "duration": 1.0, "amplitude": 0.05, "frequency": 20, "seed": 7})
+    assert camera_shake_offsets(other, width=320, height=240) != offsets
+
+
+@pytest.mark.parametrize(
+    "shakes,needle",
+    [
+        ([{"at": 1.8, "duration": 0.4}], "past the shot"),
+        ([{"at": 0.2, "duration": 0.5}, {"at": 0.5, "duration": 0.4}], "overlap"),
+    ],
+)
+def test_a_shake_that_cannot_play_raises_at_compile_and_errors_at_validate(shakes, needle):
+    shot = _shake_shot(*shakes)
+    with pytest.raises(CameraError, match=needle):
+        compile_shot(shot, fps=24, width=320, height=240)
+    report = _validate(shot)
+    assert not report.passed
+    assert any(needle in f.description for f in report.findings)
+
+
+@pytest.mark.parametrize("bad", [{"amplitude": -0.1}, {"frequency": 0.0}, {"duration": 0.0}])
+def test_a_negative_or_empty_shake_is_refused_by_the_schema(bad):
+    from pydantic import ValidationError
+
+    from an.ir.schema import CameraShake
+
+    with pytest.raises(ValidationError):
+        CameraShake(**bad)
+
+
+def test_a_shake_rides_on_the_root_position_and_leaves_the_move_alone():
+    """The pan/zoom are the root's pivot and scale; the shake is its position,
+    centred, so the move's channels are exactly what they were without it."""
+    plain = compile_shot(_shot(Camera(move="push_in")), fps=24, width=320, height=240)
+    shaken = compile_shot(
+        _shake_shot({"at": 0.5, "duration": 0.5}, move="push_in"), fps=24, width=320, height=240
+    )
+    channels = _channels(shaken)
+    assert {k: v for k, v in channels.items() if k in ("scale_x", "scale_y")} == _channels(plain)
+    for axis, centre in (("x", 160.0), ("y", 120.0)):
+        keys = channels[axis]
+        assert keys[0][:2] == (0.0, centre) and keys[-1][:2] == (2.0, centre)
+        at_rest = [v for t, v, _ in keys if t <= 0.5 or t >= 1.0]
+        assert at_rest == [centre] * len(at_rest)
+        assert any(v != centre for t, v, _ in keys if 0.5 < t < 1.0)
+        assert [t for t, *_ in keys] == sorted({t for t, *_ in keys})
+
+
+def test_no_shake_emits_no_position_channel():
+    for camera in (Camera(move="pan_left"), Camera(move="pan_left", shake=None), Camera(move="pan_left", shake=[])):
+        assert set(_channels(compile_shot(_shot(camera), fps=24, width=320, height=240))) == {"pivot_x"}
+
+
+def test_an_authored_channel_on_the_shaken_position_raises():
+    shot = _shake_shot(
+        {"at": 0.5, "duration": 0.5},
+        actions=[SetAction(target="root", property="x", value=10.0, at=0.0)],
+    )
+    with pytest.raises(CutoutCompileError, match="root:x"):
+        compile_shot(shot, fps=24, width=320, height=240)
+
+
+def test_a_shake_round_trips_through_scene_md():
+    from an.ir.schema import CameraShake
+    from an.ir.sync import ir_to_markdown, markdown_to_ir
+
+    shot = _shake_shot({"at": 0.5, "duration": 0.3, "amplitude": 0.02, "seed": 3}, move="push_in")
+    scene = SceneIR(meta=Meta(title="X", duration=2.0), timeline=[shot])
+    back = markdown_to_ir(ir_to_markdown(scene)).timeline[0].camera
+    assert back.move == "push_in"
+    assert back.shake == [CameraShake(at=0.5, duration=0.3, amplitude=0.02, seed=3)]
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_a_shake_moves_the_rendered_frame_and_returns_it_to_rest(hermetic_browser, tmp_path):
+    """The done-when on frames: still before, jolted during, back after."""
+    import subprocess
+
+    import numpy as np
+
+    from an import init
+    from an.ir.schema import CameraShake, Resolution
+    from an.orchestrate import render_project
+    from an.project import load
+
+    root = init(tmp_path / "shake")
+    proj = load(root)
+    proj.scene = SceneIR(
+        meta=Meta(title="shake", duration=1.0, fps=12, resolution=Resolution(width=320, height=240)),
+        timeline=[
+            Shot(
+                id="s1",
+                renderer="cutout",
+                duration=1.0,
+                camera=Camera(shake=[CameraShake(at=0.25, duration=0.5, amplitude=0.08, decay=False)]),
+                entities=[AssetRef(kind="character", id="charlie", store="characters", ref="c-v1")],
+            )
+        ],
+    )
+    proj.mall["scenes"]["main"] = proj.scene
+    output = render_project(root, output_name="shake")
+    assert hermetic_browser["blocked"] == []
+
+    def frame(at):
+        raw = subprocess.run(
+            ["ffmpeg", "-v", "error", "-ss", at, "-i", str(output), "-frames:v", "1",
+             "-f", "rawvideo", "-pix_fmt", "gray", "-"],
+            capture_output=True, check=True,
+        ).stdout
+        return np.frombuffer(raw, np.uint8).reshape(240, 320).astype(int)
+
+    before, during, after = frame("0.1"), frame("0.5"), frame("0.9")
+    assert np.abs(before - after).mean() < 1.0, "the frame did not return to rest"
+    assert np.abs(before - during).mean() > 2.0, "the shake did not move the frame"
