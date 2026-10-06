@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T11:23:06Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 2188,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "5fd99dc3d0fb868d16b95a38c69e37b7b5d16047a4c9f36b63dadee683776135",
+      "shot_id": "splay",
+      "time": 0.0
+    },
+    {
+      "bytes": 2765,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "590e50225b8b21af6ec7e24b68fd435871f52ea3a77c9f16c9edae5caeaaa84f",
+      "shot_id": "splay",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "rig-rest-pose",
+    "dirty": true,
+    "sha": "50ccd4eccf070bd8c8bb209f095ff8ec4fa6bd91"
+  },
+  "reason": "an#339: the rig_rest fixture's first goldens -- a tripod whose legs are one drawing splayed by their bones' rest rotation, tilting as a whole with the splay intact",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "rig_rest",
+  "scene_contract_sha256": "e81971306aa45fed12f3915d95391757af05bcbbd73526f2ccd1da55db91f3aa",
+  "shot_ids": [
+    "splay"
+  ],
+  "source": "misc/bench/corpus/rig_rest",
+  "what_moves": "a tripod prop whose three legs are ONE drawing on three bones with `rotation_deg` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens `rotation` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."
+}

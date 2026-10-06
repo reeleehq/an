@@ -113,7 +113,9 @@ class GenreError(RegistryError):
 #:     ``EntityKind.swap_declaration``, ``an.stage.rig``.
 #: 3 = the public rig builder (an#338): ``an.stage.rig.build_rig_subtree``, ``rig_origin``,
 #:     ``RigDocument`` (``origin``), ``omit_unset_rig_fields``, ``an.stage.compile.note_raster_rig``.
-API_LEVEL: int = 3
+#: 4 = the bones' rest pose (an#339): ``an.stage.rig.register_rest_pose_migration``,
+#:     ``rig_rest_problems``, ``RigDocument.rest_rotation``.
+API_LEVEL: int = 4
 
 
 class GenreAPILevelError(GenreError, ImportError):

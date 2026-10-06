@@ -147,6 +147,31 @@ def _entry_dir(store: Any, key: str) -> Path | None:
     return Path(store.sidecar_path(key, meta)).parent
 
 
+def as_current(doc: Any) -> Any:
+    """``doc`` migrated to this build's schema when its ``kind`` is a registered,
+    versioned document, else ``doc`` itself (an#339).
+
+    :func:`drift` compares the two sides through it: the factory and the CLI
+    re-save a descriptor with this build's ``schema_version``, so a schema bump
+    alone would otherwise read as "descriptor edited" and refuse an in-place
+    upgrade of a copy nobody touched. A document no migration can read is
+    compared as it is (unequal to anything it should not equal).
+
+    >>> as_current({"kind": "PropDescriptor", "schema_version": "0.1.0", "name": "x"})["schema_version"]
+    '0.2.0'
+    >>> as_current({"no": "kind"})
+    {'no': 'kind'}
+    """
+    from an.ir.migrate import KINDS, migrate
+
+    if not isinstance(doc, Mapping) or doc.get("kind") not in KINDS:
+        return doc
+    try:
+        return migrate(copy.deepcopy(dict(doc)), kind=doc["kind"])
+    except ValueError:
+        return doc
+
+
 def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
     """How the project's ``store[key]`` differs from ``version`` — empty when it is that version.
 
@@ -159,7 +184,7 @@ def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
     out: list[str] = []
     doc = copy.deepcopy(dict(store[key]))
     pop_origin(doc)
-    if doc != version.get("doc"):
+    if as_current(doc) != as_current(version.get("doc")):
         out.append("descriptor edited")
     entry = _entry_dir(store, key)
     files = version.get("files") or {}

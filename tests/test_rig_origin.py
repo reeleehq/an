@@ -115,7 +115,7 @@ def test_a_subclass_with_its_own_serializer_must_call_the_omit_helper():
         def _own(self, handler):
             return omit_unset_rig_fields(handler(self))
 
-    assert Forgets().model_dump() == {"origin": None}
+    assert Forgets().model_dump()["origin"] is None  # leaked into every dump
     assert Remembers().model_dump() == {}
 
 
