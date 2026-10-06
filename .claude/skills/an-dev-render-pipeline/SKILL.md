@@ -479,6 +479,17 @@ The question this section used to be about is now closed the other way: **nothin
 the render path can do stops Chromium compositing the canvas, because the
 element screenshot IS the compositor's output.** See §2.
 
+**`an probe` IS the render path** (an#347), for the frames it asks for:
+`FrameStageRenderer.probe_frames` builds the same `FrameJob`, opens the same
+engine session (state-driven adapter included) and runs the same
+`capture_frames` with the same factor and frame clock, only for
+`floor(t * fps)` frames, renumbered 0..n-1 for the capture loop's count check.
+A change to `_render`'s session or capture setup must be made in `_probe` too;
+`tests/test_probe_and_sheet.py::test_a_probe_frame_is_the_films_frame` compares
+a probe frame with the rendered film frame pixel for pixel. A renderer opts in
+by defining `probe_frames(shot, ctx, times)`; Manim's reads its stored picture
+and never runs Manim.
+
 ---
 
 ## 8. Cost and what is still unmeasured

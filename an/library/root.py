@@ -185,3 +185,62 @@ def git_worktree_of(path: str | os.PathLike) -> Path | None:
         if (candidate / ".git").exists():
             return candidate
     return None
+
+
+class PrivateOutputError(RuntimeError):
+    """Not-publishable material would be written where git would pick it up."""
+
+
+def git_ignores(path: str | os.PathLike) -> bool:
+    """Whether the git work tree holding ``path`` ignores it (``git check-ignore``).
+
+    ``False`` when git cannot say (no ``git`` on the PATH, an error): a write
+    that needs ignoring is then refused, never let through.
+    """
+    import subprocess
+
+    target = Path(path).expanduser().resolve()
+    repo = git_worktree_of(target)
+    if repo is None:
+        return False
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(repo), "check-ignore", "-q", "--", str(target)],
+            capture_output=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    return out.returncode == 0
+
+
+def check_private_output(
+    path: str | os.PathLike,
+    *,
+    publishable: bool,
+    what: str,
+    allow: bool = False,
+) -> None:
+    """Refuse to write not-publishable output (private or unknown) where git would pick it up.
+
+    The rule of ``an probe`` and ``an library sheet`` (an#347): the RESOLVED
+    path (a symlinked folder is followed) must lie outside every git work tree,
+    or be ignored there (``git check-ignore``). ``allow`` overrides it
+    (``--allow-private-here``).
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     check_private_output(Path(d) / "x.png", publishable=False, what="a frame")
+    """
+    if publishable or allow:
+        return
+    target = Path(path).expanduser().resolve()
+    repo = git_worktree_of(target)
+    if repo is None or git_ignores(target):
+        return
+    raise PrivateOutputError(
+        f"{what} shows material that is not publishable (private or unknown), and "
+        f"{target} is inside the git work tree {repo}, which does not ignore it: "
+        "write it to an ignored folder (a project's artifacts/probes/ is ignored "
+        "by `an init`), outside the repository, or pass --allow-private-here"
+    )

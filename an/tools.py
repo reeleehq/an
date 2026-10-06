@@ -298,6 +298,47 @@ def preview(
     return f"preview: stopped (was at {base_url})"
 
 
+def probe(
+    project_dir: str,
+    shot: str = "",
+    at: list[float] | None = None,
+    out: str = "",
+    columns: int = 0,
+    supersample: int = 1,
+    allow_private_here: bool = False,
+) -> str:
+    """Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it.
+
+    The shot is prepared as a render prepares it (captions, style pack, the
+    settled length) and its own renderer draws only the frames asked for; a
+    Manim shot is read from the picture the last render stored. Several --at
+    make one grid. Frames showing private or unknown material are refused at
+    a path git would pick up.
+
+    project_dir: path to an an project
+    shot: the shot id
+    at: seconds into the shot, repeatable (--at 1.5 --at 3.8)
+    out: the PNG to write (default: <project>/artifacts/probes/<shot>@<t>.png, gitignored)
+    columns: cells per row of a grid (default: a square grid)
+    supersample: as `an render --supersample`, so the frame matches the film's
+    allow_private_here: write not-publishable frames where git would pick them up
+    """
+    from an.probe import probe as _probe
+
+    if not shot or not at:
+        raise SystemExit("an probe: give --shot <id> and at least one --at <seconds>")
+    path = _probe(
+        project_dir,
+        shot,
+        at,
+        out=out or None,
+        columns=columns or None,
+        supersample=supersample,
+        allow_private_here=allow_private_here,
+    )
+    return f"probe: {path}"
+
+
 # SSOT for the CLI dispatcher (per the python-dispatching skill convention).
 
 
@@ -643,6 +684,7 @@ _dispatch_funcs = [
     render,
     iterate,
     preview,
+    probe,
     credits,
     bench,
     bench_compare,

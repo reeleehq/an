@@ -1177,6 +1177,48 @@ class ManimRenderer:
             },
         )
 
+    def probe_frames(
+        self, shot: Shot, ctx: RenderContext, times: list[float]
+    ) -> list[bytes]:
+        """The film's frames of ``shot`` at each of ``times``, from its STORED picture (an#347).
+
+        Manim owns its clock and renders a whole scene at once, so ``an
+        probe`` never runs it: the picture a render stored is conformed
+        exactly as :meth:`render` conforms it, and the frames showing at
+        ``times`` are read out. With no stored picture it refuses, naming the
+        render that stores one.
+        """
+        from an.engines.frame_stage import film_frame
+        from an.media.frames import frame_path
+        from an.media.mp4 import ensure_ffmpeg
+
+        spec, source = self.resolve(shot, ctx)
+        inputs = picture_inputs(spec, source, ctx)
+        raw = self._raw(spec, source, inputs, ctx, render=False, force=False)
+        if raw is None:
+            raise ManimRenderError(
+                f"shot {shot.id!r} has no stored Manim picture for these inputs: a "
+                "probe never runs Manim. Render the project first (an render "
+                "<project>), then probe it"
+            )
+        ensure_ffmpeg()
+        work = Path(ctx.work_dir) / f"manim_probe_{shot.id}"
+        if work.exists():
+            shutil.rmtree(work)
+        work.mkdir(parents=True)
+        video = work / "manim.mp4"
+        video.write_bytes(raw.video)
+        n = frame_count(shot.duration, ctx.fps)
+        frames_dir = work / "frames"
+        _conform(
+            video, frames_dir, fps=float(ctx.fps), resolution=tuple(ctx.resolution),
+            background=spec.background, n_frames=n,
+        )  # fmt: skip
+        return [
+            frame_path(frames_dir, film_frame(t, ctx.fps, n)).read_bytes()
+            for t in times
+        ]
+
     def _raw(
         self,
         spec: ManimShotSpec,

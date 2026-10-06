@@ -309,6 +309,7 @@ def test_the_command_set_is_pinned_by_literal():
         "render",
         "iterate",
         "preview",
+        "probe",
         "credits",
         "bench",
         "bench-compare",

@@ -1103,12 +1103,33 @@ def _prop_swap_declaration(entity: Any, mall: Any) -> Any:
     return text_swap_declaration(entity, mall)
 
 
+#: How long a specimen shot runs (``an library sheet`` draws its first frame).
+SPECIMEN_DURATION: float = 0.5
+#: The id of a specimen shot.
+SPECIMEN_SHOT_ID: str = "specimen"
+
+
+def stage_specimen(ref: AssetRef) -> Shot:
+    """A short shot showing the one stage entity ``ref`` casts, on its own (an#347).
+
+    >>> stage_specimen(AssetRef(kind="prop", id="lamp", store="props", ref="lamp")).entities[0].id
+    'lamp'
+    """
+    return Shot(
+        id=SPECIMEN_SHOT_ID,
+        renderer="stage",
+        duration=SPECIMEN_DURATION,
+        entities=[ref],
+    )
+
+
 CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
     EntityKind(
         "environment",
         space=STAGE_NODE_SPACE,
         store="environments",
         description="the set / background: planes, with parallax, drawn behind",
+        specimen=stage_specimen,
     ),
     EntityKind(
         "prop",
@@ -1116,6 +1137,7 @@ CORE_ENTITY_KINDS: tuple[EntityKind, ...] = (
         store="props",
         description="a prop or piece of set dressing; also stroked paths and text blocks",
         swap_declaration=_prop_swap_declaration,
+        specimen=stage_specimen,
     ),
     EntityKind(
         "voice",
