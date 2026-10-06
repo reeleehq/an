@@ -126,6 +126,34 @@ def _slot(pinned: LibraryRef, key: str | None) -> tuple[str, str]:
     return asset_kind_info(pinned.kind).store or "", key or _slug(pinned.asset_id)
 
 
+def _select_members(
+    where: str,
+    plan: list[tuple[LibraryRef, str | None]],
+    *,
+    only: Iterable[str] | None,
+    skip: Iterable[str],
+) -> list[tuple[LibraryRef, str | None]]:
+    """The members of ``plan`` that ``only`` and ``skip`` keep, named by key or asset id."""
+    names = [(_slot(p, k)[1], p.asset_id) for p, k in plan]
+    known = {n for pair in names for n in pair}
+    only = None if only is None else set(only)
+    skip = set(skip)
+    unknown = sorted(((only or set()) | skip) - known)
+    if unknown:
+        listed = ", ".join(f"{key} ({asset})" for key, asset in names)
+        raise CheckoutError(
+            f"{where} has no member {', '.join(unknown)}; its members are {listed}"
+        )
+    kept = [
+        member
+        for member, pair in zip(plan, names)
+        if (only is None or only & set(pair)) and not skip & set(pair)
+    ]
+    if not kept:
+        raise CheckoutError(f"{where}: the selection leaves no member to check out")
+    return kept
+
+
 def _refuse_slots(
     where: str, slots: list[tuple[str, str]], error: type[LibraryError]
 ) -> None:
@@ -251,10 +279,12 @@ def checkout_kit(
     *,
     overwrite: bool = False,
     upgrade: bool = False,
+    only: Iterable[str] | None = None,
+    skip: Iterable[str] = (),
     mall: Mapping[str, Any] | None = None,
     lock: Any | None = None,
 ) -> list[CheckoutResult]:
-    """Check every member of a kit out into a project, pin each, and record the kit.
+    """Check the members of a kit out into a project, pin each, and record the kit.
 
     libraries: where the kit and its members resolve
     project_dir: the project to check out into
@@ -262,17 +292,22 @@ def checkout_kit(
     overwrite: replace project entries that are not exactly their member's version
     upgrade: update in place a member's entry pinned to an earlier version of
         that member, unedited since (:func:`~an.library.checkout.checkout`)
+    only: check out only these members, each named by the key it lands under
+        (``narrator``) or by its asset id (``voice.narrator``); default: all
+    skip: leave these members out, named the same way
     mall: the project mall (default: ``build_project_mall(project_dir)``)
     lock: the lockfile (default: the mall's ``library_lock`` store); it needs a
         ``kits`` section, as :class:`~an.stores.library_lock.ProjectLock` has
 
-    Returns one :class:`~an.library.checkout.CheckoutResult` per member, in the
-    kit's order. Each member is checked out by :func:`~an.library.checkout.checkout`
+    Returns one :class:`~an.library.checkout.CheckoutResult` per member checked
+    out, in the kit's order. Each member is checked out by :func:`~an.library.checkout.checkout`
     under its ``key`` and pinned in ``assets.lock.json`` as any check-out is; the
     kit itself is recorded under the lockfile's ``kits`` section (its pinned
     reference, manifest and the members' lockfile keys), so ``an library`` readers
     and a human can see which kit the project came from. Checking the same kit out
-    again is idempotent.
+    again is idempotent. A partial check-out (``only``, ``skip``, an#400) records
+    the members the project holds: a later check-out of more members of the same
+    kit version adds to them.
 
     All members are resolved and checked before the first is written: a missing
     member, a member that is itself a kit, a corrupt stored file, or a project
@@ -308,6 +343,8 @@ def checkout_kit(
         _refuse_member_kind(where, member.ref, member_pin, CheckoutError)
         plan.append((member_pin, member.key))
     _refuse_slots(where, [_slot(p, k) for p, k in plan], CheckoutError)
+    kit_slots = [lock_key(*_slot(p, k)) for p, k in plan]
+    plan = _select_members(where, plan, only=only, skip=skip)
     for member_pin, key in plan:
         check_checkout(
             libs,
@@ -333,12 +370,15 @@ def checkout_kit(
         )
         for member_pin, key in plan
     ]
+    held = kits.get(pinned.asset_id) or {}
+    holds = {lock_key(r.store, r.key) for r in results}
+    if held.get("library") == str(pinned):
+        holds |= set(held.get("members") or ())
     record = {
         "library": str(pinned),
         "manifest_sha256": version["manifest_sha256"],
-        "members": [lock_key(r.store, r.key) for r in results],
+        "members": [k for k in kit_slots if k in holds],
     }
-    held = kits.get(pinned.asset_id) or {}
     if {k: held.get(k) for k in record} != record:
         kits[pinned.asset_id] = {**record, "checked_out": _now()}
     return results

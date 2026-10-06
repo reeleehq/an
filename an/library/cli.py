@@ -542,6 +542,8 @@ def checkout(
     package: str = "",
     root: str = "",
     extra: str = "",
+    only: str = "",
+    skip: str = "",
 ) -> str:
     """Check a library version out into a project, and pin it in assets.lock.json.
 
@@ -553,16 +555,30 @@ def checkout(
     package: the library to read first, then the core an library (default: the reference's <library>: prefix, else an)
     root: that library's root (with no --package, the root of the library the reference names)
     extra: further libraries, by package name, comma-separated
+    only: for a kit, check out only these members (their keys or asset ids, comma-separated)
+    skip: for a kit, leave these members out (their keys or asset ids, comma-separated)
     """
     libraries = _libraries(package, root, extra, refs=[ref])
-    if parse_ref(ref).kind == KIT_KIND:
+    is_kit = parse_ref(ref).kind == KIT_KIND
+    if (only or skip) and not is_kit:
+        raise SystemExit(
+            "an library checkout: --only and --skip select a kit's members; "
+            f"{ref} is not a kit"
+        )
+    if is_kit:
         if key:
             raise SystemExit(
                 "an library checkout: --key names one asset's key; a kit's members "
                 "carry their own keys (set them with `an library kit --key-for`)"
             )
         results = _checkout_kit(
-            libraries, project_dir, ref, overwrite=overwrite, upgrade=upgrade
+            libraries,
+            project_dir,
+            ref,
+            overwrite=overwrite,
+            upgrade=upgrade,
+            only=_names(only) or None,
+            skip=_names(skip),
         )
         lines = [f"kit {ref}: {len(results)} members", *map(str, results)]
         castable = [r for r in results if entity_kind(r.ref.kind) is not None]
@@ -576,6 +592,11 @@ def checkout(
         upgrade=upgrade,
     )
     return "\n".join([str(result), *_entities_block([result])])
+
+
+def _names(csv: str) -> list[str]:
+    """The comma-separated names in ``csv``, stripped (none for an empty string)."""
+    return [n.strip() for n in csv.split(",") if n.strip()]
 
 
 def _entities_block(results: list[Any]) -> list[str]:

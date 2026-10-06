@@ -158,6 +158,41 @@ def test_checking_out_the_same_kit_twice_is_idempotent(library, project):
     assert (project / LOCKFILE_NAME).read_text(encoding="utf-8") == before
 
 
+def test_a_kit_checks_out_only_the_members_asked_for(library, project):
+    """an#400: a style kit need not bring its whole cast."""
+    _kit(library)
+    results = checkout_kit(
+        library, project, "kit.noir-base", only=["noir", "prop.lamp"]
+    )
+    assert [(r.store, r.key) for r in results] == [
+        ("styles", "noir"),
+        ("props", "desk-lamp"),
+    ]
+    assert "narrator" not in build_project_mall(project)["voices"]
+    lock = ProjectLock(project)
+    assert lock.kits["kit.noir-base"]["members"] == ["styles/noir", "props/desk-lamp"]
+    # A later check-out of the rest adds to the record, in the kit's order.
+    checkout_kit(library, project, "kit.noir-base", skip=["noir", "desk-lamp"])
+    assert ProjectLock(project).kits["kit.noir-base"]["members"] == [
+        "styles/noir",
+        "voices/narrator",
+        "props/desk-lamp",
+    ]
+
+
+def test_a_selection_naming_no_member_writes_nothing(library, project):
+    _kit(library)
+    with pytest.raises(
+        CheckoutError, match=r"no member cast.*narrator \(voice.narrator\)"
+    ):
+        checkout_kit(library, project, "kit.noir-base", only=["cast"])
+    with pytest.raises(CheckoutError, match="leaves no member"):
+        checkout_kit(
+            library, project, "kit.noir-base", only=["noir"], skip=["style.noir"]
+        )
+    assert not (project / LOCKFILE_NAME).exists()
+
+
 def test_a_missing_member_writes_nothing(library, project):
     doc = {"kind": "Kit", "schema_version": "0.1.0", "name": "ghosty"}
     members = [
@@ -293,6 +328,16 @@ def test_the_cli_publishes_and_checks_out_a_kit(tmp_path, project):
         "styles/noir",
         "props/desk-lamp",
     ]
+    r = runner.invoke(
+        app,
+        ["library", "checkout", str(project), "style.noir", "--skip", "noir"],
+    )
+    assert r.exit_code == 1 and "not a kit" in r.output
+    r = runner.invoke(
+        app,
+        ["library", "checkout", str(project), "kit.noir-base", "--only", " desk-lamp,"],
+    )
+    assert r.exit_code == 0 and "kit kit.noir-base: 1 members" in r.output, r.output
     r = runner.invoke(
         app, ["library", "checkout", str(project), "kit.noir-base", "--key", "x"]
     )
