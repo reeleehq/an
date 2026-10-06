@@ -105,7 +105,9 @@ def parse_format(fmt: str) -> NumberFormat:
     spec, _, suffix = rest.partition("}")
     m = _SPEC.fullmatch(spec)
     if m is None:
-        raise CounterFormatError(f"counter format {fmt!r}: {spec!r} is not in it; {subset}")
+        raise CounterFormatError(
+            f"counter format {fmt!r}: {spec!r} is not in it; {subset}"
+        )
     kind, comma = m["type"], m["comma"] is not None
     precision = int(m["precision"]) if m["precision"] is not None else None
     if kind == "d" and precision is not None:

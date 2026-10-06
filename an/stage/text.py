@@ -325,7 +325,11 @@ class TextDescriptor(BaseModel):
             raise ValueError(
                 "a text block draws `text` (one string), `texts` (a replacement "
                 "set, an#341) or `counter` (a number, an#342); "
-                + (f"{' and '.join(given)} were given" if given else "neither was given")
+                + (
+                    f"{' and '.join(given)} were given"
+                    if given
+                    else "neither was given"
+                )
             )
         if given[0] != "text" and self.unit != BLOCK_UNIT:
             raise ValueError(

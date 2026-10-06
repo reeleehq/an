@@ -153,7 +153,9 @@ def _sampled_strings(
     leaves = sorted(leaves, key=lambda f: f.start)
     scratch: list = []
     if counter.start is not None:
-        scratch.append(SetAction(target=eid, property=_SCRATCH_PROPERTY, value=counter.start))
+        scratch.append(
+            SetAction(target=eid, property=_SCRATCH_PROPERTY, value=counter.start)
+        )
     defined_from: float | None = 0.0 if counter.start is not None else None
     for flat in leaves:
         leaf = flat.action
@@ -186,7 +188,9 @@ def _sampled_strings(
         if isinstance(leaf, SetAction):
             scratch.append(moved.model_copy(update={"at": flat.start}))
         else:
-            scratch.append(sequence(delay(flat.start), moved) if flat.start > 0 else moved)
+            scratch.append(
+                sequence(delay(flat.start), moved) if flat.start > 0 else moved
+            )
     if not scratch:
         raise CutoutCompileError(
             f"counter {eid!r} has no value to show: give the document's "
@@ -231,7 +235,10 @@ def _evaluate(
     )
     tl = timeline_from_compiled(
         {
-            "timeline": {"duration": duration, "tracks": [t.model_dump() for t in tracks]},
+            "timeline": {
+                "duration": duration,
+                "tracks": [t.model_dump() for t in tracks],
+            },
             "animations": {k: a.model_dump() for k, a in animations.items()},
         }
     )
@@ -289,9 +296,7 @@ def lower_counters(state: Any) -> None:
                 resolutions=[],
             )
         except ValueError as err:
-            raise CutoutCompileError(
-                f"counter {eid!r} cannot be set: {err}"
-            ) from err
+            raise CutoutCompileError(f"counter {eid!r} cannot be set: {err}") from err
         _apply_stage_placement(node, block.entity)
         _replace_node(state, eid, node)
         for i in range(1, len(keys)):
@@ -307,7 +312,9 @@ def lower_counters(state: Any) -> None:
     state.shot = shot.model_copy(
         update={"actions": [_without_value_leaves(a, blocks) for a in shot.actions]}
     )
-    state.extra_actions[:] = [_without_value_leaves(a, blocks) for a in state.extra_actions]
+    state.extra_actions[:] = [
+        _without_value_leaves(a, blocks) for a in state.extra_actions
+    ]
     state.extra_actions.extend(sets)
     _drop_unused_text_textures(state, blocks)
     from an.stage.compile import _rebuild_vocabulary
@@ -351,5 +358,7 @@ def _drop_unused_text_textures(state: Any, blocks: dict[str, _CounterBlock]) -> 
         collect(root)
     for eid in blocks:
         prefix = f"{TEXT_TEXTURE_PREFIX}{eid}."
-        for alias in [a for a in state.textures if a.startswith(prefix) and a not in used]:
+        for alias in [
+            a for a in state.textures if a.startswith(prefix) and a not in used
+        ]:
             del state.textures[alias]

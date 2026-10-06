@@ -1641,7 +1641,11 @@ def _core_framing(ctx: ValidationContext) -> None:
 
 def _core_swap_references(ctx: ValidationContext) -> None:
     _check_swap_references(
-        ctx.shot, ctx.path, ctx.report, ctx.stores, text_blocks=frozenset(_text_ids(ctx))
+        ctx.shot,
+        ctx.path,
+        ctx.report,
+        ctx.stores,
+        text_blocks=frozenset(_text_ids(ctx)),
     )
 
 
