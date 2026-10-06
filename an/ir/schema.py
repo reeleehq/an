@@ -771,6 +771,53 @@ class Transition(_IRModel):
         return self
 
 
+class CueAnchor(_IRModel):
+    """A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.
+
+    ``when`` is a node path in a stage shot (``crawl/line_7``: a text block's
+    unit, a prop, a plane); ``reaches`` is ``{"y": px}`` or ``{"x": px}`` in
+    the frame's pixels (0 at the top or left), crossed in either direction by
+    the node's on-screen centre — the camera, parallax and a crawl's tilt
+    included. Resolved when the film is laid out, never written back into the
+    scene: a layout change moves the sound with the picture. ``offset`` is
+    added after. ``shot`` names the shot to look in, for a cue in
+    ``meta.sounds`` (default: the first shot that has the node).
+
+    >>> CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis
+    ('y', 840.0)
+    """
+
+    when: str
+    reaches: dict[str, float]
+    offset: float = 0.0
+    shot: str | None = None
+
+    @model_validator(mode="after")
+    def _one_axis(self) -> "CueAnchor":
+        if len(self.reaches) != 1 or next(iter(self.reaches)) not in ("x", "y"):
+            raise ValueError(
+                f"`reaches` names one frame axis, x or y, got {dict(self.reaches)!r}"
+            )
+        return self
+
+    @property
+    def axis(self) -> tuple[str, float]:
+        """``(axis, pixels)``."""
+        ((axis, value),) = self.reaches.items()
+        return axis, float(value)
+
+
+class CueUntil(_IRModel):
+    """Where a sound cue ends: at another cue's start, plus ``offset`` (an#317).
+
+    ``cue`` is the ``sound`` key of a cue in the same list (the shot's, or
+    ``meta.sounds``); the first such cue is meant.
+    """
+
+    cue: str
+    offset: float = 0.0
+
+
 class SoundCue(_IRModel):
     """One sound placed on the timeline: an SFX hit, an ambience, a music bed.
 
@@ -789,7 +836,12 @@ class SoundCue(_IRModel):
     """
 
     sound: str
-    at: Seconds = Field(default=0.0, ge=0)
+    #: Seconds, or a :class:`CueAnchor` resolved from the picture when the film
+    #: is laid out (an#317).
+    at: Annotated[Seconds, Field(ge=0)] | CueAnchor = 0.0
+    #: Ends the cue at another cue's start (:class:`CueUntil`), instead of a
+    #: fixed ``duration``.
+    until: CueUntil | None = None
     #: How long it plays. ``None``: the asset's own length, or — when
     #: ``loop`` — to the end of its shot (shot cue) or of the film (meta cue).
     duration: Seconds | None = Field(default=None, gt=0)
