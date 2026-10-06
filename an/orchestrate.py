@@ -76,13 +76,19 @@ class OrchestratorReport:
             yield from v.findings
 
 
-def validate_project(project_dir: str | Path) -> ValidationReport:
+def validate_project(
+    project_dir: str | Path, *, fps: float | None = None
+) -> ValidationReport:
     """Schema + semantic validation of the scene at ``project_dir``.
 
     A ``scene.md`` that does not PARSE — a dialogue line in no accepted shape
     (an#96), a malformed YAML block — is a Finding, not a traceback: `an
     validate` exists to print findings, and it used to be the one tool that
     stack-dumped on the error it should report.
+
+    ``fps`` is the frame rate the render will use when it is not the scene's
+    (``an render --fps``): the checks that depend on it (``step_hz``, a line
+    heard during a dissolve) use it, as the render will (an#435).
     """
     try:
         # Kinds are REPORTED here, as findings, not refused at load.
@@ -123,6 +129,7 @@ def validate_project(project_dir: str | Path) -> ValidationReport:
         available_styles=project.mall.get("styles"),
         available_sounds=project.mall.get("sounds"),
         available_library_lock=project.mall.get("library_lock"),
+        fps=fps,
     )
     return schema_report.merge(semantic_report)
 
