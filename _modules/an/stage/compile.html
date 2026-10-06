@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1652,6 +1652,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
         <span class="n">entity_swaps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">entity_swaps</span><span class="p">,</span>
+        <span class="n">products</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -3018,17 +3019,27 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Registered as :attr:`an.genres.ActionKind.lowering`. The stage knows no</span>
 <span class="sd">    kind by name beyond its own (``tween``, ``set``); a genre's kind supplies:</span>
 
-<span class="sd">    - ``extent_resolver(vocab)``: ``action -&gt; seconds`` for a leaf that names no</span>
-<span class="sd">      duration (or ``None``);</span>
-<span class="sd">    - ``expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)``:</span>
-<span class="sd">      the flat list with this kind's leaves replaced by what they stand for;</span>
+<span class="sd">    - ``extent_resolver(vocab, *, products)``: ``action -&gt; seconds`` for a leaf</span>
+<span class="sd">      that names no duration (or ``None``);</span>
+<span class="sd">    - ``expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions,</span>
+<span class="sd">      products)``: the flat list with this kind's leaves replaced by what they</span>
+<span class="sd">      stand for.</span>
+
+<span class="sd">    ``products`` is the shot's :attr:`CompileState.products` (an#348): what a</span>
+<span class="sd">    genre's earlier compile pass left for later work, by key (a style's</span>
+<span class="sd">    policy, which decides a walk's gait and so its length). Read it; the</span>
+<span class="sd">    lowering has no other view of the compile state.</span>
+
+<span class="sd">    And, per kind:</span>
 <span class="sd">    - ``view_of(entity_swaps, vocab, *, duration)``: ``flat -&gt; view name | None``</span>
 <span class="sd">      (or ``None``), for kinds whose clips depend on the view in force;</span>
 <span class="sd">    - ``clip(action, *, anim_id, vocab, fps, view)``: the animation clip of one</span>
 <span class="sd">      leaf that survived ``expand``.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">extent_resolver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extent_resolver</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">products</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flat_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span> <span class="o">...</span>
 
@@ -3066,12 +3077,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">entity_swaps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"_EntitySwap"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">products</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnimationClipJSON</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrackJSON</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Flatten authoring actions and convert to animation clips.</span>
 
 <span class="sd">    A ``set`` of a swap set on the ENTITY ITSELF fans out to every slot the</span>
 <span class="sd">    set projects onto (:func:`_fan_out_entity_swaps`, an#197); each such swap</span>
 <span class="sd">    is appended to ``entity_swaps`` when given, for the pose layer.</span>
+<span class="sd">    ``products`` (the compile passes' products, an#348) reach every genre</span>
+<span class="sd">    lowering's ``extent_resolver`` and ``expand``.</span>
 
 <span class="sd">    A ``play`` of a MOTION PRESET is replaced by the tweens and settling sets</span>
 <span class="sd">    it stands for before anything else looks (the ``play`` lowering's ``expand``,</span>
@@ -3108,8 +3122,16 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># A duration-less play advances a `sequence` by its NATURAL length, read</span>
     <span class="c1"># through the entity's descriptor: the resolver `an validate` uses too.</span>
     <span class="n">lowerings</span> <span class="o">=</span> <span class="n">_lowerings</span><span class="p">()</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="n">products</span> <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">extent</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span><span class="n">low</span><span class="o">.</span><span class="n">extent_resolver</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="n">lowerings</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="p">),</span> <span class="kc">None</span>
+        <span class="p">(</span>
+            <span class="n">r</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="n">low</span><span class="o">.</span><span class="n">extent_resolver</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="n">lowerings</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">r</span>
+        <span class="p">),</span>
+        <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
         <span class="n">flat_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">))</span>
@@ -3128,6 +3150,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
             <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
             <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
+            <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="c1"># AFTER the tint expansion, like the swap dispatch: a `tint` set on a</span>
     <span class="c1"># character root is a colour, not a whole-character swap (an#197 review).</span>

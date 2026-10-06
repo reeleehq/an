@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1412,6 +1412,19 @@ same Shot fields; renderer-specific options go under <code class="docutils liter
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Shot.policy">
+<span class="sig-name descname"><span class="pre">policy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Shot.policy" title="Link to this definition">#</a></dt>
+<dd><p>per aspect, the methods it prefers in
+order, over the style pack’s (<code class="docutils literal notranslate"><span class="pre">StylePack.policy</span></code>) and under an author’s
+request — <code class="docutils literal notranslate"><span class="pre">{&quot;locomotion&quot;:</span> <span class="pre">[&quot;loco.glide&quot;]}</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code>: the style’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This shot’s <strong>policy</strong> (an#348)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.Shot.renderer">
 <span class="sig-name descname"><span class="pre">renderer</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.schema.Shot.renderer" title="Link to this definition">#</a></dt>
 <dd><p>Which RENDERER draws this shot — not art direction. The field was
@@ -1919,6 +1932,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot"><code class="docutils literal notranslate"><span class="pre">Shot</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.model_config"><code class="docutils literal notranslate"><span class="pre">Shot.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.policy"><code class="docutils literal notranslate"><span class="pre">Shot.policy</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.renderer"><code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.sounds"><code class="docutils literal notranslate"><span class="pre">Shot.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.step_hz"><code class="docutils literal notranslate"><span class="pre">Shot.step_hz</span></code></a></li>

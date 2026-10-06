@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,6 +721,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">``why_not`` of the rest with their remedies. :func:`describe_asset` is that</span>
 <span class="sd">answer as data (the MCP surface's describe-an-asset query returns it);</span>
 <span class="sd">:func:`format_description` is its terminal form. Core code: it names no rig.</span>
+<span class="sd">Given a ``policy`` (a style's, an#348), each aspect also says what it</span>
+<span class="sd">resolves to under it (``under_policy``), by the same precedence the compiler</span>
+<span class="sd">uses (:func:`an.semantic.resolve`).</span>
 
 <span class="sd">&gt;&gt;&gt; from an.semantic.entries import Aspect, Method</span>
 <span class="sd">&gt;&gt;&gt; from an.semantic.registry import register_aspect, register_entry, drop_owner</span>
@@ -730,6 +733,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">&gt;&gt;&gt; d = describe_profile({}, aspects=("demo_travel",))</span>
 <span class="sd">&gt;&gt;&gt; d["aspects"]["demo_travel"]["default"], list(d["aspects"]["demo_travel"]["not_applicable"])</span>
 <span class="sd">('demo.float', ['demo.fly'])</span>
+<span class="sd">&gt;&gt;&gt; d = describe_profile({}, aspects=("demo_travel",), policy={"demo_travel": ["demo.fly", "demo.float"]})</span>
+<span class="sd">&gt;&gt;&gt; u = d["aspects"]["demo_travel"]["under_policy"]</span>
+<span class="sd">&gt;&gt;&gt; u["method"], u["source"], u["skipped"]</span>
+<span class="sd">('demo.float', 'policy', [{'method': 'demo.fly', 'missing': ['limbs.wings']}])</span>
 <span class="sd">&gt;&gt;&gt; drop_owner("demo")</span>
 <span class="sd">"""</span>
 
@@ -754,12 +761,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">aspects</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">declared</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">policy</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Per aspect: the method it resolves to, the applicable ones, and why not the rest.</span>
 
-<span class="sd">    ``declared`` is the asset document's declared facts: an aspect's request</span>
-<span class="sd">    is read from the field it names (``Aspect.declared_by``: a character's</span>
-<span class="sd">    ``gait``), so the answer is the method the compiler will use.</span>
+<span class="sd">    ``declared`` is the asset document's declared facts: an aspect's</span>
+<span class="sd">    declaration is read from the field it names (``Aspect.declared_by``: a</span>
+<span class="sd">    character's ``gait``), so the answer is the method the compiler will use.</span>
+<span class="sd">    ``policy`` (a style's, anything :meth:`an.semantic.Policy.of` reads) adds</span>
+<span class="sd">    ``under_policy`` per aspect: the method, where the choice came from, what</span>
+<span class="sd">    that method requires (a genre may say when it holds), and any</span>
+<span class="sd">    substitution or skipped policy entries.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">aspect</span> <span class="k">as</span> <span class="n">_aspect</span>
 
@@ -769,7 +781,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">aspects</span> <span class="k">if</span> <span class="n">aspects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">aspect_names</span><span class="p">():</span>
         <span class="n">asp</span> <span class="o">=</span> <span class="n">_aspect</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">request</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">asp</span><span class="o">.</span><span class="n">declared_by</span><span class="p">)</span> <span class="k">if</span> <span class="n">asp</span><span class="o">.</span><span class="n">declared_by</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subjects</span><span class="p">,</span> <span class="n">requested</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">entity_kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">resolve</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subjects</span><span class="p">,</span> <span class="n">declared</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">entity_kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
         <span class="n">fits</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">applicable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subjects</span><span class="p">)]</span>
         <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"default"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -786,11 +798,30 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">NOOP</span> <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fits</span>
             <span class="p">},</span>
         <span class="p">}</span>
+        <span class="k">if</span> <span class="n">policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">"under_policy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_under_policy</span><span class="p">(</span>
+                <span class="n">resolve</span><span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span> <span class="n">subjects</span><span class="p">,</span> <span class="n">declared</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span> <span class="n">entity_kind</span><span class="o">=</span><span class="n">kind</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">"affordances"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">v</span> <span class="ow">or</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">subjects</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
         <span class="s2">"aspects"</span><span class="p">:</span> <span class="n">out</span><span class="p">,</span>
     <span class="p">}</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_under_policy</span><span class="p">(</span><span class="n">r</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"method"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="s2">"source"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
+        <span class="s2">"requires"</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">requires</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">substitution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">"substitution"</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">substitution</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">skipped</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">to_json</span><span class="p">()[</span><span class="s2">"skipped"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <div class="viewcode-block" id="describe_asset">
@@ -801,8 +832,10 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"character"</span><span class="p">,</span>
     <span class="n">aspects</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">policy</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">""":func:`describe_profile` of an asset's derived profile, with the analyser and overrides."""</span>
+<span class="w">    </span><span class="sd">""":func:`describe_profile` of an asset's derived profile, with the analyser and</span>
+<span class="sd">    overrides; ``policy`` as :func:`describe_profile`'s."""</span>
     <span class="n">profile</span> <span class="o">=</span> <span class="n">affordances</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">art</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
     <span class="n">analyser</span> <span class="o">=</span> <span class="n">ANALYSERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
@@ -815,7 +848,9 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"kind"</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
         <span class="s2">"analyser"</span><span class="p">:</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">analyser</span><span class="o">.</span><span class="n">version</span><span class="p">}</span> <span class="k">if</span> <span class="n">analyser</span> <span class="k">else</span> <span class="p">{},</span>
         <span class="s2">"declared"</span><span class="p">:</span> <span class="n">declared</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">describe_profile</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">aspects</span><span class="o">=</span><span class="n">aspects</span><span class="p">,</span> <span class="n">declared</span><span class="o">=</span><span class="n">declared</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">describe_profile</span><span class="p">(</span>
+            <span class="n">profile</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">aspects</span><span class="o">=</span><span class="n">aspects</span><span class="p">,</span> <span class="n">declared</span><span class="o">=</span><span class="n">declared</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span>
+        <span class="p">),</span>
     <span class="p">}</span>
     <span class="n">out</span><span class="p">[</span><span class="s2">"overrides"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
         <span class="p">{</span>
@@ -835,8 +870,11 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="format_description">
 <a class="viewcode-back" href="../../../_autosummary/an.semantic.describe.html#an.semantic.describe.format_description">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">format_description</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The terminal form of :func:`describe_asset`."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_description</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">policy_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"the policy"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The terminal form of :func:`describe_asset`; ``policy_label`` names the</span>
+<span class="sd">    policy an ``under_policy`` answer was resolved under (a style's name)."""</span>
     <span class="n">who</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: "</span> <span class="k">if</span> <span class="n">name</span> <span class="k">else</span> <span class="s2">""</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">affords (derived from the descriptor and the art present)"</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">[</span><span class="s2">"affordances"</span><span class="p">]:</span>
@@ -861,6 +899,18 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"  recorded: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">'substitution'</span><span class="p">][</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2"> — </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">'substitution'</span><span class="p">][</span><span class="s1">'requested'</span><span class="p">]</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">'substitution'</span><span class="p">][</span><span class="s1">'chosen'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"under_policy"</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="n">under</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">"under_policy"</span><span class="p">]</span>
+            <span class="n">needs</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"; needs </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">under</span><span class="p">[</span><span class="s1">'requires'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">under</span><span class="p">[</span><span class="s2">"requires"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"  under </span><span class="si">{</span><span class="n">policy_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">under</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">under</span><span class="p">[</span><span class="s1">'source'</span><span class="p">]</span><span class="si">}{</span><span class="n">needs</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">skip</span> <span class="ow">in</span> <span class="n">under</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skipped"</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"    skipped </span><span class="si">{</span><span class="n">skip</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">: missing </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">skip</span><span class="p">[</span><span class="s1">'missing'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s2">"applicable"</span><span class="p">]:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  applies: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">'applicable'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">gaps</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s2">"not_applicable"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>

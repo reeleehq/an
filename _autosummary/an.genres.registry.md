@@ -106,8 +106,8 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 
 How the STAGE compiler turns an action of this kind into clips, for a kind
 that is not a plain tween or set (the cut-out `play`): an object with
-`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
-default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+`extent_resolver(vocab, *, products)`, `expand(flat_list, *, vocab, fps,
+step_hz, default_easing, resolutions, products)`, `view_of(entity_swaps, vocab, *, duration)`
 and `clip(action, *, anim_id, vocab, fps, view)` – see
 [`an.stage.compile.ActionLowering`](an.stage.compile.md#an.stage.compile.ActionLowering). `None`: the compiler has
 nothing kind-specific to do. (an#225: this is how the compiler stops

@@ -95,10 +95,19 @@ How a genre’s action kind becomes clips in the stage compiler (an#225).
 Registered as [`an.genres.ActionKind.lowering`](an.genres.html.md#an.genres.ActionKind.lowering). The stage knows no
 kind by name beyond its own (`tween`, `set`); a genre’s kind supplies:
 
-- `extent_resolver(vocab)`: `action -> seconds` for a leaf that names no
-  duration (or `None`);
-- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)`:
-  the flat list with this kind’s leaves replaced by what they stand for;
+- `extent_resolver(vocab, *, products)`: `action -> seconds` for a leaf
+  that names no duration (or `None`);
+- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions,
+  products)`: the flat list with this kind’s leaves replaced by what they
+  stand for.
+
+`products` is the shot’s [`CompileState.products`](#an.stage.compile.CompileState.products) (an#348): what a
+genre’s earlier compile pass left for later work, by key (a style’s
+policy, which decides a walk’s gait and so its length). Read it; the
+lowering has no other view of the compile state.
+
+And, per kind:
+
 - `view_of(entity_swaps, vocab, *, duration)`: `flat -> view name | None`
   (or `None`), for kinds whose clips depend on the view in force;
 - `clip(action, *, anim_id, vocab, fps, view)`: the animation clip of one

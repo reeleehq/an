@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -750,10 +750,18 @@ mall). It reads only.</p>
 <p>Registered as <a class="reference internal" href="an.genres.html#an.genres.ActionKind.lowering" title="an.genres.ActionKind.lowering"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.ActionKind.lowering</span></code></a>. The stage knows no
 kind by name beyond its own (<code class="docutils literal notranslate"><span class="pre">tween</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code>); a genre’s kind supplies:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">extent_resolver(vocab)</span></code>: <code class="docutils literal notranslate"><span class="pre">action</span> <span class="pre">-&gt;</span> <span class="pre">seconds</span></code> for a leaf that names no
-duration (or <code class="docutils literal notranslate"><span class="pre">None</span></code>);</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">expand(flat_list,</span> <span class="pre">*,</span> <span class="pre">vocab,</span> <span class="pre">fps,</span> <span class="pre">step_hz,</span> <span class="pre">default_easing,</span> <span class="pre">resolutions)</span></code>:
-the flat list with this kind’s leaves replaced by what they stand for;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extent_resolver(vocab,</span> <span class="pre">*,</span> <span class="pre">products)</span></code>: <code class="docutils literal notranslate"><span class="pre">action</span> <span class="pre">-&gt;</span> <span class="pre">seconds</span></code> for a leaf
+that names no duration (or <code class="docutils literal notranslate"><span class="pre">None</span></code>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expand(flat_list,</span> <span class="pre">*,</span> <span class="pre">vocab,</span> <span class="pre">fps,</span> <span class="pre">step_hz,</span> <span class="pre">default_easing,</span> <span class="pre">resolutions,</span>
+<span class="pre">products)</span></code>: the flat list with this kind’s leaves replaced by what they
+stand for.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">products</span></code> is the shot’s <a class="reference internal" href="#an.stage.compile.CompileState.products" title="an.stage.compile.CompileState.products"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CompileState.products</span></code></a> (an#348): what a
+genre’s earlier compile pass left for later work, by key (a style’s
+policy, which decides a walk’s gait and so its length). Read it; the
+lowering has no other view of the compile state.</p>
+<p>And, per kind:</p>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">view_of(entity_swaps,</span> <span class="pre">vocab,</span> <span class="pre">*,</span> <span class="pre">duration)</span></code>: <code class="docutils literal notranslate"><span class="pre">flat</span> <span class="pre">-&gt;</span> <span class="pre">view</span> <span class="pre">name</span> <span class="pre">|</span> <span class="pre">None</span></code>
 (or <code class="docutils literal notranslate"><span class="pre">None</span></code>), for kinds whose clips depend on the view in force;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">clip(action,</span> <span class="pre">*,</span> <span class="pre">anim_id,</span> <span class="pre">vocab,</span> <span class="pre">fps,</span> <span class="pre">view)</span></code>: the animation clip of one

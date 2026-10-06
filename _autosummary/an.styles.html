@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.voices" href="an.stores.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -902,6 +902,22 @@ paints nothing in that scene.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.StylePack.policy">
+<span class="sig-name descname"><span class="pre">policy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.styles.StylePack.policy" title="Link to this definition">#</a></dt>
+<dd><p>per aspect, the
+methods it prefers, in order (<code class="docutils literal notranslate"><span class="pre">{&quot;locomotion&quot;:</span> <span class="pre">[&quot;loco.bounce&quot;]}</span></code>: this
+show bounces even when its characters have legs). The first that
+applies wins; a shot’s own <code class="docutils literal notranslate"><span class="pre">policy</span></code> comes first, an author’s request
+before both. <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default) leaves every aspect to its chain,
+and is not serialized, so a pack without one dumps as before.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The style’s <strong>policy</strong> (ADR 0002 decision 4, an#348)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.styles.StylePack.roles">
 <span class="sig-name descname"><span class="pre">roles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.styles.StylePack.roles" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{role:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code>. Hex strings, not colour objects — see the module
@@ -1076,6 +1092,7 @@ such scene’s compiled document byte-identical to before an#163.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.gradients"><code class="docutils literal notranslate"><span class="pre">StylePack.gradients</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.grain"><code class="docutils literal notranslate"><span class="pre">StylePack.grain</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.model_config"><code class="docutils literal notranslate"><span class="pre">StylePack.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.policy"><code class="docutils literal notranslate"><span class="pre">StylePack.policy</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.roles"><code class="docutils literal notranslate"><span class="pre">StylePack.roles</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.surface"><code class="docutils literal notranslate"><span class="pre">StylePack.surface</span></code></a></li>
 </ul>

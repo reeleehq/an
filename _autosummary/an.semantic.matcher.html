@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.semantic.export" href="an.semantic.export.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -630,6 +630,15 @@ recorded as a <code class="docutils literal notranslate"><span class="pre">missi
 <span class="gp">&gt;&gt;&gt; </span><span class="n">drop_owner</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
 </pre></div>
 </div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.semantic.matcher.DECLARED_OUTRANKS_POLICY" title="an.semantic.matcher.DECLARED_OUTRANKS_POLICY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DECLARED_OUTRANKS_POLICY</span></code></a></p></td>
+<td><p>Does an asset's DECLARED method (a character's <code class="docutils literal notranslate"><span class="pre">gait</span></code> or <code class="docutils literal notranslate"><span class="pre">speech</span></code>, the field its aspect names in <code class="docutils literal notranslate"><span class="pre">Aspect.declared_by</span></code>) outrank a policy? <code class="docutils literal notranslate"><span class="pre">True</span></code> (today's rule): the declaration is the request, so a character keeps its personality across styles, and one it cannot honour is a <code class="docutils literal notranslate"><span class="pre">missing</span></code> substitution.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -657,6 +666,19 @@ recorded as a <code class="docutils literal notranslate"><span class="pre">missi
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.semantic.matcher.DECLARED_OUTRANKS_POLICY">
+<span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">DECLARED_OUTRANKS_POLICY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.semantic.matcher.DECLARED_OUTRANKS_POLICY" title="Link to this definition">#</a></dt>
+<dd><p>Does an asset’s DECLARED method (a character’s <code class="docutils literal notranslate"><span class="pre">gait</span></code> or <code class="docutils literal notranslate"><span class="pre">speech</span></code>, the
+field its aspect names in <code class="docutils literal notranslate"><span class="pre">Aspect.declared_by</span></code>) outrank a policy? <code class="docutils literal notranslate"><span class="pre">True</span></code>
+(today’s rule): the declaration is the request, so a character keeps its
+personality across styles, and one it cannot honour is a <code class="docutils literal notranslate"><span class="pre">missing</span></code>
+substitution. <code class="docutils literal notranslate"><span class="pre">False</span></code> (ADR 0002 read the other way): the declaration is
+the LAST entry of the policy’s order, so a style looks like itself and the
+declaration is its fallback. The maintainer’s decision is cutan#36; this
+flag is the whole switch, for <a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve()</span></code></a> and every caller of it.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.semantic.matcher.Missing">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">Missing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remedy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#Missing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.Missing" title="Link to this definition">#</a></dt>
@@ -668,7 +690,7 @@ recorded as a <code class="docutils literal notranslate"><span class="pre">missi
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.semantic.matcher.Resolution">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substitution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">considered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.Resolution" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substitution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">considered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.Resolution" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What <a class="reference internal" href="#an.semantic.matcher.resolve" title="an.semantic.matcher.resolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve()</span></code></a> chose: the method, its args, where the choice came from.</p>
 <p><code class="docutils literal notranslate"><span class="pre">source</span></code> is <code class="docutils literal notranslate"><span class="pre">request</span></code>, <code class="docutils literal notranslate"><span class="pre">policy</span></code>, <code class="docutils literal notranslate"><span class="pre">chain</span></code> or <code class="docutils literal notranslate"><span class="pre">noop</span></code>;
@@ -676,7 +698,9 @@ recorded as a <code class="docutils literal notranslate"><span class="pre">missi
 (<code class="docutils literal notranslate"><span class="pre">None</span></code> when it did not); <code class="docutils literal notranslate"><span class="pre">considered</span></code> is the trail of methods tried
 before it, each with what it was missing; <code class="docutils literal notranslate"><span class="pre">skipped</span></code> the policy’s entries
 among them (a policy is an order: an entry that does not apply is passed
-over, information for whoever records the choice, never a substitution).</p>
+over, information for whoever records the choice, never a substitution);
+<code class="docutils literal notranslate"><span class="pre">choice</span></code> the request or policy entry that was chosen, as written (its own
+<code class="docutils literal notranslate"><span class="pre">args</span></code>, without the method’s defaults), <code class="docutils literal notranslate"><span class="pre">None</span></code> for a chain link.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -694,10 +718,13 @@ over, information for whoever records the choice, never a substitution).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.semantic.matcher.resolve">
-<span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subjects</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.resolve" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.semantic.matcher.</span></span><span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subjects</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">declared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/semantic/matcher.html#resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.semantic.matcher.resolve" title="Link to this definition">#</a></dt>
 <dd><p>Choose the method that realises <code class="docutils literal notranslate"><span class="pre">aspect_name</span></code> on <code class="docutils literal notranslate"><span class="pre">subjects</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">requested</span></code> is the author’s explicit choice (a method id, its spelling
 in the aspect — <code class="docutils literal notranslate"><span class="pre">&quot;hem&quot;</span></code> for locomotion —, or <code class="docutils literal notranslate"><span class="pre">{method,</span> <span class="pre">args,</span> <span class="pre">version}</span></code>);
+<code class="docutils literal notranslate"><span class="pre">declared</span></code> the asset’s own declaration for the aspect (the field
+<code class="docutils literal notranslate"><span class="pre">Aspect.declared_by</span></code> names), placed by <a class="reference internal" href="#an.semantic.matcher.DECLARED_OUTRANKS_POLICY" title="an.semantic.matcher.DECLARED_OUTRANKS_POLICY"><code class="xref py py-data docutils literal notranslate"><span class="pre">DECLARED_OUTRANKS_POLICY</span></code></a>
+(the request when nothing was requested, or the policy’s last entry);
 <code class="docutils literal notranslate"><span class="pre">policy</span></code> the layered shot/style policy; <code class="docutils literal notranslate"><span class="pre">entity_kind</span></code> the asset’s kind,
 checked against the aspect’s <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>. Never raises for a method that
 does not apply: it falls back and records why.</p>
@@ -768,6 +795,7 @@ does not apply: it falls back and records why.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.DECLARED_OUTRANKS_POLICY"><code class="docutils literal notranslate"><span class="pre">DECLARED_OUTRANKS_POLICY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.Missing"><code class="docutils literal notranslate"><span class="pre">Missing</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.Resolution"><code class="docutils literal notranslate"><span class="pre">Resolution</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.semantic.matcher.applicable"><code class="docutils literal notranslate"><span class="pre">applicable()</span></code></a></li>

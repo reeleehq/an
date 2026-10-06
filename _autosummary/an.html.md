@@ -363,6 +363,15 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the methods it prefers in
+order, over the style pack’s (`StylePack.policy`) and under an author’s
+request — `{"locomotion": ["loco.glide"]}`. `None`: the style’s.
+
+* **Type:**
+  This shot’s **policy** (an#348)
+
 #### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
@@ -622,7 +631,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, only=None, fps=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -638,6 +647,10 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_styles` is the project’s `styles` store: a check reads the
+StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
+(a style’s `policy`, an#348).
 
 `available_library_lock` is the project’s asset-library lockfile
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked

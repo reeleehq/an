@@ -215,7 +215,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
+### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -226,7 +226,9 @@ What [`resolve()`](#an.semantic.resolve) chose: the method, its args, where the 
 (`None` when it did not); `considered` is the trail of methods tried
 before it, each with what it was missing; `skipped` the policy’s entries
 among them (a policy is an order: an entry that does not apply is passed
-over, information for whoever records the choice, never a substitution).
+over, information for whoever records the choice, never a substitution);
+`choice` the request or policy entry that was chosen, as written (its own
+`args`, without the method’s defaults), `None` for a chain link.
 
 ### *exception* an.semantic.UnknownEntryError
 
@@ -327,12 +329,15 @@ Traceback (most recent call last):
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
 
-### an.semantic.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+### an.semantic.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
 Choose the method that realises `aspect_name` on `subjects`.
 
 `requested` is the author’s explicit choice (a method id, its spelling
 in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`declared` the asset’s own declaration for the aspect (the field
+`Aspect.declared_by` names), placed by `DECLARED_OUTRANKS_POLICY`
+(the request when nothing was requested, or the policy’s last entry);
 `policy` the layered shot/style policy; `entity_kind` the asset’s kind,
 checked against the aspect’s `applies_to`. Never raises for a method that
 does not apply: it falls back and records why.

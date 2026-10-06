@@ -35,6 +35,11 @@ the methods the vocabulary registry holds for an aspect.
 >>> drop_owner("demo")
 ```
 
+### Module Attributes
+
+| [`DECLARED_OUTRANKS_POLICY`](#an.semantic.matcher.DECLARED_OUTRANKS_POLICY)   | Does an asset's DECLARED method (a character's `gait` or `speech`, the field its aspect names in `Aspect.declared_by`) outrank a policy? `True` (today's rule): the declaration is the request, so a character keeps its personality across styles, and one it cannot honour is a `missing` substitution.   |
+|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`applicable`](#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.   |
@@ -48,13 +53,24 @@ the methods the vocabulary registry holds for an aspect.
 |--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | [`Resolution`](#an.semantic.matcher.Resolution)(aspect, method[, args, source, ...]) | What [`resolve()`](#an.semantic.matcher.resolve) chose: the method, its args, where the choice came from. |
 
+### an.semantic.matcher.DECLARED_OUTRANKS_POLICY *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+Does an asset’s DECLARED method (a character’s `gait` or `speech`, the
+field its aspect names in `Aspect.declared_by`) outrank a policy? `True`
+(today’s rule): the declaration is the request, so a character keeps its
+personality across styles, and one it cannot honour is a `missing`
+substitution. `False` (ADR 0002 read the other way): the declaration is
+the LAST entry of the policy’s order, so a style looks like itself and the
+declaration is its fallback. The maintainer’s decision is cutan#36; this
+flag is the whole switch, for [`resolve()`](#an.semantic.matcher.resolve) and every caller of it.
+
 ### *class* an.semantic.matcher.Missing(term, remedy)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
+### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -65,7 +81,9 @@ What [`resolve()`](#an.semantic.matcher.resolve) chose: the method, its args, wh
 (`None` when it did not); `considered` is the trail of methods tried
 before it, each with what it was missing; `skipped` the policy’s entries
 among them (a policy is an order: an entry that does not apply is passed
-over, information for whoever records the choice, never a substitution).
+over, information for whoever records the choice, never a substitution);
+`choice` the request or policy entry that was chosen, as written (its own
+`args`, without the method’s defaults), `None` for a chain link.
 
 ### an.semantic.matcher.applicable(aspect_name, subjects)
 
@@ -74,12 +92,15 @@ The methods of `aspect_name` that apply to `subjects`, the default chain’s ord
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
 Choose the method that realises `aspect_name` on `subjects`.
 
 `requested` is the author’s explicit choice (a method id, its spelling
 in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`declared` the asset’s own declaration for the aspect (the field
+`Aspect.declared_by` names), placed by [`DECLARED_OUTRANKS_POLICY`](#an.semantic.matcher.DECLARED_OUTRANKS_POLICY)
+(the request when nothing was requested, or the policy’s last entry);
 `policy` the layered shot/style policy; `entity_kind` the asset’s kind,
 checked against the aspect’s `applies_to`. Never raises for a method that
 does not apply: it falls back and records why.

@@ -1,4 +1,4 @@
-> built 2026-10-06 11:55 UTC from 231df27 (main) · an 0.1.174. Details: build_info.json
+> built 2026-10-06 12:07 UTC from 8c8b4d2 (main) · an 0.1.175. Details: build_info.json
 
 # index.html.md
 
@@ -13950,8 +13950,8 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 
 How the STAGE compiler turns an action of this kind into clips, for a kind
 that is not a plain tween or set (the cut-out `play`): an object with
-`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
-default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+`extent_resolver(vocab, *, products)`, `expand(flat_list, *, vocab, fps,
+step_hz, default_easing, resolutions, products)`, `view_of(entity_swaps, vocab, *, duration)`
 and `clip(action, *, anim_id, vocab, fps, view)` – see
 [`an.stage.compile.ActionLowering`](_autosummary/an.stage.compile.html.md#an.stage.compile.ActionLowering). `None`: the compiler has
 nothing kind-specific to do. (an#225: this is how the compiler stops
@@ -14572,8 +14572,8 @@ One kind of action: its model, how it occupies time, how `scene.md` spells it.
 
 How the STAGE compiler turns an action of this kind into clips, for a kind
 that is not a plain tween or set (the cut-out `play`): an object with
-`extent_resolver(vocab)`, `expand(flat_list, *, vocab, fps, step_hz,
-default_easing, resolutions)`, `view_of(entity_swaps, vocab, *, duration)`
+`extent_resolver(vocab, *, products)`, `expand(flat_list, *, vocab, fps,
+step_hz, default_easing, resolutions, products)`, `view_of(entity_swaps, vocab, *, duration)`
 and `clip(action, *, anim_id, vocab, fps, view)` – see
 [`an.stage.compile.ActionLowering`](_autosummary/an.stage.compile.html.md#an.stage.compile.ActionLowering). `None`: the compiler has
 nothing kind-specific to do. (an#225: this is how the compiler stops
@@ -15348,6 +15348,15 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the methods it prefers in
+order, over the style pack’s (`StylePack.policy`) and under an author’s
+request — `{"locomotion": ["loco.glide"]}`. `None`: the style’s.
+
+* **Type:**
+  This shot’s **policy** (an#348)
+
 #### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
@@ -15607,7 +15616,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, only=None, fps=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -15623,6 +15632,10 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_styles` is the project’s `styles` store: a check reads the
+StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
+(a style’s `policy`, an#348).
 
 `available_library_lock` is the project’s asset-library lockfile
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked
@@ -16666,6 +16679,15 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the methods it prefers in
+order, over the style pack’s (`StylePack.policy`) and under an author’s
+request — `{"locomotion": ["loco.glide"]}`. `None`: the style’s.
+
+* **Type:**
+  This shot’s **policy** (an#348)
+
 #### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
@@ -16956,7 +16978,7 @@ True
 False
 ```
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, only=None, fps=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -16972,6 +16994,10 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_styles` is the project’s `styles` store: a check reads the
+StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
+(a style’s `policy`, an#348).
 
 `available_library_lock` is the project’s asset-library lockfile
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked
@@ -17626,6 +17652,15 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the methods it prefers in
+order, over the style pack’s (`StylePack.policy`) and under an author’s
+request — `{"locomotion": ["loco.glide"]}`. `None`: the style’s.
+
+* **Type:**
+  This shot’s **policy** (an#348)
+
 #### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
@@ -18201,7 +18236,7 @@ True
 False
 ```
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, only=None, fps=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -18217,6 +18252,10 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+`available_styles` is the project’s `styles` store: a check reads the
+StylePack the scene names (`meta.style_pack`) from `ctx.stores["styles"]`
+(a style’s `policy`, an#348).
 
 `available_library_lock` is the project’s asset-library lockfile
 (`mall["library_lock"]`): with it, every scene `library:` pin is checked
@@ -24436,6 +24475,9 @@ the method the default chain picks, the methods that apply, and the
 `why_not` of the rest with their remedies. [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset) is that
 answer as data (the MCP surface’s describe-an-asset query returns it);
 [`format_description()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.format_description) is its terminal form. Core code: it names no rig.
+Given a `policy` (a style’s, an#348), each aspect also says what it
+resolves to under it (`under_policy`), by the same precedence the compiler
+uses ([`an.semantic.resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve)).
 
 ```pycon
 >>> from an.semantic.entries import Aspect, Method
@@ -24446,37 +24488,47 @@ answer as data (the MCP surface’s describe-an-asset query returns it);
 >>> d = describe_profile({}, aspects=("demo_travel",))
 >>> d["aspects"]["demo_travel"]["default"], list(d["aspects"]["demo_travel"]["not_applicable"])
 ('demo.float', ['demo.fly'])
+>>> d = describe_profile({}, aspects=("demo_travel",), policy={"demo_travel": ["demo.fly", "demo.float"]})
+>>> u = d["aspects"]["demo_travel"]["under_policy"]
+>>> u["method"], u["source"], u["skipped"]
+('demo.float', 'policy', [{'method': 'demo.fly', 'missing': ['limbs.wings']}])
 >>> drop_owner("demo")
 ```
 
 ### Functions
 
-| [`describe_asset`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset)(doc[, art, kind, aspects])   | [`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset's derived profile, with the analyser and overrides.   |
-|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| [`describe_profile`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile)(profile, \*[, kind, ...])  | Per aspect: the method it resolves to, the applicable ones, and why not the rest.                                                     |
-| [`format_description`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.format_description)(d, \*[, name])           | The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset).                                               |
+| [`describe_asset`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset)(doc[, art, kind, aspects, policy])   | [`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset's derived profile, with the analyser and overrides; `policy` as [`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile)'s.   |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`describe_profile`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile)(profile, \*[, kind, ...])          | Per aspect: the method it resolves to, the applicable ones, and why not the rest.                                                                                                                                        |
+| [`format_description`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.format_description)(d, \*[, name, policy_label])     | The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset); `policy_label` names the policy an `under_policy` answer was resolved under (a style's name).                                    |
 
-### an.semantic.describe.describe_asset(doc, art=None, , kind='character', aspects=None)
+### an.semantic.describe.describe_asset(doc, art=None, , kind='character', aspects=None, policy=None)
 
-[`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset’s derived profile, with the analyser and overrides.
+[`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile) of an asset’s derived profile, with the analyser and
+overrides; `policy` as [`describe_profile()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_profile)’s.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.semantic.describe.describe_profile(profile, , kind=None, aspects=None, declared=None)
+### an.semantic.describe.describe_profile(profile, , kind=None, aspects=None, declared=None, policy=None)
 
 Per aspect: the method it resolves to, the applicable ones, and why not the rest.
 
-`declared` is the asset document’s declared facts: an aspect’s request
-is read from the field it names (`Aspect.declared_by`: a character’s
-`gait`), so the answer is the method the compiler will use.
+`declared` is the asset document’s declared facts: an aspect’s
+declaration is read from the field it names (`Aspect.declared_by`: a
+character’s `gait`), so the answer is the method the compiler will use.
+`policy` (a style’s, anything `an.semantic.Policy.of()` reads) adds
+`under_policy` per aspect: the method, where the choice came from, what
+that method requires (a genre may say when it holds), and any
+substitution or skipped policy entries.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.semantic.describe.format_description(d, , name='')
+### an.semantic.describe.format_description(d, , name='', policy_label='the policy')
 
-The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset).
+The terminal form of [`describe_asset()`](_autosummary/an.semantic.describe.html.md#an.semantic.describe.describe_asset); `policy_label` names the
+policy an `under_policy` answer was resolved under (a style’s name).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -24931,7 +24983,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
+### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -24942,7 +24994,9 @@ What [`resolve()`](_autosummary/an.semantic.html.md#an.semantic.resolve) chose: 
 (`None` when it did not); `considered` is the trail of methods tried
 before it, each with what it was missing; `skipped` the policy’s entries
 among them (a policy is an order: an entry that does not apply is passed
-over, information for whoever records the choice, never a substitution).
+over, information for whoever records the choice, never a substitution);
+`choice` the request or policy entry that was chosen, as written (its own
+`args`, without the method’s defaults), `None` for a chain link.
 
 ### *exception* an.semantic.UnknownEntryError
 
@@ -25043,12 +25097,15 @@ Traceback (most recent call last):
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
 
-### an.semantic.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+### an.semantic.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
 Choose the method that realises `aspect_name` on `subjects`.
 
 `requested` is the author’s explicit choice (a method id, its spelling
 in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`declared` the asset’s own declaration for the aspect (the field
+`Aspect.declared_by` names), placed by `DECLARED_OUTRANKS_POLICY`
+(the request when nothing was requested, or the policy’s last entry);
 `policy` the layered shot/style policy; `entity_kind` the asset’s kind,
 checked against the aspect’s `applies_to`. Never raises for a method that
 does not apply: it falls back and records why.
@@ -25123,6 +25180,11 @@ the methods the vocabulary registry holds for an aspect.
 >>> drop_owner("demo")
 ```
 
+### Module Attributes
+
+| [`DECLARED_OUTRANKS_POLICY`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.DECLARED_OUTRANKS_POLICY)   | Does an asset's DECLARED method (a character's `gait` or `speech`, the field its aspect names in `Aspect.declared_by`) outrank a policy? `True` (today's rule): the declaration is the request, so a character keeps its personality across styles, and one it cannot honour is a `missing` substitution.   |
+|-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`applicable`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.applicable)(aspect_name, subjects)                | The methods of `aspect_name` that apply to `subjects`, the default chain's order first.   |
@@ -25136,13 +25198,24 @@ the methods the vocabulary registry holds for an aspect.
 |--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | [`Resolution`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.Resolution)(aspect, method[, args, source, ...]) | What [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve) chose: the method, its args, where the choice came from. |
 
+### an.semantic.matcher.DECLARED_OUTRANKS_POLICY *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+Does an asset’s DECLARED method (a character’s `gait` or `speech`, the
+field its aspect names in `Aspect.declared_by`) outrank a policy? `True`
+(today’s rule): the declaration is the request, so a character keeps its
+personality across styles, and one it cannot honour is a `missing`
+substitution. `False` (ADR 0002 read the other way): the declaration is
+the LAST entry of the policy’s order, so a style looks like itself and the
+declaration is its fallback. The maintainer’s decision is cutan#36; this
+flag is the whole switch, for [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.resolve) and every caller of it.
+
 ### *class* an.semantic.matcher.Missing(term, remedy)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=())
+### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -25153,7 +25226,9 @@ What [`resolve()`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.
 (`None` when it did not); `considered` is the trail of methods tried
 before it, each with what it was missing; `skipped` the policy’s entries
 among them (a policy is an order: an entry that does not apply is passed
-over, information for whoever records the choice, never a substitution).
+over, information for whoever records the choice, never a substitution);
+`choice` the request or policy entry that was chosen, as written (its own
+`args`, without the method’s defaults), `None` for a chain link.
 
 ### an.semantic.matcher.applicable(aspect_name, subjects)
 
@@ -25162,12 +25237,15 @@ The methods of `aspect_name` that apply to `subjects`, the default chain’s ord
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Method`](_autosummary/an.semantic.html.md#an.semantic.Method), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , policy=None, entity='', entity_kind=None)
+### an.semantic.matcher.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
 Choose the method that realises `aspect_name` on `subjects`.
 
 `requested` is the author’s explicit choice (a method id, its spelling
 in the aspect — `"hem"` for locomotion —, or `{method, args, version}`);
+`declared` the asset’s own declaration for the aspect (the field
+`Aspect.declared_by` names), placed by [`DECLARED_OUTRANKS_POLICY`](_autosummary/an.semantic.matcher.html.md#an.semantic.matcher.DECLARED_OUTRANKS_POLICY)
+(the request when nothing was requested, or the policy’s last entry);
 `policy` the layered shot/style policy; `entity_kind` the asset’s kind,
 checked against the aspect’s `applies_to`. Never raises for a method that
 does not apply: it falls back and records why.
@@ -26306,10 +26384,19 @@ How a genre’s action kind becomes clips in the stage compiler (an#225).
 Registered as [`an.genres.ActionKind.lowering`](_autosummary/an.genres.html.md#an.genres.ActionKind.lowering). The stage knows no
 kind by name beyond its own (`tween`, `set`); a genre’s kind supplies:
 
-- `extent_resolver(vocab)`: `action -> seconds` for a leaf that names no
-  duration (or `None`);
-- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions)`:
-  the flat list with this kind’s leaves replaced by what they stand for;
+- `extent_resolver(vocab, *, products)`: `action -> seconds` for a leaf
+  that names no duration (or `None`);
+- `expand(flat_list, *, vocab, fps, step_hz, default_easing, resolutions,
+  products)`: the flat list with this kind’s leaves replaced by what they
+  stand for.
+
+`products` is the shot’s [`CompileState.products`](_autosummary/an.stage.compile.html.md#an.stage.compile.CompileState.products) (an#348): what a
+genre’s earlier compile pass left for later work, by key (a style’s
+policy, which decides a walk’s gait and so its length). Read it; the
+lowering has no other view of the compile state.
+
+And, per kind:
+
 - `view_of(entity_swaps, vocab, *, duration)`: `flat -> view name | None`
   (or `None`), for kinds whose clips depend on the view in force;
 - `clip(action, *, anim_id, vocab, fps, view)`: the animation clip of one
@@ -31940,6 +32027,18 @@ One static paper grain over the frame; `None` = none.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the
+methods it prefers, in order (`{"locomotion": ["loco.bounce"]}`: this
+show bounces even when its characters have legs). The first that
+applies wins; a shot’s own `policy` comes first, an author’s request
+before both. `None` (the default) leaves every aspect to its chain,
+and is not serialized, so a pack without one dumps as before.
+
+* **Type:**
+  The style’s **policy** (ADR 0002 decision 4, an#348)
+
 #### roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 `{role: "#rrggbb"}`. Hex strings, not colour objects — see the module
@@ -35686,7 +35785,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 11:55 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/231df2780b0a58b76f7af94bd560d6e729116b75"><code>231df27</code></a> on branch <code>main</code>, for **an 0.1.174** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:07 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78"><code>8c8b4d2</code></a> on branch <code>main</code>, for **an 0.1.175** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -35695,9 +35794,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/231df2780b0a58b76f7af94bd560d6e729116b75"><code>231df2780b0a58b76f7af94bd560d6e729116b75</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78"><code>8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.174</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.175</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -35706,9 +35805,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37459009574">37459009574</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37460345424">37460345424</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>124712a5b52e53db83846f3df6125673759f9568</code> (in the history of the built commit) |
+| Event commit | <code>1eacfcfeef25bfe74f84c67c1d7a99b107a92696</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -35733,13 +35832,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.174/">0.1.174</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.175/">0.1.175</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 231df2780b0a58b76f7af94bd560d6e729116b75
+git checkout 8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

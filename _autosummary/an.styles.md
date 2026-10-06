@@ -264,6 +264,18 @@ One static paper grain over the frame; `None` = none.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the
+methods it prefers, in order (`{"locomotion": ["loco.bounce"]}`: this
+show bounces even when its characters have legs). The first that
+applies wins; a shot’s own `policy` comes first, an author’s request
+before both. `None` (the default) leaves every aspect to its chain,
+and is not serialized, so a pack without one dumps as before.
+
+* **Type:**
+  The style’s **policy** (ADR 0002 decision 4, an#348)
+
 #### roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 `{role: "#rrggbb"}`. Hex strings, not colour objects — see the module

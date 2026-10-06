@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2015,6 +2015,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">available_environments</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_library_lock</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">available_styles</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">only</span><span class="p">:</span> <span class="s2">"Collection[str] | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span><span class="p">:</span>
@@ -2032,6 +2033,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    skipping them is what it sounds like: a `play` or a swap the compiler</span>
 <span class="sd">    will refuse passes silently without the store (the CLI, `an validate`,</span>
 <span class="sd">    always passes it).</span>
+
+<span class="sd">    ``available_styles`` is the project's ``styles`` store: a check reads the</span>
+<span class="sd">    StylePack the scene names (``meta.style_pack``) from ``ctx.stores["styles"]``</span>
+<span class="sd">    (a style's ``policy``, an#348).</span>
 
 <span class="sd">    ``available_library_lock`` is the project's asset-library lockfile</span>
 <span class="sd">    (``mall["library_lock"]``): with it, every scene ``library:`` pin is checked</span>
@@ -2060,6 +2065,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="n">available_characters</span><span class="p">),</span>
                 <span class="p">(</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">available_props</span><span class="p">),</span>
                 <span class="p">(</span><span class="s2">"environments"</span><span class="p">,</span> <span class="n">available_environments</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"styles"</span><span class="p">,</span> <span class="n">available_styles</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">},</span>

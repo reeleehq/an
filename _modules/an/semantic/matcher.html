@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
+    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.174" />
+  <meta name="docsearch:version" content="0.1.175" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -773,12 +773,24 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span><span class="p">,</span> <span class="n">methods_of</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"DECLARED_OUTRANKS_POLICY"</span><span class="p">,</span>
     <span class="s2">"Missing"</span><span class="p">,</span>
     <span class="s2">"Resolution"</span><span class="p">,</span>
     <span class="s2">"applicable"</span><span class="p">,</span>
     <span class="s2">"resolve"</span><span class="p">,</span>
     <span class="s2">"why_not"</span><span class="p">,</span>
 <span class="p">]</span>
+
+
+<span class="c1">#: Does an asset's DECLARED method (a character's ``gait`` or ``speech``, the</span>
+<span class="c1">#: field its aspect names in ``Aspect.declared_by``) outrank a policy? ``True``</span>
+<span class="c1">#: (today's rule): the declaration is the request, so a character keeps its</span>
+<span class="c1">#: personality across styles, and one it cannot honour is a ``missing``</span>
+<span class="c1">#: substitution. ``False`` (ADR 0002 read the other way): the declaration is</span>
+<span class="c1">#: the LAST entry of the policy's order, so a style looks like itself and the</span>
+<span class="c1">#: declaration is its fallback. The maintainer's decision is cutan#36; this</span>
+<span class="c1">#: flag is the whole switch, for :func:`resolve` and every caller of it.</span>
+<span class="n">DECLARED_OUTRANKS_POLICY</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 
 
 <div class="viewcode-block" id="Missing">
@@ -806,7 +818,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (``None`` when it did not); ``considered`` is the trail of methods tried</span>
 <span class="sd">    before it, each with what it was missing; ``skipped`` the policy's entries</span>
 <span class="sd">    among them (a policy is an order: an entry that does not apply is passed</span>
-<span class="sd">    over, information for whoever records the choice, never a substitution).</span>
+<span class="sd">    over, information for whoever records the choice, never a substitution);</span>
+<span class="sd">    ``choice`` the request or policy entry that was chosen, as written (its own</span>
+<span class="sd">    ``args``, without the method's defaults), ``None`` for a chain link.</span>
 <span class="sd">    """</span>
 
     <span class="n">aspect</span><span class="p">:</span> <span class="nb">str</span>
@@ -816,6 +830,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">substitution</span><span class="p">:</span> <span class="n">Substitution</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">considered</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">choice</span><span class="p">:</span> <span class="n">Choice</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
@@ -901,6 +916,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">subjects</span><span class="p">:</span> <span class="n">ProfileLike</span><span class="p">,</span>
     <span class="n">requested</span><span class="p">:</span> <span class="n">Method</span> <span class="o">|</span> <span class="n">Choice</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
+    <span class="n">declared</span><span class="p">:</span> <span class="n">Method</span> <span class="o">|</span> <span class="n">Choice</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">entity_kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -909,6 +925,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    ``requested`` is the author's explicit choice (a method id, its spelling</span>
 <span class="sd">    in the aspect — ``"hem"`` for locomotion —, or ``{method, args, version}``);</span>
+<span class="sd">    ``declared`` the asset's own declaration for the aspect (the field</span>
+<span class="sd">    ``Aspect.declared_by`` names), placed by :data:`DECLARED_OUTRANKS_POLICY`</span>
+<span class="sd">    (the request when nothing was requested, or the policy's last entry);</span>
 <span class="sd">    ``policy`` the layered shot/style policy; ``entity_kind`` the asset's kind,</span>
 <span class="sd">    checked against the aspect's ``applies_to``. Never raises for a method that</span>
 <span class="sd">    does not apply: it falls back and records why.</span>
@@ -926,6 +945,12 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="n">asked</span> <span class="o">=</span> <span class="n">_as_choice</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="n">aspect_name</span><span class="p">)</span>
     <span class="n">policy_choices</span> <span class="o">=</span> <span class="n">Policy</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">policy</span><span class="p">)</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">aspect_name</span><span class="p">)</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="n">_as_choice</span><span class="p">(</span><span class="n">declared</span><span class="p">,</span> <span class="n">aspect_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">asked</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">own</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">DECLARED_OUTRANKS_POLICY</span><span class="p">:</span>
+            <span class="n">asked</span> <span class="o">=</span> <span class="n">own</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">policy_choices</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">policy_choices</span><span class="p">,</span> <span class="n">own</span><span class="p">)</span>
     <span class="n">considered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -992,7 +1017,14 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">remedies</span><span class="o">=</span><span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">head</span><span class="o">.</span><span class="n">remedies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">or</span> <span class="n">remedy_for</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">},</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">Resolution</span><span class="p">(</span>
-            <span class="n">aspect_name</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">considered</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span>
+            <span class="n">aspect_name</span><span class="p">,</span>
+            <span class="n">m</span><span class="p">,</span>
+            <span class="n">args</span><span class="p">,</span>
+            <span class="n">source</span><span class="p">,</span>
+            <span class="n">sub</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">considered</span><span class="p">),</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">skipped</span><span class="p">),</span>
+            <span class="n">choice</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">asked</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

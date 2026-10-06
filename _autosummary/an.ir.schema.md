@@ -618,6 +618,15 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### policy *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+per aspect, the methods it prefers in
+order, over the style pack’s (`StylePack.policy`) and under an author’s
+request — `{"locomotion": ["loco.glide"]}`. `None`: the style’s.
+
+* **Type:**
+  This shot’s **policy** (an#348)
+
 #### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was

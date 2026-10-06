@@ -4,6 +4,12 @@ an.semantic.matcher
 .. automodule:: an.semantic.matcher
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DECLARED_OUTRANKS_POLICY
+   
    .. rubric:: Functions
 
    .. autosummary::
