@@ -26,6 +26,7 @@ from typing import Any
 from an.bench import contract, golden as G, imageio, masks, metrics as M, palette as P
 from an.bench import png
 from an.stage.compile import FOREGROUND_SUFFIX
+from an.stage.tree import walk
 from an.bench.capture import (
     SceneCapture,
     capture_fixture,
@@ -734,17 +735,23 @@ def _plane_colours(capture: SceneCapture) -> dict[str, int]:
         out: dict[str, int] = {}
         for env in doc.get("scene", {}).get("children", []) or []:
             name = env.get("name") or ""
-            # …and the foreground container an#110 splits off, which carries the
-            # entity's id plus a suffix and holds the rest of the same planes.
-            if name not in ids and name.rsplit(FOREGROUND_SUFFIX, 1)[0] not in ids:
+            # …and every container an environment is split into (an#110's
+            # foreground container, an#343's `scope`): it names the
+            # environment by `scope`, or by its id plus the suffix.
+            owner = env.get("scope") or name.rsplit(FOREGROUND_SUFFIX, 1)[0]
+            if name not in ids and owner not in ids:
                 continue
-            for child in env.get("children", []) or []:
+            # Keyed by the path the runtime indexes (an.stage.tree): a plane
+            # in a scoped container is `<env>/<plane>`.
+            for plane_path, child in walk(env):
+                if child is env or plane_path.count("/") != 1:
+                    continue
                 visual = child.get("visual") or {}
                 colour = visual.get("color")
                 if visual.get("kind") == "rect" and isinstance(colour, str):
                     packed = _packed_hex(colour)
                     if packed is not None:
-                        out[f"{name}/{child['name']}"] = packed
+                        out[plane_path] = packed
         if len(out) >= 2:
             return out
     return {}

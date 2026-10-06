@@ -327,24 +327,14 @@ def _pose_for(pose: Pose | None, path: str) -> Pose | None:
 
 
 def _node_chain(root: NodeJSON, path: str) -> list[tuple[NodeJSON, str]]:
-    """``[(node, its path)]`` from ``path`` up to and including the root.
+    """``[(node, its path)]`` from ``root`` down to the node at ``path``, every
+    container on the way included (:func:`an.stage.tree.chain`: the runtime's
+    rule, ``scope`` included, an#343).
 
     Raises rather than returning an empty chain: a path that names no node is a
     caller error, and silently measuring the root's position instead is the
     kind of plausible wrong answer this package refuses elsewhere.
     """
-    chain: list[tuple[NodeJSON, str]] = [(root, root.name)]
-    node = root
-    walked: list[str] = []
-    for part in path.split("/"):
-        found = next((c for c in node.children if c.name == part), None)
-        if found is None:
-            where = "/".join(walked) or root.name
-            raise KeyError(
-                f"no node {part!r} under {where!r}; it has "
-                f"{[c.name for c in node.children]}"
-            )
-        walked.append(part)
-        node = found
-        chain.append((node, "/".join(walked)))
-    return chain
+    from an.stage.tree import chain
+
+    return chain(root, path)

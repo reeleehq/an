@@ -121,6 +121,7 @@ from an.stage.environments import (
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.stage.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
+from an.stage import tree as stage_tree
 from an.stage.text_layout import build_text_subtree, svg_data_uri, text_document  # noqa: F401  (re-exported)
 from an.stage.text import font_base_dir, text_entity_problem
 from an.paint import Gradient
@@ -413,21 +414,13 @@ _DFLT_PROPERTY_REST_VALUE: float | None = None
 def _runtime_node_paths(node: NodeJSON, prefix: str = "") -> set[str]:
     """Every path the JS runtime will index for ``node``'s subtree.
 
-    Mirrors ``buildSceneTree``, including the detail that the synthetic top-level
-    ``root`` container is NOT indexed — the compiler emits target paths starting
-    at the entity name. Getting that wrong here would make every check below
-    off by one segment.
+    The rule is :mod:`an.stage.tree`'s (``scope`` included, an#343), with the
+    detail that the synthetic top-level ``root`` container is NOT indexed — the
+    compiler emits target paths starting at the entity name.
     """
-    paths = set()
-    path = f"{prefix}/{node.name}" if prefix else node.name
-    if prefix or node.name != "root":
-        paths.add(path)
-        child_prefix = path
-    else:
-        child_prefix = ""  # skip the synthetic root, as the runtime does
-    for child in node.children:
-        paths |= _runtime_node_paths(child, child_prefix)
-    return paths
+    if not prefix and node.name == stage_tree.SYNTHETIC_ROOT:
+        return stage_tree.paths(node)
+    return {path for path, _ in stage_tree.walk(node, prefix)}
 
 
 #: How many "did you mean" paths an unknown-target message offers.
@@ -607,30 +600,22 @@ def _swap_vocabulary(
     path_nodes: set[str] = set()
     path_trims: dict[str, dict[str, float]] = {}
 
-    def walk(node: NodeJSON, prefix: str) -> None:
-        path = f"{prefix}/{node.name}" if prefix else node.name
-        if prefix or node.name != "root":
-            node_transforms[path] = node.transform
-            v = node.visual
-            if v is not None and v.kind == "path":
-                path_nodes.add(path)
-                if v.path is not None:
-                    path_trims[path] = {
-                        "trim_start": v.path.trim_start,
-                        "trim_end": v.path.trim_end,
-                    }
-                    if v.path.dash > 0:  # only a dashed path has an offset
-                        path_trims[path]["dash_offset"] = v.path.dash_offset
-            if v is not None and v.asset_sets:
-                node_sets[path] = v.asset_sets
-                node_asset_ids[path] = v.asset_id
-            child_prefix = path
-        else:
-            child_prefix = ""  # skip the synthetic root, as the runtime does
-        for child in node.children:
-            walk(child, child_prefix)
-
-    walk(root, "")
+    # The synthetic root is skipped, as the runtime does (an.stage.tree).
+    for path, node in stage_tree.walk_children(root):
+        node_transforms[path] = node.transform
+        v = node.visual
+        if v is not None and v.kind == "path":
+            path_nodes.add(path)
+            if v.path is not None:
+                path_trims[path] = {
+                    "trim_start": v.path.trim_start,
+                    "trim_end": v.path.trim_end,
+                }
+                if v.path.dash > 0:  # only a dashed path has an offset
+                    path_trims[path]["dash_offset"] = v.path.dash_offset
+        if v is not None and v.asset_sets:
+            node_sets[path] = v.asset_sets
+            node_asset_ids[path] = v.asset_id
 
     declared: dict[str, dict[str, frozenset[str]]] = {}
     declared_maps: dict[str, dict[str, dict[str, str]]] = {}
@@ -793,6 +778,17 @@ def compile_shot(
         )
     if default_easing is not None:
         _check_default_easing(default_easing)
+    shot, retired = retire_front_spelling(shot)
+    if retired:
+        warnings.warn(
+            f"shot {shot.id!r}: {sorted({old for old, _ in retired})} use the "
+            "retired spelling `<environment>__front/<plane>`; a plane is "
+            f"addressed `<environment>/<plane>` wherever the environment is cut "
+            f"(an#343), so they were read as {sorted({new for _, new in retired})}. "
+            "Rename them: the rewrite is removed in a later release.",
+            CutoutCompileWarning,
+            stacklevel=2,
+        )
     state = CompileState(
         shot=shot,
         mall=mall or {},
@@ -1582,6 +1578,9 @@ def _build_plane_subtree(
                 name=foreground_node_name(entity.id),
                 transform=TransformJSON(),
                 children=in_front,
+                # Its planes are indexed as the environment's own (an#343):
+                # `set/<plane>` wherever the environment was cut.
+                scope=entity.id,
             )
         ]
         if in_front
@@ -1635,16 +1634,60 @@ def plane_parents(env: "EnvironmentDescriptor", entity_id: str) -> dict[str, str
     >>> from an.stage.environments import EnvironmentDescriptor, Plane
     >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
     ...                             characters_after="a")
+
+    Since an#343 every container an environment is split into indexes its
+    planes under the environment's id (``scope``), so the answer no longer
+    depends on where the environment was cut:
+
     >>> plane_parents(env, "street")
-    {'a': 'street', 'b': 'street__front'}
+    {'a': 'street', 'b': 'street'}
     """
-    names = [p.name for p in env.planes]
-    after = env.characters_after
-    cut = names.index(after) + 1 if after in names else len(names)
-    return {
-        name: (entity_id if i < cut else foreground_node_name(entity_id))
-        for i, name in enumerate(names)
+    return {plane.name: entity_id for plane in env.planes}
+
+
+def retire_front_spelling(shot: Shot) -> tuple[Shot, list[tuple[str, str]]]:
+    """``shot`` with every ``<env>__front/<plane>`` target spelled ``<env>/<plane>``,
+    and the ``(old, new)`` pairs rewritten.
+
+    The foreground container indexes its planes under the environment's id
+    since an#343, so the old spelling names nothing; indexing the plane twice
+    would be the an#110 collision. For one cycle the compiler (and ``an
+    validate``) rewrites it with a warning naming the new spelling; a later
+    issue retires the rewrite.
+
+    >>> from an.ir.schema import AssetRef, SetAction
+    >>> shot = Shot(id="s", renderer="stage", duration=1.0,
+    ...             entities=[AssetRef(kind="environment", id="set", store="environments", ref="r")],
+    ...             actions=[SetAction(target="set__front/wall", property="alpha", value=0.5)])
+    >>> new, pairs = retire_front_spelling(shot)
+    >>> new.actions[0].target, pairs
+    ('set/wall', [('set__front/wall', 'set/wall')])
+    """
+    from an.ir.compose import map_leaves
+
+    envs = {e.id for e in shot.entities if e.kind == "environment"}
+    ids = {e.id for e in shot.entities}
+    # An entity that really is called `<env>__front` keeps its own paths.
+    old_roots = {
+        foreground_node_name(e): e for e in envs if foreground_node_name(e) not in ids
     }
+    pairs: list[tuple[str, str]] = []
+
+    def rewrite(action):
+        target = getattr(action, "target", None)
+        if isinstance(target, str):
+            root, sep, rest = target.partition("/")
+            if sep and root in old_roots:
+                new = f"{old_roots[root]}/{rest}"
+                pairs.append((target, new))
+                return action.model_copy(update={"target": new})
+        return action
+
+    # Every leaf, through every composite (a `loop`'s `child` included).
+    actions = [map_leaves(a, rewrite) for a in shot.actions]
+    if not pairs:
+        return shot, pairs
+    return shot.model_copy(update={"actions": actions}), pairs
 
 
 def _environment_descriptor(
@@ -3063,18 +3106,12 @@ def _check_planes(state: "CompileState") -> None:
     if not planes:
         return
     blended: list[str] = []
-
-    def walk(n: NodeJSON, path: str, inside: bool) -> None:
-        here = f"{path}/{n.name}" if path else n.name
-        inside = inside or here in planes
-        if inside and n.visual is not None and n.visual.blend:
-            blended.append(here)
-        for c in n.children:
-            walk(c, here, inside)
-
     for child in [*(state.scene_root.children if state.scene_root else ()),
                   *state.overlay_children]:  # fmt: skip
-        walk(child, "", False)
+        for here, n, ancestors in stage_tree.lineage(child):
+            inside = here in planes or any(a in planes for a in ancestors)
+            if inside and n.visual is not None and n.visual.blend:
+                blended.append(here)
     if blended:
         warnings.warn(
             f"shot {state.shot.id!r}: {sorted(blended)} draw with a blend mode "

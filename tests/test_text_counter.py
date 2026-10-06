@@ -285,3 +285,15 @@ def test_the_counters_pass_runs_after_every_value_source_and_right_before_action
     k = names.index("counters")
     assert names[k + 1] == "actions", names
     assert all(passes[n].order < passes["counters"].order for n in names[:k]), names
+
+
+def test_a_value_tween_inside_a_loop_is_lowered_too():
+    """A `loop` keeps its action in `child`, not `children` (review of an#343):
+    the lowering reaches it, so no `value` is left for the swap check."""
+    from an.ir.compose import loop
+
+    shot = _shot([loop(tween("day", "value", 5.0, 0.5, from_=1.0, easing="linear"), 2)])
+    doc = compile_shot(shot, {"props": {"day": _doc()}}, width=W, height=H, fps=FPS)
+    keys = _shown(doc, frames=30)
+    assert keys[0] == "v_1" and keys[11] == "v_5", keys
+    assert keys[12] == "v_1", "the second pass of the loop starts again from 1"

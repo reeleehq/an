@@ -1,0 +1,74 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "EnvironmentDescriptor",
+  "name": "stage",
+  "planes": [
+    {
+      "name": "sky",
+      "art": {
+        "kind": "fill",
+        "color": "#2b4a6f",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": null,
+      "fit": "contain"
+    },
+    {
+      "name": "hill",
+      "art": {
+        "kind": "fill",
+        "color": "#4f7d4a",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        80.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        320.0,
+        80.0
+      ],
+      "fit": "contain"
+    },
+    {
+      "name": "rail",
+      "art": {
+        "kind": "fill",
+        "color": "#8a3b2a",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        40.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        320.0,
+        24.0
+      ],
+      "fit": "contain"
+    }
+  ],
+  "characters_after": "hill"
+}

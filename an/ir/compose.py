@@ -227,6 +227,38 @@ def iter_actions(action: Any):
             yield from iter_actions(child)
 
 
+def map_leaves(action: Any, fn: Callable[[Any], Any]) -> Any:
+    """``action`` with every LEAF replaced by ``fn(leaf)``, composites rebuilt
+    around them (whatever field a composite keeps its children in: its kind's
+    ``children`` hook says which values are children, the model's fields say
+    where they live, so ``loop.child`` and a genre's composite are reached).
+
+    >>> act = sequence(delay(1.0), loop(set_("a", "x", 1.0), 2))
+    >>> renamed = map_leaves(act, lambda a: a.model_copy(update={"target": "b"}) if a.kind == "set" else a)
+    >>> [a.target for a in iter_actions(renamed) if a.kind == "set"]
+    ['b']
+    """
+    registered = action_kind(getattr(action, "kind", None) or "")
+    children = (
+        tuple(registered.children(action))
+        if registered is not None and registered.children is not None
+        else ()
+    )
+    if not children:
+        return fn(action)
+    ids = {id(c) for c in children}
+    update: dict[str, Any] = {}
+    for name in type(action).model_fields:
+        value = getattr(action, name)
+        if id(value) in ids:
+            update[name] = map_leaves(value, fn)
+        elif isinstance(value, (list, tuple)) and any(id(v) in ids for v in value):
+            update[name] = type(value)(
+                map_leaves(v, fn) if id(v) in ids else v for v in value
+            )
+    return action.model_copy(update=update)
+
+
 def duration_of(action: Action, *, play_extent: PlayExtent | None = None) -> Seconds:
     """Compute the total duration of an action tree without evaluating it.
 

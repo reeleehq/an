@@ -743,8 +743,23 @@ def _check_action_targets(
 
     if not stores or shot.renderer not in STAGE_RENDERER_NAMES:
         return
-    from an.stage.compile import CAMERA_NODE, unknown_target_message
+    from an.stage.compile import (
+        CAMERA_NODE,
+        retire_front_spelling,
+        unknown_target_message,
+    )
 
+    # `<env>__front/<plane>` is read as `<env>/<plane>` for one cycle (an#343),
+    # as the compiler does: a warning, and the new spelling is what is checked.
+    shot, retired = retire_front_spelling(shot)
+    for old, new in sorted(set(retired)):
+        report.add(
+            "warning",
+            f"{path}/actions",
+            f"{old!r} uses the retired spelling `<environment>__front/<plane>`; "
+            f"a plane is addressed {new!r} wherever the environment is cut "
+            "(an#343). The compiler rewrites it for now; rename it.",
+        )
     store_of = {kind: name for kind, (name, _doc) in rig_stores().items()}
     store_of["environment"] = "environments"  # its planes are nodes too
     unchecked = {
@@ -1703,7 +1718,11 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
     ``entity_kinds``; an entity kind with no space (a voice) has no fields."""
     from an.genres import entity_space_resolver
 
-    shot = ctx.shot
+    from an.stage.compile import retire_front_spelling
+
+    # The spelling the compiler reads (an#343), so the space resolved is the
+    # environment's, not "the stage" for an unknown root.
+    shot, _ = retire_front_spelling(ctx.shot)
     space_of = entity_space_resolver(shot.entities)
     kinds = {e.id: e.kind for e in shot.entities}
     counters = _counter_ids(ctx)

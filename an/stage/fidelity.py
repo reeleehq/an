@@ -105,11 +105,11 @@ class PartFidelity:
 
 
 def _walk(node: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
-    """Yield ``(path, node)`` for every node in a compiled scene tree."""
-    path = f"{prefix}/{node.name}" if prefix else node.name
-    yield path, node
-    for child in getattr(node, "children", None) or ():
-        yield from _walk(child, path)
+    """Yield ``(path, node)`` for every node in a compiled scene tree (the
+    runtime's rule, :func:`an.stage.tree.walk`)."""
+    from an.stage.tree import walk
+
+    yield from walk(node, prefix)
 
 
 def part_fidelity(

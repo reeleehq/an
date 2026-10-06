@@ -474,17 +474,13 @@ def faded_treated_targets(scene: NodeJSON, animations) -> list[str]:
     A hide or a show is not a fade (:func:`_fades`), and an alpha on the glow
     node only fades the glow, which is fine.
     """
+    from an.stage.tree import lineage
+
     treated: set[str] = set()
-
-    def walk(n: NodeJSON, path: str, parents: tuple[str, ...]) -> None:
-        here = f"{path}/{n.name}" if path else n.name
-        if n.visual is not None and n.visual.underlays:
-            treated.update(parents + (here,))
-        for c in n.children:
-            walk(c, here, parents + (here,))
-
     for child in scene.children:
-        walk(child, "", ())
+        for here, n, parents in lineage(child):
+            if n.visual is not None and n.visual.underlays:
+                treated.update(parents + (here,))
     hits = {
         ch.target
         for clip in animations.values()

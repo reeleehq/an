@@ -108,16 +108,16 @@ def _counter_of(leaf: Any, blocks: dict[str, _CounterBlock]) -> str | None:
 def _without_value_leaves(action: Any, blocks: dict[str, _CounterBlock]) -> Any:
     """``action`` with every counter ``value`` leaf replaced by a ``delay`` of
     its own length: a set takes no time, a tween its duration, so nothing
-    around it moves."""
-    if _counter_of(action, blocks) is not None:
-        span = action.duration if isinstance(action, TweenAction) else 0.0
+    around it moves. Every composite is entered (a ``loop``'s ``child`` too)."""
+    from an.ir.compose import map_leaves
+
+    def lowered(leaf: Any) -> Any:
+        if _counter_of(leaf, blocks) is None:
+            return leaf
+        span = leaf.duration if isinstance(leaf, TweenAction) else 0.0
         return DelayAction(duration=span)
-    children = getattr(action, "children", None)
-    if isinstance(children, list) and children:
-        return action.model_copy(
-            update={"children": [_without_value_leaves(c, blocks) for c in children]}
-        )
-    return action
+
+    return map_leaves(action, lowered)
 
 
 def _key_for(string: str, taken: dict[str, str]) -> str:

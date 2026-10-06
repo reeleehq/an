@@ -130,6 +130,18 @@
     // Scene → PIXI tree
     // ------------------------------------------------------------------------
 
+    // The prefix a node's CHILDREN are indexed under (an#343): its own path,
+    // or, with `scope`, `scope` taken in the parent's prefix ('' = the
+    // parent's prefix itself). An environment's foreground container carries
+    // scope=<env>, so its planes are '<env>/<plane>' wherever the environment
+    // is cut. The Python twin is an.stage.tree.child_prefix, parity-tested
+    // under node (tests/test_stage_tree.py).
+    function childPrefix(node, path, pathPrefix) {
+        if (node.scope === undefined || node.scope === null) return path;
+        if (node.scope === '') return pathPrefix;
+        return pathPrefix ? pathPrefix + '/' + node.scope : node.scope;
+    }
+
     function buildSceneTree(node, parent, pathPrefix) {
         const path = pathPrefix ? pathPrefix + '/' + node.name : node.name;
         const container = new PIXI.Container();
@@ -154,8 +166,9 @@
             visualIndex[path] = { container, visual };
         }
 
+        const inner = childPrefix(node, path, pathPrefix);
         for (const child of node.children || []) {
-            buildSceneTree(child, container, path);
+            buildSceneTree(child, container, inner);
         }
 
         parent.addChild(container);

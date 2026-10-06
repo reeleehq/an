@@ -223,6 +223,23 @@ class NodeJSON(_JSONModel):
     transform: TransformJSON = Field(default_factory=TransformJSON)
     visual: VisualJSON | None = None
     children: list["NodeJSON"] = Field(default_factory=list)
+    #: Where this node's CHILDREN are indexed (an#343): as the children of the
+    #: node named ``scope`` in the same parent (``""``: as the parent's own
+    #: children). ``None`` = under this node's own path, the rule before
+    #: an#343. An environment's foreground container carries ``scope=<env>``,
+    #: so every plane is ``<env>/<plane>`` wherever the environment is cut.
+    #: :mod:`an.stage.tree` is the Python statement of the rule.
+    scope: str | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_scope(self, handler):
+        """Serialize ``scope: null`` out of existence (the an#112 rule): the
+        contract hashes the whole document, so a defaulted field on every node
+        would move every corpus hash. ``""`` is a value and is kept."""
+        data = handler(self)
+        if isinstance(data, dict) and self.scope is None:
+            data.pop("scope", None)
+        return data
 
 
 # -----------------------------------------------------------------------------

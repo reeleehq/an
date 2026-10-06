@@ -15,6 +15,7 @@ text_card  text — overlay words revealed one by one, a world label — under
 text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
 text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
+front_plane a foreground plane, animated and addressed `<env>/<plane>` (an#343)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
@@ -38,7 +39,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -185,6 +186,22 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "(15 would mean ties away from even, 15/17 a sampling or set-time "
             "shift). A regression in the sampling grid, the half-frame set "
             "time, the rounding or the right-edge geometry moves a golden."
+        ),
+    ),
+    "front_plane": Fixture(
+        path=f"{CORPUS_DIRNAME}/front_plane",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "an environment cut by `characters_after` with an ANIMATED "
+            "foreground plane (an#343): `stage` draws `sky` and `hill` behind a "
+            "world text label and `rail` in front of it, in its own container "
+            "with `scope: stage`, so the rail is addressed `stage/rail` (never "
+            "`stage__front/rail`) and its `y` tween rises from 60 to 0 over the "
+            "label. What moves between the goldens is the rail crossing the "
+            "label: a regression in the runtime's scoped indexing (the channel "
+            "would name nothing and the load throws), in the cut, or in the "
+            "draw order moves a golden."
         ),
     ),
     "transitions": Fixture(
