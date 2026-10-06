@@ -22,9 +22,10 @@ needed was three answers it previously got only from an SVG:
   loader ignores a re-added alias on hot reload, an#155) and a different
   compiled contract, so the contract hash covers the pixels it will draw.
 
-**Known limit: EXIF orientation.** The header size is the stored size. A
-JPEG whose EXIF says "rotate 90°" (a phone photo) is decoded upright by
-Chromium, so its box would be transposed — export such art rotated.
+**EXIF orientation** (an#218). A JPEG whose EXIF says "rotate 90°" (a phone
+photo) is decoded upright by Chromium, so its box is the stored size
+transposed: :func:`image_size` reads the orientation tag and swaps width and
+height for the four orientations that turn the picture a quarter (5-8).
 
 **Why a raster part is never recoloured.** A StylePack recolours SVG art by
 rewriting the literal colours its descriptor tags (`colour_roles`). A raster
@@ -331,9 +332,47 @@ def _png_chunk_types(source: Any) -> set[bytes]:
     return out
 
 
+#: The EXIF orientations that turn the picture a quarter turn (transposing its box).
+_QUARTER_TURNS: frozenset[int] = frozenset({5, 6, 7, 8})
+#: The EXIF tag holding the orientation.
+_ORIENTATION_TAG: int = 0x0112
+
+
+def _exif_orientation(segment: bytes) -> int | None:
+    """The orientation an APP1 payload's EXIF IFD0 records, if any.
+
+    >>> tiff = b"MM" + struct.pack(">HI", 42, 8) + struct.pack(">H", 1) + struct.pack(">HHIHH", 0x0112, 3, 1, 6, 0)
+    >>> _exif_orientation(b"Exif" + bytes(2) + tiff)
+    6
+    """
+    if not segment.startswith(b"Exif" + bytes(2)):
+        return None
+    tiff = segment[6:]
+    order = {b"II": "<", b"MM": ">"}.get(tiff[:2])
+    if order is None or len(tiff) < 8:
+        return None
+    (ifd,) = struct.unpack(order + "I", tiff[4:8])
+    if ifd + 2 > len(tiff):
+        return None
+    (count,) = struct.unpack(order + "H", tiff[ifd : ifd + 2])
+    for k in range(count):
+        at = ifd + 2 + 12 * k
+        if at + 12 > len(tiff):
+            return None
+        tag, kind, _n = struct.unpack(order + "HHI", tiff[at : at + 8])
+        if tag == _ORIENTATION_TAG and kind == 3:  # SHORT, stored in the value field
+            return struct.unpack(order + "H", tiff[at + 8 : at + 10])[0]
+    return None
+
+
 def _jpeg_size(source: Any) -> tuple[float, float]:
-    """Walk the marker segments to the first SOFn (EXIF/ICC may precede it)."""
+    """Walk the marker segments to the first SOFn (EXIF/ICC may precede it).
+
+    The size is as DISPLAYED: transposed when the EXIF orientation turns the
+    picture a quarter (an#218).
+    """
     data = _read(source, 0)
+    orientation = None
     i = 2
     while i + 4 <= len(data):
         if data[i] != 0xFF:
@@ -343,10 +382,14 @@ def _jpeg_size(source: Any) -> tuple[float, float]:
             i += 1
             continue
         length = struct.unpack(">H", data[i + 2 : i + 4])[0]
+        if marker == 0xE1 and orientation is None:  # APP1: EXIF
+            orientation = _exif_orientation(data[i + 4 : i + 2 + length])
         if marker in _JPEG_SOF_MARKERS:
             h, w = struct.unpack(">HH", data[i + 5 : i + 9])
             if not (w and h):
                 raise RasterFormatError(f"JPEG with a zero dimension ({w}x{h})")
+            if orientation in _QUARTER_TURNS:
+                w, h = h, w
             return (float(w), float(h))
         i += 2 + length
     raise RasterFormatError("JPEG with no start-of-frame marker")

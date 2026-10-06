@@ -809,3 +809,62 @@ def test_in_pixels_a_swapped_key_is_drawn_exactly_as_if_it_were_the_default(tmp_
     blue = (frames["swapped"][..., 2] > 150) & (frames["swapped"][..., 0] < 80)
     rows = np.nonzero(blue.any(axis=1))[0]
     assert rows.size and rows[-1] - rows[0] + 1 >= 55, "the open mouth is its own height"
+
+
+# --- an#218: EXIF orientation ------------------------------------------------
+
+
+def _jpeg(path: Path, size, rgb, *, orientation=None) -> Path:
+    """A JPEG with an EXIF orientation tag; ``rgb`` may be a callable (x, y) -> colour."""
+    from PIL import Image
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    im = Image.new("RGB", size)
+    im.putdata([rgb(x, y) for y in range(size[1]) for x in range(size[0])])
+    exif = Image.Exif()
+    if orientation:
+        exif[0x0112] = orientation
+    im.save(path, "JPEG", quality=95, exif=exif.tobytes())
+    return path
+
+
+@pytest.mark.parametrize(
+    "orientation, size", [(None, (60, 30)), (1, (60, 30)), (3, (60, 30)), (6, (30, 60)), (8, (30, 60))]
+)
+def test_a_jpeg_box_is_its_displayed_size(tmp_path, orientation, size):
+    from an.stage.raster import image_size
+
+    path = _jpeg(tmp_path / "p.jpg", (60, 30), lambda x, y: (200, 30, 30), orientation=orientation)
+    assert image_size(path) == tuple(float(v) for v in size)
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_in_pixels_an_exif_rotated_jpeg_part_is_drawn_upright_in_its_box(tmp_path):
+    """Stored 120x60 (left half green, right half blue) with orientation 6
+    (rotate 90 degrees clockwise to display): drawn 60 wide and 120 tall,
+    green on top — the box the compiler declares is the one Chromium draws."""
+    import numpy as np
+    from PIL import Image
+
+    from an.stores.props import PropsStore
+
+    green, blue = (30, 200, 60), (40, 60, 220)
+    _jpeg(tmp_path / "props" / "thing" / "parts" / "photo.jpg", (120, 60),
+          lambda x, y: green if x < 60 else blue, orientation=6)
+    store = PropsStore(tmp_path / "props")
+    data = json.loads(PropDescriptor(
+        name="thing", view_box=VIEW_BOX,
+        skins={"default": Skin(slots={"body": {"photo": Attachment(path="parts/photo.jpg")}})},
+    ).model_dump_json())
+    data["slots"][0]["attachment"] = "photo"
+    store["thing"] = data
+    frame = _render(_shot(_prop_ref("thing")), {"props": store}, tmp_path).frame_manifest[0]
+    rgb = np.asarray(Image.open(frame).convert("RGB")).astype(int)
+    drawn = (np.abs(rgb - rgb[0, 0]).sum(axis=-1) > 60)
+    rows, cols = np.flatnonzero(drawn.any(axis=1)), np.flatnonzero(drawn.any(axis=0))
+    height, width = rows[-1] - rows[0] + 1, cols[-1] - cols[0] + 1
+    assert height == pytest.approx(120, abs=4) and width == pytest.approx(60, abs=4)
+    top = rgb[rows[0] + 10, (cols[0] + cols[-1]) // 2]
+    bottom = rgb[rows[-1] - 10, (cols[0] + cols[-1]) // 2]
+    assert _near(tuple(top), green, tol=40) and _near(tuple(bottom), blue, tol=40)
