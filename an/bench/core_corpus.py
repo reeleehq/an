@@ -9,6 +9,7 @@ of their own. These scenes are :data:`CORE_FIXTURES`:
 scene      what it is the gate for
 ========== ===================================================================
 path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role
+path_wobble hand-drawn paths — a wobbled frame and a wobbled arrow drawing on (an#161)
 stage_pan  planes and the camera's TRANSLATION — parallax at three depths
 text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
@@ -48,7 +49,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -128,6 +129,19 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "as the tip advances, or in the pack reaching a path, moves a "
             "golden. Butt caps, so a dash's ends are exact rather than "
             "rounded past their length."
+        ),
+    ),
+    "path_wobble": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_wobble",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "two hand-drawn paths (an#161): a solid frame wobbling 3 px at a "
+            "60 px wavelength, and an arrow wobbling 4 px that draws itself on "
+            "(`trim_end` 0 -> 1). The wobble is compile-time (seeded by the "
+            "entity id, no trigonometry), so the frame is the same in both "
+            "goldens and only the route grows; a change to the noise, the "
+            "seed, the end envelope or the resampling moves both."
         ),
     ),
     "stage_pan": Fixture(

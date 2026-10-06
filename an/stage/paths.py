@@ -98,6 +98,11 @@ DFLT_STROKE_WIDTH: float = 8.0
 DFLT_HEAD_LENGTH_FACTOR: float = 3.5
 DFLT_HEAD_WIDTH_FACTOR: float = 3.0
 
+#: The wobble's wavelength as a multiple of the stroke width, when the
+#: document does not give it in pixels: a few stroke-widths of travel per
+#: swing reads as a steady hand, not a shaky one.
+DFLT_WOBBLE_WAVELENGTH_FACTOR: float = 10.0
+
 #: Straight segments each cubic Bézier is flattened into, uniformly in its
 #: parameter. The wire carries only the flattened polyline, so this is the one
 #: knob between a curve and what the runtime draws.
@@ -167,6 +172,16 @@ class PathDescriptor(BaseModel):
     #: Scene pixels; ``None`` = a multiple of ``width``.
     head_length: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     head_width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: A hand-drawn wobble (an#161): the stroke wanders up to this many scene
+    #: px either side of its line, by seeded smooth noise applied at compile
+    #: (:mod:`an.stage.path_wobble`), its ends left where they are. ``0`` = a
+    #: ruled line.
+    wobble: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    #: The wobble's wavelength, scene px; ``None`` = a multiple of ``width``.
+    wobble_wavelength: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: Another wobble of the same path: the noise is seeded by the entity's id
+    #: and this number.
+    wobble_seed: int = 0
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -241,6 +256,25 @@ class PathDescriptor(BaseModel):
                 "samples_per_segment (and sampling) only applies to curve='cubic'; "
                 "a polyline is drawn through its points as given"
             )
+        if not self.wobble and given & {"wobble_wavelength", "wobble_seed"}:
+            raise ValueError(
+                "wobble_wavelength/wobble_seed are set but `wobble` is 0, so the "
+                "line is ruled and they would draw nothing; set `wobble` or drop them"
+            )
+        if self.wobble:
+            from an.stage.path_wobble import MAX_WOBBLE_POINTS, wobble_point_count
+
+            # The control polygon is at least as long as the curve it draws.
+            reach = sum(
+                math.dist(a, b) for a, b in zip(self.points, self.points[1:])
+            )
+            if wobble_point_count(reach, self.wobble_wavelength_px) > MAX_WOBBLE_POINTS:
+                raise ValueError(
+                    f"a wobble of wavelength {self.wobble_wavelength_px:g} px along "
+                    f"a path up to {reach:.0f} px long is more than "
+                    f"{MAX_WOBBLE_POINTS} points redrawn every frame: lengthen "
+                    "`wobble_wavelength`"
+                )
         if all(p == self.points[0] for p in self.points):
             raise ValueError(
                 "every point of the path is the same point, so it has zero "
@@ -254,6 +288,13 @@ class PathDescriptor(BaseModel):
         if self.gap is not None:
             return float(self.gap)
         return float(self.dash) if self.dash is not None else 0.0
+
+    @property
+    def wobble_wavelength_px(self) -> float:
+        """The wobble's wavelength in scene pixels."""
+        if self.wobble_wavelength is not None:
+            return float(self.wobble_wavelength)
+        return DFLT_WOBBLE_WAVELENGTH_FACTOR * self.width
 
     @property
     def head_length_px(self) -> float:

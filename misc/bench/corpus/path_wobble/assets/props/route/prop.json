@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "route",
+  "points": [[-110, 50], [-20, 50], [20, -40], [110, -40]],
+  "color": "#c0392b",
+  "width": 6,
+  "wobble": 4,
+  "arrowhead": true,
+  "trim_end": 0.0
+}

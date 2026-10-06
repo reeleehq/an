@@ -83,6 +83,7 @@ from an.stage.rig import (  # noqa: F401  (re-exported)
 from an.genres import action_kind, action_kind_names, entity_kind, entity_space_resolver
 from an.genres.registry import CompilePass
 from an.stage.path_geometry import flatten_curve
+from an.stage.path_wobble import wobble_polyline
 from an.ir.compose import FlatAction, flatten
 from an.ir.schema import (
     CameraKey,
@@ -2641,6 +2642,13 @@ def _build_path_subtree(
         samples=desc.samples_per_segment,
         sampling=desc.sampling,
     )
+    if desc.wobble:
+        points = wobble_polyline(
+            points,
+            amplitude=desc.wobble,
+            wavelength=desc.wobble_wavelength_px,
+            seed=f"{entity.id}:{desc.wobble_seed}",
+        )
     colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
         name=entity.id,

@@ -838,3 +838,64 @@ def test_a_double_headed_arrow_draws_both_heads(tmp_path):
     near_tail_base = [y for x, y in m if x == cx - 120 + int(head_len) - 3]
     assert max(near_tail_base) - min(near_tail_base) >= head_w * 0.7, near_tail_base
     assert abs(max(y for _, y in m) - (cy + 60)) <= 2  # the end head's tip
+
+
+# --- the hand-drawn wobble (an#161) ------------------------------------------------
+
+
+def _distance_to_polyline(p, poly):
+    best = math.inf
+    for (ax, ay), (bx, by) in zip(poly, poly[1:]):
+        dx, dy = bx - ax, by - ay
+        u = max(0.0, min(1.0, ((p[0] - ax) * dx + (p[1] - ay) * dy) / (dx * dx + dy * dy)))
+        best = min(best, math.dist(p, (ax + u * dx, ay + u * dy)))
+    return best
+
+
+def test_a_wobble_wanders_within_its_amplitude_and_keeps_the_ends():
+    """Every point stays within `wobble` px of the ruled line, the ends and
+    the corner are kept as samples, and the line does wander."""
+    scene = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    pts = scene.scene.children[0].visual.path.points
+    assert pts[0] == L_POINTS[0] and pts[-1] == L_POINTS[-1]
+    assert len(pts) > len(L_POINTS)
+    off = [_distance_to_polyline(p, L_POINTS) for p in pts]
+    assert max(off) <= 3.0 + 1e-9 and max(off) > 1.0
+
+
+def test_a_wobble_is_seeded_by_the_entity_and_its_seed():
+    """Two arrows sharing one document wobble differently; the same arrow
+    wobbles the same way every compile."""
+    from an.stage.path_wobble import wobble_polyline
+
+    def wobbled(seed):
+        return wobble_polyline(L_POINTS, amplitude=3.0, wavelength=40.0, seed=seed)
+
+    first = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    again = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    assert first.scene.children[0].visual.path.points == again.scene.children[0].visual.path.points
+    assert first.scene.children[0].visual.path.points == wobbled("route:0")
+    assert wobbled("route:0") != wobbled("other:0") != wobbled("route:1")
+
+
+def test_the_wobble_is_the_same_bytes_on_every_machine():
+    """No trigonometry: value noise from sha256 knots, joined by a cubic, so
+    the floats are pinned (CI runs on another OS than the goldens' machine)."""
+    import hashlib
+
+    from an.stage.path_wobble import wobble_polyline
+
+    pts = wobble_polyline(L_POINTS, amplitude=3.0, wavelength=40.0, seed="route:0")
+    digest = hashlib.sha256(repr(pts).encode()).hexdigest()[:16]
+    assert digest == WOBBLE_DIGEST, digest
+
+
+WOBBLE_DIGEST = "341ba348bb4d9ffa"
+
+
+def test_the_descriptor_refuses_an_inert_or_runaway_wobble():
+    with pytest.raises(ValueError, match="wobble` is 0"):
+        PathDescriptor(name="r", points=L_POINTS, wobble_seed=2)
+    with pytest.raises(ValueError, match="lengthen `wobble_wavelength`"):
+        PathDescriptor(name="r", points=[(0, 0), (100_000, 0)], wobble=2.0, wobble_wavelength=1.0)
+    assert PathDescriptor(name="r", points=L_POINTS, wobble=2.0).wobble_wavelength_px == 80.0
