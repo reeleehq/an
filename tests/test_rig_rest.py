@@ -82,7 +82,11 @@ def test_a_bones_rest_scale_reaches_its_node_and_minus_zero_is_normalised(tmp_pa
     assert math.copysign(1.0, leg_c.transform.rotation) == 1.0  # +0.0, never -0.0
 
 
+@pytest.mark.genre("cutout_animation")
 def test_a_from_less_tween_starts_from_the_rest_pose(tmp_path):
+    """With the cut-out genre registered: the timeline-aware from-less
+    resolution lives in its lowering today, so the core alone starts from
+    identity (an#365, which moves it into the core)."""
     shot = _shot(actions=[TweenAction(target="t/leg_r", property="rotation", to_value=0.0, duration=0.5)])
     scene = compile_shot(shot, mall=_mall(tmp_path))
     (clip,) = scene.animations.values()
