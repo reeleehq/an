@@ -1,4 +1,4 @@
-> built 2026-10-06 13:34 UTC from b8f10b2 (main) · an 0.1.192. Details: build_info.json
+> built 2026-10-06 13:35 UTC from 861fcfc (main) · an 0.1.193. Details: build_info.json
 
 # index.html.md
 
@@ -37299,7 +37299,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 13:34 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b8f10b26db627e3ade09ca7ae0a9bd096690af50"><code>b8f10b2</code></a> on branch <code>main</code>, for **an 0.1.192** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 13:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/861fcfc53bf7b1dad558722e2230810b1a2e614f"><code>861fcfc</code></a> on branch <code>main</code>, for **an 0.1.193** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -37308,9 +37308,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/b8f10b26db627e3ade09ca7ae0a9bd096690af50"><code>b8f10b26db627e3ade09ca7ae0a9bd096690af50</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/861fcfc53bf7b1dad558722e2230810b1a2e614f"><code>861fcfc53bf7b1dad558722e2230810b1a2e614f</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.192</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.193</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37319,9 +37319,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37471094529">37471094529</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37471306727">37471306727</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>4ce6f4d62b3ed0c45a59874f208bde06f3657de2</code> (in the history of the built commit) |
+| Event commit | <code>4aba95ad4e64ca38b0507befde4ee5e3c9819987</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37346,13 +37346,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.192/">0.1.192</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.193/">0.1.193</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout b8f10b26db627e3ade09ca7ae0a9bd096690af50
+git checkout 861fcfc53bf7b1dad558722e2230810b1a2e614f
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
