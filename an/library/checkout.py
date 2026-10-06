@@ -40,7 +40,7 @@ import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 from dol.content import ContentRef, content_hash
 
@@ -48,8 +48,11 @@ from an.library.api import (
     METADATA_ADDED_FLAG,
     ORIGIN_KEY,
     SOURCE_ADDED_KEY,
+    LINEAGE_FIELD,
+    PREVIOUS_FIELD,
     CheckoutError,
     IntegrityError,
+    _resolve_lineage,
     _stricter,
     labelled_view,
     pop_origin,
@@ -214,6 +217,8 @@ def checkout(
     mall: Mapping[str, Any] | None = None,
     lock: Any | None = None,
     overwrite: bool = False,
+    upgrade: bool = False,
+    for_kit: bool = False,
 ) -> CheckoutResult:
     """Materialise a library version into a project, carry its rights, pin it.
 
@@ -227,6 +232,12 @@ def checkout(
     overwrite: replace an existing entry that is not exactly this version — a
         local fork (any edited file or descriptor) or another asset; without it
         that is refused
+    upgrade: update in place an entry pinned to an EARLIER version of this
+        very asset (by lineage) and unedited since: only the files the earlier
+        version named are replaced, and the pin moves (an#346). Without it such
+        an entry refuses, naming this flag — never a copy beside it; an edited
+        one refuses either way (publish it first, or ``overwrite``)
+    for_kit: the check-out of a kit member (its refusals do not name ``key``)
 
     An entry that already IS this version byte for byte — the folder a
     ``publish`` just sent to the library, still unedited — is recognised and
@@ -266,13 +277,29 @@ def checkout(
     mall = mall if mall is not None else build_project_mall(project_dir, ensure=True)
     store = mall[kind.store]
     lock = _project_lock(lock, mall, project_dir)
-    key = (
-        key
-        or _unedited_copy(store, lock, kind.store, pinned, version)
-        or (pinned.asset_id.split(".", 1)[1])
-    )
+    target = _target(libraries, store, lock, kind.store, pinned, version, key=key)
+    key = target.key
     entry_key = lock_key(kind.store, key)
-    if key in store:
+    upgrading = False
+    if (
+        target.earlier is not None
+        and key in store
+        and not overwrite
+        # An entry that already IS the requested version (the folder this
+        # version was published from) is linked below, as any unlinked copy.
+        and drift(store, key, version)
+    ):
+        differences = drift(store, key, target.earlier)
+        if differences or not upgrade:
+            raise CheckoutError(
+                _upgrade_refusal(
+                    kind.store, target, pinned, differences, for_kit=for_kit
+                )
+            )
+        upgrading = True
+    if upgrading:
+        _remove_version_files(store, key, target.earlier)
+    elif key in store:
         existing = store[key]
         origin = (
             (existing.get("metadata") or {}) if isinstance(existing, Mapping) else {}
@@ -302,7 +329,9 @@ def checkout(
         linking = not differences and (not same_version or outdated)
         if not overwrite and not linking:
             raise CheckoutError(
-                _fork_refusal(kind.store, key, pinned, same_version, differences)
+                _fork_refusal(
+                    kind.store, key, pinned, same_version, differences, for_kit=for_kit
+                )
             )
         del store[key]
     if files and not hasattr(store, "sidecar_path"):
@@ -395,18 +424,174 @@ def _fork_refusal(
     pinned: LibraryRef,
     same_version: bool,
     differences: list[str],
+    *,
+    for_kit: bool = False,
 ) -> str:
-    """The refusal when a project entry is a fork (or another asset) and no overwrite was asked."""
+    """The refusal when a project entry is a fork (or another asset) and no overwrite was asked.
+
+    for_kit: a kit member's key is the kit's (``--key`` is refused for a kit),
+        so the advice does not name it
+    """
     what = (
         f"a fork of it ({', '.join(differences)})"
         if same_version
         else f"a local fork or another asset ({', '.join(differences)})"
     )
+    beside = "" if for_kit else ", or check out beside it with key=… (--key …)"
     return (
         f"the project already has {store_name}/{key}, and it is not {pinned} "
         f"as published: it is {what}. Replace it with overwrite=True "
-        "(--overwrite), or check out beside it with key=… (--key …)"
+        f"(--overwrite){beside}"
     )
+
+
+class _Target(NamedTuple):
+    """Where a check-out lands (:func:`_target`)."""
+
+    key: str
+    #: The version the entry is pinned to, when that is an EARLIER version of
+    #: the very asset asked for (by lineage, an#346); else ``None``.
+    earlier: Mapping[str, Any] | None = None
+    #: That version's pinned reference.
+    earlier_ref: str | None = None
+
+
+def _follows(
+    libraries: Libraries, version: Mapping[str, Any], pin: Mapping[str, Any]
+) -> Mapping[str, Any] | None:
+    """The version ``pin`` names, if ``version``'s ``previous`` chain reaches it; else ``None``.
+
+    Identity by lineage, never by name (L2-2 of the an#331 review): two
+    libraries can share a name, so only the requested version's own pinned
+    ``previous`` links reaching the pinned MANIFEST prove it is a later version
+    of the same asset. A pin that cannot be verified, or a downgrade, is no
+    candidate.
+    """
+    try:
+        held = _pinned_version(libraries, pin)
+    except _Unverifiable:
+        return None
+    target = held.get("manifest_sha256")
+    seen: set[str] = set()
+    walked = version
+    while walked.get(PREVIOUS_FIELD):
+        ref = walked[PREVIOUS_FIELD]
+        try:
+            _, _, walked = _resolve_lineage(
+                libraries, ref, (walked.get(LINEAGE_FIELD) or {}).get(ref)
+            )
+        except Exception:  # noqa: BLE001 — a broken link proves nothing
+            return None
+        manifest = walked.get("manifest_sha256")
+        if manifest == target:
+            return held
+        if manifest in seen:
+            return None
+        seen.add(manifest)
+    return None
+
+
+def _target(
+    libraries: Libraries,
+    store: Any,
+    lock: Any,
+    store_name: str,
+    pinned: LibraryRef,
+    version: Mapping[str, Any],
+    *,
+    key: str | None,
+) -> _Target:
+    """The project key a check-out of ``version`` lands in — one function for the
+    pre-flight check, the check-out and kits (an#346).
+
+    - an explicit ``key`` always wins (marked ``earlier`` when it is pinned to
+      an earlier version of this asset);
+    - else an entry that already IS this version, byte for byte (an#271);
+    - else the one entry the LOCKFILE pins to an earlier version of this asset
+      (by lineage, :func:`_follows`) — two such entries refuse, naming both;
+    - else the asset's slug.
+    """
+
+    def earlier(candidate: str) -> tuple[Mapping[str, Any], str] | None:
+        entry_key = lock_key(store_name, candidate)
+        pin = lock[entry_key] if entry_key in lock else None
+        if not isinstance(pin, Mapping) or pin.get("library") in (None, str(pinned)):
+            return None
+        held = _follows(libraries, version, pin)
+        return (held, pin["library"]) if held is not None else None
+
+    if key is not None:
+        found = earlier(key) if key in store else None
+        return _Target(key, *(found or (None, None)))
+    same = _unedited_copy(store, lock, store_name, pinned, version)
+    if same:
+        return _Target(same)
+    prefix = lock_key(store_name, "")
+    candidates = []
+    for entry_key in sorted(k for k in lock if str(k).startswith(prefix)):
+        name = str(entry_key)[len(prefix) :]
+        found = earlier(name) if name in store else None
+        if found is not None:
+            candidates.append((name, found))
+    if len(candidates) > 1:
+        keys = ", ".join(f"{store_name}/{k}" for k, _ in candidates)
+        raise CheckoutError(
+            f"{keys} are each pinned to an earlier version of {pinned}: say which "
+            "one this check-out updates with key=… (--key …)"
+        )
+    if candidates:
+        name, (held, ref) = candidates[0]
+        return _Target(name, held, ref)
+    return _Target(pinned.asset_id.split(".", 1)[1])
+
+
+def _upgrade_refusal(
+    store_name: str,
+    target: _Target,
+    pinned: LibraryRef,
+    differences: list[str],
+    *,
+    for_kit: bool = False,
+) -> str:
+    """The refusal for an entry pinned to an earlier version of ``pinned`` (an#346)."""
+    where = f"{store_name}/{target.key}"
+    if not differences:
+        return (
+            f"the project's {where} is an unedited copy of {target.earlier_ref}, "
+            f"an earlier version of {pinned}: update it in place with upgrade=True "
+            "(--upgrade), or replace it wholesale with overwrite=True (--overwrite)"
+        )
+    keep = (
+        "replace it with overwrite=True (--overwrite)"
+        if for_kit
+        else f"replace it with key={target.key!r} and overwrite=True "
+        f"(--key {target.key} --overwrite)"
+    )
+    return (
+        f"the project's {where} is pinned to {target.earlier_ref}, an earlier "
+        f"version of {pinned}, and was edited since ({', '.join(differences)}): "
+        "publish it first (an library publish …) to keep the edit as a version, "
+        f"or {keep}"
+    )
+
+
+def _remove_version_files(store: Any, key: str, version: Mapping[str, Any]) -> None:
+    """Delete the files ``version`` named from ``store[key]``'s folder, and nothing else.
+
+    What an in-place upgrade removes (L2-3): a hidden draft (``.wip/``) or a
+    note ``drift`` never sees stays where it is.
+    """
+    entry = _entry_dir(store, key)
+    if entry is None:
+        return
+    for path in sorted(version.get("files") or {}):
+        target = entry.joinpath(*path.split("/"))
+        if target.is_file() and target.resolve().is_relative_to(entry.resolve()):
+            target.unlink()
+            for parent in target.parents:
+                if parent == entry or not parent.is_dir() or any(parent.iterdir()):
+                    break
+                parent.rmdir()
 
 
 def check_checkout(
@@ -417,6 +602,8 @@ def check_checkout(
     mall: Mapping[str, Any],
     lock: Any,
     overwrite: bool = False,
+    upgrade: bool = False,
+    for_kit: bool = False,
 ) -> LibraryRef:
     """Raise :class:`CheckoutError` if :func:`checkout` of ``ref`` would refuse; write nothing.
 
@@ -443,11 +630,22 @@ def check_checkout(
             f"the project's {kind.store!r} store keeps no files beside its documents, "
             f"so the {len(files)} files of {pinned} have nowhere to go"
         )
-    key = (
-        key
-        or _unedited_copy(store, lock, kind.store, pinned, version)
-        or pinned.asset_id.split(".", 1)[1]
-    )
+    target = _target(libraries, store, lock, kind.store, pinned, version, key=key)
+    key = target.key
+    if (
+        target.earlier is not None
+        and key in store
+        and not overwrite
+        and drift(store, key, version)
+    ):
+        differences = drift(store, key, target.earlier)
+        if differences or not upgrade:
+            raise CheckoutError(
+                _upgrade_refusal(
+                    kind.store, target, pinned, differences, for_kit=for_kit
+                )
+            )
+        return pinned
     if key in store and not overwrite:
         differences = drift(store, key, version)
         if differences:
@@ -461,7 +659,9 @@ def check_checkout(
                 lock.get(entry_key, {}) if entry_key in lock else {}
             ).get("library") == str(pinned)
             raise CheckoutError(
-                _fork_refusal(kind.store, key, pinned, same_version, differences)
+                _fork_refusal(
+                    kind.store, key, pinned, same_version, differences, for_kit=for_kit
+                )
             )
     return pinned
 

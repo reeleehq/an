@@ -250,6 +250,7 @@ def checkout_kit(
     ref: str | LibraryRef,
     *,
     overwrite: bool = False,
+    upgrade: bool = False,
     mall: Mapping[str, Any] | None = None,
     lock: Any | None = None,
 ) -> list[CheckoutResult]:
@@ -259,6 +260,8 @@ def checkout_kit(
     project_dir: the project to check out into
     ref: ``[<library>:]<kit asset id>[@<version>]``; ``latest`` is resolved now
     overwrite: replace project entries that are not exactly their member's version
+    upgrade: update in place a member's entry pinned to an earlier version of
+        that member, unedited since (:func:`~an.library.checkout.checkout`)
     mall: the project mall (default: ``build_project_mall(project_dir)``)
     lock: the lockfile (default: the mall's ``library_lock`` store); it needs a
         ``kits`` section, as :class:`~an.stores.library_lock.ProjectLock` has
@@ -307,7 +310,14 @@ def checkout_kit(
     _refuse_slots(where, [_slot(p, k) for p, k in plan], CheckoutError)
     for member_pin, key in plan:
         check_checkout(
-            libs, member_pin, key=key, mall=mall, lock=lock, overwrite=overwrite
+            libs,
+            member_pin,
+            key=key,
+            mall=mall,
+            lock=lock,
+            overwrite=overwrite,
+            upgrade=upgrade,
+            for_kit=True,
         )
     results = [
         checkout(
@@ -318,6 +328,8 @@ def checkout_kit(
             mall=mall,
             lock=lock,
             overwrite=overwrite,
+            upgrade=upgrade,
+            for_kit=True,
         )
         for member_pin, key in plan
     ]
