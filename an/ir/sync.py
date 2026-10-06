@@ -795,6 +795,10 @@ def _md_meta_body(scene: SceneIR) -> str:
         ]
     if scene.meta.captions is not None:  # an#175, same rule
         meta_dict["captions"] = scene.meta.captions.model_dump(exclude_defaults=True)
+    if scene.meta.closing_transition is not None:  # an#389, same rule
+        meta_dict["closing_transition"] = scene.meta.closing_transition.model_dump(
+            exclude_defaults=True
+        )
     return yaml.safe_dump(meta_dict, sort_keys=False).rstrip()
 
 

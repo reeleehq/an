@@ -2068,7 +2068,7 @@
    "levels": [
     "a"
    ],
-   "usage": "meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}"
+   "usage": "meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}"
   },
   {
    "id": "field.meta.captions",
@@ -2081,6 +2081,18 @@
     "a"
    ],
    "usage": "meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue."
+  },
+  {
+   "id": "field.meta.closing_transition",
+   "kind": "field",
+   "name": "meta.closing_transition",
+   "version": "1",
+   "title": "",
+   "description": "how the film ends",
+   "levels": [
+    "a"
+   ],
+   "usage": "meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused."
   },
   {
    "id": "field.meta.sounds",

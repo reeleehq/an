@@ -347,7 +347,8 @@ def _core_fields() -> tuple[Entry, ...]:
         _field(
             "meta",
             "meta: {title, author, duration, fps, resolution, default_renderer, "
-            "notes, default_easing, step_hz, style_pack, sounds, captions}",
+            "notes, default_easing, step_hz, style_pack, sounds, captions, "
+            "closing_transition}",
             description="the film's header",
         ),
         _field(
@@ -460,6 +461,15 @@ def _core_fields() -> tuple[Entry, ...]:
             "bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; "
             "duck_db ducks it under every dialogue line.",
             description="sounds on the film's clock (a music bed)",
+        ),
+        _field(
+            "meta.closing_transition",
+            "meta.closing_transition (optional): how the film ENDS — {kind: "
+            "'fade', duration: seconds, color: '#rrggbb'}: the last shot's last "
+            "duration fades to color (its final frame IS the color) and the "
+            "sound fades with it; the film's length is unchanged. Omitted (or "
+            "'cut') = it ends on its last frame. A dissolve is refused.",
+            description="how the film ends",
         ),
         _field(
             "meta.captions",

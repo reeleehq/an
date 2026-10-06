@@ -460,7 +460,9 @@ def compose_film_frames(scene: Any, work_dir: Path) -> Path | None:
     dirs = [frames_dir_for(work_dir, shot.id) for shot in scene.timeline]
     out = Path(work_dir) / FILM_FRAMES_RELPATH
     write_film_frames(
-        film_timeline(list(scene.timeline), fps=fps),
+        film_timeline(
+            list(scene.timeline), fps=fps, closing=scene.meta.closing_transition
+        ),
         lambda i, j: dirs[i] / (DEFAULT_FRAME_PNG_PATTERN % j),
         out,
     )

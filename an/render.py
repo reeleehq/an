@@ -1057,7 +1057,11 @@ def _prepare_shots(
 
     sound_findings: list = []
     if has_anchors(scene):
-        laid_out = film_timeline(list(scene.timeline), fps=effective_fps)
+        laid_out = film_timeline(
+            list(scene.timeline),
+            fps=effective_fps,
+            closing=scene.meta.closing_transition,
+        )
         scene, sound_findings = resolve_cue_anchors(
             scene,
             ctx,
@@ -1071,7 +1075,11 @@ def _prepare_shots(
         # Before any browser launches: a transition the shots are too short
         # for is microseconds to find and minutes of rendering to discover.
         # What the film needs from each shot (an#260) is known now too.
-        windows = shot_windows(film_timeline(shots, fps=effective_fps))
+        windows = shot_windows(
+            film_timeline(
+                shots, fps=effective_fps, closing=scene.meta.closing_transition
+            )
+        )
     # Captions (an#175): ONE page list, from which the burned-in picture and
     # the sidecar are both derived, so they cannot disagree. Built before any
     # browser launches, so a strict-captions refusal costs nothing.
