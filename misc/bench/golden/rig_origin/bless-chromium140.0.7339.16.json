@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T10:49:04Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1082,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "0d0d8136f8a2edbdd321fc4a7a9f0064b67041a6afb7febbb9d0f01c27e6d47f",
+      "shot_id": "topple",
+      "time": 0.0
+    },
+    {
+      "bytes": 1747,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "4def5749ad4604879eea8c1216b2dc980a1551abb86b2938ccf312cf8b22f9f8",
+      "shot_id": "topple",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "rig-origin",
+    "dirty": true,
+    "sha": "b5b679cde32ce0c925e8f789be5456133e2d8b6e"
+  },
+  "reason": "an#338: the rig_origin fixture's first goldens -- a three-bone signpost placed by its declared origin (its foot) and toppling about it, beside the same rig placed by its bones' extent",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "rig_origin",
+  "scene_contract_sha256": "cbd714c4a2d4b683cb57856805dc532827e4f3745c9eb40b27b737163e4f0bc0",
+  "shot_ids": [
+    "topple"
+  ],
+  "source": "misc/bench/corpus/rig_origin",
+  "what_moves": "two copies of one three-bone signpost rig (base, post, sign) at the same `stage.at` height (an#338): `footed` declares its `origin` at the foot of its base, so its foot stands ON the placement line; `centred` declares none, so the middle of its bones' extent lands there and it hangs lower. `footed` tweens `rotation` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and `centred` does not move at all. A regression that ignored `origin` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."
+}

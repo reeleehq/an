@@ -16,6 +16,8 @@ text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
+rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
+           toppling about it, beside the same rig placed by its bones' extent
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -35,7 +37,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'stage_pan', 'text_card', 'text_swap', 'transitions']
+['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -183,6 +185,24 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "arithmetic or the order of the shots moves a golden. The only "
             "fixture measured on the film's frames rather than the shots' — "
             "what the delivered mp4 shows (an.bench.capture's film segment)."
+        ),
+    ),
+    "rig_origin": Fixture(
+        path=f"{CORPUS_DIRNAME}/rig_origin",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "two copies of one three-bone signpost rig (base, post, sign) at "
+            "the same `stage.at` height (an#338): `footed` declares its "
+            "`origin` at the foot of its base, so its foot stands ON the "
+            "placement line; `centred` declares none, so the middle of its "
+            "bones' extent lands there and it hangs lower. `footed` tweens "
+            "`rotation` 0 -> -0.4 rad, which turns it about the declared "
+            "origin: between the goldens its sign swings left while its foot "
+            "does not move, and `centred` does not move at all. A regression "
+            "that ignored `origin` (both posts at one height), placed parts "
+            "about the wrong point, or broke the shared rig builder moves a "
+            "golden."
         ),
     ),
 }

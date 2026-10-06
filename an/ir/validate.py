@@ -1661,6 +1661,10 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         store = mall_stores.get(store_name)
         if store is None:
             continue  # store not supplied → this check did not run
+        doc = _rig_document(entity, mall_stores)
+        if doc is not None:
+            _check_rig_origin(doc, entity, f"{path}/entities/{j}", report)
+            continue
         registered = entity_kind(entity.kind)
         if registered is not None and registered.placeholder_on_missing:
             continue  # its genre reports a missing ref with its own check
@@ -1679,22 +1683,33 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         # did not exist at all: the harsher outcome had the weaker
         # prediction, and `an validate` said "passed" about a scene that
         # cannot render.
-        if _rig_document(entity, mall_stores) is None:
-            if entity.ref in store:
-                why = (
-                    f"is in the {store_name!r} store but is not a "
-                    f"{want_kind} (rendering this shot raises)"
-                )
-            else:
-                why = (
-                    f"is not in the {store_name!r} store, and a {entity.kind} "
-                    "has no placeholder rig (rendering this shot raises)"
-                )
-            report.add(
-                "error",
-                f"{path}/entities/{j}",
-                f"{entity.kind} ref {entity.ref!r} {why}",
+        if entity.ref in store:
+            why = (
+                f"is in the {store_name!r} store but is not a "
+                f"{want_kind} (rendering this shot raises)"
             )
+        else:
+            why = (
+                f"is not in the {store_name!r} store, and a {entity.kind} "
+                "has no placeholder rig (rendering this shot raises)"
+            )
+        report.add(
+            "error",
+            f"{path}/entities/{j}",
+            f"{entity.kind} ref {entity.ref!r} {why}",
+        )
+
+
+def _check_rig_origin(doc: dict, entity, ir_path: str, report: "ValidationReport") -> None:
+    """A rig's declared ``origin`` is finite and inside its view_box (an#338).
+
+    Warnings, the stage's own rule (:func:`an.stage.rig.rig_origin_problems`),
+    so ``an validate`` and the rig's own validator say the same thing.
+    """
+    from an.stage.rig import rig_origin_problems  # the builder's own rule
+
+    for problem in rig_origin_problems(doc):
+        report.add("warning", ir_path, f"{entity.kind} ref {entity.ref!r}: {problem}")
 
 
 def _core_voices(ctx: ValidationContext) -> None:
