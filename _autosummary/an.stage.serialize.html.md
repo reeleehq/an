@@ -322,6 +322,11 @@ visuals only, so they cannot move a non-path document’s hash.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### tail_head_length *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+A tail arrowhead at the trimmed start (an#161), `0` = none. Omitted
+from the wire when off, so no existing path document’s hash moves.
+
 ### *class* an.stage.serialize.PlacedClipJSON(\*\*data)
 
 Bases: `_JSONModel`

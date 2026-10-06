@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=f1074277"></script>
+    <script src="../../../_static/documentation_options.js?v=c6ffc81d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.195" />
+  <meta name="docsearch:version" content="0.1.196" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -3289,7 +3289,10 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">points</span> <span class="o">=</span> <span class="n">flatten_curve</span><span class="p">(</span>
-        <span class="n">desc</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">curve</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">curve</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">samples_per_segment</span>
+        <span class="n">desc</span><span class="o">.</span><span class="n">points</span><span class="p">,</span>
+        <span class="n">curve</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">curve</span><span class="p">,</span>
+        <span class="n">samples</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">samples_per_segment</span><span class="p">,</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">sampling</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">colour</span> <span class="o">=</span> <span class="n">_path_colour</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">style_pack</span><span class="p">,</span> <span class="n">reached</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
@@ -3310,6 +3313,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">dash</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">dash</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">,</span>
                 <span class="n">gap</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">gap_px</span><span class="p">,</span>
                 <span class="n">dash_offset</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">dash_offset</span><span class="p">,</span>
+                <span class="n">tail_head_length</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">head_length_px</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">tail_arrowhead</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">tail_head_width</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">head_width_px</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">tail_arrowhead</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>

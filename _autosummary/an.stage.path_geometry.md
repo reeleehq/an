@@ -43,13 +43,13 @@ True
 
 ### Functions
 
-| [`flatten_curve`](#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples])     | The polyline the runtime draws for `points`.                                                             |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| [`cumulative_lengths`](#an.stage.path_geometry.cumulative_lengths)(points)                      | Arc length at each vertex.                                                                               |
-| [`point_at`](#an.stage.path_geometry.point_at)(points, cum, s)                        | The point at arc length `s`.                                                                             |
-| [`trim_polyline`](#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
-| [`dash_spans`](#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)             | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
-| [`path_geometry`](#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
+| [`flatten_curve`](#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples, ...])   | The polyline the runtime draws for `points`.                                                             |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| [`cumulative_lengths`](#an.stage.path_geometry.cumulative_lengths)(points)                         | Arc length at each vertex.                                                                               |
+| [`point_at`](#an.stage.path_geometry.point_at)(points, cum, s)                           | The point at arc length `s`.                                                                             |
+| [`trim_polyline`](#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                   | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
+| [`dash_spans`](#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)                | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
+| [`path_geometry`](#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*)    | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
 
 ### an.stage.path_geometry.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -90,13 +90,16 @@ window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 [(5.0, 15.0), (25.0, 30.0)]
 ```
 
-### an.stage.path_geometry.flatten_curve(points, , curve='polyline', samples=24)
+### an.stage.path_geometry.flatten_curve(points, , curve='polyline', samples=24, sampling='parameter')
 
 The polyline the runtime draws for `points`.
 
 `curve="cubic"` reads `points` as chained cubic Béziers
-(`p0 c1 c2 p1 c1 c2 p2 ...`) and samples each uniformly in its parameter
-at `samples` steps; shared endpoints appear once.
+(`p0 c1 c2 p1 c1 c2 p2 ...`) and samples each at `samples` steps;
+shared endpoints appear once. `sampling="parameter"` (the default) steps
+uniformly in each curve’s parameter, so points crowd where the curve is
+slow; `"arclength"` (an#161) steps uniformly along its length, so the
+points are evenly spaced (a smoother bend for the same count).
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
@@ -109,9 +112,16 @@ at `samples` steps; shared endpoints appear once.
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
 
-### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0)
+### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0)
 
 What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
+
+`tail_head_length > 0` adds a TAIL arrowhead at the trimmed start,
+pointing back along the path (an#161: a double-headed arrow with both); it
+is then under a `"tail"` key (absent otherwise), and the stroke starts
+[`HEAD_STROKE_INSET`](#an.stage.path_geometry.HEAD_STROKE_INSET) of its length in from that tip. While the visible
+length is shorter than the heads together, both are scaled by the same
+factor, so a draw-on grows them in.
 
 `dash > 0` makes the stroke a dash pattern: `stroke` is then `[]` and
 a `"dashes"` key (absent otherwise) holds one polyline per visible dash.

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f1074277"></script>
+    <script src="../_static/documentation_options.js?v=c6ffc81d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.path_geometry" href="an.stage.path_geometry.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.195" />
+  <meta name="docsearch:version" content="0.1.196" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -786,6 +786,25 @@ is the “marching ants” route; only a dashed path has one.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.sampling">
+<span class="sig-name descname"><span class="pre">sampling</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'parameter'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'arclength'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.sampling" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;parameter&quot;</span></code> (uniform in
+the curve’s parameter, the default) or <code class="docutils literal notranslate"><span class="pre">&quot;arclength&quot;</span></code> (evenly along it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How a cubic’s samples are spaced (an#161)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.tail_arrowhead">
+<span class="sig-name descname"><span class="pre">tail_arrowhead</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.tail_arrowhead" title="Link to this definition">#</a></dt>
+<dd><p>An arrowhead at the START too, pointing back along the path (an#161):
+with <code class="docutils literal notranslate"><span class="pre">arrowhead</span></code>, a double-headed arrow. Same size as the end’s.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.trim_start">
 <span class="sig-name descname"><span class="pre">trim_start</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.trim_start" title="Link to this definition">#</a></dt>
 <dd><p>The visible span before anything animates it, as fractions of arc
@@ -883,6 +902,8 @@ unknown keys; a path’s does not).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.head_width_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_width_px</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.points"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.points</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.sampling"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.sampling</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.tail_arrowhead"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.tail_arrowhead</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.trim_start"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.trim_start</span></code></a></li>
 </ul>
 </li>

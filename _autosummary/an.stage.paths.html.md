@@ -148,6 +148,19 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Scene pixels, relative to the node’s origin (`AssetRef.stage.at`).
 
+#### sampling *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['parameter', 'arclength']*
+
+`"parameter"` (uniform in
+the curve’s parameter, the default) or `"arclength"` (evenly along it).
+
+* **Type:**
+  How a cubic’s samples are spaced (an#161)
+
+#### tail_arrowhead *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+An arrowhead at the START too, pointing back along the path (an#161):
+with `arrowhead`, a double-headed arrow. Same size as the end’s.
+
 #### trim_start *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The visible span before anything animates it, as fractions of arc

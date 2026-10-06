@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f1074277"></script>
+    <script src="../_static/documentation_options.js?v=c6ffc81d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.runtime_files" href="an.stage.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.195" />
+  <meta name="docsearch:version" content="0.1.196" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1051,6 +1051,13 @@ visuals only, so they cannot move a non-path document’s hash.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.serialize.PathJSON.tail_head_length">
+<span class="sig-name descname"><span class="pre">tail_head_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.serialize.PathJSON.tail_head_length" title="Link to this definition">#</a></dt>
+<dd><p>A tail arrowhead at the trimmed start (an#161), <code class="docutils literal notranslate"><span class="pre">0</span></code> = none. Omitted
+from the wire when off, so no existing path document’s hash moves.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1362,6 +1369,7 @@ take them; the runtime refuses any other kind.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PathJSON"><code class="docutils literal notranslate"><span class="pre">PathJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PathJSON.dash"><code class="docutils literal notranslate"><span class="pre">PathJSON.dash</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PathJSON.model_config"><code class="docutils literal notranslate"><span class="pre">PathJSON.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PathJSON.tail_head_length"><code class="docutils literal notranslate"><span class="pre">PathJSON.tail_head_length</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.serialize.PlacedClipJSON"><code class="docutils literal notranslate"><span class="pre">PlacedClipJSON</span></code></a><ul class="nav section-nav flex-column">
