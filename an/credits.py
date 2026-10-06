@@ -234,6 +234,11 @@ def _detail(e: CreditEntry) -> str:
         # A provider's terms that hold beyond the class (an#332: Stable
         # Audio's revenue cap), on any asset made under them.
         out += f" ({restriction})"
+    from an.sound_fetch import cut_label
+
+    if cut := cut_label(e.source):
+        # A sound cut from fetched media says which part of which page (an#318).
+        out += f" — {cut}"
     if e.covers:
         out += f" — covers {', '.join(e.covers)}"
     return out
