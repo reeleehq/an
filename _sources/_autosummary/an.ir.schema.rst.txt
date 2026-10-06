@@ -8,6 +8,7 @@ an.ir.schema
 
    .. autosummary::
    
+      DFLT_SHAKE_DURATION
       CORE_ACTION_KINDS
       EXTENSION_TAG
       Action
@@ -32,6 +33,7 @@ an.ir.schema
       AssetRef
       Camera
       CameraKey
+      CameraShake
       Captions
       CueAnchor
       CueUntil

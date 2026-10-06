@@ -109,7 +109,7 @@ it. So this field can grow without retiring a single ledger row.
 
 ### *class* an.Camera(\*\*data)
 
-Bases: `_IRModel`
+Bases: `_CameraShakes`
 
 Camera state for a shot: a named move, or explicit keys.
 

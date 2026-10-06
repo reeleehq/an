@@ -26,8 +26,9 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 
 ### Functions
 
-| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)   | The shot's camera as an explicit key list — the ONE resolver.   |
-|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                            |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429). |
 
 ### Exceptions
 
@@ -85,4 +86,25 @@ cannot then raise” true by construction rather than by two tables agreeing
 >>> pan = Shot(id="s", renderer="cutout", duration=2.0, camera=Camera(move="pan_left"))
 >>> [(k.at, round(k.x, 3)) for k in camera_keys(pan, width=320, height=240)]
 [(0.0, 0.0), (2.0, -106.667)]
+```
+
+### an.ir.camera.camera_shake_offsets(shot, , width, height)
+
+The shot’s camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).
+
+Empty when the shot has none. Each shake is at rest (`0, 0`) at its
+start and its end; between, the frame jumps `frequency` times a second
+to a seeded offset of at most `amplitude` × the frame height, scaled
+down linearly to rest when `decay`. Validate and the compiler both call
+this, so a shake that validates cannot then raise (as with
+[`camera_keys()`](#an.ir.camera.camera_keys)).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> from an.ir.schema import Camera, CameraShake, Shot
+>>> s = Shot(id="s", duration=2.0, camera=Camera(shake=[CameraShake(at=1.0, duration=0.25, frequency=8)]))
+>>> [(t, round(dx, 2), round(dy, 2)) for t, dx, dy in camera_shake_offsets(s, width=1280, height=720)]
+[(1.0, 0.0, 0.0), (1.125, 3.72, 2.79), (1.25, 0.0, 0.0)]
 ```

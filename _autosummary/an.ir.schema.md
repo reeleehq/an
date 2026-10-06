@@ -40,15 +40,16 @@ True
 
 ### Module Attributes
 
-| [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                    |
-|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                          |
-| [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it). |
-| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
-| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                  |
-| [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.md#module-an.timing.spaces)).                          |
-| [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                  |
-| [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                 |
+| [`DFLT_SHAKE_DURATION`](#an.ir.schema.DFLT_SHAKE_DURATION)       | how long a jolt lasts, how far the frame jumps (a fraction of the frame HEIGHT, so it reads the same at any resolution: 0.015 is about 11 px at 720p), and how many times a second it jumps.   |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                        |
+| [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                              |
+| [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it).                     |
+| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                                        |
+| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                                      |
+| [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.md#module-an.timing.spaces)).                                              |
+| [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                                      |
+| [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                                     |
 
 ### Functions
 
@@ -63,6 +64,7 @@ True
 |----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Camera`](#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`CameraShake`](#an.ir.schema.CameraShake)(\*\*data)     | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
 | [`Captions`](#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
 | [`CueAnchor`](#an.ir.schema.CueAnchor)(\*\*data)       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
 | [`CueUntil`](#an.ir.schema.CueUntil)(\*\*data)        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
@@ -166,7 +168,7 @@ The `kind` of every action the core defines (the static union members).
 
 ### *class* an.ir.schema.Camera(\*\*data)
 
-Bases: `_IRModel`
+Bases: `_CameraShakes`
 
 Camera state for a shot: a named move, or explicit keys.
 
@@ -246,6 +248,55 @@ Camera position in scene pixels. `+x` moves the camera right.
 
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
+
+### *class* an.ir.schema.CameraShake(\*\*data)
+
+Bases: `_IRModel`
+
+A jolt of the frame inside a shot (an#429): seeded screen-space jitter.
+
+```pycon
+>>> CameraShake(at=1.0).duration
+0.4
+```
+
+Layered on whatever the camera does (a `move`, `keys`, or nothing): the
+pan and zoom are the root’s pivot and scale, a shake is its screen
+position, so the two add without either knowing the other. The jitter is
+deterministic (`seed`) and, with `decay`, falls linearly to rest by
+the end; the frame is exactly at rest before `at` and after it.
+
+#### amplitude *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+How far the frame jumps at most, as a fraction of the frame height.
+
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+When the jolt starts, in shot seconds.
+
+#### decay *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Fall linearly to rest over the duration (an impact); off, it holds its
+amplitude to the end (a rumble).
+
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+How long it lasts.
+
+#### frequency *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Jumps per second.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### seed *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+the same seed draws the same jolt on every machine.
+
+* **Type:**
+  Which jitter
 
 ### *class* an.ir.schema.Captions(\*\*data)
 
@@ -358,6 +409,16 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
 
 Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.
+
+### an.ir.schema.DFLT_SHAKE_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
+
+how long a jolt lasts, how far the frame
+jumps (a fraction of the frame HEIGHT, so it reads the same at any
+resolution: 0.015 is about 11 px at 720p), and how many times a second it
+jumps. Art direction, chosen to read as an impact rather than a tremor.
+
+* **Type:**
+  A camera shake’s defaults (an#429)
 
 ### *class* an.ir.schema.DelayAction(\*\*data)
 

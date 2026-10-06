@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=386d82f3"></script>
+    <script src="../_static/documentation_options.js?v=9c1506ea"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.212" />
+  <meta name="docsearch:version" content="0.1.213" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -644,28 +644,31 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CORE_ACTION_KINDS" title="an.ir.schema.CORE_ACTION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_ACTION_KINDS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_SHAKE_DURATION" title="an.ir.schema.DFLT_SHAKE_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_SHAKE_DURATION</span></code></a></p></td>
+<td><p>how long a jolt lasts, how far the frame jumps (a fraction of the frame HEIGHT, so it reads the same at any resolution: 0.015 is about 11 px at 720p), and how many times a second it jumps.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CORE_ACTION_KINDS" title="an.ir.schema.CORE_ACTION_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CORE_ACTION_KINDS</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">kind</span></code> of every action the core defines (the static union members).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.EXTENSION_TAG" title="an.ir.schema.EXTENSION_TAG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EXTENSION_TAG</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.EXTENSION_TAG" title="an.ir.schema.EXTENSION_TAG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EXTENSION_TAG</span></code></a></p></td>
 <td><p>The union tag of the open member.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Action" title="an.ir.schema.Action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Action</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Action" title="an.ir.schema.Action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Action</span></code></a></p></td>
 <td><p>the core kinds plus <a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a> for any other <code class="docutils literal notranslate"><span class="pre">kind</span></code> (a registered genre kind validates to its own model through it).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS" title="an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS" title="an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></p></td>
 <td><p>the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></p></td>
 <td><p>Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.STAGE_NODE_SPACE" title="an.ir.schema.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
 <td><p>The property space a 2D stage engine's node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_DURATION" title="an.ir.schema.SPECIMEN_DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></p></td>
 <td><p>How long a specimen shot runs (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">sheet</span></code> draws its first frame).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SPECIMEN_SHOT_ID" title="an.ir.schema.SPECIMEN_SHOT_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></p></td>
 <td><p>The id of a specimen shot.</p></td>
 </tr>
 </tbody>
@@ -698,73 +701,76 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraKey</span></code></a>(**data)</p></td>
 <td><p>One camera pose at one time — the explicit door behind the named moves.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CameraShake" title="an.ir.schema.CameraShake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraShake</span></code></a>(**data)</p></td>
+<td><p>A jolt of the frame inside a shot (an#429): seeded screen-space jitter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(**data)</p></td>
 <td><p>Captions for the whole film, built from the dialogue's word timings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(**data)</p></td>
 <td><p>A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(**data)</p></td>
 <td><p>Where a sound cue ends: at another cue's start, plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (an#317).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DelayAction" title="an.ir.schema.DelayAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DelayAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DelayAction" title="an.ir.schema.DelayAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DelayAction</span></code></a>(**data)</p></td>
 <td><p>Composition: an empty span that consumes time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Dialogue" title="an.ir.schema.Dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dialogue</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Dialogue" title="an.ir.schema.Dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dialogue</span></code></a>(**data)</p></td>
 <td><p>One line of spoken dialogue.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a>(**data)</p></td>
 <td><p>An action of a kind the core does not define: the IR's one open member.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.LoopAction" title="an.ir.schema.LoopAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoopAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.LoopAction" title="an.ir.schema.LoopAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoopAction</span></code></a>(**data)</p></td>
 <td><p>Composition: repeat <code class="docutils literal notranslate"><span class="pre">child</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Meta" title="an.ir.schema.Meta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Meta</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Meta" title="an.ir.schema.Meta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Meta</span></code></a>(**data)</p></td>
 <td><p>Scene metadata.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Narration" title="an.ir.schema.Narration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Narration</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Narration" title="an.ir.schema.Narration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Narration</span></code></a>(**data)</p></td>
 <td><p>Off-screen narration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelAction</span></code></a>(**data)</p></td>
 <td><p>Composition: run all children simultaneously starting at the same time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Resolution" title="an.ir.schema.Resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolution</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Resolution" title="an.ir.schema.Resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolution</span></code></a>(**data)</p></td>
 <td><p>Pixel dimensions of the rendered output.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneIR</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneIR</span></code></a>(**data)</p></td>
 <td><p>Top-level Scene IR document.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(**data)</p></td>
 <td><p>Composition: run children one after the other.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(**data)</p></td>
 <td><p>Set a property to a value at a specific time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(**data)</p></td>
 <td><p>A single rendered unit.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(**data)</p></td>
 <td><p>One sound placed on the timeline: an SFX hit, an ambience, a music bed.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
 <td><p>Where an entity stands on the stage, and how big it is.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(**data)</p></td>
 <td><p>How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(**data)</p></td>
 <td><p>Animate a property from a start value to an end value over a duration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(**data)</p></td>
 <td><p>A single mouth-shape keyframe in a viseme track.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(**data)</p></td>
 <td><p>Aligned viseme track produced by the lip-sync stage.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(**data)</p></td>
 <td><p>One loudness for every voice of the film (an#315).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
 <td><p>One word of a line and when it was spoken, in seconds from the line's start (like <a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>, never absolute).</p></td>
 </tr>
 </tbody>
@@ -863,7 +869,7 @@ it. So this field can grow without retiring a single ledger row.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.Camera">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">Camera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Camera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.Camera" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CameraShakes</span></code></p>
 <p>Camera state for a shot: a named move, or explicit keys.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Camera</span><span class="p">(</span><span class="n">move</span><span class="o">=</span><span class="s2">"push_in"</span><span class="p">)</span><span class="o">.</span><span class="n">move</span>
 <span class="go">'push_in'</span>
@@ -952,6 +958,72 @@ named moves supply the easing they have always supplied.</p>
 <span class="sig-name descname"><span class="pre">zoom</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraKey.zoom" title="Link to this definition">#</a></dt>
 <dd><p>On-screen magnification. Must be &gt; 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CameraShake</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CameraShake"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CameraShake" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>A jolt of the frame inside a shot (an#429): seeded screen-space jitter.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CameraShake</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">duration</span>
+<span class="go">0.4</span>
+</pre></div>
+</div>
+<p>Layered on whatever the camera does (a <code class="code docutils literal notranslate"><span class="pre">move</span></code>, <code class="code docutils literal notranslate"><span class="pre">keys</span></code>, or nothing): the
+pan and zoom are the root’s pivot and scale, a shake is its screen
+position, so the two add without either knowing the other. The jitter is
+deterministic (<code class="docutils literal notranslate"><span class="pre">seed</span></code>) and, with <code class="docutils literal notranslate"><span class="pre">decay</span></code>, falls linearly to rest by
+the end; the frame is exactly at rest before <code class="docutils literal notranslate"><span class="pre">at</span></code> and after it.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.amplitude" title="Link to this definition">#</a></dt>
+<dd><p>How far the frame jumps at most, as a fraction of the frame height.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.at">
+<span class="sig-name descname"><span class="pre">at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.at" title="Link to this definition">#</a></dt>
+<dd><p>When the jolt starts, in shot seconds.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.decay">
+<span class="sig-name descname"><span class="pre">decay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.decay" title="Link to this definition">#</a></dt>
+<dd><p>Fall linearly to rest over the duration (an impact); off, it holds its
+amplitude to the end (a rumble).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.duration">
+<span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.duration" title="Link to this definition">#</a></dt>
+<dd><p>How long it lasts.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.frequency">
+<span class="sig-name descname"><span class="pre">frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.frequency" title="Link to this definition">#</a></dt>
+<dd><p>Jumps per second.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CameraShake.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraShake.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#an.ir.schema.CameraShake.seed" title="Link to this definition">#</a></dt>
+<dd><p>the same seed draws the same jolt on every machine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Which jitter</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1097,6 +1169,20 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).</p>
 <span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CAPTION_SIZE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></span><a class="headerlink" href="#an.ir.schema.DEFAULT_CAPTION_SIZE" title="Link to this definition">#</a></dt>
 <dd><p>Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.DFLT_SHAKE_DURATION">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">DFLT_SHAKE_DURATION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.4</span></span><a class="headerlink" href="#an.ir.schema.DFLT_SHAKE_DURATION" title="Link to this definition">#</a></dt>
+<dd><p>how long a jolt lasts, how far the frame
+jumps (a fraction of the frame HEIGHT, so it reads the same at any
+resolution: 0.015 is about 11 px at 720p), and how many times a second it
+jumps. Art direction, chosen to read as an impact rather than a tremor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A camera shake’s defaults (an#429)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -2036,6 +2122,16 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey.zoom"><code class="docutils literal notranslate"><span class="pre">CameraKey.zoom</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake"><code class="docutils literal notranslate"><span class="pre">CameraShake</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.amplitude"><code class="docutils literal notranslate"><span class="pre">CameraShake.amplitude</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.at"><code class="docutils literal notranslate"><span class="pre">CameraShake.at</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.decay"><code class="docutils literal notranslate"><span class="pre">CameraShake.decay</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.duration"><code class="docutils literal notranslate"><span class="pre">CameraShake.duration</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.frequency"><code class="docutils literal notranslate"><span class="pre">CameraShake.frequency</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.model_config"><code class="docutils literal notranslate"><span class="pre">CameraShake.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraShake.seed"><code class="docutils literal notranslate"><span class="pre">CameraShake.seed</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Captions"><code class="docutils literal notranslate"><span class="pre">Captions</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Captions.anchor"><code class="docutils literal notranslate"><span class="pre">Captions.anchor</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Captions.font"><code class="docutils literal notranslate"><span class="pre">Captions.font</span></code></a></li>
@@ -2056,6 +2152,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_MAX_CHARS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DEFAULT_CAPTION_SIZE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTION_SIZE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DFLT_SHAKE_DURATION"><code class="docutils literal notranslate"><span class="pre">DFLT_SHAKE_DURATION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DelayAction"><code class="docutils literal notranslate"><span class="pre">DelayAction</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.DelayAction.model_config"><code class="docutils literal notranslate"><span class="pre">DelayAction.model_config</span></code></a></li>
 </ul>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=386d82f3"></script>
+    <script src="../../../_static/documentation_options.js?v=9c1506ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.212" />
+  <meta name="docsearch:version" content="0.1.213" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -825,6 +825,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">PAN_FRACTION</span><span class="p">,</span> <span class="n">CameraError</span>  <span class="c1"># noqa: F401  (re-exported)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_keys</span> <span class="k">as</span> <span class="n">_camera_keys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_shake_offsets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FILL_SPAN</span> <span class="k">as</span> <span class="n">_PLANE_FILL_SPAN</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -1712,8 +1713,16 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_camera_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The camera (Phase 7): `camera.move`/keys onto the scene root."""</span>
+<span class="w">    </span><span class="sd">"""The camera (Phase 7): `camera.move`/keys onto the scene root, then its</span>
+<span class="sd">    shakes (an#429) onto the root's screen position."""</span>
     <span class="n">_add_camera_clips</span><span class="p">(</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_add_camera_shake_clips</span><span class="p">(</span>
         <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
         <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span>
         <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="p">,</span>
@@ -4723,6 +4732,67 @@ window.runMermaid = runMermaid;</script>
     <span class="k">except</span> <span class="n">CameraError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_camera_shake_clips</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">animations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnimationClipJSON</span><span class="p">],</span>
+    <span class="n">tracks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrackJSON</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Emit the shot's camera shakes (an#429) as `root:x`/`root:y` channels.</span>
+
+<span class="sd">    The root sits at the canvas centre and the camera is its pivot and scale,</span>
+<span class="sd">    so its POSITION is free: a shake written there moves the composed frame in</span>
+<span class="sd">    screen pixels and adds to any pan or zoom without sampling it. The values</span>
+<span class="sd">    are the centre plus each offset of :func:`camera_shake_offsets` (the one</span>
+<span class="sd">    resolver validate also calls), held at the centre outside the shakes, so</span>
+<span class="sd">    the frame is exactly at rest before and after. No shake, no channel: a</span>
+<span class="sd">    shot without one compiles byte-identically.</span>
+<span class="sd">    """</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">camera_shake_offsets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">offsets</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">authored</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">animation</span> <span class="ow">in</span> <span class="n">animations</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">animation</span><span class="o">.</span><span class="n">channels</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">centre</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span> <span class="ow">in</span> <span class="n">authored</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the camera shake drives `root:</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">` and an "</span>
+                <span class="s2">"action also targets it. The shake is appended last and the "</span>
+                <span class="s2">"evaluators are later-wins, so the authored channel would be "</span>
+                <span class="s2">"discarded silently. Move the action to a child node."</span>
+            <span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="o">*</span><span class="p">[(</span><span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">],</span> <span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+        <span class="n">keyframes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">KeyframeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">keyframes</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">keyframes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># a shake at 0 or ending at the shot's end</span>
+            <span class="n">keyframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">centre</span> <span class="o">+</span> <span class="n">v</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">anim_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"__camera__</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">_shake_</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">animations</span><span class="p">[</span><span class="n">anim_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+            <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="n">ChannelJSON</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keyframes</span><span class="o">=</span><span class="n">keyframes</span><span class="p">)],</span>
+        <span class="p">)</span>
+        <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TrackJSON</span><span class="p">(</span>
+                <span class="n">target_root</span><span class="o">=</span><span class="s2">"__camera__"</span><span class="p">,</span>
+                <span class="n">clips</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">PlacedClipJSON</span><span class="p">(</span>
+                        <span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span>
+                    <span class="p">)</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_camera_clips</span><span class="p">(</span>

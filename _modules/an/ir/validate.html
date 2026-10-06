@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=386d82f3"></script>
+    <script src="../../../_static/documentation_options.js?v=9c1506ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.212" />
+  <meta name="docsearch:version" content="0.1.213" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -735,7 +735,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRIM_SILENCE</span><span class="p">,</span> <span class="n">VoiceEffectError</span><span class="p">,</span> <span class="n">voice_effects</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">speaker_voice_ref</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_exists_for</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">CameraError</span><span class="p">,</span> <span class="n">camera_keys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">CameraError</span><span class="p">,</span> <span class="n">camera_keys</span><span class="p">,</span> <span class="n">camera_shake_offsets</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentMigrationError</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneValidationError</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
@@ -1632,6 +1632,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># cannot drift from what it predicts (an#109 review, H-1).</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">camera_shake_offsets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># an#429: its refusals too</span>
     <span class="k">except</span> <span class="n">CameraError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> Rendering this shot raises."</span><span class="p">)</span>
         <span class="k">return</span>

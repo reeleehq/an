@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=386d82f3"></script>
+    <script src="../../../_static/documentation_options.js?v=9c1506ea"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.212" />
+  <meta name="docsearch:version" content="0.1.213" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,6 +731,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Camera</span><span class="p">,</span> <span class="n">CameraKey</span><span class="p">,</span> <span class="n">Shot</span>
@@ -740,6 +741,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"PAN_FRACTION"</span><span class="p">,</span>
     <span class="s2">"CameraError"</span><span class="p">,</span>
     <span class="s2">"camera_keys"</span><span class="p">,</span>
+    <span class="s2">"camera_shake_offsets"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: How far a pan travels, as a fraction of the canvas width (a tilt uses the</span>
@@ -897,6 +899,61 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"(0 … </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">). A keyframe past the end never plays; one before "</span>
             <span class="s2">"the start opens the shot mid-move."</span>
         <span class="p">)</span>
+
+
+<div class="viewcode-block" id="camera_shake_offsets">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.camera_shake_offsets">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">camera_shake_offsets</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The shot's camera shakes as ``(time, dx, dy)`` screen offsets — the ONE resolver (an#429).</span>
+
+<span class="sd">    Empty when the shot has none. Each shake is at rest (``0, 0``) at its</span>
+<span class="sd">    start and its end; between, the frame jumps ``frequency`` times a second</span>
+<span class="sd">    to a seeded offset of at most ``amplitude`` × the frame height, scaled</span>
+<span class="sd">    down linearly to rest when ``decay``. Validate and the compiler both call</span>
+<span class="sd">    this, so a shake that validates cannot then raise (as with</span>
+<span class="sd">    :func:`camera_keys`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Camera, CameraShake, Shot</span>
+<span class="sd">    &gt;&gt;&gt; s = Shot(id="s", duration=2.0, camera=Camera(shake=[CameraShake(at=1.0, duration=0.25, frequency=8)]))</span>
+<span class="sd">    &gt;&gt;&gt; [(t, round(dx, 2), round(dy, 2)) for t, dx, dy in camera_shake_offsets(s, width=1280, height=720)]</span>
+<span class="sd">    [(1.0, 0.0, 0.0), (1.125, 3.72, 2.79), (1.25, 0.0, 0.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">camera</span><span class="p">:</span> <span class="n">Camera</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">camera</span>
+    <span class="k">if</span> <span class="n">camera</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">camera</span><span class="o">.</span><span class="n">shake</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">shakes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">shake</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">))</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shakes</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">duration</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CameraError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the camera shake at </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s lasts </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s, "</span>
+                <span class="sa">f</span><span class="s2">"past the shot (0 … </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s): its frames would never play. "</span>
+                <span class="s2">"Shorten it or move it earlier."</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">shakes</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">at</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">shakes</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CameraError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: two camera shakes overlap (at "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">shakes</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">at</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s and </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s). Write one longer shake, "</span>
+                <span class="s2">"or move the second after the first ends."</span>
+            <span class="p">)</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">length</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">frequency</span><span class="p">)))</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">seed</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span> <span class="o">*</span> <span class="n">j</span> <span class="o">/</span> <span class="n">steps</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">j</span> <span class="o">/</span> <span class="n">steps</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">decay</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="p">(</span><span class="n">amp</span> <span class="o">*</span> <span class="n">env</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 </pre></div>
 
                 </article>

@@ -16,6 +16,7 @@ an.ir.camera
    .. autosummary::
    
       camera_keys
+      camera_shake_offsets
    
    .. rubric:: Exceptions
 
