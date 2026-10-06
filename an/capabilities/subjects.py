@@ -33,7 +33,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import shutil
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from an.capabilities import (
@@ -55,7 +55,8 @@ __all__ = [
 ]
 
 #: "2": `engine.measure_duration` joined the derivation (an#279).
-ENGINE_ANALYSER_VERSION: str = "2"
+#: "3": `engine.paint_order` joined it (an#430).
+ENGINE_ANALYSER_VERSION: str = "3"
 #: "2": `env.manim` joined the derivation (an#279).
 ENVIRONMENT_ANALYSER_VERSION: str = "2"
 
@@ -170,6 +171,52 @@ RIG_HIERARCHY = register_capability(
     ),
 )
 
+#: The paint orders an engine can honour (an#430; G16 of the studio-set genre
+#: review), the keys of ``engine.paint_order``: ``container`` -- it reorders
+#: the items of one container (a far arm behind the torso it nests under,
+#: an#403's ``z_index``); ``global`` -- it paints parts in one list across
+#: containers (a chain interleaved with an unrelated part, ``paint_order``).
+#: An engine declares the ones it honours as ``paint_orders``, the way it
+#: declares ``view_spaces``; the stage compiler refuses a rig that needs one it
+#: lacks, naming it, instead of assuming the stage.
+PAINT_ORDERS: tuple[str, ...] = ("container", "global")
+ENGINE_PAINT_ORDER = register_capability(
+    "engine.paint_order",
+    description=(
+        "the engine paints parts in an order that is not their tree's (keys: "
+        "`container`, reorder one container's items; `global`, one paint list "
+        "across containers)"
+    ),
+    remedy=(
+        "render the shot with an engine that declares that paint order (the "
+        "stage does), or give the rig a draw order its tree already paints "
+        "(`nesting: flat`, or each chain's parts together in draw order)"
+    ),
+    subject="engine",
+)
+
+
+def missing_engine_terms(renderer_name: str, terms: Iterable[str]) -> list[str]:
+    """The requirement ``terms`` the renderer registered as ``renderer_name``
+    does not afford (an#430), ``[]`` when it affords them all or is not
+    registered (an unknown renderer is reported by its own check).
+
+    >>> missing_engine_terms("cutout", ["engine.paint_order:global"])
+    []
+    """
+    from an.adapters._base import RendererLoadError, get_renderer
+    from an.capabilities import Subjects, analyse, missing
+
+    terms = list(terms)
+    if not terms:
+        return []
+    try:
+        renderer = get_renderer(renderer_name)
+    except (KeyError, RendererLoadError):
+        return []
+    profile, _ = analyse("engine", renderer)
+    return missing(Subjects(engine=profile), terms)
+
 
 def _real_probe() -> dict[str, Any]:
     from an.check_requirements import playwright_browser_dirs
@@ -231,6 +278,9 @@ def _derive_engine(renderer: Any, art: Mapping[str, Any]) -> dict[str, dict[str,
     for member in ENGINE_OPTIONAL_MEMBERS:
         if callable(getattr(renderer, member, None)):
             out[f"engine.{member}"] = {}
+    orders = tuple(getattr(renderer, "paint_orders", ()) or ())
+    if orders:
+        out[ENGINE_PAINT_ORDER.name] = {KEYS_PARAM: list(orders)}
     spaces = getattr(renderer, "view_spaces", None)
     if spaces is None:
         spaces = DFLT_ENGINE_VIEW_SPACES.get(getattr(renderer, "name", ""), ())

@@ -112,7 +112,7 @@ def test_a_rest_rotation_composes_through_the_chain(tmp_path):
     assert shade.transform.rotation == 0.0  # on the forearm's bone: it turns WITH the forearm
 
 
-def test_a_chain_drawn_against_its_order_is_refused_at_compile_and_validate(tmp_path):
+def test_a_chain_drawn_around_its_parent_is_painted_from_a_global_order(tmp_path):
     from an.ir.validate import validate_semantic
 
     doc = _doc()
@@ -123,11 +123,14 @@ def test_a_chain_drawn_against_its_order_is_refused_at_compile_and_validate(tmp_
             # which no sorting of one container can do (an#403).
             slot["draw_order"] = 0
     mall = _mall(tmp_path, doc)
-    with pytest.raises(CutoutCompileError, match="paints each chain's parts together"):
-        compile_shot(_shot(), mall=mall)
+    # Since an#430 the stage paints such a rig from a global part order
+    # instead of refusing it (an engine without one still refuses it, by its
+    # capability: tests/test_rig_interleave.py).
+    scene = compile_shot(_shot(), mall=mall)
+    (lamp,) = [n for n in scene.scene.children if n.name == "lamp"]
+    assert lamp.paint_order[:3] == ["base", "base/upper/fore", "base/upper"]  # forearm under the upper arm
     report = validate_semantic(SceneIR(meta=Meta(), timeline=[_shot()]), available_props=mall["props"])
-    assert not report.passed
-    assert any("paints each chain's parts together" in f.description for f in report.findings)
+    assert report.passed
 
 
 def test_a_bone_cycle_is_a_closed_linkage_and_is_refused(tmp_path):
@@ -208,9 +211,10 @@ def test_an_props_cli_is_wired():
     assert names == ["validate", "contract"]
 
 
-def test_a_chain_that_would_paint_an_unrelated_part_out_of_order_is_refused(tmp_path):
-    """Depth-first painting moves a whole chain past a part ordered between
-    its members (the review's leg-over-the-face case)."""
+def test_a_chain_straddling_an_unrelated_part_is_painted_from_a_global_order(tmp_path):
+    """Depth-first painting would move a whole chain past a part ordered
+    between its members (the review's leg-over-the-face case); since an#430
+    the rig is painted from one global part order instead."""
     from an.stage.rig import chain_draw_order_problems
 
     doc = _doc()
@@ -220,10 +224,15 @@ def test_a_chain_that_would_paint_an_unrelated_part_out_of_order_is_refused(tmp_
     for slot in doc["slots"]:  # upper 1, cord 2, fore 3: the chain straddles the cord
         slot["draw_order"] = {"base": 0, "upper": 1, "fore": 3, "shade": 4}.get(slot["name"], slot["draw_order"])
     assert chain_draw_order_problems(doc)
-    with pytest.raises(CutoutCompileError, match="depth first"):
-        compile_shot(_shot(), mall=_mall(tmp_path, doc))
-    doc["slots"][-1]["draw_order"] = 5  # after the chain: fine
+    # Painted from a global part order since an#430, not refused.
+    scene = compile_shot(_shot(), mall=_mall(tmp_path / "a", doc))
+    (lamp,) = [n for n in scene.scene.children if n.name == "lamp"]
+    assert lamp.paint_order == ["base", "base/upper", "cord", "base/upper/fore", "base/upper/fore/shade"]
+    doc["slots"][-1]["draw_order"] = 5  # after the chain: the tree's own order
     assert not chain_draw_order_problems(doc)
+    scene = compile_shot(_shot(), mall=_mall(tmp_path / "b", doc))
+    (lamp,) = [n for n in scene.scene.children if n.name == "lamp"]
+    assert lamp.paint_order is None
 
 
 def test_a_posed_bone_with_no_slot_in_a_chain_is_refused(tmp_path):

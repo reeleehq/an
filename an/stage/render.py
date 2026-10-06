@@ -976,6 +976,10 @@ class CutoutRenderer(FrameStageRenderer):
     name: str = "cutout"
     supported_renderers: tuple[str, ...] = STAGE_RENDERER_NAMES
     error: type[Exception] = CutoutRenderError
+    #: The paint orders the stage runtime honours (an#430): one container's
+    #: items sorted (``applyPaintOrder``) and one list across containers
+    #: (``applyGlobalPaint``). Read as the ``engine.paint_order`` capability.
+    paint_orders: tuple[str, ...] = ("container", "global")
 
 
 # -----------------------------------------------------------------------------

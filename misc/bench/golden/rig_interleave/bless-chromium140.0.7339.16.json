@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T15:28:56Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1797,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "cf1052658a4d01f2e24586af5a584b26243e6c226712919471270c49079959b1",
+      "shot_id": "pose",
+      "time": 0.0
+    },
+    {
+      "bytes": 1672,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "c450fe62f672cfdd7af7f206c100b42eb703fa0525627792d4a3f01aaa1978b1",
+      "shot_id": "pose",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "interleave-chains",
+    "dirty": true,
+    "sha": "c1c1589318cb7b8353a71858327645da45e69e12"
+  },
+  "reason": "an#430: the rig_interleave fixture's first goldens -- a nested chain painted from a global part order, an unrelated panel between its upper arm and its forearm",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "rig_interleave",
+  "scene_contract_sha256": "fb90b9d0f684df5a5c02eaa631be9f0f45fb86a711ad5aa885b76396ccd78d12",
+  "shot_ids": [
+    "pose"
+  ],
+  "source": "misc/bench/corpus/rig_interleave",
+  "what_moves": "the rig_chain desk lamp (`nesting: bones`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global `paint_order`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."
+}

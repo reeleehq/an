@@ -679,6 +679,27 @@ def natural_paint_order(order: dict[str | None, list[str]], keys: dict) -> dict:
     }
 
 
+def global_paint_order(desc: Any, *, built: Any = None) -> list[str]:
+    """The node paths of a rig's slots, relative to its entity, in DECLARED
+    draw order: the paint list the stage uses when a nested chain interleaves
+    with an unrelated part (an#430), which no sort of a container's own items
+    can give (:func:`chain_draw_order_problems`). Spine's global slot order:
+    each part follows its bone's world transform, and the list says who
+    paints over whom. ``built`` limits it to the slots the builder drew.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones",
+    ...          bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm"), NS(name="cord", parent=None)],
+    ...          slots=[NS(name="arm", bone="arm", draw_order=1), NS(name="cord", bone="cord", draw_order=2),
+    ...                 NS(name="hand", bone="hand", draw_order=3)])
+    >>> global_paint_order(rig)
+    ['arm', 'cord', 'arm/hand']
+    """
+    keys = _draw_keys(desc)
+    paths = slot_node_paths(desc)
+    return [paths[n] for n in sorted(keys, key=keys.get) if built is None or n in built]
+
+
 def _stamp_paint_order(desc: Any, nodes: dict[str, NodeJSON]) -> None:
     """Give the built nodes the ``z_index`` the stage sorts by (an#403), only in
     the containers whose declared order differs from the builder's own (a
@@ -1393,11 +1414,10 @@ def build_rig_subtree(
     parents = slot_parent_chain(desc)
     bones_mode = nesting_of(desc) == BONES_NESTING
     if bones_mode:
-        broken = (
-            [p for p in rig_problems(desc) if "cycle" in p]
-            + chain_draw_order_problems(desc)
-            + chain_pose_problems(desc)
-        )
+        # A chain interleaved with an unrelated part is no longer refused
+        # here (an#430): it is painted from a global list (`paint_order`),
+        # and the compiler refuses it only for an engine that cannot.
+        broken = [p for p in rig_problems(desc) if "cycle" in p] + chain_pose_problems(desc)
         if broken:
             raise RigError(
                 f"rig {ref!r} cannot be built with `nesting: bones`: "
@@ -1553,8 +1573,12 @@ def build_rig_subtree(
     for parent_name, kids in children_of.items():
         if parent_name and parent_name in nodes:
             nodes[parent_name].children = kids
+    paint_order = None
     if bones_mode:
-        _stamp_paint_order(desc, nodes)
+        if chain_draw_order_problems(desc):
+            paint_order = global_paint_order(desc, built=set(nodes))
+        else:
+            _stamp_paint_order(desc, nodes)
 
     # A part is drawn only if its whole chain was built: one whose parent was
     # not (its art missing) is an orphan, a hole in the picture like the parent
@@ -1599,6 +1623,7 @@ def build_rig_subtree(
         name=entity.id,
         transform=TransformJSON(),
         children=children_of.get("", []),
+        paint_order=paint_order,
     )
 
 

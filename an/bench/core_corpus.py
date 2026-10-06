@@ -27,6 +27,8 @@ rig_rest   a tripod whose legs are ONE drawing splayed by their bones' rest
            rotation (an#339), tilting as a whole with the splay intact
 rig_chain  a desk-lamp arm in ``nesting: bones`` (an#340): base, upper arm,
            forearm and a shade nested on it, posed by three tweens
+rig_interleave the same arm passing behind an unrelated panel and in front of it:
+           a global part order (an#430)
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -46,7 +48,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -306,6 +308,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "intact. A regression that dropped the rest pose (three parallel "
             "legs), applied it twice, or let the entity's rotation replace a "
             "leg's instead of composing with it moves a golden."
+        ),
+    ),
+    "rig_interleave": Fixture(
+        path=f"{CORPUS_DIRNAME}/rig_interleave",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "the rig_chain desk lamp (`nesting: bones`, base -> upper arm -> "
+            "forearm -> shade) with an UNRELATED panel ordered between the upper "
+            "arm (1) and the forearm (3) (an#430): the panel covers the upper "
+            "arm's top and the forearm crosses OVER the panel, which no sort of "
+            "one container's items can give. Painted from the entity's global "
+            "`paint_order`. The same three tweens as rig_chain move the arm "
+            "between the goldens. A regression that painted the chain together "
+            "(the panel over both arms, or under both) moves a golden."
         ),
     ),
     "rig_chain": Fixture(

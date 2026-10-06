@@ -1852,7 +1852,12 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         doc = _rig_document(entity, mall_stores)
         if doc is not None:
             _check_rig_document(
-                doc, entity, f"{path}/entities/{j}", report, raw=store[entity.ref]
+                doc,
+                entity,
+                f"{path}/entities/{j}",
+                report,
+                raw=store[entity.ref],
+                renderer=shot.renderer,
             )
             continue
         registered = entity_kind(entity.kind)
@@ -1891,7 +1896,13 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
 
 
 def _check_rig_document(
-    doc: dict, entity, ir_path: str, report: "ValidationReport", *, raw: Any = None
+    doc: dict,
+    entity,
+    ir_path: str,
+    report: "ValidationReport",
+    *,
+    raw: Any = None,
+    renderer: str | None = None,
 ) -> None:
     """A rig's declared ``origin`` is finite and inside its view_box (an#338),
     a bone's rest rotation turns its part about the joint (an#339), and a
@@ -1923,14 +1934,27 @@ def _check_rig_document(
     # pre-flight is an ERROR; a flat rig's dangling bone only misplaces a part.
     if nesting_of(doc) == BONES_NESTING:
         cycles = [p for p in rig_problems(doc) if "cycle" in p]
-        for problem in (
-            cycles + chain_draw_order_problems(doc) + chain_pose_problems(doc)
-        ):
+        for problem in cycles + chain_pose_problems(doc):
             report.add(
                 "error",
                 ir_path,
                 f"{entity.kind} ref {entity.ref!r}: {problem} (rendering this shot raises)",
             )
+        # A chain interleaved with an unrelated part is painted from a global
+        # list (an#430): an error only for an engine that cannot (G16).
+        if renderer is not None and chain_draw_order_problems(doc):
+            from an.capabilities.subjects import ENGINE_PAINT_ORDER, missing_engine_terms
+
+            lacking = missing_engine_terms(renderer, [f"{ENGINE_PAINT_ORDER.name}:global"])
+            if lacking:
+                report.add(
+                    "error",
+                    ir_path,
+                    f"{entity.kind} ref {entity.ref!r}: its nested chain interleaves "
+                    f"with an unrelated part, which needs {lacking}; renderer "
+                    f"{renderer!r} does not afford it (rendering this shot raises): "
+                    f"{ENGINE_PAINT_ORDER.remedy}",
+                )
 
 
 def _core_voices(ctx: ValidationContext) -> None:

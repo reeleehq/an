@@ -249,6 +249,12 @@ class NodeJSON(_JSONModel):
     #: (an#403): a nested chain whose declared draw order is not the tree's
     #: (a far arm behind the torso it nests under). ``None`` = insertion order.
     z_index: float | None = None
+    #: The order its descendants' visuals are PAINTED in, when it is not the
+    #: tree's (an#430): node paths relative to this node, back to front. Set on
+    #: a rig's entity node whose nested chain interleaves with an unrelated
+    #: part (an upper arm 1, a cord 2, a forearm 3); the runtime keeps each
+    #: visual in its transform tree and paints it from this list.
+    paint_order: list[str] | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_scope(self, handler):
@@ -260,6 +266,8 @@ class NodeJSON(_JSONModel):
             data.pop("scope", None)
         if isinstance(data, dict) and self.z_index is None:
             data.pop("z_index", None)
+        if isinstance(data, dict) and self.paint_order is None:
+            data.pop("paint_order", None)
         return data
 
 

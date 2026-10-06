@@ -83,11 +83,20 @@ def validate_prop(
 
     for problem in rig_problems(desc):
         report.add(BLOCKING, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
-    for problem in chain_draw_order_problems(desc) + chain_pose_problems(desc):
+    for problem in chain_pose_problems(desc):
         report.add(
             ADVISORY,
             f"{PROP_META_NAME}#rig",
             f"{who}: {problem} (compiling a shot refuses it)",
+        )
+    for problem in chain_draw_order_problems(desc):
+        # Painted by the stage from a global part order (an#430); an engine
+        # without `engine.paint_order:global` refuses it at compile.
+        report.add(
+            ADVISORY,
+            f"{PROP_META_NAME}#rig",
+            f"{who}: {problem} -- the stage paints it from a global part order "
+            "(`engine.paint_order:global`); an engine without one refuses it",
         )
     for problem in rig_origin_problems(desc) + rig_rest_problems(desc):
         report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
@@ -167,7 +176,8 @@ def render_prop_contract() -> str:
         "",
         "## Advisory",
         "",
-        "- a chain drawn against its order (compiling a shot refuses it);",
+        "- a chain interleaved with an unrelated part (the stage paints it from a",
+        "  global part order; an engine without `engine.paint_order:global` refuses it);",
         "- an origin outside the view_box; a rest-rotated bone whose part is offset;",
         "- no `source` (where the art came from, and its licence).",
     ]

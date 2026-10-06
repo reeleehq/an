@@ -159,6 +159,46 @@
         container.sortableChildren = true;
     }
 
+    // A paint list that is not the tree's (an#430): a nested chain whose parts
+    // interleave with an unrelated part (upper arm 1, a cord 2, forearm 3),
+    // which no sort of one container's items can give, since a container paints
+    // its subtree together. Spine's global slot order: every listed node KEEPS
+    // its place in the transform tree, so position, rotation, scale, alpha,
+    // tint and swaps compose exactly as before; only its own draws (underlays,
+    // then visual) stop rendering there and are painted by a proxy, in list
+    // order, from a layer added last to this container. A proxy renders its
+    // targets with the world transform and alpha the tree just computed
+    // (PixiJS 7's updateTransform walks non-renderable objects too), so it
+    // adds no per-frame state, no filter and nothing random. The Python
+    // statement of the list is an.stage.rig.global_paint_order.
+    class PaintProxy extends PIXI.Container {
+        constructor(targets) {
+            super();
+            this._anTargets = targets;
+        }
+        render(renderer) {
+            for (const t of this._anTargets) {
+                if (!t.worldVisible) continue;
+                t.renderable = true;
+                t.render(renderer);
+                t.renderable = false;
+            }
+        }
+    }
+
+    function applyGlobalPaint(container, prefix, order) {
+        const layer = new PIXI.Container();
+        layer.name = (container.name || '') + '#paint';
+        for (const rel of order) {
+            const path = prefix ? prefix + '/' + rel : rel;
+            const node = nodeIndex[path];
+            if (!node || !node._anDraws) continue;  // not built (missing art)
+            for (const d of node._anDraws) d.renderable = false;
+            layer.addChild(new PaintProxy(node._anDraws));
+        }
+        container.addChild(layer);
+    }
+
     function buildSceneTree(node, parent, pathPrefix) {
         const path = pathPrefix ? pathPrefix + '/' + node.name : node.name;
         const container = new PIXI.Container();
@@ -177,11 +217,16 @@
             // no channel of their own. Built once, from the document; nothing
             // here is a filter and nothing is random.
             const visualZ = node.visual.z_index;
+            // What this node itself draws (its underlays, then its visual): a
+            // global paint list (an#430) paints exactly these, in its order.
+            container._anDraws = [];
             for (const copy of makeUnderlays(node.visual, visual)) {
                 // Tied to its visual, so a sorted container keeps it just behind.
                 if (visualZ !== undefined && visualZ !== null) copy._anZ = visualZ;
                 container.addChild(copy);
+                container._anDraws.push(copy);
             }
+            container._anDraws.push(visual);
             if (visualZ !== undefined && visualZ !== null) visual._anZ = visualZ;
             if (node.visual.blend) {
                 visual.blendMode = blendModeOf(node.visual.blend);
@@ -195,6 +240,7 @@
             buildSceneTree(child, container, inner);
         }
         applyPaintOrder(container);
+        if (node.paint_order) applyGlobalPaint(container, inner, node.paint_order);
 
         parent.addChild(container);
         return container;
