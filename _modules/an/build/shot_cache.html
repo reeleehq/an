@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=06bdfc4c"></script>
+    <script src="../../../_static/documentation_options.js?v=a2c57855"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.220" />
+  <meta name="docsearch:version" content="0.1.221" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -871,6 +871,10 @@ window.runMermaid = runMermaid;</script>
         <span class="c1">#: the ``assets`` part spelled out, so a re-render can name the asset</span>
         <span class="c1">#: that moved. Empty for a shot keyed on the whole project.</span>
         <span class="n">reads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c1">#: ``{module: source digest}``: the ``code`` part spelled out (an#395),</span>
+        <span class="c1">#: so a re-render can name the modules that changed. Empty for an older</span>
+        <span class="c1">#: entry, or a renderer whose keyer does not say.</span>
+        <span class="n">code</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
         <span class="c1">#: The key composition it was written under (`SHOT_KEY_IMPL_VERSION`);</span>
         <span class="c1">#: 0 for an entry older than the field.</span>
         <span class="n">key_version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1035,6 +1039,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">inputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: The asset entries the shot read, digested (``{"store/key": digest}``).</span>
     <span class="n">reads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The render path's modules, digested (``{module: digest}``, an#395).</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">cached</span><span class="p">:</span> <span class="s2">"RenderResult | None"</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">key_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1330,6 +1336,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">parts</span><span class="p">,</span>
             <span class="n">reads</span><span class="o">=</span><span class="n">reads</span><span class="p">,</span>
+            <span class="n">code</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">details</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"code_modules"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="n">key_s</span><span class="o">=</span><span class="n">key_s</span><span class="p">,</span>
             <span class="n">compile_s</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">compile_s</span><span class="p">,</span>
             <span class="n">needs_frames</span><span class="o">=</span><span class="n">needs_frames</span><span class="p">,</span>
@@ -1551,6 +1558,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">explain_change</span><span class="p">(</span>
             <span class="nb">dict</span><span class="p">(</span><span class="n">previous</span><span class="o">.</span><span class="n">inputs</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s2">"reads"</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="n">plan</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span>
+            <span class="n">before_code</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">after_code</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
         <span class="p">)</span>  <span class="c1"># fmt: skip</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_previous_entries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1790,6 +1798,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">renderer</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">inputs</span><span class="p">),</span>
             <span class="n">reads</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">reads</span><span class="p">),</span>
+            <span class="n">code</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">code</span><span class="p">),</span>
             <span class="n">key_version</span><span class="o">=</span><span class="n">SHOT_KEY_IMPL_VERSION</span><span class="p">,</span>
             <span class="n">timings</span><span class="o">=</span><span class="n">timings</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1871,6 +1880,29 @@ window.runMermaid = runMermaid;</script>
 <span class="n">KEY_FORMAT_CHANGED</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"the shot key's format changed (an upgrade)"</span>
 
 
+<span class="c1">#: How many changed modules the summary names before "and N more".</span>
+<span class="n">CODE_MODULES_NAMED</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_code_label</span><span class="p">(</span><span class="n">before</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">after</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``an's render code`` with the modules whose source moved, when both entries say.</span>
+
+<span class="sd">    &gt;&gt;&gt; _code_label({"an.stage.compile": "a", "an.motion": "b"}, {"an.stage.compile": "c", "an.motion": "b"})</span>
+<span class="sd">    "an's render code (an.stage.compile)"</span>
+<span class="sd">    &gt;&gt;&gt; _code_label({}, {"an.motion": "b"})</span>
+<span class="sd">    "an's render code"</span>
+<span class="sd">    """</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">PART_LABELS</span><span class="p">[</span><span class="s2">"code"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">before</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">after</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">label</span>
+    <span class="n">moved</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">before</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">after</span><span class="p">)</span> <span class="k">if</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">!=</span> <span class="n">after</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">moved</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">label</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="n">moved</span><span class="p">[:</span><span class="n">CODE_MODULES_NAMED</span><span class="p">]</span>
+    <span class="n">more</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">named</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">named</span><span class="p">)</span><span class="si">}{</span><span class="sa">f</span><span class="s1">' and </span><span class="si">{</span><span class="n">more</span><span class="si">}</span><span class="s1"> more'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">)"</span>
+
+
 <div class="viewcode-block" id="explain_change">
 <a class="viewcode-back" href="../../../_autosummary/an.build.shot_cache.html#an.build.explain_change">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">explain_change</span><span class="p">(</span>
@@ -1878,6 +1910,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">before_reads</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">after</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">after_reads</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">before_code</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">after_code</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Why a shot keyed ``after`` is not the entry keyed ``before``, in words.</span>
 
@@ -1898,6 +1933,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    'the system fonts changed'</span>
 <span class="sd">    &gt;&gt;&gt; explain_change({"assets": "a"}, {}, {"assets": "b"}, {})  # an unrecorded shot</span>
 <span class="sd">    'a project asset changed'</span>
+<span class="sd">    &gt;&gt;&gt; explain_change({"code": "a"}, {}, {"code": "b"}, {},</span>
+<span class="sd">    ...                before_code={"an.motion": "1"}, after_code={"an.motion": "2"})</span>
+<span class="sd">    "an's render code (an.motion) changed"</span>
 <span class="sd">    """</span>
     <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="o">*</span><span class="n">after</span><span class="p">,</span> <span class="o">*</span><span class="n">before</span><span class="p">]))</span>
     <span class="n">moved</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">before</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">after</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
@@ -1912,7 +1950,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">moved</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">assets</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOLLOWS_ASSETS</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">PART_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">_code_label</span><span class="p">(</span><span class="n">before_code</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">after_code</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"code"</span>
+        <span class="k">else</span> <span class="n">PART_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">"assets"</span>
         <span class="k">else</span> <span class="s2">"a project asset"</span>  <span class="c1"># a whole-project digest: nothing to name</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">others</span>

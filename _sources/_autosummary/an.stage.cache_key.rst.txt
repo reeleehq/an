@@ -27,6 +27,7 @@ an.stage.cache\_key
       genre_code_modules
       muxed_audio
       render_code_digest
+      render_code_modules
       render_knobs
       render_path_modules
       render_path_roots

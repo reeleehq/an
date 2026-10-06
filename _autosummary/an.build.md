@@ -251,11 +251,15 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The engine’s answer for one shot: its key, and what to reuse if anything.
+
+#### code *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+The render path’s modules, digested (`{module: digest}`, an#395).
 
 #### parts *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 

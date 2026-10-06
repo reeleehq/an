@@ -253,11 +253,15 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The engine’s answer for one shot: its key, and what to reuse if anything.
+
+#### code *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+The render path’s modules, digested (`{module: digest}`, an#395).
 
 #### parts *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
 
@@ -290,7 +294,7 @@ renderer with no probe has the empty environment.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.build.shot_cache.explain_change(before, before_reads, after, after_reads)
+### an.build.shot_cache.explain_change(before, before_reads, after, after_reads, , before_code=None, after_code=None)
 
 Why a shot keyed `after` is not the entry keyed `before`, in words.
 
@@ -315,6 +319,9 @@ are of one composition: a different `key_version` is
 'the system fonts changed'
 >>> explain_change({"assets": "a"}, {}, {"assets": "b"}, {})  # an unrecorded shot
 'a project asset changed'
+>>> explain_change({"code": "a"}, {}, {"code": "b"}, {},
+...                before_code={"an.motion": "1"}, after_code={"an.motion": "2"})
+"an's render code (an.motion) changed"
 ```
 
 ### an.build.shot_cache.human_bytes(n)

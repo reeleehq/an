@@ -65,6 +65,7 @@ font set ([`system_fonts_digest()`](#an.stage.cache_key.system_fonts_digest)).
 | [`genre_code_modules`](#an.stage.cache_key.genre_code_modules)()                         | `{module: source path}` for every module of every package a loaded genre runs code from.                                                                                                               |
 | [`muxed_audio`](#an.stage.cache_key.muxed_audio)(shot, ctx)                       | What `_mux_shot` lays under the picture, as data: one entry per muxed line.                                                                                                                            |
 | [`render_code_digest`](#an.stage.cache_key.render_code_digest)()                         | sha256 over the source of every module on the render path (by module name).                                                                                                                            |
+| [`render_code_modules`](#an.stage.cache_key.render_code_modules)()                        | `{module name: sha256 of its source}` for every module on the render path.                                                                                                                             |
 | [`render_knobs`](#an.stage.cache_key.render_knobs)(shot, ctx)                      | Every `RenderContext` knob, resolved the way the frame stage resolves it.                                                                                                                              |
 | [`render_path_modules`](#an.stage.cache_key.render_path_modules)([root, excluded, moves]) | `{module: source path}` for every module the render path reaches.                                                                                                                                      |
 | [`render_path_roots`](#an.stage.cache_key.render_path_roots)([renderer_type])           | The modules a renderer's render path starts from, read off the renderer itself.                                                                                                                        |
@@ -204,6 +205,16 @@ sha256 over the source of every module on the render path (by module name).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.cache_key.render_code_modules()
+
+`{module name: sha256 of its source}` for every module on the render path.
+
+What the `code` key part digests, spelled out: a shot cache entry keeps
+it, so a re-render can name the modules that changed (an#395).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.cache_key.render_knobs(shot, ctx)
 

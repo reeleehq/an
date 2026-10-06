@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=06bdfc4c"></script>
+    <script src="../_static/documentation_options.js?v=a2c57855"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage" href="an.stage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.220" />
+  <meta name="docsearch:version" content="0.1.221" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -699,22 +699,25 @@ font set (<a class="reference internal" href="#an.stage.cache_key.system_fonts_d
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.render_code_digest" title="an.stage.cache_key.render_code_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_code_digest</span></code></a>()</p></td>
 <td><p>sha256 over the source of every module on the render path (by module name).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.render_knobs" title="an.stage.cache_key.render_knobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_knobs</span></code></a>(shot, ctx)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.render_code_modules" title="an.stage.cache_key.render_code_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_code_modules</span></code></a>()</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{module</span> <span class="pre">name:</span> <span class="pre">sha256</span> <span class="pre">of</span> <span class="pre">its</span> <span class="pre">source}</span></code> for every module on the render path.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.render_knobs" title="an.stage.cache_key.render_knobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_knobs</span></code></a>(shot, ctx)</p></td>
 <td><p>Every <code class="code docutils literal notranslate"><span class="pre">RenderContext</span></code> knob, resolved the way the frame stage resolves it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.render_path_modules" title="an.stage.cache_key.render_path_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_path_modules</span></code></a>([root, excluded, moves])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.render_path_modules" title="an.stage.cache_key.render_path_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_path_modules</span></code></a>([root, excluded, moves])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{module:</span> <span class="pre">source</span> <span class="pre">path}</span></code> for every module the render path reaches.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.render_path_roots" title="an.stage.cache_key.render_path_roots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_path_roots</span></code></a>([renderer_type])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.render_path_roots" title="an.stage.cache_key.render_path_roots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_path_roots</span></code></a>([renderer_type])</p></td>
 <td><p>The modules a renderer's render path starts from, read off the renderer itself.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.system_fonts_digest" title="an.stage.cache_key.system_fonts_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system_fonts_digest</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.system_fonts_digest" title="an.stage.cache_key.system_fonts_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system_fonts_digest</span></code></a>()</p></td>
 <td><p>A digest of the fonts this machine can draw SVG <code class="docutils literal notranslate"><span class="pre">&lt;text&gt;</span></code> with; once per process.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.texture_digests" title="an.stage.cache_key.texture_digests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">texture_digests</span></code></a>(scene_json, mall)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.texture_digests" title="an.stage.cache_key.texture_digests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">texture_digests</span></code></a>(scene_json, mall)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{alias:</span> <span class="pre">sha256</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">bytes</span> <span class="pre">staged</span> <span class="pre">for</span> <span class="pre">it}</span></code> for every texture the document declares.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.cache_key.x264_build" title="an.stage.cache_key.x264_build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x264_build</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.cache_key.x264_build" title="an.stage.cache_key.x264_build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x264_build</span></code></a>()</p></td>
 <td><p>The x264 build that ACTUALLY encodes: one 16x16 frame, its SEI read back.</p></td>
 </tr>
 </tbody>
@@ -890,6 +893,19 @@ inputs, not the bytes, and the mux reads the bytes.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.cache_key.render_code_modules">
+<span class="sig-prename descclassname"><span class="pre">an.stage.cache_key.</span></span><span class="sig-name descname"><span class="pre">render_code_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/cache_key.html#render_code_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.cache_key.render_code_modules" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{module</span> <span class="pre">name:</span> <span class="pre">sha256</span> <span class="pre">of</span> <span class="pre">its</span> <span class="pre">source}</span></code> for every module on the render path.</p>
+<p>What the <code class="docutils literal notranslate"><span class="pre">code</span></code> key part digests, spelled out: a shot cache entry keeps
+it, so a re-render can name the modules that changed (an#395).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.cache_key.render_knobs">
 <span class="sig-prename descclassname"><span class="pre">an.stage.cache_key.</span></span><span class="sig-name descname"><span class="pre">render_knobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/cache_key.html#render_knobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.cache_key.render_knobs" title="Link to this definition">#</a></dt>
 <dd><p>Every <code class="code docutils literal notranslate"><span class="pre">RenderContext</span></code> knob, resolved the way the frame stage resolves it.</p>
@@ -1052,6 +1068,7 @@ the cache and the ledger agree about what “the same encoder” means.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.genre_code_modules"><code class="docutils literal notranslate"><span class="pre">genre_code_modules()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.muxed_audio"><code class="docutils literal notranslate"><span class="pre">muxed_audio()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.render_code_digest"><code class="docutils literal notranslate"><span class="pre">render_code_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.render_code_modules"><code class="docutils literal notranslate"><span class="pre">render_code_modules()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.render_knobs"><code class="docutils literal notranslate"><span class="pre">render_knobs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.render_path_modules"><code class="docutils literal notranslate"><span class="pre">render_path_modules()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.cache_key.render_path_roots"><code class="docutils literal notranslate"><span class="pre">render_path_roots()</span></code></a></li>
