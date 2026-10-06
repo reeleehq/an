@@ -537,7 +537,12 @@ def _check_swap_references(
                 # document (a text block's `text` set, an#341): the same
                 # set-and-key rule, with nothing to look up on disk.
                 _report_undeclared_swap(
-                    action, prop, declared_sets, entity_id, f"{path}/actions/{k}", report
+                    action,
+                    prop,
+                    declared_sets,
+                    entity_id,
+                    f"{path}/actions/{k}",
+                    report,
                 )
                 continue
         if desc is None:

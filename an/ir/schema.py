@@ -1080,6 +1080,7 @@ class SceneIR(_IRModel):
 #: The property space a 2D stage engine's node lives in (:mod:`an.timing.spaces`).
 STAGE_NODE_SPACE: str = "stage.node"
 
+
 def _prop_swap_declaration(entity: Any, mall: Any) -> Any:
     """The ``prop`` kind's swap declaration: a text block's ``text`` set
     (an#341), nothing for any other prop. The stage owns text, so it is

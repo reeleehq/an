@@ -161,8 +161,8 @@ CORE_FIXTURES: dict[str, Fixture] = {
         golden_note=(
             "a text block's CONTENT changing within one shot (an#341): one "
             "right-aligned `unit: block` label whose `texts` set is swapped "
-            "twice, \"Day 1\" -> \"Day 12\" at 0.125 s (the entity-level `set "
-            "day text d12`) -> \"Day 300\" at 0.25 s (the `day/block_0` path). "
+            'twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level `set '
+            'day text d12`) -> "Day 300" at 0.25 s (the `day/block_0` path). '
             "What moves between the goldens is the string, growing LEFTWARDS "
             "from a fixed right edge: a regression in the swap set, in the "
             "per-key geometry anchored on the `align` edge, or in the "
