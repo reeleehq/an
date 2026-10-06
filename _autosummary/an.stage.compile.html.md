@@ -50,30 +50,27 @@ mall). It reads only.
 | [`ENVIRONMENT_ART_PREFIX`](#an.stage.compile.ENVIRONMENT_ART_PREFIX)       | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
 | [`PLANE_FILL_SPAN`](#an.stage.compile.PLANE_FILL_SPAN)              | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
 | [`FOREGROUND_SUFFIX`](#an.stage.compile.FOREGROUND_SUFFIX)            | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                      |
-| [`SCENE_PX_PER_VIEW_BOX`](#an.stage.compile.SCENE_PX_PER_VIEW_BOX)        | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                      |
-| [`CONTAIN_FIT`](#an.stage.compile.CONTAIN_FIT)                  | The fit policy every compiled sprite carries.                                                                                                                                                                             |
-| [`CHARACTER_ART_PREFIX`](#an.stage.compile.CHARACTER_ART_PREFIX)         | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                    |
-| [`PROP_ART_PREFIX`](#an.stage.compile.PROP_ART_PREFIX)              | The same, for props.                                                                                                                                                                                                      |
 | [`STAGE_NODE_SPACE`](#an.stage.compile.STAGE_NODE_SPACE)             | The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                              |
 | [`PLANE_EDGE_ON_MARGIN`](#an.stage.compile.PLANE_EDGE_ON_MARGIN)         | at ±π/2 the runtime draws nothing, and a value past it is almost always DEGREES typed where radians were meant (an#314 review).                                                                                           |
 
 ### Functions
 
-| [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)          | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
-|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                    | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
-| [`compile_shot`](#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])   | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
-| [`entity_spaces_of`](#an.stage.compile.entity_spaces_of)(shot)                        | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
-| [`foreground_node_name`](#an.stage.compile.foreground_node_name)(entity_id)               | The node name an environment's foreground planes live under.                                                                                                                                             |
-| [`node_path_suggestions`](#an.stage.compile.node_path_suggestions)(target, paths, \*[, n]) | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                           |
-| [`parse_tint`](#an.stage.compile.parse_tint)(value, \*, where)                  | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
-| [`plane_parents`](#an.stage.compile.plane_parents)(env, entity_id)                 | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
-| [`scene_builders`](#an.stage.compile.scene_builders)()                              | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
-| [`space_definitions`](#an.stage.compile.space_definitions)(entity_spaces)              | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
-| [`stage_replacements`](#an.stage.compile.stage_replacements)()                          | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
-| [`step_times`](#an.stage.compile.step_times)(start, duration, step_hz)          | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                      |
-| [`style_pack_for`](#an.stage.compile.style_pack_for)(scene_meta, styles_store)      | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                    |
-| [`unknown_target_message`](#an.stage.compile.unknown_target_message)(target, paths)         | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                      |
+| [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
+| [`compile_shot`](#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
+| [`entity_spaces_of`](#an.stage.compile.entity_spaces_of)(shot)                           | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
+| [`foreground_node_name`](#an.stage.compile.foreground_node_name)(entity_id)                  | The node name an environment's foreground planes live under.                                                                                                                                             |
+| [`node_path_suggestions`](#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])    | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                           |
+| [`note_raster_rig`](#an.stage.compile.note_raster_rig)(entity, desc_data, pack, raster) | Record a rig with raster parts that a colour-setting pack is applied to.                                                                                                                                 |
+| [`parse_tint`](#an.stage.compile.parse_tint)(value, \*, where)                     | A `#rrggbb` string to three multipliers in 0..1.                                                                                                                                                         |
+| [`plane_parents`](#an.stage.compile.plane_parents)(env, entity_id)                    | `{plane name: the node path its channels must target}`.                                                                                                                                                  |
+| [`scene_builders`](#an.stage.compile.scene_builders)()                                 | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                         |
+| [`space_definitions`](#an.stage.compile.space_definitions)(entity_spaces)                 | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).             |
+| [`stage_replacements`](#an.stage.compile.stage_replacements)()                             | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                               |
+| [`step_times`](#an.stage.compile.step_times)(start, duration, step_hz)             | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                      |
+| [`style_pack_for`](#an.stage.compile.style_pack_for)(scene_meta, styles_store)         | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                    |
+| [`unknown_target_message`](#an.stage.compile.unknown_target_message)(target, paths)            | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                      |
 
 ### Classes
 
@@ -113,22 +110,6 @@ indexed by the runtime, absent from the tree.
 
 * **Type:**
   The runtime’s camera node
-
-### an.stage.compile.CHARACTER_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'characters/'*
-
-The `assets.textures` `src` prefix a rig’s art is addressed under, which is
-also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).
-A parameter rather than a literal because the rig builder is the same code
-for a character and for a prop, and the store is the ONLY thing that differs
-about where their art lives. Two hardcoded copies of `"characters/"` — the
-`src` builder and the probe’s own — reached three call sites, and that is
-what made “a prop is a rig too” read as a rewrite instead of an argument
-(an#108).
-
-### an.stage.compile.CONTAIN_FIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contain'*
-
-The fit policy every compiled sprite carries. Named rather than inlined so
-the one place that decides “the art keeps its shape” is greppable.
 
 ### *exception* an.stage.compile.CompilePassCollision
 
@@ -229,11 +210,6 @@ A `fill` plane with no declared size covers the canvas at any camera scale
 — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR
 layer’s framing check reads the same number, re-exported here.
 
-### an.stage.compile.PROP_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'props/'*
-
-The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
-which is what decides where the staging step copies the art from.
-
 ### an.stage.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'perspective', 'pivot_x', 'pivot_y', 'plane_fade_end', 'plane_fade_start', 'rotation', 'rotation_rad', 'rotation_x', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
@@ -252,22 +228,6 @@ set name rather than control flow.
 The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
-
-### an.stage.compile.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
-
-Scene-graph pixels spanned by a descriptor’s full `view_box` height.
-
-The single number that maps descriptor space to scene space. One uniform
-factor `k = SCENE_PX_PER_VIEW_BOX / view_box_height` scales bone positions
-and part extents alike — uniform by construction, so the compiler cannot
-violate the invariant that aspect ratio is intrinsic to the art (an#74).
-
-345 is a calibration, not a preference. It is what reproduces the framing the
-seven deleted `_SVG_*_SIZE` constants hand-tuned: at k = 345/1024 = 0.3369,
-`saturated-rig`’s own art gives torso 107.8x129.4 against the old 110x130,
-legs 37.7x118.6 against 38x120. The constants were an approximation of
-exactly this product, which is the evidence that the rig should have been
-driving it all along.
 
 ### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
@@ -409,6 +369,16 @@ mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 >>> node_path_suggestions("zzz", built)
 []
 ```
+
+### an.stage.compile.note_raster_rig(entity, desc_data, pack, raster)
+
+Record a rig with raster parts that a colour-setting pack is applied to.
+
+Public (an#338) because a genre that builds a rig calls it before
+[`an.stage.rig.build_rig_subtree()`](an.stage.rig.html.md#an.stage.rig.build_rig_subtree), as the prop builder does.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.compile.parse_tint(value, , where)
 

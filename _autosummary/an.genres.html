@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8fbb3fd8"></script>
+    <script src="../_static/documentation_options.js?v=4432af15"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.frame_clock" href="an.frame_clock.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.173" />
+  <meta name="docsearch:version" content="0.1.174" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -776,7 +776,7 @@ genre defined in the same process).</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.genres.API_LEVEL">
-<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
 <dd><p>every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, an#225), never
@@ -793,6 +793,10 @@ it reads <code class="docutils literal notranslate"><span class="pre">getattr(an
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">EntityKind.swap_declaration</span></code>, <code class="docutils literal notranslate"><span class="pre">an.stage.rig</span></code>.</p>
 </div></blockquote>
+<dl class="simple">
+<dt>3 = the public rig builder (an#338): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.build_rig_subtree</span></code>, <code class="docutils literal notranslate"><span class="pre">rig_origin</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">RigDocument</span></code> (<code class="docutils literal notranslate"><span class="pre">origin</span></code>), <code class="docutils literal notranslate"><span class="pre">omit_unset_rig_fields</span></code>, <code class="docutils literal notranslate"><span class="pre">an.stage.compile.note_raster_rig</span></code>.</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The level of the genre-facing API this <code class="docutils literal notranslate"><span class="pre">an</span></code> provides</p>

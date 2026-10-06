@@ -66,7 +66,7 @@ differently is exactly the collision an#77 fixed.
 
 ### *class* an.stage.props.PropDescriptor(\*\*data)
 
-Bases: [`RigModel`](an.stage.rig.html.md#an.stage.rig.RigModel)
+Bases: [`RigDocument`](an.stage.rig.html.md#an.stage.rig.RigDocument)
 
 The on-disk prop schema. Saved as `prop.json`.
 
@@ -103,6 +103,17 @@ uses, not a second vocabulary:
 >>> back = PropDescriptor.model_validate_json(lamp.model_dump_json())
 >>> back.skins["default"].slots["body"]["on"].path
 'parts/on.svg'
+```
+
+A prop stands where it is put by its declared `origin` (an#338), in
+view_box units; unset, by the centre of its bones’ extent, and the stored
+document does not mention it:
+
+```pycon
+>>> PropDescriptor(name="tripod", origin=(512, 1010)).origin
+(512.0, 1010.0)
+>>> "origin" in PropDescriptor(name="lamp").model_dump()
+False
 ```
 
 #### animations *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*

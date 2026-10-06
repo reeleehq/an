@@ -105,7 +105,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -125,6 +125,10 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 2 = the cut-out genre’s move (an#225): `Genre.services`, `ActionKind.lowering`,
 
 > `EntityKind.swap_declaration`, `an.stage.rig`.
+
+3 = the public rig builder (an#338): `an.stage.rig.build_rig_subtree`, `rig_origin`,
+: `RigDocument` (`origin`), `omit_unset_rig_fields`, `an.stage.compile.note_raster_rig`.
+
 * **Type:**
   The level of the genre-facing API this `an` provides
 

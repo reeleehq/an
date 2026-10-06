@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8fbb3fd8"></script>
+    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.173" />
+  <meta name="docsearch:version" content="0.1.174" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -717,15 +717,45 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">characters. It lives in ``an.stage`` so the stage compiler can build a rig</span>
 <span class="sd">without importing any genre; a genre's descriptor (``cutan``'s</span>
 <span class="sd">``CharacterDescriptor``) is composed from these types.</span>
+
+<span class="sd">Two layers live here:</span>
+
+<span class="sd">- **the model**: :class:`Bone`, :class:`Slot`, :class:`Attachment`,</span>
+<span class="sd">  :class:`Skin`, and :class:`RigDocument`, the base of every document that IS a</span>
+<span class="sd">  rig (``PropDescriptor``, ``CharacterDescriptor``), which carries the fields</span>
+<span class="sd">  about the rig as a whole (its declared :attr:`RigDocument.origin`);</span>
+<span class="sd">- **the builder**: :func:`build_rig_subtree`, the ONE function that turns a rig</span>
+<span class="sd">  document into a scene subtree for props and characters alike (an#108), with</span>
+<span class="sd">  the helpers a genre needs to call it (:func:`part_probe`,</span>
+<span class="sd">  :func:`raster_digest`, :func:`art_src`, :func:`bone_positions`,</span>
+<span class="sd">  :func:`rig_origin`). Public since an#338: before it, ``cutan`` reached the</span>
+<span class="sd">  builder through private names of the stage compiler, which a second genre</span>
+<span class="sd">  could not have done. The compiler re-exports the old private spellings.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_serializer</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AssetJSON</span><span class="p">,</span>
+    <span class="n">AssetResolutionJSON</span><span class="p">,</span>
+    <span class="n">NodeJSON</span><span class="p">,</span>
+    <span class="n">TransformJSON</span><span class="p">,</span>
+    <span class="n">VisualJSON</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span>
 
 <span class="c1">#: Canonical character viewBox: 1024x1024 with feet near y≈980. All parts</span>
 <span class="c1">#: inherit this viewBox at export so PixiJS can use the SVG's intrinsic</span>
@@ -739,6 +769,72 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Common config: forward-compatible reads, strict writes."""</span>
 
     <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">,</span> <span class="n">populate_by_name</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: A finite float: pydantic serializes ``inf``/``nan`` to JSON ``null``, which</span>
+<span class="c1">#: then fails to re-validate, so a document written with one is corrupt one way</span>
+<span class="c1">#: (the rule ``StagePlacement.at`` follows, an#108 review M-1).</span>
+<span class="n">_Finite</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Field</span><span class="p">(</span><span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+
+<span class="c1">#: The fields :class:`RigDocument` adds, each written out of the stored</span>
+<span class="c1">#: document when unset (:func:`omit_unset_rig_fields`), so every descriptor</span>
+<span class="c1">#: that never set one reads back, and hashes, as it did before the field existed.</span>
+<span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"origin"</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="omit_unset_rig_fields">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.omit_unset_rig_fields">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">omit_unset_rig_fields</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Drop every unset :class:`RigDocument` field from a dumped document, in place.</span>
+
+<span class="sd">    A subclass that declares its own ``model_serializer`` REPLACES the base's</span>
+<span class="sd">    (pydantic keeps one per model), so it must call this on its output, or an</span>
+<span class="sd">    unset ``origin`` reaches every stored descriptor as ``null``.</span>
+
+<span class="sd">    &gt;&gt;&gt; omit_unset_rig_fields({"name": "lamp", "origin": None})</span>
+<span class="sd">    {'name': 'lamp'}</span>
+<span class="sd">    &gt;&gt;&gt; omit_unset_rig_fields({"origin": [512.0, 1010.0]})</span>
+<span class="sd">    {'origin': [512.0, 1010.0]}</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">RIG_DOCUMENT_OPTIONAL_FIELDS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="RigDocument">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.RigDocument">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RigDocument</span><span class="p">(</span><span class="n">RigModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The base of every document that IS a rig: ``PropDescriptor``, ``CharacterDescriptor``.</span>
+
+<span class="sd">    Holds what is true of the rig as a whole, not of one bone or slot (which is</span>
+<span class="sd">    why it is not :class:`RigModel`, the base of :class:`Bone` and the others</span>
+<span class="sd">    as well). Every field here is omitted from the stored document when unset.</span>
+
+<span class="sd">    &gt;&gt;&gt; RigDocument(origin=(512, 1010)).origin</span>
+<span class="sd">    (512.0, 1010.0)</span>
+<span class="sd">    &gt;&gt;&gt; RigDocument().model_dump()</span>
+<span class="sd">    {}</span>
+<span class="sd">    &gt;&gt;&gt; RigDocument(origin=(float("inf"), 0))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    pydantic_core._pydantic_core.ValidationError: 1 validation error for RigDocument</span>
+<span class="sd">    ...</span>
+<span class="sd">    """</span>
+
+    <span class="c1">#: The point of the art that the entity's placement (``stage.at``) refers</span>
+    <span class="c1">#: to, in view_box units (an#338). Unset, the rig is placed by the centre</span>
+    <span class="c1">#: of its bones' extent (:func:`bone_extent_centre`), which is what every</span>
+    <span class="c1">#: rig did before the field existed; a prop declares its foot (a tripod's,</span>
+    <span class="c1">#: a figurine's stand) so it stands where it is put whatever its extent.</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Finite</span><span class="p">,</span> <span class="n">_Finite</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_rig_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">omit_unset_rig_fields</span><span class="p">(</span><span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
 
 
 
@@ -929,6 +1025,647 @@ window.runMermaid = runMermaid;</script>
     <span class="n">name</span> <span class="o">=</span> <span class="n">slot</span><span class="o">.</span><span class="n">attachment</span> <span class="k">if</span> <span class="n">slot</span><span class="o">.</span><span class="n">attachment</span> <span class="ow">in</span> <span class="n">available</span> <span class="k">else</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">available</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">available</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The rig builder: a rig document -&gt; a scene subtree (props and characters alike)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="c1">#: Scene-graph pixels spanned by a descriptor's full ``view_box`` height.</span>
+<span class="c1">#:</span>
+<span class="c1">#: The single number that maps descriptor space to scene space. One uniform</span>
+<span class="c1">#: factor ``k = SCENE_PX_PER_VIEW_BOX / view_box_height`` scales bone positions</span>
+<span class="c1">#: and part extents alike — uniform by construction, so the compiler cannot</span>
+<span class="c1">#: violate the invariant that aspect ratio is intrinsic to the art (an#74).</span>
+<span class="c1">#:</span>
+<span class="c1">#: 345 is a calibration, not a preference. It is what reproduces the framing the</span>
+<span class="c1">#: seven deleted ``_SVG_*_SIZE`` constants hand-tuned: at k = 345/1024 = 0.3369,</span>
+<span class="c1">#: ``saturated-rig``'s own art gives torso 107.8x129.4 against the old 110x130,</span>
+<span class="c1">#: legs 37.7x118.6 against 38x120. The constants were an approximation of</span>
+<span class="c1">#: exactly this product, which is the evidence that the rig should have been</span>
+<span class="c1">#: driving it all along.</span>
+<span class="n">SCENE_PX_PER_VIEW_BOX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">345.0</span>
+
+<span class="c1">#: The fit policy every compiled sprite carries. Named rather than inlined so</span>
+<span class="c1">#: the one place that decides "the art keeps its shape" is greppable.</span>
+<span class="n">CONTAIN_FIT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"contain"</span>
+
+
+<span class="c1">#: The `assets.textures` `src` prefix a rig's art is addressed under, which is</span>
+<span class="c1">#: also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).</span>
+<span class="c1">#: A parameter rather than a literal because the rig builder is the same code</span>
+<span class="c1">#: for a character and for a prop, and the store is the ONLY thing that differs</span>
+<span class="c1">#: about where their art lives. Two hardcoded copies of `"characters/"` — the</span>
+<span class="c1">#: `src` builder and the probe's own — reached three call sites, and that is</span>
+<span class="c1">#: what made "a prop is a rig too" read as a rewrite instead of an argument</span>
+<span class="c1">#: (an#108).</span>
+<span class="n">CHARACTER_ART_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"characters/"</span>
+
+<span class="c1">#: The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,</span>
+<span class="c1">#: which is what decides where the staging step copies the art from.</span>
+<span class="n">PROP_ART_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"props/"</span>
+
+
+<div class="viewcode-block" id="art_src">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.art_src">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">art_src</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rel_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">art_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHARACTER_ART_PREFIX</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Path used inside the runtime dir, relative to ``index.html``.</span>
+
+<span class="sd">    &gt;&gt;&gt; art_src("maya", "parts/head.svg")</span>
+<span class="sd">    'characters/maya/parts/head.svg'</span>
+<span class="sd">    &gt;&gt;&gt; art_src("lamp", "parts/body.svg", art_prefix="props/")</span>
+<span class="sd">    'props/lamp/parts/body.svg'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">art_prefix</span><span class="si">}{</span><span class="n">ref</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rel_path</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_texture</span><span class="p">(</span>
+    <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">],</span>
+    <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Add a texture entry if not already present; return ``alias``."""</span>
+    <span class="k">if</span> <span class="n">alias</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">textures</span><span class="p">:</span>
+        <span class="n">textures</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">AssetJSON</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">alias</span>
+
+
+<div class="viewcode-block" id="part_probe">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.part_probe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">part_probe</span><span class="p">(</span>
+    <span class="n">characters_store</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">art_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHARACTER_ART_PREFIX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A probe answering ``(art exists, the size it rasterises at)`` for a part.</span>
+
+<span class="sd">    **Two questions, deliberately not one.** Whether the art is *there* decides</span>
+<span class="sd">    whether the compiler declares a texture for it; whether it can be *measured*</span>
+<span class="sd">    decides only whether the sprite's box comes from the art or from the</span>
+<span class="sd">    runtime's fit. Collapsing them is a real bug and it was here: a degenerate</span>
+<span class="sd">    ``&lt;svg/&gt;`` is unmeasurable but present, and treating that as absent made the</span>
+<span class="sd">    part vanish from the scene silently — trading an#79's hang for exactly the</span>
+<span class="sd">    invisible-art failure #76 exists to stop.</span>
+
+<span class="sd">    Returns ``None`` when the store has no filesystem root — **not** a probe</span>
+<span class="sd">    that answers "absent" — because a store that can answer nothing must drop</span>
+<span class="sd">    no parts rather than all of them.</span>
+
+<span class="sd">    Size is read from the SVG root's ``width``/``height``, falling back to the</span>
+<span class="sd">    viewBox extent as a browser does — or, for PNG/JPEG/WebP art, from the</span>
+<span class="sd">    image header (an#211): a header parse, not a render, either way. Before</span>
+<span class="sd">    an#211 a PNG was parsed AS SVG here and the compile died on an XML error.</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">characters_store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">art_prefix</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">probe</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">art_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="c1"># Present but unreadable or malformed. Still declared, so the</span>
+            <span class="c1"># failure is loud at load rather than an absence nobody sees.</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">probe</span></div>
+
+
+
+<div class="viewcode-block" id="raster_digest">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.raster_digest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">raster_digest</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">art_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHARACTER_ART_PREFIX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``digest(src)``: a short content digest for RASTER art, else ``None``.</span>
+
+<span class="sd">    A raster texture is addressed by its bytes (an#211): the digest goes into</span>
+<span class="sd">    the texture's alias, so a re-carved part is a different texture — the</span>
+<span class="sd">    runtime's loader ignores a re-added alias on hot reload (an#155) — and a</span>
+<span class="sd">    different compiled contract, whose hash then covers the pixels drawn. SVG</span>
+<span class="sd">    art keeps its plain alias, which is what keeps every existing document</span>
+<span class="sd">    byte-identical.</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">digest</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">short_digest</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># absent art is the probe's business, not this one's</span>
+
+    <span class="k">return</span> <span class="n">digest</span></div>
+
+
+
+<div class="viewcode-block" id="bone_positions">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.bone_positions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Absolute ``(x, y)`` per bone, in view_box units.</span>
+
+<span class="sd">    Bone transforms are parent-relative, so a bone's position is the sum along</span>
+<span class="sd">    its parent chain. A cycle or a dangling parent stops the walk rather than</span>
+<span class="sd">    looping — a malformed rig is #78's business, not this function's.</span>
+<span class="sd">    """</span>
+    <span class="n">by_name</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">bones</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">y</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">Bone</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">bone</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cursor</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">+=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">y</span> <span class="o">+=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">y</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">by_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">parent</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">bone</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_record_missing_parts</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">missing</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">drawn</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">into</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record every declared part whose art is not on disk, as a fallback.</span>
+
+<span class="sd">    A skin declares an inventory, and a slot that ends up with nothing to draw</span>
+<span class="sd">    is a hole in the picture. Recording it here routes it through the one place</span>
+<span class="sd">    that decides what a stand-in costs: audible always, fatal under</span>
+<span class="sd">    ``strict_assets`` (an#76). Raising from the compiler instead would put a</span>
+<span class="sd">    second policy next to that one.</span>
+
+<span class="sd">    A slot that still drew *something* — one attachment missing out of several,</span>
+<span class="sd">    as when a rig ships open eyes but no closed ones — is reported separately</span>
+<span class="sd">    and NOT as a fallback, because the frame is not wrong, only the inventory</span>
+<span class="sd">    is incomplete. Conflating the two would make every rig without a blink</span>
+<span class="sd">    refuse to render under ``strict_assets``.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">into</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">empty</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span> <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">drawn</span><span class="p">]</span>
+    <span class="n">partial</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span> <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">drawn</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">empty</span><span class="p">:</span>
+        <span class="n">into</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">AssetResolutionJSON</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s2">"part"</span><span class="p">,</span>
+                <span class="n">store</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+                <span class="n">resolved</span><span class="o">=</span><span class="s2">"missing"</span><span class="p">,</span>
+                <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">slot_name</span><span class="si">!r}</span><span class="s2"> declares attachment </span><span class="si">{</span><span class="n">attachment</span><span class="si">!r}</span><span class="s2"> at "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">, which is not in the store — the slot draws nothing"</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">partial</span><span class="p">:</span>
+        <span class="n">into</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">AssetResolutionJSON</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s2">"part"</span><span class="p">,</span>
+                <span class="n">store</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+                <span class="n">resolved</span><span class="o">=</span><span class="s2">"incomplete"</span><span class="p">,</span>
+                <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">slot_name</span><span class="si">!r}</span><span class="s2"> is missing attachment </span><span class="si">{</span><span class="n">attachment</span><span class="si">!r}</span><span class="s2"> at "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">; the slot still draws, but that key cannot be swapped to"</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="bone_extent_centre">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.bone_extent_centre">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bone_extent_centre</span><span class="p">(</span><span class="n">bones</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The DEFAULT point in view_box space that the entity's placement refers</span>
+<span class="sd">    to, when the rig declares no :attr:`RigDocument.origin` (:func:`rig_origin`).</span>
+
+<span class="sd">    &gt;&gt;&gt; bone_extent_centre({"root": (512.0, 980.0), "head": (512.0, 420.0)})</span>
+<span class="sd">    (512.0, 700.0)</span>
+
+<span class="sd">    The centre of the rig's bone extent, **not** the root bone. The scene root</span>
+<span class="sd">    positions a character on x only and leaves y at 0, so this point is what</span>
+<span class="sd">    lands at the frame's vertical centre — and a rig whose root is its ground</span>
+<span class="sd">    contact (the default puts it at the feet, y=980) would therefore hang its</span>
+<span class="sd">    whole body above the placement point, head off-frame.</span>
+
+<span class="sd">    Centring on the extent makes framing independent of where an author chose</span>
+<span class="sd">    to put the root, which is a rigging decision and should not be a framing</span>
+<span class="sd">    one. On the default rig it lands at y=700, within 20 units of the torso</span>
+<span class="sd">    bone — i.e. it reproduces the convention the deleted `torso_y = 0.0`</span>
+<span class="sd">    literal encoded, without hardcoding a bone name.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bones</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">bones</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">bones</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="p">((</span><span class="nb">min</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">ys</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``desc.&lt;name&gt;`` on a model, ``desc[name]`` on a raw document."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="declared_origin">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.declared_origin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">declared_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The rig's DECLARED origin as two floats, or ``None`` when it declares none.</span>
+
+<span class="sd">    ``desc`` is a model or a raw document (a mapping, as ``an validate`` reads</span>
+<span class="sd">    it); a descriptor model that predates :class:`RigDocument`, where</span>
+<span class="sd">    ``origin`` is an ``extra`` key (a list), is read the same way.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; declared_origin(NS(origin=[512, 1010])), declared_origin(NS())</span>
+<span class="sd">    ((512.0, 1010.0), None)</span>
+<span class="sd">    &gt;&gt;&gt; declared_origin({"origin": [0, 5]})</span>
+<span class="sd">    (0.0, 5.0)</span>
+<span class="sd">    """</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"origin"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="rig_origin">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rig_origin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The point of the rig, in view_box units, that lands at the entity's placement.</span>
+
+<span class="sd">    The ONE rule (an#338): the declared :attr:`RigDocument.origin` when the rig</span>
+<span class="sd">    has one, else the centre of its bones' extent (:func:`bone_extent_centre`).</span>
+<span class="sd">    :func:`build_rig_subtree` places every part relative to it, and a genre that</span>
+<span class="sd">    reports where a rig's art reaches from its stage point (``cutan``'s</span>
+<span class="sd">    ``stage_extent``) reads it too, so the two agree by construction.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; bones = [NS(name="root", parent=None, x=512, y=980), NS(name="top", parent="root", x=0, y=-560)]</span>
+<span class="sd">    &gt;&gt;&gt; rig_origin(NS(bones=bones))</span>
+<span class="sd">    (512.0, 700.0)</span>
+<span class="sd">    &gt;&gt;&gt; rig_origin(NS(bones=bones, origin=(512, 980)))</span>
+<span class="sd">    (512.0, 980.0)</span>
+<span class="sd">    """</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="n">declared_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">declared</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">declared</span>
+    <span class="k">return</span> <span class="n">bone_extent_centre</span><span class="p">(</span><span class="n">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="rig_origin_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rig_origin_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rig_origin_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What is wrong with a rig's declared origin, as warnings (an#338).</span>
+
+<span class="sd">    Nothing when the rig declares none. A non-finite origin (possible only on a</span>
+<span class="sd">    document read without :class:`RigDocument`, which refuses one) places the</span>
+<span class="sd">    whole rig nowhere; one outside the ``view_box`` is legal (a hanging sign's</span>
+<span class="sd">    hook can sit above its art) but is far more often a unit slip (scene pixels</span>
+<span class="sd">    written where view_box units belong), so it is said, not refused.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig_origin_problems(NS(origin=(512, 1010), view_box=(0, 0, 1024, 1024)))</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; rig_origin_problems(NS(origin=(512, 2000), view_box=(0, 0, 1024, 1024)))[0].startswith("origin (512.0, 2000.0) lies outside")</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; rig_origin_problems(NS(origin=(float("nan"), 0), view_box=(0, 0, 1024, 1024)))[0][:30]</span>
+<span class="sd">    'origin (nan, 0.0) is not finit'</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">declared_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"origin </span><span class="si">{</span><span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span><span class="w"> </span><span class="s1">'origin'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is not a pair of numbers [x, y]"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">origin</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"origin </span><span class="si">{</span><span class="n">origin</span><span class="si">}</span><span class="s2"> is not finite: the rig would be placed nowhere"</span><span class="p">]</span>
+    <span class="n">view_box</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"view_box"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DEFAULT_VIEW_BOX</span><span class="p">)</span>
+    <span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vw</span><span class="p">,</span> <span class="n">vh</span> <span class="o">=</span> <span class="n">view_box</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">vx</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">vx</span> <span class="o">+</span> <span class="n">vw</span> <span class="ow">and</span> <span class="n">vy</span> <span class="o">&lt;=</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="n">vy</span> <span class="o">+</span> <span class="n">vh</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">"origin </span><span class="si">{</span><span class="n">origin</span><span class="si">}</span><span class="s2"> lies outside the rig's view_box </span><span class="si">{</span><span class="n">view_box</span><span class="si">}</span><span class="s2">: "</span>
+            <span class="s2">"legal (a hook above the art), but usually a unit slip -- the origin "</span>
+            <span class="s2">"is in view_box units, the units of the bones, not scene pixels"</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+
+
+<div class="viewcode-block" id="build_rig_subtree">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.build_rig_subtree">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_rig_subtree</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">desc_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">],</span>
+    <span class="n">probe</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">art_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHARACTER_ART_PREFIX</span><span class="p">,</span>
+    <span class="n">descriptor_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+    <span class="n">document_kind</span><span class="p">:</span> <span class="n">DocumentKind</span><span class="p">,</span>
+    <span class="n">texture_srcs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Build the scene subtree for a character, **from its descriptor's rig**.</span>
+
+<span class="sd">    A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures</span>
+<span class="sd">    either, and ``digest(src)`` — a content digest for raster art, ``None``</span>
+<span class="sd">    for SVG — is appended to a raster texture's alias so the texture is</span>
+<span class="sd">    addressed by its bytes.</span>
+
+<span class="sd">    **Every swap key keeps its own geometry** (an#211). A swap re-textures the</span>
+<span class="sd">    sprite, and the box, anchor and offset were the DEFAULT attachment's, so a</span>
+<span class="sd">    key drawn on a different canvas was fitted into the wrong box — a closed</span>
+<span class="sd">    mouth on a thin canvas squashed every open mouth to a fraction of a pixel.</span>
+<span class="sd">    A key whose box, anchor or offset differs from the drawn attachment's is</span>
+<span class="sd">    listed in ``VisualJSON.asset_geometry`` and the runtime applies it with the</span>
+<span class="sd">    texture; a rig whose keys share a canvas emits nothing new.</span>
+
+<span class="sd">    ``texture_srcs`` maps a part path to the ``src`` its texture loads from</span>
+<span class="sd">    instead of the stored file — a style pack's recoloured art</span>
+<span class="sd">    (:func:`_recoloured_texture_srcs`). Such a texture's alias carries a digest</span>
+<span class="sd">    of its content, so a different recolour is a different texture (the</span>
+<span class="sd">    runtime's loader ignores a re-added alias on hot reload, an#155). The part</span>
+<span class="sd">    is still probed and sized from the stored file, whose geometry is the same.</span>
+
+<span class="sd">    Every part's position comes from a bone, every part's extent from its own</span>
+<span class="sd">    art, and both are scaled by one uniform factor. Nothing here is a module</span>
+<span class="sd">    constant: the seven ``_SVG_*_SIZE`` values and the four y-offset literals</span>
+<span class="sd">    this replaced are gone, and gutting ``bones``/``slots``/``skins``/``view_box``</span>
+<span class="sd">    now changes the output — which it provably did not before (an#73).</span>
+
+<span class="sd">    A slot whose art is not on disk is recorded in ``resolutions`` as a fallback,</span>
+<span class="sd">    which makes it audible by default and fatal under ``strict_assets`` — the</span>
+<span class="sd">    same treatment a missing *character* already got (an#33), now reaching</span>
+<span class="sd">    inside the descriptor to the individual part (an#76). It is recorded rather</span>
+<span class="sd">    than raised here because the decision belongs to one place, and that place</span>
+<span class="sd">    is :func:`_raise_or_warn_on_asset_fallbacks`.</span>
+
+<span class="sd">    ``probe(src) -&gt; (exists, size)`` answers whether a part's art is on disk and</span>
+<span class="sd">    what size it rasterises at. Existence decides whether a texture is declared</span>
+<span class="sd">    at all. The sprite's box is the attachment's declared ``width``/``height``</span>
+<span class="sd">    when it has them — **a declared size wins**, with the art's aspect kept</span>
+<span class="sd">    (:func:`an.characters.schema.attachment_box`, an#220) — else the art's own</span>
+<span class="sd">    extent (a raster's pixel count); failing both, the runtime's ``contain``</span>
+<span class="sd">    fit draws the art at its natural shape — never stretched to a fabricated box.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Two documents, one builder. `PropDescriptor` carries the same field NAMES</span>
+    <span class="c1"># the rig maths reads — view_box, bones, slots, skins, asset_sets,</span>
+    <span class="c1"># face_overlay — and differs only in what it seeds when they are empty, so</span>
+    <span class="c1"># the code below never asks which kind it has (an#108).</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">descriptor_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
+        <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">desc_data</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">document_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">view_box_height</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">view_box</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">SCENE_PX_PER_VIEW_BOX</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">view_box_height</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">Skin</span><span class="p">())</span>
+    <span class="n">bones</span> <span class="o">=</span> <span class="n">bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">rig_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="c1"># Shared with `an.characters.play` so a `play` resolves against the</span>
+    <span class="c1"># nesting the builder actually uses (an#7 review).</span>
+    <span class="n">nests_under</span> <span class="o">=</span> <span class="n">primary_slot_per_bone</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+
+    <span class="c1"># If the head art has its own face baked in (DiceBear / hand-drawn full</span>
+    <span class="c1"># avatars), the separate eye/brow/mouth sprites double up with the baked</span>
+    <span class="c1"># features. Lip-sync stays audio-only for these; hand-rig for dialogue.</span>
+    <span class="c1"># `face_overlay` is the DECLARED fact (0.3.0, an#87) — the old vendor-name</span>
+    <span class="c1"># check on metadata.art_provenance lives on only inside the migration.</span>
+    <span class="n">head_has_face</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">desc</span><span class="o">.</span><span class="n">face_overlay</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">(</span><span class="n">slot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attachment</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Slot-qualified on purpose: attachment names are a PER-SLOT namespace</span>
+        <span class="c1"># (both eye slots carry `open`/`closed`), and the old `{entity}.{name}`</span>
+        <span class="c1"># alias space was silently first-wins on cross-slot collision.</span>
+        <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">attachment_name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="p">(</span><span class="n">texture_srcs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">art_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
+            <span class="n">sha</span> <span class="o">=</span> <span class="n">digest</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">if</span> <span class="n">digest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">sha</span><span class="p">:</span>
+                <span class="n">alias</span> <span class="o">+=</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">sha</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="n">versioned_src</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">sha</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">alias</span> <span class="o">+=</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"ascii"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">12</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_register_texture</span><span class="p">(</span><span class="n">textures</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_box_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The declared box wins, keeping the art's aspect; else the art's own</span>
+        <span class="c1"># extent (from its header) — a raster's pixel count (an#220).</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">art_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attachment_box</span><span class="p">(</span>
+            <span class="n">attachment</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">attachment</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+            <span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Every attachment in the skin is registered, not just the active one, so a</span>
+    <span class="c1"># swap has its texture already loaded when the key changes.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Except the ones whose art is not there. A skin declares an inventory —</span>
+    <span class="c1"># `eye_l_closed` is in the default skin and in REQUIRED_PARTS, but the bench</span>
+    <span class="c1"># rigs do not ship it — and declaring a texture the staging step cannot find</span>
+    <span class="c1"># makes the render fail at load over art no node draws. Registering only</span>
+    <span class="c1"># what resolves keeps the compiler from fabricating; reporting the gap in</span>
+    <span class="c1"># the art package is `an character validate`'s job (#78), not this one's.</span>
+    <span class="n">aliases</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">missing_art</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">resolved_here</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">art_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">probe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">missing_art</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">resolved_here</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_register</span><span class="p">(</span><span class="n">slot_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">att</span><span class="p">)</span>
+        <span class="n">aliases</span><span class="p">[</span><span class="n">slot_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_here</span>
+
+    <span class="n">nodes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">children_of</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">slots</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">draw_order</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)):</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">nests_under</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">)</span>
+        <span class="n">nested</span> <span class="o">=</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">parent</span> <span class="o">!=</span> <span class="n">slot</span><span class="o">.</span><span class="n">name</span>
+        <span class="c1"># Baked face: drop every slot nested under the HEAD BONE's primary</span>
+        <span class="c1"># slot — keyed on the bone (the rig's skeleton contract), not on the</span>
+        <span class="c1"># slot name "head": a rig whose head slot is named otherwise used to</span>
+        <span class="c1"># get its face overlays (and their blinks) back (an#88 review).</span>
+        <span class="k">if</span> <span class="n">nested</span> <span class="ow">and</span> <span class="n">head_has_face</span> <span class="ow">and</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">nests_under</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head"</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">resolved</span> <span class="o">=</span> <span class="n">drawn_attachment</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">skin</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resolved</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">resolved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aliases</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="k">continue</span>
+        <span class="n">attachment_name</span><span class="p">,</span> <span class="n">attachment</span> <span class="o">=</span> <span class="n">resolved</span>
+
+        <span class="c1"># Position = the slot's bone, plus the attachment's own offset from it.</span>
+        <span class="c1"># Both are needed: five face parts share one `head` bone, so the bone</span>
+        <span class="c1"># alone would stack them, and the offset alone would ignore the rig.</span>
+        <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">bone</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nested</span><span class="p">:</span>
+            <span class="n">parent_x</span><span class="p">,</span> <span class="n">parent_y</span> <span class="o">=</span> <span class="n">bones</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="n">parent_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="n">parent_y</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bone_x</span><span class="p">,</span> <span class="n">bone_y</span> <span class="o">=</span> <span class="n">bone_x</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bone_y</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bone_x</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">bone_y</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">y</span>
+
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">_box_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">)</span>
+        <span class="n">visual</span> <span class="o">=</span> <span class="n">VisualJSON</span><span class="p">(</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s2">"svg_sprite"</span><span class="p">,</span>
+            <span class="n">asset_id</span><span class="o">=</span><span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">attachment_name</span><span class="p">],</span>
+            <span class="n">anchor_x</span><span class="o">=</span><span class="n">attachment</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">anchor_y</span><span class="o">=</span><span class="n">attachment</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">fit</span><span class="o">=</span><span class="n">CONTAIN_FIT</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">({</span><span class="s2">"width"</span><span class="p">:</span> <span class="n">extent</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="n">extent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span><span class="p">}</span> <span class="k">if</span> <span class="n">extent</span> <span class="k">else</span> <span class="p">{}),</span>
+        <span class="p">)</span>
+        <span class="c1"># The per-slot PROJECTION of the descriptor's asset_sets (an#87): a</span>
+        <span class="c1"># channel projects onto every slot whose attachments its keys name —</span>
+        <span class="c1"># `viseme` lands on the mouth because the mouth's attachments carry</span>
+        <span class="c1"># the viseme map's values, `eyelid` lands on BOTH eye slots because</span>
+        <span class="c1"># both carry `open`/`closed`. No slot names appear here: the skin is</span>
+        <span class="c1"># the binding. Keys whose art did not resolve are absent from the map</span>
+        <span class="c1"># (an inventory gap — `_record_missing_parts` records it; a key a</span>
+        <span class="c1"># channel actually USES escalates via the fallback machinery).</span>
+        <span class="n">projected</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">channel</span><span class="p">:</span> <span class="n">resolved</span>
+            <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">key_map</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">resolved</span> <span class="o">:=</span> <span class="p">{</span>
+                    <span class="n">key</span><span class="p">:</span> <span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">key_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">projected</span><span class="p">:</span>
+            <span class="n">visual</span><span class="o">.</span><span class="n">asset_sets</span> <span class="o">=</span> <span class="n">projected</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="n">_swap_key_geometry</span><span class="p">(</span>
+                <span class="n">projected</span><span class="p">,</span>
+                <span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{}),</span>
+                <span class="n">drawn</span><span class="o">=</span><span class="n">attachment</span><span class="p">,</span>
+                <span class="n">built</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+                <span class="n">box_of</span><span class="o">=</span><span class="n">_box_of</span><span class="p">,</span>
+                <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">geometry</span><span class="p">:</span>
+                <span class="n">visual</span><span class="o">.</span><span class="n">asset_geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+
+        <span class="n">node</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">bone_x</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">bone_y</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+            <span class="n">visual</span><span class="o">=</span><span class="n">visual</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">nodes</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="n">children_of</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">parent</span> <span class="k">if</span> <span class="n">nested</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+    <span class="n">_record_missing_parts</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">missing_art</span><span class="p">,</span> <span class="n">drawn</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="n">into</span><span class="o">=</span><span class="n">resolutions</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">parent_name</span><span class="p">,</span> <span class="n">kids</span> <span class="ow">in</span> <span class="n">children_of</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">parent_name</span> <span class="ow">and</span> <span class="n">parent_name</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">parent_name</span><span class="p">]</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">kids</span>
+
+    <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span>
+        <span class="n">children</span><span class="o">=</span><span class="n">children_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="p">[]),</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_swap_key_geometry</span><span class="p">(</span>
+    <span class="n">projected</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">alias_of</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">attachments</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Attachment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">drawn</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">,</span>
+    <span class="n">built</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">box_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Attachment</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{asset_id: geometry}`` for each swap key drawn unlike the built one.</span>
+
+<span class="sd">    The geometry is the key's own fit box (its art's extent × ``k``, the rig's</span>
+<span class="sd">    one uniform scale), its anchor, and its offset from the drawn attachment</span>
+<span class="sd">    in scene pixels — so every key is placed and scaled exactly as it would be</span>
+<span class="sd">    if it were the slot's default. A key whose art cannot be measured keeps</span>
+<span class="sd">    the built box: there is nothing better to say about it.</span>
+
+<span class="sd">    &gt;&gt;&gt; a = Attachment(path="parts/m_x.svg", width=100, height=10)</span>
+<span class="sd">    &gt;&gt;&gt; b = Attachment(path="parts/m_a.svg", width=100, height=60, y=5)</span>
+<span class="sd">    &gt;&gt;&gt; from an.stage.rig import _swap_key_geometry</span>
+<span class="sd">    &gt;&gt;&gt; _swap_key_geometry({"viseme": {"X": "c.m.x", "A": "c.m.a"}},</span>
+<span class="sd">    ...                    {"x": "c.m.x", "a": "c.m.a"}, {"x": a, "a": b},</span>
+<span class="sd">    ...                    drawn=a, built=(100, 10),</span>
+<span class="sd">    ...                    box_of=lambda att: (att.width, att.height), k=0.5)</span>
+<span class="sd">    {'c.m.a': {'width': 50.0, 'height': 30.0, 'anchor_x': 0.5, 'anchor_y': 0.5, 'x': 0.0, 'y': 2.5}}</span>
+<span class="sd">    """</span>
+    <span class="n">name_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">alias</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">alias_of</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">built_geometry</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">)</span> <span class="k">if</span> <span class="n">built</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key_map</span> <span class="ow">in</span> <span class="n">projected</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">key_map</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">out</span> <span class="ow">or</span> <span class="n">alias</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name_of</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">att</span> <span class="o">=</span> <span class="n">attachments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_of</span><span class="p">[</span><span class="n">alias</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">att</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="n">box_of</span><span class="p">(</span><span class="n">att</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+                <span class="p">(</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">y</span><span class="p">))</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">geometry</span> <span class="o">==</span> <span class="n">built_geometry</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">),</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"width"</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span>
+                <span class="s2">"height"</span><span class="p">:</span> <span class="n">h</span><span class="p">,</span>
+                <span class="s2">"anchor_x"</span><span class="p">:</span> <span class="n">ax</span><span class="p">,</span>
+                <span class="s2">"anchor_y"</span><span class="p">:</span> <span class="n">ay</span><span class="p">,</span>
+                <span class="s2">"x"</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span>
+                <span class="s2">"y"</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 
                 </article>

@@ -9,14 +9,29 @@ an.stage.rig
    .. autosummary::
    
       DEFAULT_VIEW_BOX
+      RIG_DOCUMENT_OPTIONAL_FIELDS
+      SCENE_PX_PER_VIEW_BOX
+      CONTAIN_FIT
+      CHARACTER_ART_PREFIX
+      PROP_ART_PREFIX
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      art_src
       attachment_box
+      bone_extent_centre
+      bone_positions
+      build_rig_subtree
+      declared_origin
       drawn_attachment
+      omit_unset_rig_fields
+      part_probe
       primary_slot_per_bone
+      raster_digest
+      rig_origin
+      rig_origin_problems
    
    .. rubric:: Classes
 
@@ -24,6 +39,7 @@ an.stage.rig
    
       Attachment
       Bone
+      RigDocument
       RigModel
       Skin
       Slot

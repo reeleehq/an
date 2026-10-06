@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8fbb3fd8"></script>
+    <script src="../_static/documentation_options.js?v=4432af15"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.173" />
+  <meta name="docsearch:version" content="0.1.174" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -652,18 +652,6 @@ mall). It reads only.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.FOREGROUND_SUFFIX" title="an.stage.compile.FOREGROUND_SUFFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></p></td>
 <td><p>Suffix for the container holding an environment's FOREGROUND planes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX" title="an.stage.compile.SCENE_PX_PER_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></code></a></p></td>
-<td><p>Scene-graph pixels spanned by a descriptor's full <code class="docutils literal notranslate"><span class="pre">view_box</span></code> height.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CONTAIN_FIT" title="an.stage.compile.CONTAIN_FIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONTAIN_FIT</span></code></a></p></td>
-<td><p>The fit policy every compiled sprite carries.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.CHARACTER_ART_PREFIX" title="an.stage.compile.CHARACTER_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHARACTER_ART_PREFIX</span></code></a></p></td>
-<td><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix a rig's art is addressed under, which is also the mall store that resolves it (<code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.PROP_ART_PREFIX" title="an.stage.compile.PROP_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></p></td>
-<td><p>The same, for props.</p></td>
-</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_NODE_SPACE" title="an.stage.compile.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
 <td><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
@@ -694,28 +682,31 @@ mall). It reads only.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.node_path_suggestions" title="an.stage.compile.node_path_suggestions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_path_suggestions</span></code></a>(target, paths, *[, n])</p></td>
 <td><p>The built node paths a mistyped <code class="docutils literal notranslate"><span class="pre">target</span></code> most plausibly meant.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.parse_tint" title="an.stage.compile.parse_tint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tint</span></code></a>(value, *, where)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.note_raster_rig" title="an.stage.compile.note_raster_rig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">note_raster_rig</span></code></a>(entity, desc_data, pack, raster)</p></td>
+<td><p>Record a rig with raster parts that a colour-setting pack is applied to.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.parse_tint" title="an.stage.compile.parse_tint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_tint</span></code></a>(value, *, where)</p></td>
 <td><p>A <code class="code docutils literal notranslate"><span class="pre">#rrggbb</span></code> string to three multipliers in 0..1.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.plane_parents" title="an.stage.compile.plane_parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_parents</span></code></a>(env, entity_id)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{plane</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">node</span> <span class="pre">path</span> <span class="pre">its</span> <span class="pre">channels</span> <span class="pre">must</span> <span class="pre">target}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.scene_builders" title="an.stage.compile.scene_builders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scene_builders</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">kind:</span> <span class="pre">builder}</span></code>: the stage's, and every registered one.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.space_definitions" title="an.stage.compile.space_definitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_definitions</span></code></a>(entity_spaces)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{space</span> <span class="pre">name:</span> <span class="pre">definition}</span></code> for every space <code class="docutils literal notranslate"><span class="pre">entity_spaces</span></code> names -- what the compiled document embeds as <code class="docutils literal notranslate"><span class="pre">meta.spaces</span></code> so <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> evaluates each declared entity in its space (an#287).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.stage_replacements" title="an.stage.compile.stage_replacements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_replacements</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{stage</span> <span class="pre">pass</span> <span class="pre">or</span> <span class="pre">builder:</span> <span class="pre">the</span> <span class="pre">genre</span> <span class="pre">replacing</span> <span class="pre">it}</span></code> -- recorded in the compiled document's <code class="docutils literal notranslate"><span class="pre">meta.extensions</span></code> when non-empty.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.step_times" title="an.stage.compile.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
 <td><p>Clip-local times at which a stepped tween updates its pose (an#89).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.style_pack_for" title="an.stage.compile.style_pack_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_pack_for</span></code></a>(scene_meta, styles_store)</p></td>
 <td><p>The <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> a scene declares, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (an#112).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.unknown_target_message" title="an.stage.compile.unknown_target_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_target_message</span></code></a>(target, paths)</p></td>
 <td><p>One sentence saying <code class="docutils literal notranslate"><span class="pre">target</span></code> is not a built node, with suggestions.</p></td>
 </tr>
 </tbody>
@@ -779,26 +770,6 @@ leaf that survived <code class="docutils literal notranslate"><span class="pre">
 <dd class="field-odd"><p>The runtime’s camera node</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.stage.compile.CHARACTER_ART_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CHARACTER_ART_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'characters/'</span></span><a class="headerlink" href="#an.stage.compile.CHARACTER_ART_PREFIX" title="Link to this definition">#</a></dt>
-<dd><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix a rig’s art is addressed under, which is
-also the mall store that resolves it (<code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>).
-A parameter rather than a literal because the rig builder is the same code
-for a character and for a prop, and the store is the ONLY thing that differs
-about where their art lives. Two hardcoded copies of <code class="code docutils literal notranslate"><span class="pre">&quot;characters/&quot;</span></code> — the
-<code class="code docutils literal notranslate"><span class="pre">src</span></code> builder and the probe’s own — reached three call sites, and that is
-what made “a prop is a rig too” read as a rewrite instead of an argument
-(an#108).</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.stage.compile.CONTAIN_FIT">
-<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">CONTAIN_FIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'contain'</span></span><a class="headerlink" href="#an.stage.compile.CONTAIN_FIT" title="Link to this definition">#</a></dt>
-<dd><p>The fit policy every compiled sprite carries. Named rather than inlined so
-the one place that decides “the art keeps its shape” is greppable.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -923,13 +894,6 @@ layer’s framing check reads the same number, re-exported here.</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="an.stage.compile.PROP_ART_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">PROP_ART_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'props/'</span></span><a class="headerlink" href="#an.stage.compile.PROP_ART_PREFIX" title="Link to this definition">#</a></dt>
-<dd><p>The same, for props. Both are keys of <code class="code docutils literal notranslate"><span class="pre">render.ASSET_SRC_PREFIX_TO_STORE</span></code>,
-which is what decides where the staging step copies the art from.</p>
-</dd></dl>
-
-<dl class="py data">
 <dt class="sig sig-object py" id="an.stage.compile.RUNTIME_APPLIED_PROPERTIES">
 <span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'perspective',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'plane_fade_end',</span> <span class="pre">'plane_fade_start',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'rotation_x',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>Every property name the JS runtime’s <code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> STATIC switch
@@ -950,22 +914,6 @@ set name rather than control flow.</p>
 <dd><p>The field kinds <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements (its <code class="docutils literal notranslate"><span class="pre">FIELD_KINDS</span></code> table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.stage.compile.SCENE_PX_PER_VIEW_BOX">
-<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">345.0</span></span><a class="headerlink" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX" title="Link to this definition">#</a></dt>
-<dd><p>Scene-graph pixels spanned by a descriptor’s full <code class="docutils literal notranslate"><span class="pre">view_box</span></code> height.</p>
-<p>The single number that maps descriptor space to scene space. One uniform
-factor <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">SCENE_PX_PER_VIEW_BOX</span> <span class="pre">/</span> <span class="pre">view_box_height</span></code> scales bone positions
-and part extents alike — uniform by construction, so the compiler cannot
-violate the invariant that aspect ratio is intrinsic to the art (an#74).</p>
-<p>345 is a calibration, not a preference. It is what reproduces the framing the
-seven deleted <code class="docutils literal notranslate"><span class="pre">_SVG_*_SIZE</span></code> constants hand-tuned: at k = 345/1024 = 0.3369,
-<code class="docutils literal notranslate"><span class="pre">saturated-rig</span></code>’s own art gives torso 107.8x129.4 against the old 110x130,
-legs 37.7x118.6 against 38x120. The constants were an approximation of
-exactly this product, which is the evidence that the rig should have been
-driving it all along.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1132,6 +1080,19 @@ mistake is a missing level (<code class="docutils literal notranslate"><span cla
 <span class="go">[]</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.note_raster_rig">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">note_raster_rig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#note_raster_rig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.note_raster_rig" title="Link to this definition">#</a></dt>
+<dd><p>Record a rig with raster parts that a colour-setting pack is applied to.</p>
+<p>Public (an#338) because a genre that builds a rig calls it before
+<a class="reference internal" href="an.stage.rig.html#an.stage.rig.build_rig_subtree" title="an.stage.rig.build_rig_subtree"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.rig.build_rig_subtree()</span></code></a>, as the prop builder does.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1330,8 +1291,6 @@ reports it), so the two say the same thing about the same path.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.ActionLowering"><code class="docutils literal notranslate"><span class="pre">ActionLowering</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CAMERA_NODE"><code class="docutils literal notranslate"><span class="pre">CAMERA_NODE</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CHARACTER_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">CHARACTER_ART_PREFIX</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CONTAIN_FIT"><code class="docutils literal notranslate"><span class="pre">CONTAIN_FIT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompilePassCollision"><code class="docutils literal notranslate"><span class="pre">CompilePassCollision</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState"><code class="docutils literal notranslate"><span class="pre">CompileState</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState.extra_actions"><code class="docutils literal notranslate"><span class="pre">CompileState.extra_actions</span></code></a></li>
@@ -1346,10 +1305,8 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.FOREGROUND_SUFFIX"><code class="docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PLANE_EDGE_ON_MARGIN"><code class="docutils literal notranslate"><span class="pre">PLANE_EDGE_ON_MARGIN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PLANE_FILL_SPAN"><code class="docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.PROP_ART_PREFIX"><code class="docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.RUNTIME_APPLIED_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.RUNTIME_FIELD_KINDS"><code class="docutils literal notranslate"><span class="pre">RUNTIME_FIELD_KINDS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.SCENE_PX_PER_VIEW_BOX"><code class="docutils literal notranslate"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_COMPILE_PASSES"><code class="docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_SCENE_BUILDERS"><code class="docutils literal notranslate"><span class="pre">STAGE_SCENE_BUILDERS</span></code></a></li>
@@ -1360,6 +1317,7 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.entity_spaces_of"><code class="docutils literal notranslate"><span class="pre">entity_spaces_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.foreground_node_name"><code class="docutils literal notranslate"><span class="pre">foreground_node_name()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.node_path_suggestions"><code class="docutils literal notranslate"><span class="pre">node_path_suggestions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.note_raster_rig"><code class="docutils literal notranslate"><span class="pre">note_raster_rig()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.parse_tint"><code class="docutils literal notranslate"><span class="pre">parse_tint()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.plane_parents"><code class="docutils literal notranslate"><span class="pre">plane_parents()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.scene_builders"><code class="docutils literal notranslate"><span class="pre">scene_builders()</span></code></a></li>

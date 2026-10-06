@@ -17,10 +17,6 @@ an.stage.compile
       ENVIRONMENT_ART_PREFIX
       PLANE_FILL_SPAN
       FOREGROUND_SUFFIX
-      SCENE_PX_PER_VIEW_BOX
-      CONTAIN_FIT
-      CHARACTER_ART_PREFIX
-      PROP_ART_PREFIX
       STAGE_NODE_SPACE
       PLANE_EDGE_ON_MARGIN
    
@@ -34,6 +30,7 @@ an.stage.compile
       entity_spaces_of
       foreground_node_name
       node_path_suggestions
+      note_raster_rig
       parse_tint
       plane_parents
       scene_builders

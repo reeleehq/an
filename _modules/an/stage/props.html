@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=8fbb3fd8"></script>
+    <script src="../../../_static/documentation_options.js?v=4432af15"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.173" />
+  <meta name="docsearch:version" content="0.1.174" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -764,7 +764,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">DEFAULT_VIEW_BOX</span><span class="p">,</span>
     <span class="n">Attachment</span><span class="p">,</span>  <span class="c1"># noqa: F401</span>
     <span class="n">Bone</span><span class="p">,</span>
-    <span class="n">RigModel</span> <span class="k">as</span> <span class="n">_CharModel</span><span class="p">,</span>
+    <span class="n">RigDocument</span><span class="p">,</span>
     <span class="n">Skin</span><span class="p">,</span>
     <span class="n">Slot</span><span class="p">,</span>
 <span class="p">)</span>
@@ -830,7 +830,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="PropDescriptor">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.props.html#an.stage.props.PropDescriptor">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">PropDescriptor</span><span class="p">(</span><span class="n">_CharModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PropDescriptor</span><span class="p">(</span><span class="n">RigDocument</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The on-disk prop schema. Saved as ``prop.json``.</span>
 
 <span class="sd">    &gt;&gt;&gt; p = PropDescriptor(name="lamp")</span>
@@ -861,6 +861,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; back = PropDescriptor.model_validate_json(lamp.model_dump_json())</span>
 <span class="sd">    &gt;&gt;&gt; back.skins["default"].slots["body"]["on"].path</span>
 <span class="sd">    'parts/on.svg'</span>
+
+<span class="sd">    A prop stands where it is put by its declared ``origin`` (an#338), in</span>
+<span class="sd">    view_box units; unset, by the centre of its bones' extent, and the stored</span>
+<span class="sd">    document does not mention it:</span>
+
+<span class="sd">    &gt;&gt;&gt; PropDescriptor(name="tripod", origin=(512, 1010)).origin</span>
+<span class="sd">    (512.0, 1010.0)</span>
+<span class="sd">    &gt;&gt;&gt; "origin" in PropDescriptor(name="lamp").model_dump()</span>
+<span class="sd">    False</span>
 <span class="sd">    """</span>
 
     <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PROP_SCHEMA_VERSION</span>
