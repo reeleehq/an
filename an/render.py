@@ -718,6 +718,7 @@ def portable_text(text: str, *, root=None, home=None, tmp=None) -> str:
 #: kind not listed (another warning category) is headed by its own name, after.
 FINDING_GROUPS: dict[str, str] = {
     "VoiceStandInWarning": "voices spoken by another provider than they declare",
+    "VoiceLoudnessWarning": "voices at very different loudness",
     "dialogue_fits": "dialogue that does not fit its shot",
     "dialogue_in_dissolve": "dialogue heard during a dissolve",
     "measurement": "shots whose renderer measured their length",

@@ -24,6 +24,7 @@ than its voice declares is a :class:`VoiceStandInWarning` (an error under
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 import warnings
 from collections.abc import Callable, Mapping, MutableMapping
@@ -437,7 +438,9 @@ def produce_audio_for_scene(
             already_done = (
                 expected_audio_ref is not None
                 and not req.needs_work
-                and line.audio_ref == expected_audio_ref
+                # A leveled line (an#315) is judged by the audio it was leveled from.
+                and ((line.leveled or {}).get("source") or line.audio_ref)
+                == expected_audio_ref
                 and line.viseme_ref == expected_viseme_ref
                 and line.viseme_track is not None
                 and line.duration is not None
@@ -499,7 +502,11 @@ def produce_audio_for_scene(
         line.viseme_track = _to_ir_viseme_track(track)
         line.word_timings = _to_ir_word_timings(track)
         line.audio_ref = req.cache_key
+        line.leveled = None  # leveled again below, from this audio
         line.viseme_ref = viseme_key(req.cache_key, lipsync.name, line.text)
+    # The spread is measured only when lines were (re)made: a warm render pays
+    # no ffmpeg pass for it, and says it once rather than on every render.
+    _voice_loudness(scene, mall, report=overruns and bool(pending))
     retime_dialogue(scene)
     for message in dialogue_overruns(scene, mall=mall) if overruns else ():
         if announce is not None:
@@ -507,6 +514,32 @@ def produce_audio_for_scene(
         else:
             warnings.warn(message, DialogueOverrunWarning, stacklevel=2)
     return scene
+
+
+def _voice_loudness(scene: SceneIR, mall: Mapping | None, *, report: bool) -> None:
+    """Level every voice to ``meta.voice_loudness`` (an#315: one gain per voice,
+    derived audio stamped on each line). With no target, and ``report``, warn
+    when the voices differ by more than a few dB (:mod:`an.audio.loudness`)."""
+    store = mall.get("audio") if mall is not None else None
+    if store is None:
+        return
+    from an.audio import loudness
+
+    spec = scene.meta.voice_loudness
+    if spec is not None:
+        loudness.level_voices(scene, mall, spec)
+        return
+    for shot in scene.timeline:  # leveling turned off: the lines speak as made
+        for line in shot.dialogue:
+            if line.leveled:
+                line.audio_ref, line.leveled = line.leveled.get("source"), None
+    if not report or shutil.which("ffmpeg") is None:
+        return
+    if len(loudness.voiced_lines(scene, mall)) < 2:
+        return
+    message = loudness.voice_loudness_spread(loudness.loudness_report(scene, mall))
+    if message:
+        warnings.warn(message, loudness.VoiceLoudnessWarning, stacklevel=3)
 
 
 class DialogueOverrunWarning(UserWarning):

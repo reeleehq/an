@@ -605,6 +605,10 @@ class Dialogue(_IRModel):
     word_timings: list[WordTimingIR] | None = None
     audio_ref: str | None = None  # mall["audio"] key (content-hash of TTS input)
     viseme_ref: str | None = None  # mall["visemes"] key (content-hash of lipsync input)
+    #: Stamped by voice leveling (an#315): ``{"source": <the synthesized
+    #: line's audio_ref>, "gain_db": <its voice's gain>}`` when ``audio_ref``
+    #: is the leveled audio. ``None`` — unleveled — is omitted from JSON.
+    leveled: dict | None = None
     #: Seconds of silence before this line, after the previous line ends (the
     #: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.
     pause: Seconds | None = Field(default=None, ge=0, allow_inf_nan=False)
@@ -680,7 +684,7 @@ class Dialogue(_IRModel):
         """
         data = handler(self)
         if isinstance(data, dict):
-            for key in ("pause", "at", "direction"):
+            for key in ("pause", "at", "direction", "leveled"):
                 if getattr(self, key) is None:
                     data.pop(key, None)
         return data
@@ -787,6 +791,36 @@ DEFAULT_CAPTION_MAX_LINES: int = 2
 #: Caption type size as a fraction of frame height — a little under the title
 #: default, as captions are read while something else is watched.
 DEFAULT_CAPTION_SIZE: float = 0.05
+
+
+class VoiceLoudness(_IRModel):
+    """One loudness for every voice of the film (an#315).
+
+    TTS voices arrive at very different levels (a 19 dB spread measured on one
+    episode). Set, the render levels each voice: its integrated loudness over
+    ALL its lines (EBU R128), one gain to ``target_lufs`` (plus the voice
+    document's ``loudness_offset_db``), peaks held at ``peak_db`` dBFS by a
+    lookahead limiter — derived audio, content-keyed, never re-synthesised
+    (:mod:`an.audio.loudness`). Unset, the default, levels nothing.
+
+    >>> VoiceLoudness().target_lufs, VoiceLoudness().peak_db
+    (-16.0, -1.5)
+    >>> VoiceLoudness.model_validate(-20).target_lufs  # a bare number is the target
+    -20.0
+    """
+
+    #: The level every voice is brought to, LUFS (-16: speech for the web;
+    #: -23: EBU R128 broadcast).
+    target_lufs: float = Field(default=-16.0, ge=-40.0, le=-5.0)
+    #: The highest a sample may reach after the gain, dBFS.
+    peak_db: float = Field(default=-1.5, ge=-12.0, le=0.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _a_number_is_the_target(cls, data):
+        if isinstance(data, (int, float)) and not isinstance(data, bool):
+            return {"target_lufs": data}
+        return data
 
 
 class Captions(_IRModel):
@@ -978,6 +1012,9 @@ class Meta(_IRModel):
     #: Captions from the dialogue's word timings (:class:`Captions`, an#175);
     #: ``None`` — the default — is none, omitted from JSON like ``style_pack``.
     captions: Captions | None = None
+    #: One loudness for every voice (:class:`VoiceLoudness`, an#315); ``None``
+    #: — the default — levels nothing, and is omitted from JSON.
+    voice_loudness: VoiceLoudness | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_style_pack(self, handler):
@@ -1006,6 +1043,9 @@ class Meta(_IRModel):
         # `captions` likewise (an#175): unset is what every existing meta means.
         if isinstance(data, dict) and self.captions is None:
             data.pop("captions", None)
+        # `voice_loudness` likewise (an#315).
+        if isinstance(data, dict) and self.voice_loudness is None:
+            data.pop("voice_loudness", None)
         return data
 
 
