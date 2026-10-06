@@ -42,7 +42,7 @@ from an.library.kits import publish_kit as _publish_kit
 from an.library.federation import Library, open_library, search_path
 from an.library.ids import parse_ref
 from an.genres import entity_kind
-from an.ir.assets import AssetSource
+from an.ir.assets import AssetSource, license_class
 from an.library.root import CORE_PACKAGE
 from an.library.stores import version_key
 
@@ -79,6 +79,60 @@ def _source_from_flags(
         author=author or None,
         url=url or None,
     )
+
+
+#: The ``key=value`` fields a ``--license-part`` may give after its licence.
+_PART_FIELDS: frozenset[str] = frozenset({"provider", "author", "url", "id"})
+
+
+def _license_parts(
+    values: Iterable[str] | None, asset: AssetSource | None
+) -> dict[str, AssetSource] | None:
+    """``{glob: source}`` from repeated ``--license-part 'GLOB=LICENCE[,provider=…,author=…,url=…]'``.
+
+    The glob is everything before the first ``=`` (match a path holding ``=``
+    with ``?``). A part whose class differs from the asset's, or that owes
+    attribution, names its own ``provider=`` (L1-12 of the an#345 review: the
+    credit must go to the right party); otherwise it takes ``--provider``.
+
+    >>> asset = AssetSource(provider="me", license="cc0-1.0")
+    >>> p = _license_parts(["parts/*.png=cc0-1.0"], asset)
+    >>> p["parts/*.png"].provider, p["parts/*.png"].license
+    ('me', 'cc0-1.0')
+    """
+    out: dict[str, AssetSource] = {}
+    for value in values or []:
+        glob, eq, rest = value.partition("=")
+        licence, *fields = [t.strip() for t in rest.split(",")]
+        if not (eq and glob.strip() and licence):
+            raise SystemExit(
+                f"an library publish: --license-part {value!r} must read "
+                "'GLOB=LICENCE[,provider=…,author=…,url=…]'"
+            )
+        extra: dict[str, str] = {}
+        for item in fields:
+            key, _, val = item.partition("=")
+            if key not in _PART_FIELDS or not val:
+                raise SystemExit(
+                    f"an library publish: --license-part field {item!r} is not one "
+                    f"of {sorted(_PART_FIELDS)} as key=value"
+                )
+            extra[key] = val
+        if "provider" not in extra:
+            cls = license_class(AssetSource(provider="-", license=licence))
+            if (
+                asset is None
+                or cls == "attribution"
+                or cls != license_class(asset)
+            ):
+                raise SystemExit(
+                    f"an library publish: --license-part {value!r} needs its own "
+                    "provider=… (a part whose licence class differs from the "
+                    "asset's, or that owes attribution, is credited to its own party)"
+                )
+            extra["provider"] = asset.provider
+        out[glob.strip()] = AssetSource(license=licence, **extra)
+    return out or None
 
 
 def _refusing(func: Callable[..., str]) -> Callable[..., str]:
@@ -167,6 +221,7 @@ def publish(
     expect_head: str = "",
     replace_curation: bool = False,
     extra: str = "",
+    license_part: list[str] | None = None,
 ) -> str:
     """Publish an asset folder as the next version of ``asset_id``.
 
@@ -193,16 +248,19 @@ def publish(
     expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet
     replace_curation: --style/--tags replace the record's lists instead of adding to them
     extra: further libraries where --derived-from resolves, by package name, comma-separated
+    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. Never looser than what the bytes already carry, unless relicensed
     """
     lib = open_library(package, root or None)
+    asset_source = _source_from_flags(
+        license=license, provider=provider, author=author, url=source_url
+    )
     others = _libraries(package, root, extra, refs=_split(derived_from) or ())[1:]
     result = _publish_dir(
         lib,
         folder,
         asset_id,
-        source=_source_from_flags(
-            license=license, provider=provider, author=author, url=source_url
-        ),
+        source=asset_source,
+        license_parts=_license_parts(license_part, asset_source),
         derived_from=_split(derived_from) or (),
         title=title or None,
         family=family or None,

@@ -129,6 +129,35 @@ so. An environment's planes may each carry their own `source`, so a composite
 stage credits every part of it; `credits_for_scene` restricts a render's check
 to the assets its shots actually name.
 
+## Per-file statements never relax (an#345)
+
+A library version can state a licence per file (`file_sources`, each source
+sha-pinned; `publish(license_parts=…)`, `--license-part`). The rule any change
+to that code must keep, enforced in `an.library.api._PerFileRule` and
+`_refuse_relaxing`:
+
+- **A per-file statement can only be stricter than what the bytes already
+  carry**: the same file's per-part source, the same bytes at another path, and
+  everything the asset's own chain (`previous`, back to the first) or a
+  `derived_from` parent said about those bytes. Looser is refused unless a
+  relicence is recorded — and a relicence lists the digests it `covers`; a
+  per-file statement stricter than it keeps binding, so a relicence never frees
+  a private part it did not name.
+- **Per-file statements count toward a version's rights, never toward the label
+  of the files nothing itemises** (`version_sources(per_file=False)`, at every
+  depth): otherwise one private head re-spreads "private" over every file of
+  every derivative, which is the bug that motivated them.
+- Same bytes at two paths: the strictest statement, never the last path's.
+- A statement speaks only for its digest: an edited file loses it and is
+  recorded `unlabelled` (never re-pinned by path).
+- Per-part `Attachment.source` itemisation keeps its older, relaxable behaviour
+  until the maintainer decides an#357; do not "fix" it in passing — closing it
+  changes what existing floors state on `reindex`.
+
+The negative tests (`tests/test_library_file_sources.py`) replay the red-team
+probe's five relaxations in their per-file form. A change that makes one of
+them pass by relaxing is a licence defect, not a refactor.
+
 ## When you cannot verify
 
 Say so, in the artifact. `UNVERIFIABLE` is a real verdict and it behaves like

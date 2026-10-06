@@ -37,6 +37,7 @@ import hashlib
 import json
 import os
 import posixpath
+import re
 import unicodedata
 import warnings
 
@@ -60,7 +61,13 @@ from an.credits import (
     referenced_paths,
     same_source,
 )
-from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
+from an.ir.migrate import (
+    DocumentKind,
+    migrate,
+    omit_unset,
+    register_kind,
+    register_migration,
+)
 from an.library.affordances import (
     CAPABILITIES,
     KEY_SEP,
@@ -158,9 +165,20 @@ VERSION_KIND: DocumentKind = register_kind(
     DocumentKind(
         name="LibraryVersion",
         version_field="schema_version",
-        current_version=LIBRARY_SCHEMA_VERSION,
+        current_version="0.2.0",
     )
 )
+
+
+@register_migration(VERSION_KIND.name, LIBRARY_SCHEMA_VERSION, "0.2.0")
+def _version_0_1_to_0_2(doc: dict[str, Any]) -> dict[str, Any]:
+    """0.2.0 adds the optional ``file_sources`` (an#345): nothing to rewrite.
+
+    A version is WRITTEN at 0.2.0 only when it carries ``file_sources``, so an
+    older reader (which knows no path from 0.2.0) refuses it rather than
+    reading its per-file statements as the asset-level label alone.
+    """
+    return {**doc, "schema_version": "0.2.0"}
 LABEL_KIND: DocumentKind = register_kind(
     DocumentKind(
         name="LibraryLabel",
@@ -223,6 +241,23 @@ RELABEL_FIELD: str = "relabel"
 #: references alone are re-resolved by name, and a same-named library's other
 #: ``x@v001`` would stand in for it.
 LINEAGE_FIELD: str = "lineage"
+#: The version field holding per-file statements (an#345): ``{path: source}``,
+#: each source pinned to the digest of the file it was given for. Any file of
+#: the version can carry one, attachment or not. A version carrying the field
+#: (and every version whose lineage does) is stated under the never-relax rule
+#: (:class:`_PerFileRule`): a per-file statement can only ever be stricter than
+#: what the bytes already carry, unless a recorded relicence names those bytes.
+FILE_SOURCES_FIELD: str = "file_sources"
+#: How a per-file statement is labelled among a version's contributors (and in
+#: a check-out's origin block, where no descriptor label can shadow it).
+FILE_SOURCE_PREFIX: str = "file:"
+#: The relicence entry listing the digests a relicence speaks for, recorded on
+#: a version carrying ``file_sources``: a per-file statement stricter than the
+#: relicence is not covered, and keeps binding.
+RELICENSE_COVERS: str = "covers"
+#: The version-document schema a version carrying ``file_sources`` is written
+#: at, so an older ``an`` refuses to read it instead of reading it looser.
+PER_FILE_SCHEMA_VERSION: str = "0.2.0"
 #: How many labels a publish tries when another publisher takes the one it chose.
 MAX_PUBLISH_ATTEMPTS: int = 8
 #: How many close capability names a typo's error suggests.
@@ -412,6 +447,7 @@ def _manifest(
     relabel: Mapping[str, Any] | None = None,
     unlabelled: Iterable[str] = (),
     lineage: Mapping[str, str] | None = None,
+    file_sources: Mapping[str, Any] | None = None,
 ) -> str:
     payload: dict[str, Any] = {
         "doc": doc,
@@ -429,6 +465,10 @@ def _manifest(
         payload[LINEAGE_FIELD] = dict(lineage)
     if unlabelled:
         payload[UNLABELLED_FIELD] = sorted(unlabelled)
+    if file_sources is not None:
+        # Present (even empty) on every version of a chain that ever carried
+        # per-file statements: absent leaves every older manifest unchanged.
+        payload[FILE_SOURCES_FIELD] = dict(file_sources)
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
 
@@ -448,6 +488,7 @@ def version_manifest(version: Mapping[str, Any]) -> str:
         relabel=version.get(RELABEL_FIELD),
         unlabelled=version.get(UNLABELLED_FIELD) or (),
         lineage=version.get(LINEAGE_FIELD),
+        file_sources=version.get(FILE_SOURCES_FIELD),
     )
 
 
@@ -487,6 +528,123 @@ def read_version(library: Library, asset_id: str, label: str) -> dict[str, Any]:
     return migrate(
         dict(library.versions[version_key(asset_id, label)]), kind=VERSION_KIND.name
     )
+
+
+# --------------------------------------------------------------------------- per-file
+
+
+def _glob_regex(glob: str, *, near: bool = False) -> re.Pattern[str]:
+    """The regex a ``--license-part`` glob matches stored paths with.
+
+    ``*`` and ``?`` stay inside one path segment, a whole ``**`` segment
+    matches any number of segments (none included), everything else is
+    literal and case-exact. ``near``: the looser pattern a NEAR miss matches —
+    any case, and any extension in place of the glob's own.
+    """
+    segments = unicodedata.normalize("NFC", glob).split("/")
+    out: list[str] = []
+    for n, seg in enumerate(segments):
+        last = n == len(segments) - 1
+        if seg == "**":
+            out.append("(?:[^/]+/)*" if not last else "(?:[^/]+(?:/[^/]+)*)?")
+            continue
+        stem, dot, ext = seg.rpartition(".")
+        # An extension swap only where the stem names something (``head_*``):
+        # a bare ``*.png`` means "every PNG", and its other files are no miss.
+        swap = (
+            near and last and dot and set(stem) - set("*?") and not set(ext) & set("*?")
+        )
+        body = stem if swap else seg
+        piece = "".join(
+            "[^/]*" if c == "*" else "[^/]" if c == "?" else re.escape(c) for c in body
+        )
+        out.append(piece + (r"\.[^/.]+" if swap else "") + ("" if last else "/"))
+    return re.compile("".join(out), re.IGNORECASE if near else 0)
+
+
+def match_license_parts(
+    parts: Mapping[str, Any], paths: Iterable[str]
+) -> dict[str, tuple[str, Any]]:
+    """``{path: (glob, source)}``: which stored path each ``--license-part`` glob labels.
+
+    Matched against the paths the version stores (after clutter is skipped),
+    NFC on both sides. Refused, with a sentence: a glob matching nothing; a
+    path two globs give different sources; and a NEAR miss — a path no glob
+    matches that one would match ignoring case or extension
+    (``parts/Head_3.PNG``, ``parts/head_3.jpg`` beside ``parts/head_*.png``),
+    since a miss falls to the looser asset-level label.
+
+    >>> match_license_parts({"parts/head_*.png": "private"},
+    ...                     ["parts/head_1.png", "parts/sub/head_2.png", "parts/body.svg"])
+    {'parts/head_1.png': ('parts/head_*.png', 'private')}
+    >>> sorted(match_license_parts({"**/*.png": "x"}, ["a.png", "parts/sub/b.png"]))
+    ['a.png', 'parts/sub/b.png']
+    >>> match_license_parts({"parts/head_*.png": "p"},
+    ...     ["parts/head_1.png", "parts/head_2.jpg"])  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    LibraryError: ...
+    """
+    stored = {unicodedata.normalize("NFC", p): p for p in paths}
+    found: dict[str, tuple[str, Any]] = {}
+    for glob, source in parts.items():
+        if not glob:
+            raise LibraryError("a --license-part needs a glob before its '='")
+        pattern = _glob_regex(glob)
+        hits = [p for nfc, p in stored.items() if pattern.fullmatch(nfc)]
+        if not hits:
+            raise LibraryError(
+                f"--license-part {glob!r} matches no file of the asset (globs are "
+                "case-exact, '*' stays inside one folder and '**' crosses folders)"
+            )
+        for path in hits:
+            held = found.get(path)
+            if held is not None and held[1] != source:
+                raise LibraryError(
+                    f"{path!r} is matched by --license-part {held[0]!r} and {glob!r} "
+                    "with different sources; make the globs disjoint"
+                )
+            found[path] = (glob, source)
+    for glob in parts:
+        near = _glob_regex(glob, near=True)
+        missed = sorted(
+            p for nfc, p in stored.items() if p not in found and near.fullmatch(nfc)
+        )
+        if missed:
+            raise LibraryError(
+                f"--license-part {glob!r} nearly matches {missed} (another case or "
+                "extension), which would fall to the asset-level label: name them "
+                "with their own --license-part, or widen the glob"
+            )
+    return found
+
+
+def _file_entry(
+    version: Mapping[str, Any], path: str, digest: str
+) -> AssetSource | None:
+    """The per-file statement ``version`` makes about exactly these bytes at ``path``.
+
+    An entry pinned to other bytes (the file changed since) speaks for nothing.
+    """
+    raw = (version.get(FILE_SOURCES_FIELD) or {}).get(path)
+    if not isinstance(raw, Mapping):
+        return None
+    try:
+        source = AssetSource.model_validate(dict(raw))
+    except ValueError:
+        return None
+    return source if _digest_of(source) == digest else None
+
+
+def _file_contributions(
+    version: Mapping[str, Any], prefix: str = ""
+) -> list[tuple[str, AssetSource]]:
+    """The per-file statements a version makes about the bytes it holds, as contributors."""
+    out: list[tuple[str, AssetSource]] = []
+    for path, raw in sorted((version.get("files") or {}).items()):
+        entry = _file_entry(version, path, ContentRef.from_json(raw).item_id)
+        if entry is not None:
+            out.append((f"{prefix}{FILE_SOURCE_PREFIX}{path}", entry))
+    return out
 
 
 # --------------------------------------------------------------------------- rights
@@ -787,6 +945,7 @@ def version_sources(
     *,
     floor: BlobFloor | None = _MACHINE,
     owner: Library | None = None,
+    per_file: bool = True,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source a version's rights depend on — its own, its lineage, its bytes.
 
@@ -814,6 +973,10 @@ def version_sources(
     owner: the library holding ``version`` (default: unknown — its own
         statements are then read from the floor too, which repeats a reason and
         relaxes nothing)
+    per_file: count each walked version's per-file statements
+        (:data:`FILE_SOURCES_FIELD`, labelled ``file:<path>``; an#345) — they
+        count toward a version's rights, never toward the label that speaks
+        for the files nothing itemises (``False``: :func:`_own_label_class`)
 
     A version carrying an explicit ``relicense`` (who, why) contributes its
     asset-level source alone: that recorded statement replaces everything it
@@ -890,6 +1053,10 @@ def version_sources(
                     _source_model(version.get("source")),
                 )
             )
+            # A relicence never covers a per-file statement it did not name:
+            # one stricter than it keeps binding (an#345).
+            if per_file:
+                out.extend(_file_contributions(version, prefix))
             return _verify(version, holder, True)
 
         def gap(
@@ -922,6 +1089,8 @@ def version_sources(
                 files=_file_hashes(version.get("files") or {}),
             )
         )
+        if per_file:
+            out.extend(_file_contributions(version, prefix))
         out.extend(
             gap(
                 f"{prefix}{path}",
@@ -1122,10 +1291,226 @@ def _own_label_class(
     libraries: Libraries, version: Mapping[str, Any], *, owner: Library | None = None
 ) -> str:
     """The class of what a version says about every file it does not itemise
-    (with the labels recorded on it since, when ``owner`` holds it)."""
+    (with the labels recorded on it since, when ``owner`` holds it).
+
+    Per-file statements (an#345) are left out at every depth of the walk: a
+    file another file's label names is no reason to restate THIS file.
+    """
     return roll_up(
-        version_sources(libraries, version, floor=None, owner=owner)
+        version_sources(libraries, version, floor=None, owner=owner, per_file=False)
     ).license_class
+
+
+#: A statement as the never-relax rule weighs it: ``(class, why)``.
+_Said = tuple[str, str]
+
+
+def _strictest(*said: _Said | None) -> _Said:
+    """The most restrictive of several ``(class, why)``; on a tie, the first."""
+    order = LICENSE_CLASS_ORDER.index
+    present = [s for s in said if s is not None]
+    return min(present, key=lambda s: order(s[0])) if present else ("free", "")
+
+
+def _source_class(source: AssetSource | None) -> str:
+    return license_class(source) if source is not None else "unknown"
+
+
+class _PerFileRule:
+    """What a version says about each of its blobs under the never-relax rule (an#345).
+
+    Applies to a version carrying ``file_sources`` and to every version whose
+    lineage does; every other version is stated exactly as before
+    (:func:`blob_statement`), so no stored statement moves on ``reindex``.
+    For each file the class stated is the STRICTEST of:
+
+    - its per-file statement if it has one, else the version's label computed
+      without any per-file statement (:func:`_own_label_class`), or — a file
+      only a per-part source itemises — that source, as before (extending the
+      rule to per-part sources is an#357's question);
+    - its per-part source, when it also has a per-file one (neither wins by
+      position);
+    - what the version says about the same bytes at its other paths;
+    - what every version of its lineage — ``previous`` back to the first,
+      and each ``derived_from`` parent — says about these bytes: the
+      statement of the nearest one holding them, or, for bytes it does not
+      hold, its own label (bytes new to a private chain stay private).
+
+    A relicensed version states its relicence for the bytes it covers
+    (:data:`RELICENSE_COVERS`) and its per-file statement for any stricter.
+    Memoised: build one per operation.
+    """
+
+    def __init__(self, readers: Libraries) -> None:
+        self.readers = readers
+        self._memo: dict[tuple[Any, ...], Any] = {}
+
+    def _cached(self, key: tuple[Any, ...], compute: Callable[[], Any]) -> Any:
+        if key not in self._memo:
+            self._memo[key] = compute()
+        return self._memo[key]
+
+    @staticmethod
+    def _vid(version: Mapping[str, Any], holder: Library | None) -> tuple[Any, ...]:
+        return (
+            library_origin(holder) if holder is not None else None,
+            version.get("manifest_sha256") or id(version),
+        )
+
+    def parents(
+        self, version: Mapping[str, Any], holder: Library | None
+    ) -> list[tuple[str, Mapping[str, Any] | None, Library | None]]:
+        """``(ref, parent, holder)`` per lineage link; ``parent`` None if it no longer resolves."""
+
+        def compute() -> list[tuple[str, Mapping[str, Any] | None, Library | None]]:
+            pins = version.get(LINEAGE_FIELD) or {}
+            refs = [version.get(PREVIOUS_FIELD), *(version.get("derived_from") or [])]
+            out: list[tuple[str, Mapping[str, Any] | None, Library | None]] = []
+            for ref in (r for r in refs if r):
+                try:
+                    at, pinned, parent = _resolve_lineage(
+                        self.readers, ref, pins.get(ref)
+                    )
+                except (AssetNotFoundError, AssetIdError):
+                    out.append((ref, None, None))
+                    continue
+                parent = migrate(dict(parent), kind=VERSION_KIND.name)
+                out.append((str(pinned), parent, at))
+            return out
+
+        return self._cached(("parents", *self._vid(version, holder)), compute)
+
+    def applies(self, version: Mapping[str, Any], holder: Library | None) -> bool:
+        """Whether ``version`` or any version of its lineage carries ``file_sources``."""
+        return self._cached(
+            ("applies", *self._vid(version, holder)),
+            lambda: FILE_SOURCES_FIELD in version
+            or (
+                not version.get(RELICENSE_FIELD)
+                and any(
+                    parent is not None and self.applies(parent, at)
+                    for _, parent, at in self.parents(version, holder)
+                )
+            ),
+        )
+
+    def own_label(self, version: Mapping[str, Any], holder: Library | None) -> str:
+        return self._cached(
+            ("own", *self._vid(version, holder)),
+            lambda: _own_label_class(self.readers, version, owner=holder),
+        )
+
+    def lineage(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> _Said | None:
+        """The strictest thing the lineage of ``version`` says about ``digest`` (None: no lineage)."""
+        if version.get(RELICENSE_FIELD):
+            return None  # a relicence replaces what it inherits
+
+        def compute() -> _Said | None:
+            said: list[_Said] = []
+            for ref, parent, at in self.parents(version, holder):
+                if parent is None:
+                    recorded = Rights.from_dict(version.get("rights") or {})
+                    said.append(
+                        (
+                            recorded.license_class,
+                            f"{ref} (not on the search path; as recorded)",
+                        )
+                    )
+                    continue
+                cls, why = self.said(parent, at, digest)
+                said.append((cls, f"{ref}: {why}"))
+            return _strictest(*said) if said else None
+
+        return self._cached(
+            ("lineage", *self._vid(version, holder), digest), compute
+        )
+
+    def said(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> _Said:
+        """What ``version`` says about ``digest``, held or not, with its own lineage's statement."""
+
+        def compute() -> _Said:
+            if digest in _file_hashes(version.get("files") or {}).values():
+                own = self.statement(version, holder, digest)
+            else:
+                own = (self.own_label(version, holder), "its own label")
+            return _strictest(own, self.lineage(version, holder, digest))
+
+        return self._cached(("said", *self._vid(version, holder), digest), compute)
+
+    def statement(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> _Said:
+        """What ``version`` says about the bytes ``digest`` it holds: strictest over its paths."""
+
+        def compute() -> _Said:
+            paths = [
+                p
+                for p, d in sorted(_file_hashes(version.get("files") or {}).items())
+                if d == digest
+            ]
+            if not self.applies(version, holder):
+                return _strictest(
+                    *(
+                        (st["class"], st["label"])
+                        for st in (
+                            blob_statement(
+                                self.readers,
+                                version,
+                                p,
+                                digest,
+                                own_label=lambda: self.own_label(version, holder),
+                                owner=holder,
+                            )
+                            for p in paths
+                        )
+                    )
+                )
+            return _strictest(
+                *(self._at_path(version, holder, p, digest) for p in paths)
+            )
+
+        return self._cached(
+            ("statement", *self._vid(version, holder), digest), compute
+        )
+
+    def _at_path(
+        self, version: Mapping[str, Any], holder: Library | None, path: str, digest: str
+    ) -> _Said:
+        entry = _file_entry(version, path, digest)
+        mine = (
+            (_source_class(entry), f"{path} itemised per file as {entry.license}")
+            if entry is not None
+            else None
+        )
+        relicense = version.get(RELICENSE_FIELD)
+        if relicense:
+            covers = relicense.get(RELICENSE_COVERS)
+            if covers is not None and digest not in covers:
+                # A relicence speaks only for the bytes it names.
+                return mine or ("unknown", f"{path}: not covered by the relicence")
+            source = _source_model(version.get("source"))
+            rel = (
+                _source_class(source) if source is not None else "unknown",
+                _relicense_note(relicense),
+            )
+            return _strictest(mine, rel)
+        part = itemising_source(version, path, digest)
+        part_said = (
+            (license_class(part), f"{path} itemised as {part.license or 'no licence'}")
+            if part is not None
+            else None
+        )
+        if mine is None and part_said is not None:
+            return part_said  # a per-part source alone: as before (an#357)
+        base = _strictest(
+            mine or (self.own_label(version, holder), "the asset's own label"),
+            part_said,
+        )
+        return _strictest(base, self.lineage(version, holder, digest))
 
 
 def _version_statements(
@@ -1134,9 +1519,28 @@ def _version_statements(
     """``(digest, asset_key, statement)`` for each file of ``version``.
 
     The version's own label is computed at most once (an#249 R4-N3): it walks
-    the version's lineage, and it is the same for every un-itemised file.
+    the version's lineage, and it is the same for every un-itemised file. A
+    version under the per-file rule (:class:`_PerFileRule`) states each of its
+    blobs by that rule, one statement per digest.
     """
     asset_key = f"{library.name}:{version['asset']}"
+    rule = _PerFileRule(readers)
+    if rule.applies(version, library):
+        for path, raw in sorted((version.get("files") or {}).items()):
+            digest = ContentRef.from_json(raw).item_id
+            cls, why = rule.statement(version, library, digest)
+            yield (
+                digest,
+                asset_key,
+                {
+                    "version": version.get("version"),
+                    "number": version_number(version["version"]),
+                    "class": cls,
+                    "label": why,
+                    "manifest": version.get("manifest_sha256"),
+                },
+            )
+        return
     memo: list[str] = []
 
     def own_label() -> str:
@@ -1454,8 +1858,9 @@ def _same_as_head(
 ) -> bool:
     """Whether a publish would repeat the head: the same content and statements.
 
-    The same content (:func:`_same_content`), asset-level source, relicence and
-    unlabelled files. A relabel the publish does not repeat is no difference:
+    The same content (:func:`_same_content`), asset-level source, relicence,
+    unlabelled files and per-file statements (adding a per-file label to
+    unchanged content is a new statement, so a new version). A relabel the publish does not repeat is no difference:
     it was a statement about earlier gaps, which the head already makes.
     ``head`` is the head as its labels present it (:func:`labelled_view`).
     """
@@ -1470,6 +1875,7 @@ def _same_as_head(
         )
         and sorted(head.get(UNLABELLED_FIELD) or [])
         == sorted(pending.get(UNLABELLED_FIELD) or [])
+        and head.get(FILE_SOURCES_FIELD) == pending.get(FILE_SOURCES_FIELD)
     )
 
 
@@ -1511,6 +1917,146 @@ def _apply_curation(
         bucket.extend(v for v in (new or []) if v not in bucket)
 
 
+def _given_file_sources(
+    license_parts: Mapping[str, Any] | None,
+    file_sources: Mapping[str, Any] | None,
+    hashes: Mapping[str, str],
+    *,
+    source_doc: Mapping[str, Any] | None,
+) -> dict[str, dict[str, Any]]:
+    """``{path: source}`` a publish states per file, each pinned to its file's digest.
+
+    Refuses: ``license_parts`` with no asset-level source (the label every
+    other file takes would be undefined), a path the asset does not store, a
+    source pinning other bytes, and the same bytes given two classes.
+    """
+    given: dict[str, Any] = {}
+    if license_parts:
+        if source_doc is None:
+            raise LibraryError(
+                "--license-part labels named files; the asset-level label every "
+                "other file takes must be given too (--license and --provider)"
+            )
+        given.update(
+            {path: src for path, (_, src) in match_license_parts(license_parts, hashes).items()}
+        )
+    for path, src in (file_sources or {}).items():
+        if path not in hashes:
+            raise LibraryError(f"file_sources names {path!r}, which the asset does not store")
+        given[path] = src
+    out: dict[str, dict[str, Any]] = {}
+    for path, src in sorted(given.items()):
+        pinned = _source_dict(src) or {}
+        digest = hashes[path]
+        said = (pinned.get("sha256") or "").strip().lower().removeprefix("sha256:")
+        if said and said != digest:
+            raise LibraryError(
+                f"the per-file source for {path!r} pins other bytes ({said[:12]}…) "
+                f"than the file holds ({digest[:12]}…)"
+            )
+        out[path] = {**pinned, "sha256": digest}
+    by_digest: dict[str, tuple[str, str]] = {}
+    for path, src in out.items():
+        cls = license_class(AssetSource.model_validate(src))
+        held = by_digest.setdefault(hashes[path], (path, cls))
+        if held[1] != cls:
+            raise LibraryError(
+                f"{held[0]!r} and {path!r} hold the same bytes but are labelled "
+                f"{held[1]} and {cls}: bytes have one statement — label both alike"
+            )
+    return out
+
+
+def _carried_file_sources(
+    head: Mapping[str, Any] | None,
+    given: Mapping[str, dict[str, Any]],
+    hashes: Mapping[str, str],
+) -> tuple[dict[str, dict[str, Any]] | None, list[str]]:
+    """``(file_sources, dropped)`` of a new version: the given ones over the head's carried ones.
+
+    A head's statement is carried for its file while the bytes are unchanged
+    (the carried-source rule); a file changed since is ``dropped`` — recorded
+    ``unlabelled`` — and never re-pinned to its new bytes by path. ``None``:
+    neither the head nor this publish states anything per file.
+    """
+    held = (head or {}).get(FILE_SOURCES_FIELD)
+    if held is None and not given:
+        return None, []
+    out: dict[str, dict[str, Any]] = {}
+    dropped: list[str] = []
+    for path, raw in (held or {}).items():
+        if path in given or path not in hashes or not isinstance(raw, Mapping):
+            continue
+        source = _source_model(raw)
+        if source is not None and _digest_of(source) == hashes[path]:
+            out[path] = dict(raw)
+        else:
+            dropped.append(path)
+    out.update(given)
+    return dict(sorted(out.items())), dropped
+
+
+def _covered(
+    relicense: Mapping[str, Any],
+    source_doc: Mapping[str, Any] | None,
+    entries: Mapping[str, Mapping[str, Any]],
+    hashes: Mapping[str, str],
+) -> dict[str, Any]:
+    """``relicense`` with the digests it covers: all but those a STRICTER per-file statement names."""
+    order = LICENSE_CLASS_ORDER.index
+    rel = _source_class(_source_model(source_doc))
+    stricter = {
+        hashes[path]
+        for path, src in entries.items()
+        if order(_source_class(_source_model(src))) < order(rel)
+    }
+    return {
+        **relicense,
+        RELICENSE_COVERS: sorted(set(hashes.values()) - stricter),
+    }
+
+
+def _refuse_relaxing(
+    readers: Libraries,
+    pending: Mapping[str, Any],
+    entries: Mapping[str, Mapping[str, Any]],
+    hashes: Mapping[str, str],
+) -> None:
+    """Refuse a per-file statement looser than what already binds its bytes (an#345).
+
+    Binding: the per-part source the descriptor gives the same file, and what
+    the version's lineage — ``previous`` back to the first, every
+    ``derived_from`` parent — says about these bytes (:class:`_PerFileRule`).
+    """
+    order = LICENSE_CLASS_ORDER.index
+    rule = _PerFileRule(readers)
+    for path, raw in entries.items():
+        digest = hashes[path]
+        mine = _source_class(_source_model(raw))
+        part = itemising_source(pending, path, digest)
+        part_said = (
+            (license_class(part), f"its per-part source ({part.license})")
+            if part is not None
+            else None
+        )
+        if part_said is not None and part_said[0] != mine:
+            warnings.warn(
+                f"{path}: the per-file label ({mine}) and the descriptor's per-part "
+                f"source ({part_said[0]}) disagree; the stricter is stated",
+                LibraryIndexWarning,
+                stacklevel=3,
+            )
+        binding = _strictest(part_said, rule.lineage(pending, None, digest))
+        if binding[1] and order(mine) > order(binding[0]):
+            raise RightsRefusal(
+                f"the per-file label of {path!r} ({mine}) is looser than what "
+                f"binds those bytes: {binding[1]} ({binding[0]}). A per-file "
+                "label never relaxes a statement; to relax it, record a relicence "
+                "(--relicense-by <who> --relicense-reason <why>): it lists the "
+                "files it covers, and per-file labels stricter than it keep binding"
+            )
+
+
 def publish(
     library: Library,
     asset_id: str,
@@ -1532,6 +2078,8 @@ def publish(
     expect_head: str | None = _ANY_HEAD,
     search: Libraries | None = None,
     carry_source: bool = True,
+    license_parts: Mapping[str, AssetSource | Mapping[str, Any]] | None = None,
+    file_sources: Mapping[str, AssetSource | Mapping[str, Any]] | None = None,
 ) -> PublishResult:
     """Publish ``doc`` and its ``files`` as the next version of ``asset_id`` in ``library``.
 
@@ -1584,6 +2132,23 @@ def publish(
         ``None`` — the id must be new; ``"vNNN"`` — the head must be that version
     search: further libraries where ``derived_from`` references resolve (the
         owning library is always searched first)
+    license_parts: ``{glob: source}`` — a per-file statement for every stored
+        path a glob matches (:func:`match_license_parts`: ``*`` stays in one
+        folder, ``**`` crosses folders, case-exact; a glob matching nothing,
+        two globs disagreeing on a path, or a near miss refuse), each pinned
+        to the file's digest (an#345). Needs an asset-level ``source`` (given
+        or carried): the files no glob names are stated with the version's
+        label computed WITHOUT these statements. A per-file statement never
+        relaxes what the bytes already carry — the per-part source of the same
+        file, the same bytes at another path, and every earlier statement of
+        this asset's chain or of a version it derives from about them: a
+        looser one is refused unless ``relicense`` records who and why (the
+        relicence then lists the digests it covers, and a per-file statement
+        stricter than it keeps binding). At a later publish a statement is
+        carried for its file while the bytes are unchanged; a file changed
+        since is recorded ``unlabelled``
+    file_sources: ``{path: source}`` — the same, by exact stored path (what a
+        stored version holds; :func:`promote` passes it)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
     >>> doc = {"name": "lamp", "source": {"provider": "me", "license": "cc0-1.0"}}
@@ -1598,7 +2163,11 @@ def publish(
     if status is not None and status not in STATUSES:
         raise LibraryError(f"status {status!r} is not one of {list(STATUSES)}")
     if relicense is not None:
-        relicense = {k: str(v).strip() for k, v in dict(relicense).items()}
+        relicense = {
+            k: str(v).strip()
+            for k, v in dict(relicense).items()
+            if k != RELICENSE_COVERS  # recomputed for this version below
+        }
         if not relicense.get("by") or not relicense.get("reason"):
             raise LibraryError(
                 "a relicence records who and why: relicense={'by': …, 'reason': …} "
@@ -1701,6 +2270,9 @@ def publish(
         # that now declares another source is never masked by it.
         source_doc = head_view.get("source")
     hashes = _file_hashes(file_refs)
+    parts_given = _given_file_sources(
+        license_parts, file_sources, hashes, source_doc=source_doc
+    )
     unlabelled: list[str] = []
     if source_doc is not None and source is None and head_view is not None:
         # The carried source was a statement about the bytes it was declared
@@ -1717,6 +2289,7 @@ def publish(
             for path, digest in hashes.items()
             if (before.get(path) != digest or path in still)
             and itemising_source({"doc": doc}, path, digest) is None
+            and path not in parts_given
         )
     pending: dict[str, Any] = {
         "doc_kind": kind.name,
@@ -1734,8 +2307,18 @@ def publish(
         pending[RELICENSE_FIELD] = relicense
     if relabel:
         pending[RELABEL_FIELD] = relabel
+    entries, dropped = _carried_file_sources(head_view, parts_given, hashes)
+    unlabelled = sorted({*unlabelled, *dropped})
     if unlabelled:
         pending[UNLABELLED_FIELD] = unlabelled
+    if entries is not None:
+        pending[FILE_SOURCES_FIELD] = entries
+        if relicense:
+            relicense = pending[RELICENSE_FIELD] = _covered(
+                relicense, source_doc, entries, hashes
+            )
+        else:
+            _refuse_relaxing(readers, pending, entries, hashes)
     floor = BlobFloor(readers)
     rights = effective_rights(readers, pending, floor=floor, owner=library)
     manifest = _manifest(
@@ -1748,6 +2331,7 @@ def publish(
         relabel=relabel,
         unlabelled=unlabelled,
         lineage=pending.get(LINEAGE_FIELD),
+        file_sources=pending.get(FILE_SOURCES_FIELD),
     )
     _load_genres()  # the analysers are the genres' (P7): never an empty facet by accident
     affordances, analysers = analyse(kind.name, doc, file_refs)
@@ -1759,6 +2343,17 @@ def publish(
     created = True
     label = head
     head_ref = str(LibraryRef(asset_id, head, library.name)) if head else ""
+    if (
+        relabel
+        and head_version is not None
+        and _same_content(head_version, pending, hashes, head_ref=head_ref)
+        and pending.get(FILE_SOURCES_FIELD) != head_view.get(FILE_SOURCES_FIELD)
+    ):
+        raise LibraryError(
+            "per-file labels on unchanged content are a new statement, not a "
+            "relabel of a gap: publish them without --relabel-by/--relabel-reason "
+            "(that records a new version), then relabel if a gap remains"
+        )
     if (
         relabel
         and head_version is not None
@@ -1792,7 +2387,9 @@ def publish(
             asset_id,
             {
                 "kind": VERSION_KIND.name,
-                "schema_version": LIBRARY_SCHEMA_VERSION,
+                "schema_version": PER_FILE_SCHEMA_VERSION
+                if FILE_SOURCES_FIELD in pending
+                else LIBRARY_SCHEMA_VERSION,
                 "asset": asset_id,
                 **pending,
                 "files": file_refs,
@@ -2580,4 +3177,7 @@ def promote(
         note=f"promoted from {pinned}",
         search=readers,
         carry_source=False,
+        # The per-file statements travel with the bytes they were made about
+        # (an#345): left behind, the copy would state its private parts free.
+        file_sources=version.get(FILE_SOURCES_FIELD),
     )
