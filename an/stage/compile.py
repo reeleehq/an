@@ -1007,6 +1007,36 @@ def _parallax_pass(state: CompileState) -> None:
     )
 
 
+def _paint_orders_needed(root: NodeJSON) -> set[str]:
+    """The paint orders a compiled tree asks of its engine (an#430):
+    ``container`` for a ``z_index``, ``global`` for a ``paint_order``."""
+    need: set[str] = set()
+    for _, node in stage_tree.walk(root):
+        if node.paint_order:
+            need.add("global")
+        if node.z_index is not None or (node.visual is not None and node.visual.z_index is not None):
+            need.add("container")
+    return need
+
+
+def _check_paint_orders(state: "CompileState") -> None:
+    """Refuse a paint order the shot's engine cannot honour, by its capability
+    name (an#430, G16): the stage honours both, an engine that declares no
+    ``paint_orders`` would draw the parts in tree order, silently wrong."""
+    from an.capabilities.subjects import ENGINE_PAINT_ORDER, missing_engine_terms
+
+    need = _paint_orders_needed(state.scene_root)
+    lacking = missing_engine_terms(
+        state.shot.renderer, [f"{ENGINE_PAINT_ORDER.name}:{n}" for n in sorted(need)]
+    )
+    if lacking:
+        raise CutoutCompileError(
+            f"shot {state.shot.id!r}: its rig asks the engine for {lacking}, which "
+            f"renderer {state.shot.renderer!r} does not afford: "
+            f"{ENGINE_PAINT_ORDER.remedy}"
+        )
+
+
 def _checks_pass(state: CompileState) -> None:
     """After EVERY emission pass: targets, easings, stand-in assets, faded treatments."""
     # No channel may reach the runtime's frame loop naming a node it will not
@@ -1014,6 +1044,7 @@ def _checks_pass(state: CompileState) -> None:
     _check_channel_targets(state.animations, state.vocab.paths, shot_id=state.shot.id)
     _check_keyframe_easings(state.animations, shot_id=state.shot.id)
     _check_planes(state)
+    _check_paint_orders(state)
     # AFTER action + viseme compilation, deliberately: a swap key the timeline
     # actually USES whose art is missing is recorded as a fallback during
     # those passes (usage-aware escalation, an#87), and this is the one place
