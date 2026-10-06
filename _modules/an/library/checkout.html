@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
+    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.175" />
+  <meta name="docsearch:version" content="0.1.176" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,7 +752,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentRef</span><span class="p">,</span> <span class="n">content_hash</span>
 
@@ -760,8 +760,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">METADATA_ADDED_FLAG</span><span class="p">,</span>
     <span class="n">ORIGIN_KEY</span><span class="p">,</span>
     <span class="n">SOURCE_ADDED_KEY</span><span class="p">,</span>
+    <span class="n">LINEAGE_FIELD</span><span class="p">,</span>
+    <span class="n">PREVIOUS_FIELD</span><span class="p">,</span>
     <span class="n">CheckoutError</span><span class="p">,</span>
     <span class="n">IntegrityError</span><span class="p">,</span>
+    <span class="n">_resolve_lineage</span><span class="p">,</span>
     <span class="n">_stricter</span><span class="p">,</span>
     <span class="n">labelled_view</span><span class="p">,</span>
     <span class="n">pop_origin</span><span class="p">,</span>
@@ -934,6 +937,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">upgrade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">for_kit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CheckoutResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Materialise a library version into a project, carry its rights, pin it.</span>
 
@@ -947,6 +952,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    overwrite: replace an existing entry that is not exactly this version — a</span>
 <span class="sd">        local fork (any edited file or descriptor) or another asset; without it</span>
 <span class="sd">        that is refused</span>
+<span class="sd">    upgrade: update in place an entry pinned to an EARLIER version of this</span>
+<span class="sd">        very asset (by lineage) and unedited since: only the files the earlier</span>
+<span class="sd">        version named are replaced, and the pin moves (an#346). Without it such</span>
+<span class="sd">        an entry refuses, naming this flag — never a copy beside it; an edited</span>
+<span class="sd">        one refuses either way (publish it first, or ``overwrite``)</span>
+<span class="sd">    for_kit: the check-out of a kit member (its refusals do not name ``key``)</span>
 
 <span class="sd">    An entry that already IS this version byte for byte — the folder a</span>
 <span class="sd">    ``publish`` just sent to the library, still unedited — is recognised and</span>
@@ -986,13 +997,29 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">]</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">_project_lock</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">)</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">key</span>
-        <span class="ow">or</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">_target</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">key</span>
     <span class="n">entry_key</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+    <span class="n">upgrading</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">earlier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span>
+        <span class="c1"># An entry that already IS the requested version (the folder this</span>
+        <span class="c1"># version was published from) is linked below, as any unlinked copy.</span>
+        <span class="ow">and</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">differences</span> <span class="o">=</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">earlier</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">differences</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">upgrade</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
+                <span class="n">_upgrade_refusal</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">differences</span><span class="p">,</span> <span class="n">for_kit</span><span class="o">=</span><span class="n">for_kit</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">upgrading</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">upgrading</span><span class="p">:</span>
+        <span class="n">_remove_version_files</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">earlier</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
         <span class="n">existing</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="n">origin</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
@@ -1022,7 +1049,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">linking</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">differences</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">same_version</span> <span class="ow">or</span> <span class="n">outdated</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">linking</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
-                <span class="n">_fork_refusal</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">same_version</span><span class="p">,</span> <span class="n">differences</span><span class="p">)</span>
+                <span class="n">_fork_refusal</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">same_version</span><span class="p">,</span> <span class="n">differences</span><span class="p">,</span> <span class="n">for_kit</span><span class="o">=</span><span class="n">for_kit</span>
+                <span class="p">)</span>
             <span class="p">)</span>
         <span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">files</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"sidecar_path"</span><span class="p">):</span>
@@ -1116,18 +1145,174 @@ window.runMermaid = runMermaid;</script>
     <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span>
     <span class="n">same_version</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">differences</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">for_kit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The refusal when a project entry is a fork (or another asset) and no overwrite was asked."""</span>
+<span class="w">    </span><span class="sd">"""The refusal when a project entry is a fork (or another asset) and no overwrite was asked.</span>
+
+<span class="sd">    for_kit: a kit member's key is the kit's (``--key`` is refused for a kit),</span>
+<span class="sd">        so the advice does not name it</span>
+<span class="sd">    """</span>
     <span class="n">what</span> <span class="o">=</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s2">"a fork of it (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
         <span class="k">if</span> <span class="n">same_version</span>
         <span class="k">else</span> <span class="sa">f</span><span class="s2">"a local fork or another asset (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
     <span class="p">)</span>
+    <span class="n">beside</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">for_kit</span> <span class="k">else</span> <span class="s2">", or check out beside it with key=… (--key …)"</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s2">"the project already has </span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, and it is not </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> "</span>
         <span class="sa">f</span><span class="s2">"as published: it is </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">. Replace it with overwrite=True "</span>
-        <span class="s2">"(--overwrite), or check out beside it with key=… (--key …)"</span>
+        <span class="sa">f</span><span class="s2">"(--overwrite)</span><span class="si">{</span><span class="n">beside</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Target</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Where a check-out lands (:func:`_target`)."""</span>
+
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: The version the entry is pinned to, when that is an EARLIER version of</span>
+    <span class="c1">#: the very asset asked for (by lineage, an#346); else ``None``.</span>
+    <span class="n">earlier</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: That version's pinned reference.</span>
+    <span class="n">earlier_ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_follows</span><span class="p">(</span>
+    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pin</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The version ``pin`` names, if ``version``'s ``previous`` chain reaches it; else ``None``.</span>
+
+<span class="sd">    Identity by lineage, never by name (L2-2 of the an#331 review): two</span>
+<span class="sd">    libraries can share a name, so only the requested version's own pinned</span>
+<span class="sd">    ``previous`` links reaching the pinned MANIFEST prove it is a later version</span>
+<span class="sd">    of the same asset. A pin that cannot be verified, or a downgrade, is no</span>
+<span class="sd">    candidate.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="n">_pinned_version</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">pin</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">_Unverifiable</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">held</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">)</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">walked</span> <span class="o">=</span> <span class="n">version</span>
+    <span class="k">while</span> <span class="n">walked</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">):</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">walked</span><span class="p">[</span><span class="n">PREVIOUS_FIELD</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">walked</span> <span class="o">=</span> <span class="n">_resolve_lineage</span><span class="p">(</span>
+                <span class="n">libraries</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="p">(</span><span class="n">walked</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LINEAGE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a broken link proves nothing</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="n">walked</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">manifest</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">held</span>
+        <span class="k">if</span> <span class="n">manifest</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_target</span><span class="p">(</span>
+    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Target</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The project key a check-out of ``version`` lands in — one function for the</span>
+<span class="sd">    pre-flight check, the check-out and kits (an#346).</span>
+
+<span class="sd">    - an explicit ``key`` always wins (marked ``earlier`` when it is pinned to</span>
+<span class="sd">      an earlier version of this asset);</span>
+<span class="sd">    - else an entry that already IS this version, byte for byte (an#271);</span>
+<span class="sd">    - else the one entry the LOCKFILE pins to an earlier version of this asset</span>
+<span class="sd">      (by lineage, :func:`_follows`) — two such entries refuse, naming both;</span>
+<span class="sd">    - else the asset's slug.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">earlier</span><span class="p">(</span><span class="n">candidate</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">entry_key</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="n">lock</span><span class="p">[</span><span class="n">entry_key</span><span class="p">]</span> <span class="k">if</span> <span class="n">entry_key</span> <span class="ow">in</span> <span class="n">lock</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="n">_follows</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">pin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">held</span><span class="p">,</span> <span class="n">pin</span><span class="p">[</span><span class="s2">"library"</span><span class="p">])</span> <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">earlier</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">_Target</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">found</span> <span class="ow">or</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))</span>
+    <span class="n">same</span> <span class="o">=</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">store_name</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">same</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_Target</span><span class="p">(</span><span class="n">same</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">lock_key</span><span class="p">(</span><span class="n">store_name</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entry_key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">lock</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry_key</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">earlier</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">store</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">found</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s2"> are each pinned to an earlier version of </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">: say which "</span>
+            <span class="s2">"one this check-out updates with key=… (--key …)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">held</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_Target</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">held</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_Target</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_upgrade_refusal</span><span class="p">(</span>
+    <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">_Target</span><span class="p">,</span>
+    <span class="n">pinned</span><span class="p">:</span> <span class="n">LibraryRef</span><span class="p">,</span>
+    <span class="n">differences</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">for_kit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The refusal for an entry pinned to an earlier version of ``pinned`` (an#346)."""</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">differences</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the project's </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is an unedited copy of </span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">earlier_ref</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"an earlier version of </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">: update it in place with upgrade=True "</span>
+            <span class="s2">"(--upgrade), or replace it wholesale with overwrite=True (--overwrite)"</span>
+        <span class="p">)</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"replace it with overwrite=True (--overwrite)"</span>
+        <span class="k">if</span> <span class="n">for_kit</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">"replace it with key=</span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> and overwrite=True "</span>
+        <span class="sa">f</span><span class="s2">"(--key </span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2"> --overwrite)"</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the project's </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is pinned to </span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">earlier_ref</span><span class="si">}</span><span class="s2">, an earlier "</span>
+        <span class="sa">f</span><span class="s2">"version of </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">, and was edited since (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span><span class="si">}</span><span class="s2">): "</span>
+        <span class="s2">"publish it first (an library publish …) to keep the edit as a version, "</span>
+        <span class="sa">f</span><span class="s2">"or </span><span class="si">{</span><span class="n">keep</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_version_files</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Delete the files ``version`` named from ``store[key]``'s folder, and nothing else.</span>
+
+<span class="sd">    What an in-place upgrade removes (L2-3): a hidden draft (``.wip/``) or a</span>
+<span class="sd">    note ``drift`` never sees stays where it is.</span>
+<span class="sd">    """</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">_entry_dir</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">and</span> <span class="n">target</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">resolve</span><span class="p">()):</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">entry</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parent</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()):</span>
+                    <span class="k">break</span>
+                <span class="n">parent</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">check_checkout</span><span class="p">(</span>
@@ -1138,6 +1323,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">upgrade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">for_kit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LibraryRef</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Raise :class:`CheckoutError` if :func:`checkout` of ``ref`` would refuse; write nothing.</span>
 
@@ -1164,11 +1351,22 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"the project's </span><span class="si">{</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="si">!r}</span><span class="s2"> store keeps no files beside its documents, "</span>
             <span class="sa">f</span><span class="s2">"so the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files of </span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> have nowhere to go"</span>
         <span class="p">)</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">key</span>
-        <span class="ow">or</span> <span class="n">_unedited_copy</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">_target</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">lock</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">key</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">earlier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span>
+        <span class="ow">and</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">differences</span> <span class="o">=</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">earlier</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">differences</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">upgrade</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
+                <span class="n">_upgrade_refusal</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">differences</span><span class="p">,</span> <span class="n">for_kit</span><span class="o">=</span><span class="n">for_kit</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pinned</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">store</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
         <span class="n">differences</span> <span class="o">=</span> <span class="n">drift</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">differences</span><span class="p">:</span>
@@ -1182,7 +1380,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">lock</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry_key</span><span class="p">,</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">entry_key</span> <span class="ow">in</span> <span class="n">lock</span> <span class="k">else</span> <span class="p">{}</span>
             <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
-                <span class="n">_fork_refusal</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">same_version</span><span class="p">,</span> <span class="n">differences</span><span class="p">)</span>
+                <span class="n">_fork_refusal</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">same_version</span><span class="p">,</span> <span class="n">differences</span><span class="p">,</span> <span class="n">for_kit</span><span class="o">=</span><span class="n">for_kit</span>
+                <span class="p">)</span>
             <span class="p">)</span>
     <span class="k">return</span> <span class="n">pinned</span>
 

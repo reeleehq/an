@@ -87,7 +87,7 @@ One member of a kit: a pinned reference and the project key it lands under.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
 
 Check every member of a kit out into a project, pin each, and record the kit.
 
@@ -95,6 +95,10 @@ libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
 overwrite: replace project entries that are not exactly their member’s version
+upgrade: update in place a member’s entry pinned to an earlier version of
+
+> that member, unedited since (`checkout()`)
+
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 

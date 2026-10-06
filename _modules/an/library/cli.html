@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
+    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.175" />
+  <meta name="docsearch:version" content="0.1.176" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -895,6 +895,31 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">search_path</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">names</span><span class="p">,</span> <span class="n">roots</span><span class="o">=</span><span class="n">roots</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_link_command</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">folder</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The check-out that links ``folder`` to the version just published from it (an#346).</span>
+
+<span class="sd">    It names the folder's key when the folder is unpinned or pinned to this</span>
+<span class="sd">    same asset id, and ``--upgrade`` when pinned to an earlier version of it; a</span>
+<span class="sd">    folder pinned to ANOTHER asset is never offered (L2-6).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.lock</span><span class="w"> </span><span class="kn">import</span> <span class="n">lock_key</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.library_lock</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectLock</span>
+
+    <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"an library checkout </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="n">ProjectLock</span><span class="p">(</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lock_key</span><span class="p">(</span><span class="n">folder</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">folder</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">held</span> <span class="o">=</span> <span class="n">parse_ref</span><span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="s2">"library"</span><span class="p">])</span> <span class="k">if</span> <span class="n">pin</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — an unreadable lockfile or pin: the plain command</span>
+        <span class="k">return</span> <span class="n">base</span>
+    <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2"> --key </span><span class="si">{</span><span class="n">folder</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">held</span><span class="o">.</span><span class="n">asset_id</span> <span class="o">!=</span> <span class="n">ref</span><span class="o">.</span><span class="n">asset_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base</span>
+    <span class="n">upgrade</span> <span class="o">=</span> <span class="s2">" --upgrade"</span> <span class="k">if</span> <span class="n">held</span><span class="o">.</span><span class="n">version</span> <span class="o">!=</span> <span class="n">ref</span><span class="o">.</span><span class="n">version</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2"> --key </span><span class="si">{</span><span class="n">folder</span><span class="o">.</span><span class="n">name</span><span class="si">}{</span><span class="n">upgrade</span><span class="si">}</span><span class="s2">"</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_project_of</span><span class="p">(</span><span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The project an asset folder sits in (``&lt;project&gt;/assets/&lt;store&gt;/&lt;key&gt;``), if any."""</span>
     <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
@@ -1006,8 +1031,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">project</span> <span class="o">=</span> <span class="n">_project_of</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"to link the project's copy to it (pin it in assets.lock.json): "</span>
-            <span class="sa">f</span><span class="s2">"an library checkout </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span>
+            <span class="s2">"to link the project's copy to it (pin it in assets.lock.json): "</span>
+            <span class="o">+</span> <span class="n">_link_command</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
@@ -1242,6 +1267,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">upgrade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">package</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
@@ -1252,6 +1278,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ref: [&lt;library&gt;:]&lt;asset_id&gt;[@&lt;version&gt;] (latest is resolved now and pinned); a &lt;library&gt;: prefix reads that library, no --package needed. A kit.&lt;slug&gt; reference checks out every member of the kit, each pinned, and records the kit in the lockfile</span>
 <span class="sd">    key: the key in the project store (default: the asset's slug)</span>
 <span class="sd">    overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)</span>
+<span class="sd">    upgrade: update in place the entry pinned to an earlier version of this asset, if unedited; the pin moves (then update the scene's library: line)</span>
 <span class="sd">    package: the library to read first, then the core an library (default: the reference's &lt;library&gt;: prefix, else an)</span>
 <span class="sd">    root: that library's root (with no --package, the root of the library the reference names)</span>
 <span class="sd">    extra: further libraries, by package name, comma-separated</span>
@@ -1263,12 +1290,19 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"an library checkout: --key names one asset's key; a kit's members "</span>
                 <span class="s2">"carry their own keys (set them with `an library kit --key-for`)"</span>
             <span class="p">)</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="n">_checkout_kit</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">_checkout_kit</span><span class="p">(</span>
+            <span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span>
+        <span class="p">)</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"kit </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> members"</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">results</span><span class="p">)]</span>
         <span class="n">castable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">ref</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="n">_entities_block</span><span class="p">(</span><span class="n">castable</span><span class="p">)])</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">_checkout</span><span class="p">(</span>
-        <span class="n">libraries</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span>
+        <span class="n">libraries</span><span class="p">,</span>
+        <span class="n">project_dir</span><span class="p">,</span>
+        <span class="n">ref</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">key</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+        <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="o">*</span><span class="n">_entities_block</span><span class="p">([</span><span class="n">result</span><span class="p">])])</span></div>
 

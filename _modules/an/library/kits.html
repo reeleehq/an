@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e04a2b0c"></script>
+    <script src="../../../_static/documentation_options.js?v=d7b2a166"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.175" />
+  <meta name="docsearch:version" content="0.1.176" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -973,6 +973,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">LibraryRef</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">upgrade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lock</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CheckoutResult</span><span class="p">]:</span>
@@ -982,6 +983,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    project_dir: the project to check out into</span>
 <span class="sd">    ref: ``[&lt;library&gt;:]&lt;kit asset id&gt;[@&lt;version&gt;]``; ``latest`` is resolved now</span>
 <span class="sd">    overwrite: replace project entries that are not exactly their member's version</span>
+<span class="sd">    upgrade: update in place a member's entry pinned to an earlier version of</span>
+<span class="sd">        that member, unedited since (:func:`~an.library.checkout.checkout`)</span>
 <span class="sd">    mall: the project mall (default: ``build_project_mall(project_dir)``)</span>
 <span class="sd">    lock: the lockfile (default: the mall's ``library_lock`` store); it needs a</span>
 <span class="sd">        ``kits`` section, as :class:`~an.stores.library_lock.ProjectLock` has</span>
@@ -1030,7 +1033,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_refuse_slots</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="p">[</span><span class="n">_slot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">],</span> <span class="n">CheckoutError</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">plan</span><span class="p">:</span>
         <span class="n">check_checkout</span><span class="p">(</span>
-            <span class="n">libs</span><span class="p">,</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span> <span class="n">lock</span><span class="o">=</span><span class="n">lock</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span>
+            <span class="n">libs</span><span class="p">,</span>
+            <span class="n">member_pin</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+            <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
+            <span class="n">lock</span><span class="o">=</span><span class="n">lock</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+            <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span><span class="p">,</span>
+            <span class="n">for_kit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">checkout</span><span class="p">(</span>
@@ -1041,6 +1051,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span>
             <span class="n">lock</span><span class="o">=</span><span class="n">lock</span><span class="p">,</span>
             <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+            <span class="n">upgrade</span><span class="o">=</span><span class="n">upgrade</span><span class="p">,</span>
+            <span class="n">for_kit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">member_pin</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">plan</span>
     <span class="p">]</span>

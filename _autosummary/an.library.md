@@ -405,7 +405,7 @@ validate` runs this on every project (an#240). Each disagreement, and each
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False)
+### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False, upgrade=False, for_kit=False)
 
 Materialise a library version into a project, carry its rights, pin it.
 
@@ -427,6 +427,14 @@ overwrite: replace an existing entry that is not exactly this version — a
 : local fork (any edited file or descriptor) or another asset; without it
   that is refused
 
+upgrade: update in place an entry pinned to an EARLIER version of this
+: very asset (by lineage) and unedited since: only the files the earlier
+  version named are replaced, and the pin moves (an#346). Without it such
+  an entry refuses, naming this flag — never a copy beside it; an edited
+  one refuses either way (publish it first, or `overwrite`)
+
+for_kit: the check-out of a kit member (its refusals do not name `key`)
+
 An entry that already IS this version byte for byte — the folder a
 `publish` just sent to the library, still unedited — is recognised and
 linked (origin block, carried source, pin) without `overwrite`: publishing
@@ -437,7 +445,7 @@ written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
 
-### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
 
 Check every member of a kit out into a project, pin each, and record the kit.
 
@@ -445,6 +453,10 @@ libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
 overwrite: replace project entries that are not exactly their member’s version
+upgrade: update in place a member’s entry pinned to an earlier version of
+
+> that member, unedited since (`checkout()`)
+
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 

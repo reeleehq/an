@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e04a2b0c"></script>
+    <script src="../_static/documentation_options.js?v=d7b2a166"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.kinds" href="an.library.kinds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.175" />
+  <meta name="docsearch:version" content="0.1.176" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -704,13 +704,17 @@ the whole kit and leaves the project as it was.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.kits.checkout_kit">
-<span class="sig-prename descclassname"><span class="pre">an.library.kits.</span></span><span class="sig-name descname"><span class="pre">checkout_kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#checkout_kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.kits.checkout_kit" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.kits.</span></span><span class="sig-name descname"><span class="pre">checkout_kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upgrade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#checkout_kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.kits.checkout_kit" title="Link to this definition">#</a></dt>
 <dd><p>Check every member of a kit out into a project, pin each, and record the kit.</p>
 <p>libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: <code class="docutils literal notranslate"><span class="pre">[&lt;library&gt;:]&lt;kit</span> <span class="pre">asset</span> <span class="pre">id&gt;[&#64;&lt;version&gt;]</span></code>; <code class="docutils literal notranslate"><span class="pre">latest</span></code> is resolved now
 overwrite: replace project entries that are not exactly their member’s version
-mall: the project mall (default: <code class="docutils literal notranslate"><span class="pre">build_project_mall(project_dir)</span></code>)
+upgrade: update in place a member’s entry pinned to an earlier version of</p>
+<blockquote>
+<div><p>that member, unedited since (<code class="xref py py-func docutils literal notranslate"><span class="pre">checkout()</span></code>)</p>
+</div></blockquote>
+<p>mall: the project mall (default: <code class="docutils literal notranslate"><span class="pre">build_project_mall(project_dir)</span></code>)
 lock: the lockfile (default: the mall’s <code class="docutils literal notranslate"><span class="pre">library_lock</span></code> store); it needs a</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">kits</span></code> section, as <a class="reference internal" href="an.stores.library_lock.html#an.stores.library_lock.ProjectLock" title="an.stores.library_lock.ProjectLock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProjectLock</span></code></a> has</p>

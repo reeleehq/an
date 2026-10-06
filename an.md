@@ -1,4 +1,4 @@
-> built 2026-10-06 12:07 UTC from 8c8b4d2 (main) · an 0.1.175. Details: build_info.json
+> built 2026-10-06 12:13 UTC from 8231bce (main) · an 0.1.176. Details: build_info.json
 
 # index.html.md
 
@@ -19172,7 +19172,7 @@ Subcommands: `publish`, `kit`, `find`, `vocabulary`, `show`,
 | [`show`](_autosummary/an.library.cli.html.md#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.        |
 | [`vocabulary`](_autosummary/an.library.cli.html.md#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON).   |
 
-### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='', root='', extra='')
+### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, upgrade=False, package='', root='', extra='')
 
 Check a library version out into a project, and pin it in assets.lock.json.
 
@@ -19180,6 +19180,7 @@ project_dir: the an project
 ref: [<library>:]<asset_id>[@<version>] (latest is resolved now and pinned); a <library>: prefix reads that library, no –package needed. A kit.<slug> reference checks out every member of the kit, each pinned, and records the kit in the lockfile
 key: the key in the project store (default: the asset’s slug)
 overwrite: replace an existing entry that is not this version (an unedited folder you just published is recognised without it)
+upgrade: update in place the entry pinned to an earlier version of this asset, if unedited; the pin moves (then update the scene’s library: line)
 package: the library to read first, then the core an library (default: the reference’s <library>: prefix, else an)
 root: that library’s root (with no –package, the root of the library the reference names)
 extra: further libraries, by package name, comma-separated
@@ -20047,7 +20048,7 @@ validate` runs this on every project (an#240). Each disagreement, and each
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False)
+### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False, upgrade=False, for_kit=False)
 
 Materialise a library version into a project, carry its rights, pin it.
 
@@ -20069,6 +20070,14 @@ overwrite: replace an existing entry that is not exactly this version — a
 : local fork (any edited file or descriptor) or another asset; without it
   that is refused
 
+upgrade: update in place an entry pinned to an EARLIER version of this
+: very asset (by lineage) and unedited since: only the files the earlier
+  version named are replaced, and the pin moves (an#346). Without it such
+  an entry refuses, naming this flag — never a copy beside it; an edited
+  one refuses either way (publish it first, or `overwrite`)
+
+for_kit: the check-out of a kit member (its refusals do not name `key`)
+
 An entry that already IS this version byte for byte — the folder a
 `publish` just sent to the library, still unedited — is recognised and
 linked (origin block, carried source, pin) without `overwrite`: publishing
@@ -20079,7 +20088,7 @@ written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
 
-### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
 
 Check every member of a kit out into a project, pin each, and record the kit.
 
@@ -20087,6 +20096,10 @@ libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
 overwrite: replace project entries that are not exactly their member’s version
+upgrade: update in place a member’s entry pinned to an earlier version of
+
+> that member, unedited since (`checkout()`)
+
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 
@@ -21073,7 +21086,7 @@ One member of a kit: a pinned reference and the project key it lands under.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, mall=None, lock=None)
+### an.library.kits.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, mall=None, lock=None)
 
 Check every member of a kit out into a project, pin each, and record the kit.
 
@@ -21081,6 +21094,10 @@ libraries: where the kit and its members resolve
 project_dir: the project to check out into
 ref: `[<library>:]<kit asset id>[@<version>]`; `latest` is resolved now
 overwrite: replace project entries that are not exactly their member’s version
+upgrade: update in place a member’s entry pinned to an earlier version of
+
+> that member, unedited since (`checkout()`)
+
 mall: the project mall (default: `build_project_mall(project_dir)`)
 lock: the lockfile (default: the mall’s `library_lock` store); it needs a
 
@@ -35785,7 +35802,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 12:07 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78"><code>8c8b4d2</code></a> on branch <code>main</code>, for **an 0.1.175** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:13 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8231bceba734ee9cf007522ceb38eec7d1e7b4e6"><code>8231bce</code></a> on branch <code>main</code>, for **an 0.1.176** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -35794,9 +35811,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78"><code>8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/8231bceba734ee9cf007522ceb38eec7d1e7b4e6"><code>8231bceba734ee9cf007522ceb38eec7d1e7b4e6</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.175</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.176</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -35805,9 +35822,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37460345424">37460345424</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37461011268">37461011268</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>1eacfcfeef25bfe74f84c67c1d7a99b107a92696</code> (in the history of the built commit) |
+| Event commit | <code>e851d56161a9f1fa4ac627d2497b6520798d63b9</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -35832,13 +35849,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.175/">0.1.175</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.176/">0.1.176</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 8c8b4d213e2b1d4ed110e2ffb22eb8afa6e50f78
+git checkout 8231bceba734ee9cf007522ceb38eec7d1e7b4e6
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
