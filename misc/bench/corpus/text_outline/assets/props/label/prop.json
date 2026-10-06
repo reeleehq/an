@@ -1,0 +1,11 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "label",
+  "text": "ROME FALLS",
+  "unit": "word",
+  "size": 0.2,
+  "color": "#ffffff",
+  "stroke_width": 4.0,
+  "stroke_color": "#1c1c1c"
+}

@@ -29,6 +29,11 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) �
 - The stage pass `counters` (order 195) must stay after every pass that adds `extra_actions` and immediately before `actions`; `tests/test_text_counter.py` and `tests/test_compile_passes.py` pin it. It samples through `_compile_actions` + the kernel evaluator (never a second interpolation), gives a from-less tween an explicit `from` (the compiler's own from-less rule ignores a set at the same instant), rebuilds the block as a `texts` set and swaps leaves for `delay`s of their length.
 - Not built: tabular figures (an#362, tituli#4); the embedded face's digits are already equal-width.
 
+## Outlines (an#313)
+
+- `stroke_width` is the VISIBLE thickness outside the glyph; `unit_svg` strokes the contours at `2 × stroke_width` (round joins) and then fills them, two paths rather than `paint-order`. The unit box grows by `ceil(stroke_width)`.
+- Every unit is its own texture, so outlines cannot all sit under all fills: a unit's outline covers its predecessor's fill where they meet. `_warn_if_outlines_overlap` says so (`TextOutlineWarning`). Moving outlines to a separate layer would break per-unit alpha; do not.
+
 ## Silent failures this prevents — keep each one refused
 
 1. **A fallback face.** `tituli.resolve_face` NEVER fails: a font path that is missing or unparseable silently becomes Aileron. So `_font_request` checks the file exists AND `layout_text` checks the face tituli used came from that file (`face.path == request`). Remove either and a scene renders in the wrong face with no signal. Tested: missing file, non-font bytes.
