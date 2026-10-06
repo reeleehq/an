@@ -156,3 +156,32 @@ def test_the_compilers_old_private_names_are_the_public_builder():
     assert c._raster_digest is rig.raster_digest
     assert c._svg_asset_src is rig.art_src
     assert c._note_raster_rig is c.note_raster_rig
+
+
+def test_a_default_prop_takes_its_origin_in_the_arts_own_coordinates(tmp_path):
+    """an#408: a one-part prop on the default bone, its art drawn on the full
+    view_box, with its foot at (512, 1000): `origin=(512, 1000)` puts that
+    foot at `stage.at`. (Before, the root bone sat at (0, 0), so the origin was
+    measured from the art's centre and the foot landed ~172 px off.)"""
+    from an.stage.rig import Attachment, Skin
+
+    folder = tmp_path / "props" / "tree"
+    (folder / "parts").mkdir(parents=True)
+    (folder / "parts" / "tree.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" '
+        'height="1024"><rect x="500" y="200" width="24" height="800" fill="#000"/></svg>',
+        encoding="utf-8",
+    )
+    tree = PropDescriptor(
+        name="tree",
+        origin=(512, 1000),
+        skins={"default": Skin(slots={"body": {"body": Attachment(path="parts/tree.svg")}})},
+    )
+    (folder / "prop.json").write_text(tree.model_dump_json(), encoding="utf-8")
+    scene = compile_shot(_shot("tree", at=(0.0, 0.0)), mall={"props": PropsStore(tmp_path / "props")})
+    (entity,) = [n for n in scene.scene.children if n.name == "p"]
+    (body,) = entity.children
+    k = 345.0 / 1024
+    art_top = body.transform.y - body.visual.height * body.visual.anchor_y
+    assert art_top + 1000 * k == pytest.approx(0.0)  # the foot, at stage.at
+    assert body.transform.x == pytest.approx(0.0)

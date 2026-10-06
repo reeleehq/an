@@ -97,13 +97,21 @@ DFLT_PROP_BONE = "root"
 DFLT_PROP_SLOT = "body"
 
 
-def default_prop_bones() -> list[Bone]:
-    """One bone at the origin.
+def default_prop_bones(view_box: tuple[int, int, int, int] = DEFAULT_VIEW_BOX) -> list[Bone]:
+    """One bone, at the CENTRE of the view_box (an#408).
 
-    >>> [b.name for b in default_prop_bones()]
-    ['root']
+    A part is centred on its bone (anchor 0.5), so with the bone at the centre
+    a full-canvas part's art coordinates ARE the rig's: an ``origin`` read off
+    the drawing (a foot at ``(512, 1000)`` in a 1024 box) lands where it says.
+    Before an#408 the bone sat at ``(0, 0)`` and an origin had to be measured
+    from the art's centre. Nothing moves for a prop without an ``origin``: it
+    is placed by its bones' extent centre, which is this bone wherever it is.
+
+    >>> [(b.name, b.x, b.y) for b in default_prop_bones()]
+    [('root', 512.0, 512.0)]
     """
-    return [Bone(name=DFLT_PROP_BONE)]
+    x, y, w, h = view_box
+    return [Bone(name=DFLT_PROP_BONE, x=x + w / 2.0, y=y + h / 2.0)]
 
 
 def default_prop_slots() -> list[Slot]:
@@ -201,7 +209,7 @@ class PropDescriptor(RigDocument):
         # docstring for why `kind: "prop"` on a character is not the same
         # thing with fewer fields.
         if not self.bones:
-            self.bones = default_prop_bones()
+            self.bones = default_prop_bones(self.view_box)
         if not self.slots:
             self.slots = default_prop_slots()
 
