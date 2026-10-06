@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T11:56:43Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 2044,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "155dff0f30c1a558b845c9cb4b555ca4c684f12483af848532252dfe8c0210a4",
+      "shot_id": "window",
+      "time": 0.0
+    },
+    {
+      "bytes": 1922,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "eb65b6f1cea1e5f03a2068c57a3ba8d11d02ec66adc9b0a0005f3c56bd9a2d7c",
+      "shot_id": "window",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "stage-after-d1",
+    "dirty": true,
+    "sha": "f1325742d3071dc1e0abe85dae3c90d6a564e5fc"
+  },
+  "reason": "new core scene (an#344): a prop placed after a far plane, behind a wall, under a pan",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "after_plane",
+  "scene_contract_sha256": "52b714aa104d0e7bd86b1c36c0cefc274551c61969fa7480562dab1f7235d529",
+  "shot_ids": [
+    "window"
+  ],
+  "source": "misc/bench/corpus/after_plane",
+  "what_moves": "a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with `stage.after: set/sky`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."
+}

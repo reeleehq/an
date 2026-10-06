@@ -135,6 +135,12 @@ x = 0 probe excludes a zoom.
 - `NodeJSON.scope`: the node's CHILDREN are indexed as the children of the node named `scope` in the same parent (`""`: the parent's own). The foreground container `<env>__front` has `scope=<env>`, so every plane is `<env>/<plane>` and `plane_parents` returns `<env>` for all. `retire_front_spelling` rewrites `<env>__front/<plane>` (compile + validate, a warning) for one cycle; it walks with `an.ir.compose.map_leaves`, which reaches `loop.child`.
 - A scoped container is still a container: `tree.chain` includes it and `screen_position` composes its transform. `scope=""` children become top-level paths that the overlay clash checks do not see; D1 must check duplicates over the finished tree.
 
+## 3a'. `stage.after`: an entity among the planes (an#344)
+
+- `stage.after` names a plane (`<env>/<plane>`) or an entity. With none in a shot, `_build_scene_root` is untouched (byte identity). With one, `_place_after` re-lays the root as atoms and packs planes into `<env>`, `<env>__band_<k>` (`scope=<env>`).
+- Depth: entities right after a plane with factor != 1.0 ride `<env>__after_<k>` (`scope=""`), which the parallax pass compensates like the plane (around 0). An entity after an entity rides the default depth. Every synthetic compensation clip id goes through `_add_compensation_clip`, which refuses a reused id.
+- `__` in an entity id is reserved (validate); `duplicate_paths` runs on every finished tree at compile, because `scope=""` children are top-level paths the overlay clash checks never saw.
+
 ## 3b. Planes, and props
 
 **The environment descriptor** is versioned, `extra="allow"`, `DocumentKind`-registered, and
@@ -169,8 +175,8 @@ and one extracted rig builder, with different defaults. Not "a character with `k
 `animations={}` is re-seeded), the placeholder fallback draws a **person** where a lamp should be,
 and `an character validate` scores exactly 21 blocking findings on a correct prop. Placement is
 one additive `AssetRef.stage` — hash-free by construction, because the contract hashes the
-*compiled* document and an `AssetRef` never reaches it. **Only `at` and `scale` shipped**
-(an#118). `depth` and `after` were deferred because the stage vocabulary they belong to had
+*compiled* document and an `AssetRef` never reaches it. **`at`, `scale` and (an#344) `after` shipped**
+(an#118). `depth` (and `after`, until an#344) was deferred because the stage vocabulary it belongs to had
 not landed yet — and #109 and #110 landed later the same day, so that reason has expired
 without being revisited. Tracked as an#126; do not read the four-field shape below as
 present tense. Attaching

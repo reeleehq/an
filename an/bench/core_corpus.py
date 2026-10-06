@@ -16,6 +16,7 @@ text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
 text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
 front_plane a foreground plane, animated and addressed `<env>/<plane>` (an#343)
+after_plane a prop placed between two planes under a pan (an#344)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
@@ -39,7 +40,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -202,6 +203,22 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "label: a regression in the runtime's scoped indexing (the channel "
             "would name nothing and the load throws), in the cut, or in the "
             "draw order moves a golden."
+        ),
+    ),
+    "after_plane": Fixture(
+        path=f"{CORPUS_DIRNAME}/after_plane",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a prop placed BETWEEN two planes under a pan (an#344): a far sky "
+            "(depth 0.25), a disc with `stage.after: set/sky`, then a wall in "
+            "two pieces with a window gap and a sill, all at depth 1.0, while "
+            "the camera pans 60 px. The disc is drawn behind the walls and "
+            "rides the sky's parallax through its band wrapper: between the "
+            "goldens the walls move 40 px and the sky and disc 10 px. A "
+            "regression in the draw order (the disc over the wall), in the "
+            "wrapper's compensation (the disc sliding against the sky), or "
+            "in the band containers' addressing moves a golden."
         ),
     ),
     "transitions": Fixture(

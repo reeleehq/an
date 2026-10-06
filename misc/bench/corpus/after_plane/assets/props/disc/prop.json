@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PropDescriptor",
+  "name": "disc",
+  "display_name": "Sky disc",
+  "view_box": [
+    0,
+    0,
+    100,
+    100
+  ],
+  "source_svg": null,
+  "bones": [
+    {
+      "name": "root",
+      "parent": null,
+      "x": 0.0,
+      "y": 0.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    }
+  ],
+  "slots": [
+    {
+      "name": "body",
+      "bone": "root",
+      "draw_order": 0,
+      "attachment": "disc"
+    }
+  ],
+  "skins": {
+    "default": {
+      "name": "default",
+      "slots": {
+        "body": {
+          "disc": {
+            "path": "parts/disc.svg",
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        }
+      }
+    }
+  },
+  "asset_sets": {},
+  "animations": {},
+  "face_overlay": true,
+  "source": null,
+  "metadata": {}
+}

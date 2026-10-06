@@ -870,6 +870,7 @@ def _scene_pass(state: CompileState) -> None:
         fonts=state.fonts,
         width=width,
         height=height,
+        bands=state.products.setdefault(AFTER_BANDS_PRODUCT, []),
     )
     style_pack, overlay_children = state.style_pack, state.overlay_children
     if style_pack is not None and style_pack.grain is not None:
@@ -889,6 +890,41 @@ def _scene_pass(state: CompileState) -> None:
         raise CutoutCompileError(
             f"overlay and scene both build a node named {sorted(clash)}; the "
             "runtime indexes both layers by path, so one would shadow the other"
+        )
+    # Over the finished tree, after the clearer overlay-vs-scene message above
+    # (an#344: `scope=""` children are top-level paths that check never sees).
+    _check_unique_paths(scene_root, overlay_children, shot_id=shot.id)
+
+
+#: ``state.products`` key: the :class:`AfterBand` wrappers the scene pass built.
+AFTER_BANDS_PRODUCT: str = "after_bands"
+
+
+def duplicate_paths(root: NodeJSON, overlay: Iterable[NodeJSON] = ()) -> list[str]:
+    """Paths the runtime would index twice (its ``nodeIndex`` is later-wins,
+    so the first node would silently stop answering). Over the FINISHED tree,
+    scoped containers included (an#344).
+
+    >>> duplicate_paths(NodeJSON(name="root", children=[NodeJSON(name="a"), NodeJSON(name="a")]))
+    ['a']
+    """
+    counts: dict[str, int] = {}
+    for path, _ in stage_tree.walk_children(root):
+        counts[path] = counts.get(path, 0) + 1
+    for node in overlay:
+        for path, _ in stage_tree.walk(node):
+            counts[path] = counts.get(path, 0) + 1
+    return sorted(p for p, n in counts.items() if n > 1)
+
+
+def _check_unique_paths(root: NodeJSON, overlay: list[NodeJSON], *, shot_id: str) -> None:
+    dupes = duplicate_paths(root, overlay)
+    if dupes:
+        raise CutoutCompileError(
+            f"shot {shot_id!r} builds {dupes} twice; the runtime indexes one node "
+            "per path (later wins), so a channel would move the wrong one. An "
+            "entity id must not repeat another's path, and `__` is reserved for "
+            "the stage's own containers."
         )
 
 
@@ -955,6 +991,7 @@ def _parallax_pass(state: CompileState) -> None:
         state.tracks,
         width=state.width,
         height=state.height,
+        bands=state.products.get(AFTER_BANDS_PRODUCT) or (),
     )
 
 
@@ -1200,6 +1237,7 @@ def _build_scene_root(
     fonts: dict[str, str] | None = None,
     width: int = 1920,
     height: int = 1080,
+    bands: list["AfterBand"] | None = None,
 ) -> NodeJSON:
     """Construct the cutout scene tree under a single root from shot.entities.
 
@@ -1215,7 +1253,9 @@ def _build_scene_root(
     text block is built into ``overlay`` — the camera-immune container, not
     this root — and every text block records the face that set it in
     ``fonts`` (entity id -> identity label). ``width``/``height`` are the frame
-    a text block is typeset for.
+    a text block is typeset for. ``bands`` (an#344) receives one
+    :class:`AfterBand` per wrapper that carries a plane's parallax for the
+    entities placed after it.
     """
     if textures is None:
         textures = {}
@@ -1252,11 +1292,246 @@ def _build_scene_root(
         # render rather than appearing in it, and no builder claims them.
     children, in_front = build.children, build.in_front
     reached, skipped, raster = build.reached, build.skipped, build.raster
-    # …and last, the foreground planes, over everything.
-    children.extend(in_front)
+    if any(e.stage is not None and e.stage.after is not None for e in shot.entities):
+        # An entity drawn right after an anchor (an#344): the draw order is
+        # laid out again as bands. Without one, nothing below runs.
+        children = _place_after(shot, build, mall=mall, bands=bands)
+    else:
+        # …and last, the foreground planes, over everything.
+        children.extend(in_front)
     _warn_about_art_a_pack_cannot_reach(style_pack, reached, skipped)
     _warn_raster_parts_not_recoloured(style_pack, raster)
     return NodeJSON(name="root", children=children)
+
+
+#: The infix of a container holding a later band of an environment's planes
+#: (an#344): ``<env>__band_<k>``, ``scope=<env>``.
+BAND_INFIX: str = "__band_"
+
+#: The infix of a wrapper carrying a plane's parallax for the entities placed
+#: right after it (an#344): ``<env>__after_<k>``, ``scope=""``.
+AFTER_INFIX: str = "__after_"
+
+#: What a synthetic node's name may contain and an entity id may not (an#344).
+SYNTHETIC_MARK: str = "__"
+
+
+@dataclass(frozen=True)
+class AfterBand:
+    """A wrapper the parallax pass gives ``plane``'s compensation (an#344)."""
+
+    wrapper: str
+    environment: str
+    plane: str
+
+
+def _after_anchors(shot: Shot, mall: Mapping[str, Mapping]) -> dict[str, str]:
+    """``{anchor: what it is}`` an entity's ``stage.after`` may name: every
+    declared plane of the shot's environments (``<env>/<plane>``) and every
+    other entity of the shot."""
+    env_store = mall.get("environments") or {}
+    anchors: dict[str, str] = {}
+    for entity in shot.entities:
+        if entity.kind == "environment":
+            env = _environment_descriptor(entity, env_store)
+            for plane in env.planes if env is not None else ():
+                anchors[f"{entity.id}/{plane.name}"] = "plane"
+        else:
+            anchors[entity.id] = "entity"
+    return anchors
+
+
+def after_problems(
+    shot: Shot, mall: Mapping[str, Mapping], *, planes_known: bool = True
+) -> list[tuple[int, str]]:
+    """``[(entity index, why)]`` for every ``stage.after`` the compiler would
+    refuse (an#344): an anchor the shot does not have, the entity itself, a
+    cycle. The one statement both ``compile_shot`` and ``an validate`` read.
+
+    >>> from an.ir.schema import AssetRef, StagePlacement
+    >>> shot = Shot(id="s", renderer="stage", duration=1.0, entities=[
+    ...     AssetRef(kind="prop", id="a", store="props", ref="a", stage=StagePlacement(after="b")),
+    ...     AssetRef(kind="prop", id="b", store="props", ref="b", stage=StagePlacement(after="a"))])
+    >>> [why.split(":")[0] for _, why in after_problems(shot, {})]
+    ["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]
+    """
+    anchors = _after_anchors(shot, mall)
+    afters = {
+        e.id: e.stage.after
+        for e in shot.entities
+        if e.stage is not None and e.stage.after is not None
+    }
+    out: list[tuple[int, str]] = []
+    for j, entity in enumerate(shot.entities):
+        anchor = afters.get(entity.id)
+        if anchor is None:
+            continue
+        if anchor == entity.id:
+            out.append((j, f"entity {entity.id!r} is placed after itself"))
+        elif anchor not in anchors and (planes_known or "/" not in anchor):
+            out.append(
+                (
+                    j,
+                    f"entity {entity.id!r} is placed after {anchor!r}, which is "
+                    "neither a plane of the shot's environments nor another "
+                    f"entity of the shot (anchors: {sorted(anchors)})",
+                )
+            )
+        else:
+            seen, at = {entity.id}, anchor
+            while at in afters and at not in seen:
+                seen.add(at)
+                at = afters[at]
+            if at in seen:
+                out.append(
+                    (
+                        j,
+                        f"entity {entity.id!r} is placed after {anchor!r}: the "
+                        f"`after` chain through {sorted(seen)} is a cycle, so no "
+                        "draw order satisfies it",
+                    )
+                )
+    return out
+
+
+def _place_after(
+    shot: Shot,
+    build: "SceneBuild",
+    *,
+    mall: Mapping[str, Mapping],
+    bands: list[AfterBand] | None,
+) -> list[NodeJSON]:
+    """The scene root's children with every ``stage.after`` honoured (an#344).
+
+    The draw order is laid out as ATOMS: each environment plane and each
+    placed entity root, in today's order (backdrop planes, the cast in entity
+    order, the foreground planes). An entity placed after an anchor is taken
+    out and drawn right after it, followed by whatever is placed after IT;
+    several after one anchor keep ``shot.entities`` order. Then runs of one
+    environment's planes are packed into containers, the first named for the
+    environment, the next ``<env>__band_<k>`` with ``scope=<env>`` so every
+    plane stays ``<env>/<plane>``; and entities placed right after a plane
+    whose depth is not 1.0 ride a wrapper ``<env>__after_<k>`` (``scope=""``,
+    their paths unchanged) that the parallax pass gives that plane's
+    compensation.
+    """
+    problems = after_problems(shot, mall)
+    if problems:
+        raise CutoutCompileError(f"shot {shot.id!r}: {problems[0][1]}")
+    env_ids = [e.id for e in shot.entities if e.kind == "environment"]
+    afters = {
+        e.id: e.stage.after
+        for e in shot.entities
+        if e.stage is not None and e.stage.after is not None
+    }
+    overlay_ids = {n.name for n in build.overlay}
+    for eid in afters:
+        if eid in overlay_ids:
+            raise CutoutCompileError(
+                f"shot {shot.id!r}: overlay text {eid!r} declares `stage.after`; "
+                "the overlay is drawn over the scene, outside the camera, so it "
+                "has no place among the planes. Use `layer: world`, or drop `after`."
+            )
+    # Atoms: ("plane", env, node) | ("entity", id, node).
+    atoms: list[tuple[str, str, NodeJSON]] = []
+    for node in build.children:
+        if node.name in env_ids:
+            atoms.extend(("plane", node.name, plane) for plane in node.children)
+        else:
+            atoms.append(("entity", node.name, node))
+    for node in build.in_front:
+        atoms.extend(("plane", node.scope or node.name, plane) for plane in node.children)
+    placed = {name for kind, name, _ in atoms if kind == "entity"}
+    for eid in afters:
+        if eid not in placed:
+            raise CutoutCompileError(
+                f"shot {shot.id!r}: {eid!r} declares `stage.after` but draws "
+                "nothing in the scene to place"
+            )
+    followers: dict[str, list[tuple[str, str, NodeJSON]]] = {}
+    for kind, name, node in atoms:
+        if kind == "entity" and name in afters:
+            followers.setdefault(afters[name], []).append((kind, name, node))
+    base = [a for a in atoms if not (a[0] == "entity" and a[1] in afters)]
+
+    # (atom, the plane it rides: "env/plane" | None)
+    ordered: list[tuple[tuple[str, str, NodeJSON], str | None]] = []
+
+    def emit(atom, rides):
+        ordered.append((atom, rides))
+        kind, name, node = atom
+        # A plane's anchor is its path, `<env>/<plane>`, in every band.
+        key = stage_tree.join(name, node.name) if kind == "plane" else name
+        for follower in followers.get(key, ()):
+            emit(follower, key if kind == "plane" else None)
+
+    for atom in base:
+        emit(atom, None)
+
+    compensated = _compensated_planes(shot, mall)
+    out: list[NodeJSON] = []
+    containers: dict[str, int] = {}
+    wrappers: dict[str, int] = {}
+    open_plane_run: str | None = None  # env whose container out[-1] is
+    open_wrapper: str | None = None  # the plane out[-1]'s wrapper rides
+    for (kind, name, node), rides in ordered:
+        if kind == "plane":
+            open_wrapper = None
+            if open_plane_run == name:
+                out[-1].children.append(node)
+                continue
+            k = containers.get(name, 0)
+            containers[name] = k + 1
+            out.append(
+                NodeJSON(name=name, transform=TransformJSON(), children=[node])
+                if k == 0
+                else NodeJSON(
+                    name=f"{name}{BAND_INFIX}{k}",
+                    transform=TransformJSON(),
+                    children=[node],
+                    scope=name,
+                )
+            )
+            open_plane_run = name
+            continue
+        open_plane_run = None
+        if rides is None or rides not in compensated:
+            open_wrapper = None
+            out.append(node)
+            continue
+        if open_wrapper == rides:
+            out[-1].children.append(node)
+            continue
+        env, plane = rides.split("/", 1)
+        k = wrappers.get(env, 0)
+        wrappers[env] = k + 1
+        out.append(
+            NodeJSON(
+                name=f"{env}{AFTER_INFIX}{k}",
+                transform=TransformJSON(),
+                children=[node],
+                scope="",
+            )
+        )
+        open_wrapper = rides
+        if bands is not None:
+            bands.append(AfterBand(wrapper=out[-1].name, environment=env, plane=plane))
+    return out
+
+
+def _compensated_planes(shot: Shot, mall: Mapping[str, Mapping]) -> set[str]:
+    """``<env>/<plane>`` of every plane whose parallax factor is not 1.0 on
+    some axis: what an entity placed after it must ride."""
+    env_store = mall.get("environments") or {}
+    out: set[str] = set()
+    for entity in shot.entities:
+        if entity.kind != "environment":
+            continue
+        env = _environment_descriptor(entity, env_store)
+        for plane in env.planes if env is not None else ():
+            if plane.factors() != (1.0, 1.0):
+                out.add(f"{entity.id}/{plane.name}")
+    return out
 
 
 @dataclass
@@ -1886,8 +2161,13 @@ def _add_parallax_clips(
     *,
     width: int,
     height: int,
+    bands: Iterable[AfterBand] = (),
 ) -> None:
     """Compensate each plane for the camera, one factor per plane.
+
+    ``bands`` (an#344): each wrapper carrying the entities placed right after
+    a plane gets that plane's compensation, around ``0`` (its own rest),
+    under its own clip id.
 
     ``plane.x = x0 + (1 − f) · cam_x`` — so a plane at `f = 1` emits **nothing**
     and rides the camera exactly as every node did before an#110, and a plane
@@ -1936,6 +2216,33 @@ def _add_parallax_clips(
             tracks,
             authored=authored,
         )
+        for band in bands:
+            if band.environment != entity.id:
+                continue
+            (plane,) = [p for p in env.planes if p.name == band.plane]
+            fx, fy = plane.factors()
+            for factor, prop in ((fx, "x"), (fy, "y")):
+                if factor == 1.0:
+                    continue
+                values = [(1.0 - factor) * float(getattr(k, prop)) for k in keys]
+                if all(v == 0.0 for v in values):
+                    continue
+                if (band.wrapper, prop) in authored:
+                    raise CutoutCompileError(
+                        f"shot {shot.id!r}: {band.wrapper!r} carries plane "
+                        f"{band.plane!r}'s parallax and an action also targets "
+                        f"its `{prop}`; animate the entity inside it instead."
+                    )
+                _add_compensation_clip(
+                    f"__parallax__{shot.id}_{band.wrapper}_{prop}",
+                    band.wrapper,
+                    prop,
+                    keys,
+                    values,
+                    duration,
+                    animations,
+                    tracks,
+                )
 
 
 def _emit_plane_compensation(
@@ -1975,31 +2282,56 @@ def _emit_plane_compensation(
                     "silently. Give the plane depth 1.0 to animate it by hand, or "
                     "move the action to a child node."
                 )
-            anim_id = f"__parallax__{shot_id}_{entity_id}_{plane.name}_{prop}"
-            animations[anim_id] = AnimationClipJSON(
-                name=anim_id,
-                duration=duration,
-                channels=[
-                    ChannelJSON(
-                        target=target,
-                        property=prop,
-                        keyframes=[
-                            KeyframeJSON(time=float(k.at), value=v, easing=k.easing)
-                            for k, v in zip(keys, values)
-                        ],
-                    )
+            _add_compensation_clip(
+                f"__parallax__{shot_id}_{entity_id}_{plane.name}_{prop}",
+                target,
+                prop,
+                keys,
+                values,
+                duration,
+                animations,
+                tracks,
+            )
+
+
+def _add_compensation_clip(
+    anim_id: str,
+    target: str,
+    prop: str,
+    keys: list,
+    values: list[float],
+    duration: float,
+    animations: dict[str, AnimationClipJSON],
+    tracks: list[TrackJSON],
+) -> None:
+    """One camera-keyed compensation channel, on its own track. A synthetic
+    clip id is asserted NEW: ``animations[id] = …`` would otherwise silently
+    replace another plane's clip (an#344 review S1)."""
+    if anim_id in animations:
+        raise CutoutCompileError(
+            f"compensation clip id {anim_id!r} is already taken; two parallax "
+            "clips would share it and one would silently replace the other"
+        )
+    animations[anim_id] = AnimationClipJSON(
+        name=anim_id,
+        duration=duration,
+        channels=[
+            ChannelJSON(
+                target=target,
+                property=prop,
+                keyframes=[
+                    KeyframeJSON(time=float(k.at), value=v, easing=k.easing)
+                    for k, v in zip(keys, values)
                 ],
             )
-            tracks.append(
-                TrackJSON(
-                    target_root="__parallax__",
-                    clips=[
-                        PlacedClipJSON(
-                            animation_id=anim_id, start_time=0.0, duration=duration
-                        )
-                    ],
-                )
-            )
+        ],
+    )
+    tracks.append(
+        TrackJSON(
+            target_root="__parallax__",
+            clips=[PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
+        )
+    )
 
 
 def _apply_stage_placement(node: NodeJSON, entity: AssetRef) -> None:

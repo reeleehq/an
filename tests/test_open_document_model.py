@@ -696,6 +696,7 @@ def test_the_report_order_is_pinned():
         "cutout.hidden_mouth_while_speaking",
         "trim_targets",
         "text_blocks",
+        "stage_after",  # an#344: a placement's anchor, before the targets it moves
         "action_targets",
         "field_kinds",
         "entity_refs",
