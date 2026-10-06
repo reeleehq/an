@@ -151,10 +151,46 @@ def test_a_policy_choice_over_an_applicable_chain_is_information_not_a_warning()
 
 
 @pytest.mark.genre("cutout_animation")
-def test_a_policy_choice_that_does_not_apply_is_a_recorded_substitution():
+def test_a_policy_entry_that_does_not_apply_is_skipped_never_a_fatal_substitution():
+    """A policy is an order, not a request (an#334): its first APPLICABLE entry
+    wins, and the entries passed over are listed, never a ``missing`` record."""
     r = resolve("locomotion", {}, policy={"locomotion": ["hem", "loco.rock"]})
+    assert r.method.id == "loco.rock" and r.source == "policy"
+    assert r.substitution.reason == "policy" and not r.substitution.fatal
+    assert r.substitution.requested == "loco.glide"  # what the chain would have done
+    assert r.skipped == (("loco.hem_sway", ("limbs.legs",)),)
+    assert r.to_json()["skipped"] == [{"method": "loco.hem_sway", "missing": ["limbs.legs"]}]
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_multi_entry_policy_whose_later_entry_applies_is_not_fatal():
+    """The issue's repro: Reiniger's ``[profile, legs]`` on a front-only legged
+    figure, and ``[hem, glide]`` on a legless one, each land on the chain's own
+    choice, with the head recorded as skipped and nothing to refuse."""
+    front_only = {**LEGS, "swap.view": {"keys": ["front"]}}
+    r = resolve("locomotion", front_only, policy={"locomotion": ["profile", "legs"]}, entity="w")
+    assert r.method.term == "legs" and r.substitution is None
+    assert [m for m, _ in r.skipped] == ["loco.profile_cycle"]
+    r = resolve("locomotion", {}, policy={"locomotion": ["hem", "glide"]}, entity="b")
+    assert r.method.term == "glide" and r.substitution is None
+    assert [m for m, _ in r.skipped] == ["loco.hem_sway"]
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_policy_entirely_inapplicable_leaves_the_chain_and_lists_every_skip():
+    r = resolve("locomotion", {}, policy={"locomotion": ["hem", "profile"]})
+    assert r.method.id == "loco.glide" and r.source == "chain" and r.substitution is None
+    assert [m for m, _ in r.skipped] == ["loco.hem_sway", "loco.profile_cycle"]
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_failed_request_is_still_fatal_when_a_policy_then_chooses():
+    """Only the author's request is a request: when IT does not apply, the
+    record stays ``missing`` (fatal under ``--strict-assets``)."""
+    r = resolve("locomotion", {}, requested="hem", policy={"locomotion": ["rock"]})
     assert r.method.id == "loco.rock"
-    assert r.substitution.reason == "missing" and r.substitution.requested == "loco.hem_sway"
+    assert r.substitution.reason == "missing" and r.substitution.fatal
+    assert r.substitution.requested == "loco.hem_sway"
 
 
 @pytest.mark.genre("cutout_animation")
@@ -243,7 +279,9 @@ def test_a_genre_from_another_distribution_adds_methods_capabilities_and_a_polic
         assert {"loco.demo_glide"} <= {m.id for m in applicable("locomotion", {})}
         r = resolve("locomotion", LEGS, policy={"locomotion": ["demo_skate", "demo_glide"]})
         assert r.method.id == "loco.demo_glide" and r.args == {"bob": 2.0}
-        assert r.substitution.reason == "missing" and r.substitution.missing == ("demo.skates",)
+        # a policy entry passed over is listed, not a fatal ``missing`` record (an#334)
+        assert r.substitution.reason == "policy" and not r.substitution.fatal
+        assert r.skipped == (("loco.demo_skate", ("demo.skates",)),)
         assert [w.remedy for w in why_not("loco.demo_skate", {})] == ["draw skates"]
     finally:
         from an.genres import _uninstall
@@ -588,3 +626,13 @@ def test_a_genre_needing_another_genres_capability_loads_in_any_order():
     with without_genres():
         with pytest.raises(GenreError, match="limbs.legs"):
             load(entry_points=eps[:1], builtin=False)
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_policy_choice_on_an_aspect_that_records_its_fallback_stays_information():
+    """Reiniger mimes (``speech: [pulse]``) a figure that has a mouth chart:
+    speech records its own chain's fallback as ``missing``, but a policy's
+    choice is never that record (an#334)."""
+    r = resolve("speech", {"face.mouth": {}}, policy={"speech": ["pulse"]})
+    assert r.method.id == "speech.pose_only" and r.source == "policy"
+    assert r.substitution.reason == "policy" and not r.substitution.fatal
