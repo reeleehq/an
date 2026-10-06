@@ -20,6 +20,10 @@ from an.build.shot_cache import KEY_FORMAT_CHANGED, explain_change  # noqa: F401
 from an.ir.schema import AssetRef
 from an.project import load
 
+#: Renders twice and asserts reuse: the source the shot key hashes must not
+#: move between the renders, whatever else edits a shared checkout (an#379).
+pytestmark = pytest.mark.usefixtures("frozen_source_digests")
+
 from tests.test_shot_cache import (  # noqa: F401 — the fixture is used by name
     _env,
     _FakeCutoutRender,
