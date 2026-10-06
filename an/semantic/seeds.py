@@ -444,8 +444,11 @@ def _core_fields() -> tuple[Entry, ...]:
             "color: '#rrggbb'}. Omitted = a hard cut. 'fade' dips through color "
             "(half out of the previous shot, half into this one; on the first "
             "shot, a fade up). 'dissolve' overlaps the two shots by duration, so "
-            "the film gets that much shorter; never on the first shot. A shot "
-            "must be long enough to hold its own transition and the next shot's.",
+            "the film gets that much shorter; never on the first shot. 'wipe' "
+            "overlaps the same way, but a hard edge sweeps across the frame in "
+            "direction ('left', 'right', 'up' or 'down': the way the edge "
+            "travels). A shot must be long enough to hold its own transition "
+            "and the next shot's.",
             description="how a shot is entered",
         ),
         _field(
