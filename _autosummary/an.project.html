@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8485fb48"></script>
+    <script src="../_static/documentation_options.js?v=b37d7122"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.preview" href="an.preview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.165" />
+  <meta name="docsearch:version" content="0.1.166" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -616,10 +616,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.project.init" title="an.project.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir, *[, name, force])</p></td>
 <td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.project.load" title="an.project.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.project.keep_reports_out_of_git" title="an.project.keep_reports_out_of_git"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_reports_out_of_git</span></code></a>(pdir)</p></td>
+<td><p>Add <a class="reference internal" href="#an.project.PROJECT_GITIGNORE" title="an.project.PROJECT_GITIGNORE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a> to an OLDER project's <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> (an <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span></code> from before an#254 left it out), the first time a render writes a report (an#309) — conservatively: never when the file already says anything about those paths (a project may have chosen to commit its reports, <code class="docutils literal notranslate"><span class="pre">!artifacts/render_reports/</span></code>), never through a symlink (a shared ignore file), and never creating a <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> in a project that is not in a git work tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.project.load" title="an.project.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds])</p></td>
 <td><p>Load an existing project.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.project.save" title="an.project.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(project)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.project.save" title="an.project.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(project)</p></td>
 <td><p>Persist a Project's current scene back to disk (md + json).</p></td>
 </tr>
 </tbody>
@@ -662,6 +665,23 @@ project’s <code class="docutils literal notranslate"><span class="pre">.gitign
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.project.keep_reports_out_of_git">
+<span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">keep_reports_out_of_git</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#keep_reports_out_of_git"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.project.keep_reports_out_of_git" title="Link to this definition">#</a></dt>
+<dd><p>Add <a class="reference internal" href="#an.project.PROJECT_GITIGNORE" title="an.project.PROJECT_GITIGNORE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a> to an OLDER project’s <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> (an
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span></code> from before an#254 left it out), the first time a render
+writes a report (an#309) — conservatively: never when the file already
+says anything about those paths (a project may have chosen to commit its
+reports, <code class="docutils literal notranslate"><span class="pre">!artifacts/render_reports/</span></code>), never through a symlink (a
+shared ignore file), and never creating a <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> in a project that
+is not in a git work tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -750,6 +770,7 @@ as findings instead.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.PROJECT_GITIGNORE"><code class="docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.Project"><code class="docutils literal notranslate"><span class="pre">Project</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.init"><code class="docutils literal notranslate"><span class="pre">init()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.keep_reports_out_of_git"><code class="docutils literal notranslate"><span class="pre">keep_reports_out_of_git()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
 </ul>

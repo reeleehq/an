@@ -20,6 +20,7 @@ an.audio.effects
       TRIM_KEEP_LIMITS
       TRIM_WINDOW_S
       TRIM_VERSION
+      CHAIN_VERSION
       TRIM_RECORD_TAG
    
    .. rubric:: Functions
@@ -28,6 +29,8 @@ an.audio.effects
    
       apply_voice_effects
       atempo_stages
+      decode_chain
+      ffmpeg_argv
       filter_chain
       normalize_effects
       trim_record

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=8485fb48"></script>
+    <script src="../../_static/documentation_options.js?v=b37d7122"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.165" />
+  <meta name="docsearch:version" content="0.1.166" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1331,61 +1331,110 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    may share). Always written — an empty report replaces a stale one — when</span>
 <span class="sd">    the mall has the store."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">findings_record</span>
 
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"render_reports"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="n">records</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="o">**</span><span class="p">{</span>
-                <span class="n">k</span><span class="p">:</span> <span class="n">portable_text</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
-                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">asdict</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="p">},</span>
-            <span class="s2">"kind"</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findings</span>
-    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># a project from before an#254 gets the line too</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">keep_reports_out_of_git</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">keep_reports_out_of_git</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">):</span>
+            <span class="k">pass</span>  <span class="c1"># a read-only project still gets its report</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="n">findings_record</span><span class="p">(</span><span class="n">findings</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">portable_text</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">))</span>
     <span class="n">store</span><span class="p">[</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
         <span class="p">{</span><span class="s2">"findings"</span><span class="p">:</span> <span class="n">records</span><span class="p">},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
 
 
+<span class="c1">#: What a temp-folder path becomes in a portable text (:func:`portable_text`).</span>
+<span class="n">TMP_TOKEN</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"&lt;tmp&gt;"</span>
+
+<span class="c1">#: After a path prefix, what may NOT follow for it to be the whole of a path</span>
+<span class="c1">#: component: another name character, or a dot that starts an extension. So</span>
+<span class="c1">#: ``/u/me/p`` is not a prefix of ``/u/me/proj2`` or ``/u/me/p-old``, but a</span>
+<span class="c1">#: sentence may end with ``/u/me/p.``</span>
+<span class="n">_COMPONENT_END</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"(?![\w\-]|\.\w)"</span>
+<span class="c1">#: Before a path prefix: the start of the text or of a word, or a URL's</span>
+<span class="c1">#: ``file://`` — never the middle of another path (``/mnt/data/p`` is not</span>
+<span class="c1">#: ``/data/p``) or of a name.</span>
+<span class="n">_PATH_START</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"(?:^|(?&lt;=[^\w.\-~/</span><span class="se">\\</span><span class="s2">])|(?&lt;=://))"</span>
+<span class="c1">#: The temp folders every POSIX machine has, besides the one Python reports.</span>
+<span class="n">POSIX_TEMP_DIRS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"/tmp"</span><span class="p">,</span> <span class="s2">"/private/tmp"</span><span class="p">,</span> <span class="s2">"/var/tmp"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_spellings</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">resolve</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``path`` as text may name it: as given, resolved, and on macOS with and</span>
+<span class="sd">    without ``/private`` (``/private/var`` is ``/var``)."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">resolve</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()))</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/private"</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/private/"</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_prefix_pattern</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A regex for ``prefix`` that matches either separator where it has one</span>
+<span class="sd">    (``C:\\Users\\me`` is also ``C:/Users/me``)."""</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"[/</span><span class="se">\\\\</span><span class="s2">]"</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span> <span class="k">else</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prefix</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="portable_text">
 <a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.portable_text">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">portable_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">portable_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tmp</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``text`` with this machine's absolute paths taken out: a path under the</span>
-<span class="sd">    project ``root`` becomes project-relative, the root itself ``.``, and the</span>
-<span class="sd">    home directory ``~`` — so a render report (which a project may commit or</span>
-<span class="sd">    share, and an agent may pass on) names no user, host folder or temp dir.</span>
+<span class="sd">    project ``root`` becomes project-relative, the root itself ``.``, a temp</span>
+<span class="sd">    folder ``&lt;tmp&gt;`` and the home directory ``~`` — so a render report (which a</span>
+<span class="sd">    project may commit or share, and an agent may pass on) names no user, host</span>
+<span class="sd">    folder or temp dir. Only WHOLE path components are replaced, at both ends</span>
+<span class="sd">    (an#309): a sibling that shares a prefix (``/u/me/proj2`` beside</span>
+<span class="sd">    ``/u/me/p``) or a path that merely ends like one (``/mnt/data/p`` against</span>
+<span class="sd">    ``/data/p``) is left as it is. A Windows path matches with either</span>
+<span class="sd">    separator and in any case.</span>
 
 <span class="sd">    &gt;&gt;&gt; portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",</span>
-<span class="sd">    ...               root="/u/me/p", home="/u/me")</span>
+<span class="sd">    ...               root="/u/me/p", home="/u/me", tmp="/t")</span>
 <span class="sd">    'missing at assets/a.png; see ~/x.log'</span>
-<span class="sd">    &gt;&gt;&gt; portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")</span>
+<span class="sd">    &gt;&gt;&gt; portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me", tmp="/t")</span>
 <span class="sd">    'rendered in .'</span>
+<span class="sd">    &gt;&gt;&gt; portable_text("/u/me/proj2/a.png, /u/me2/x, /t/f.png, /mnt/u/me/p/b",</span>
+<span class="sd">    ...               root="/u/me/p", home="/u/me", tmp="/t")</span>
+<span class="sd">    '~/proj2/a.png, /u/me2/x, &lt;tmp&gt;/f.png, /mnt/u/me/p/b'</span>
+<span class="sd">    &gt;&gt;&gt; portable_text("c:/users/me/p/a.png", root=r"C:\\Users\\me\\p", home=r"C:\\Users\\me", tmp="/t")</span>
+<span class="sd">    'a.png'</span>
 <span class="sd">    """</span>
-    <span class="n">homes</span> <span class="o">=</span> <span class="p">[</span><span class="n">home</span><span class="p">]</span> <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">())]</span>
-    <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()))</span>
-            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="c1"># macOS spells its temp and var folders both ways (/private/var = /var).</span>
-        <span class="n">roots</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">r</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/private"</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/private/"</span><span class="p">)</span>
-        <span class="p">]</span>
-    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">r</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">roots</span> <span class="k">if</span> <span class="n">r</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">):</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">r</span> <span class="o">+</span> <span class="n">sep</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">"."</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">h</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">homes</span> <span class="k">if</span> <span class="n">h</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="s2">"~"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">text</span></div>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
+    <span class="n">explicit</span> <span class="o">=</span> <span class="n">home</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">roots</span> <span class="o">=</span> <span class="n">_spellings</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="n">resolve</span><span class="o">=</span><span class="ow">not</span> <span class="n">explicit</span><span class="p">)</span> <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">tmps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">p</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">tmp</span><span class="p">,)</span> <span class="k">if</span> <span class="n">tmp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="o">*</span><span class="n">POSIX_TEMP_DIRS</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_spellings</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">resolve</span><span class="o">=</span><span class="n">tmp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">homes</span> <span class="o">=</span> <span class="n">_spellings</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">home</span><span class="p">)</span> <span class="k">if</span> <span class="n">explicit</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()),</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">swap</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">child</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">whole</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">prefixes</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># never "/" itself</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[A-Za-z]:"</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">head</span> <span class="o">=</span> <span class="n">_PATH_START</span> <span class="o">+</span> <span class="n">_prefix_pattern</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">head</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">"[/</span><span class="se">\\</span><span class="s2">]+"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">_m</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">head</span> <span class="o">+</span> <span class="n">_COMPONENT_END</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">_m</span><span class="p">:</span> <span class="n">whole</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="n">swap</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">roots</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"."</span><span class="p">)</span>  <span class="c1"># a root may sit in the temp folder or home</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">swap</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">tmps</span><span class="p">,</span> <span class="n">TMP_TOKEN</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">,</span> <span class="n">TMP_TOKEN</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">swap</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">homes</span><span class="p">,</span> <span class="s2">"~/"</span><span class="p">,</span> <span class="s2">"~"</span><span class="p">)</span></div>
 
 
 

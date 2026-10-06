@@ -1,4 +1,4 @@
-> built 2026-10-06 01:17 UTC from c447c2d (main) · an 0.1.165. Details: build_info.json
+> built 2026-10-06 01:40 UTC from 19e2f52 (main) · an 0.1.166. Details: build_info.json
 
 # index.html.md
 
@@ -2094,31 +2094,34 @@ Design, in the order the pipeline uses it:
 
 ### Module Attributes
 
-| [`PITCH_SEMITONES_LIMIT`](_autosummary/an.audio.effects.html.md#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.                         |
-|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`TEMPO_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                                      |
-| [`ATEMPO_STAGE_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages.                 |
-| [`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).                     |
-| [`TRIM_SILENCE`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_SILENCE)            | The effect that cuts a line's leading and trailing silence (an#254).                       |
-| [`DFLT_TRIM_THRESHOLD_DB`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_THRESHOLD_DB)  | `trim_silence`'s defaults.                                                                 |
-| [`DFLT_TRIM_KEEP_LEAD_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S)   | more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound. |
-| [`DFLT_TRIM_KEEP_TAIL_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S)   | a word's release and decay.                                                                |
-| [`TRIM_THRESHOLD_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_THRESHOLD_LIMITS)   | `threshold_db` bounds (relative to the line's loudest window).                             |
-| [`TRIM_KEEP_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_KEEP_LIMITS)        | `keep_lead_s` / `keep_tail_s` bounds, seconds.                                             |
-| [`TRIM_WINDOW_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_WINDOW_S)           | The level-measuring window, seconds.                                                       |
-| [`TRIM_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_VERSION)            | Bumped when the trim's algorithm changes; part of every trimmed line's key.                |
-| [`TRIM_RECORD_TAG`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                             |
+| [`PITCH_SEMITONES_LIMIT`](_autosummary/an.audio.effects.html.md#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.                                                                                                                                                                                        |
+|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`TEMPO_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                                                                                                                                                                                                     |
+| [`ATEMPO_STAGE_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages.                                                                                                                                                                                |
+| [`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).                                                                                                                                                                                    |
+| [`TRIM_SILENCE`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_SILENCE)            | The effect that cuts a line's leading and trailing silence (an#254).                                                                                                                                                                                      |
+| [`DFLT_TRIM_THRESHOLD_DB`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_THRESHOLD_DB)  | `trim_silence`'s defaults.                                                                                                                                                                                                                                |
+| [`DFLT_TRIM_KEEP_LEAD_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S)   | more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound.                                                                                                                                                                |
+| [`DFLT_TRIM_KEEP_TAIL_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S)   | a word's release and decay.                                                                                                                                                                                                                               |
+| [`TRIM_THRESHOLD_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_THRESHOLD_LIMITS)   | `threshold_db` bounds (relative to the line's loudest window).                                                                                                                                                                                            |
+| [`TRIM_KEEP_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_KEEP_LIMITS)        | `keep_lead_s` / `keep_tail_s` bounds, seconds.                                                                                                                                                                                                            |
+| [`TRIM_WINDOW_S`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_WINDOW_S)           | a change to it (or to anything else that moves a trimmed line's bytes) is a [`TRIM_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_VERSION) bump — a test pins the trim's output to the version (an#309).                                                   |
+| [`TRIM_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_VERSION)            | Bumped whenever a trimmed line's bytes would change (algorithm, window, record tag, rounding); part of every trimmed line's key.                                                                                                                          |
+| [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)           | The version of the ffmpeg chain every effected line passes (pitch, tempo, and the decode of a non-WAV line before its trim): its filters, rate ([`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)), `atempo` stages and flags (an#309). |
+| [`TRIM_RECORD_TAG`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                                                                                                                                                                                            |
 
 ### Functions
 
-| [`apply_voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| [`atempo_stages`](_autosummary/an.audio.effects.html.md#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                            |
-| [`filter_chain`](_autosummary/an.audio.effects.html.md#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                           |
-| [`normalize_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                  |
-| [`trim_record`](_autosummary/an.audio.effects.html.md#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.    |
-| [`trim_silence`](_autosummary/an.audio.effects.html.md#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns. |
-| [`voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                    |
+| [`apply_voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                                            |
+|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`atempo_stages`](_autosummary/an.audio.effects.html.md#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                                                        |
+| [`decode_chain`](_autosummary/an.audio.effects.html.md#an.audio.effects.decode_chain)()                             | The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its trim (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)).                 |
+| [`ffmpeg_argv`](_autosummary/an.audio.effects.html.md#an.audio.effects.ffmpeg_argv)(chain, out_path)               | The argv that runs `chain` over audio on stdin into a bit-exact 16-bit PCM WAV at `out_path` (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)). |
+| [`filter_chain`](_autosummary/an.audio.effects.html.md#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                                                       |
+| [`normalize_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                                              |
+| [`trim_record`](_autosummary/an.audio.effects.html.md#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.                                |
+| [`trim_silence`](_autosummary/an.audio.effects.html.md#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns.                             |
+| [`voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                                                |
 
 ### Classes
 
@@ -2133,6 +2136,16 @@ Design, in the order the pipeline uses it:
 ### an.audio.effects.ATEMPO_STAGE_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 2.0)*
 
 One `atempo` stage’s clean range; a factor beyond it is chained in stages.
+
+### an.audio.effects.CHAIN_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+The version of the ffmpeg chain every effected line passes (pitch, tempo,
+and the decode of a non-WAV line before its trim): its filters, rate
+([`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)), `atempo` stages and flags (an#309). Keyed
+only once it is not the first, so introducing it moved no key; bump it with
+any change to [`filter_chain()`](_autosummary/an.audio.effects.html.md#an.audio.effects.filter_chain), [`ffmpeg_argv()`](_autosummary/an.audio.effects.html.md#an.audio.effects.ffmpeg_argv) or their constants
+— a test pins them to the version. Moving the key re-processes each line
+from its raw take, which is cached: nothing is billed.
 
 ### an.audio.effects.DFLT_TRIM_KEEP_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
 
@@ -2211,11 +2224,17 @@ The effect that cuts a line’s leading and trailing silence (an#254).
 
 ### an.audio.effects.TRIM_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
-Bumped when the trim’s algorithm changes; part of every trimmed line’s key.
+Bumped whenever a trimmed line’s bytes would change (algorithm, window,
+record tag, rounding); part of every trimmed line’s key.
 
 ### an.audio.effects.TRIM_WINDOW_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
 
-The level-measuring window, seconds.
+a change to it (or
+to anything else that moves a trimmed line’s bytes) is a [`TRIM_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.TRIM_VERSION)
+bump — a test pins the trim’s output to the version (an#309).
+
+* **Type:**
+  The level-measuring window, seconds. Not keyed itself
 
 ### *exception* an.audio.effects.VoiceEffectError
 
@@ -2251,6 +2270,27 @@ One stage when `factor` already fits (the pitch-only chain, always).
 [2.0, 1.5]
 >>> atempo_stages(0.3)
 [0.5, 0.6]
+```
+
+### an.audio.effects.decode_chain()
+
+The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its
+trim (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.effects.ffmpeg_argv(chain, out_path)
+
+The argv that runs `chain` over audio on stdin into a bit-exact 16-bit
+PCM WAV at `out_path` (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> ffmpeg_argv("aresample=44100", "o.wav")[-3:]
+['-c:a', 'pcm_s16le', 'o.wav']
 ```
 
 ### an.audio.effects.filter_chain(effects)
@@ -23141,11 +23181,31 @@ True
 | [`OrchestratorReport`](_autosummary/an.orchestrate.html.md#an.orchestrate.OrchestratorReport)([success, output_path, ...])   | Outcome of an end-to-end orchestrated run.   |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------|
 
-### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None)
+### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an end-to-end orchestrated run.
+
+#### merge_verification(vr)
+
+Add `vr` — less any finding this report already holds: the render
+report repeats what the pre-render validation found (a synthesized
+line still past its shot), and one finding is reported once (an#309).
+The SAME finding: severity, path, location and description (its paths
+made portable) — so a render that escalates a warning to an error, or
+locates it elsewhere, is reported. `vr`’s verdict is kept.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### root *: [Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+descriptions are compared with their
+paths made portable (the render report stores them so; an#309).
+
+* **Type:**
+  The project root, when known
 
 ### an.orchestrate.iterate(project_dir, instruction, \*\*kwargs)
 
@@ -23381,10 +23441,11 @@ Layout (from spec §11):
 
 ### Functions
 
-| [`init`](_autosummary/an.project.html.md#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                 |
-|-----------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                   |
-| [`save`](_autosummary/an.project.html.md#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json). |
+| [`init`](_autosummary/an.project.html.md#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`keep_reports_out_of_git`](_autosummary/an.project.html.md#an.project.keep_reports_out_of_git)(pdir)          | Add [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE) to an OLDER project's `.gitignore` (an `an init` from before an#254 left it out), the first time a render writes a report (an#309) — conservatively: never when the file already says anything about those paths (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
+| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`save`](_autosummary/an.project.html.md#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ### Classes
 
@@ -23414,6 +23475,19 @@ project’s `.gitignore` gains [`PROJECT_GITIGNORE`](_autosummary/an.project.htm
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.project.keep_reports_out_of_git(pdir)
+
+Add [`PROJECT_GITIGNORE`](_autosummary/an.project.html.md#an.project.PROJECT_GITIGNORE) to an OLDER project’s `.gitignore` (an
+`an init` from before an#254 left it out), the first time a render
+writes a report (an#309) — conservatively: never when the file already
+says anything about those paths (a project may have chosen to commit its
+reports, `!artifacts/render_reports/`), never through a symlink (a
+shared ignore file), and never creating a `.gitignore` in a project that
+is not in a git work tree.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.project.load(project_dir, , check_kinds=True)
 
@@ -23485,20 +23559,22 @@ adapters and the same flow handles them.
 |-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RUN_LIVE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
 | [`RUN_DONE_MARKER`](_autosummary/an.render.html.md#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
+| [`TMP_TOKEN`](_autosummary/an.render.html.md#an.render.TMP_TOKEN)              | What a temp-folder path becomes in a portable text ([`portable_text()`](_autosummary/an.render.html.md#an.render.portable_text)).                                                                                                     |
+| [`POSIX_TEMP_DIRS`](_autosummary/an.render.html.md#an.render.POSIX_TEMP_DIRS)        | The temp folders every POSIX machine has, besides the one Python reports.                                                                                                                                                  |
 | [`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)         | How `an render`'s summary heads each `kind` of finding, in this order; a kind not listed (another warning category) is headed by its own name, after.                                                                      |
 | [`SUMMARY_MAX_PER_GROUP`](_autosummary/an.render.html.md#an.render.SUMMARY_MAX_PER_GROUP)  | At most this many findings of one kind are listed in the summary.                                                                                                                                                          |
 | [`UNKNOWN_LIVENESS_MAX_S`](_autosummary/an.render.html.md#an.render.UNKNOWN_LIVENESS_MAX_S) | Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from `an cache gc`, for ever. |
 
 ### Functions
 
-| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                         |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                            |
-| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                |
-| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home])            | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
-| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                              |
-| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                       |
-| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                      |
+| [`cache_entries`](_autosummary/an.render.html.md#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                                               |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_render_findings`](_autosummary/an.render.html.md#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](_autosummary/an.render.html.md#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                  |
+| [`live_runs`](_autosummary/an.render.html.md#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                      |
+| [`portable_text`](_autosummary/an.render.html.md#an.render.portable_text)(text, \*[, root, home, tmp])       | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
+| [`render`](_autosummary/an.render.html.md#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                    |
+| [`render_findings`](_autosummary/an.render.html.md#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                             |
+| [`render_project`](_autosummary/an.render.html.md#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                            |
 
 ### Exceptions
 
@@ -23509,6 +23585,10 @@ adapters and the same flow handles them.
 
 How `an render`’s summary heads each `kind` of finding, in this order; a
 kind not listed (another warning category) is headed by its own name, after.
+
+### an.render.POSIX_TEMP_DIRS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('/tmp', '/private/tmp', '/var/tmp')*
+
+The temp folders every POSIX machine has, besides the one Python reports.
 
 ### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
 
@@ -23540,6 +23620,10 @@ Raised on render-pipeline failures with actionable detail.
 ### an.render.SUMMARY_MAX_PER_GROUP *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 5*
 
 At most this many findings of one kind are listed in the summary.
+
+### an.render.TMP_TOKEN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<tmp>'*
+
+What a temp-folder path becomes in a portable text ([`portable_text()`](_autosummary/an.render.html.md#an.render.portable_text)).
 
 ### an.render.UNKNOWN_LIVENESS_MAX_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 86400.0*
 
@@ -23600,22 +23684,32 @@ started (its live marker’s mtime): what `an cache gc` must not race.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.render.portable_text(text, , root=None, home=None)
+### an.render.portable_text(text, , root=None, home=None, tmp=None)
 
 `text` with this machine’s absolute paths taken out: a path under the
-project `root` becomes project-relative, the root itself `.`, and the
-home directory `~` — so a render report (which a project may commit or
-share, and an agent may pass on) names no user, host folder or temp dir.
+project `root` becomes project-relative, the root itself `.`, a temp
+folder `<tmp>` and the home directory `~` — so a render report (which a
+project may commit or share, and an agent may pass on) names no user, host
+folder or temp dir. Only WHOLE path components are replaced, at both ends
+(an#309): a sibling that shares a prefix (`/u/me/proj2` beside
+`/u/me/p`) or a path that merely ends like one (`/mnt/data/p` against
+`/data/p`) is left as it is. A Windows path matches with either
+separator and in any case.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
-...               root="/u/me/p", home="/u/me")
+...               root="/u/me/p", home="/u/me", tmp="/t")
 'missing at assets/a.png; see ~/x.log'
->>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")
+>>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me", tmp="/t")
 'rendered in .'
+>>> portable_text("/u/me/proj2/a.png, /u/me2/x, /t/f.png, /mnt/u/me/p/b",
+...               root="/u/me/p", home="/u/me", tmp="/t")
+'~/proj2/a.png, /u/me2/x, <tmp>/f.png, /mnt/u/me/p/b'
+>>> portable_text("c:/users/me/p/a.png", root=r"C:\Users\me\p", home=r"C:\Users\me", tmp="/t")
+'a.png'
 ```
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
@@ -34612,20 +34706,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 01:17 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/c447c2dc2b5cca26fc936655eb7aa3f6f165286d"><code>c447c2d</code></a> on branch <code>main</code>, for **an 0.1.165** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 01:40 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/19e2f5217f8bd68d9a88be871bb8f8529d4a79c1"><code>19e2f52</code></a> on branch <code>main</code>, for **an 0.1.166** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.165) is ahead of the latest release on PyPI (0.1.164): these docs describe unreleased code.
+- The documented version (0.1.166) is ahead of the latest release on PyPI (0.1.165): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/c447c2dc2b5cca26fc936655eb7aa3f6f165286d"><code>c447c2dc2b5cca26fc936655eb7aa3f6f165286d</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/19e2f5217f8bd68d9a88be871bb8f8529d4a79c1"><code>19e2f5217f8bd68d9a88be871bb8f8529d4a79c1</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.165</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.166</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -34634,9 +34728,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37397934876">37397934876</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37399470026">37399470026</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3917518710f84a3123f7d8da922ba59dc06dfd42</code> (in the history of the built commit) |
+| Event commit | <code>bd39f8d61b01c65678aa968585f883563b883a7a</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -34661,13 +34755,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.164/">0.1.164</a>, older than the documented version (0.1.165).
+Latest release: <a href="https://pypi.org/project/an/0.1.165/">0.1.165</a>, older than the documented version (0.1.166).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout c447c2dc2b5cca26fc936655eb7aa3f6f165286d
+git checkout 19e2f5217f8bd68d9a88be871bb8f8529d4a79c1
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

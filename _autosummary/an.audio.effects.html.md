@@ -81,31 +81,34 @@ Design, in the order the pipeline uses it:
 
 ### Module Attributes
 
-| [`PITCH_SEMITONES_LIMIT`](#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.                         |
-|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`TEMPO_LIMITS`](#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                                      |
-| [`ATEMPO_STAGE_LIMITS`](#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages.                 |
-| [`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).                     |
-| [`TRIM_SILENCE`](#an.audio.effects.TRIM_SILENCE)            | The effect that cuts a line's leading and trailing silence (an#254).                       |
-| [`DFLT_TRIM_THRESHOLD_DB`](#an.audio.effects.DFLT_TRIM_THRESHOLD_DB)  | `trim_silence`'s defaults.                                                                 |
-| [`DFLT_TRIM_KEEP_LEAD_S`](#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S)   | more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound. |
-| [`DFLT_TRIM_KEEP_TAIL_S`](#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S)   | a word's release and decay.                                                                |
-| [`TRIM_THRESHOLD_LIMITS`](#an.audio.effects.TRIM_THRESHOLD_LIMITS)   | `threshold_db` bounds (relative to the line's loudest window).                             |
-| [`TRIM_KEEP_LIMITS`](#an.audio.effects.TRIM_KEEP_LIMITS)        | `keep_lead_s` / `keep_tail_s` bounds, seconds.                                             |
-| [`TRIM_WINDOW_S`](#an.audio.effects.TRIM_WINDOW_S)           | The level-measuring window, seconds.                                                       |
-| [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION)            | Bumped when the trim's algorithm changes; part of every trimmed line's key.                |
-| [`TRIM_RECORD_TAG`](#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                             |
+| [`PITCH_SEMITONES_LIMIT`](#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.                                                                                                                                                                                        |
+|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`TEMPO_LIMITS`](#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                                                                                                                                                                                                     |
+| [`ATEMPO_STAGE_LIMITS`](#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages.                                                                                                                                                                                |
+| [`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).                                                                                                                                                                                    |
+| [`TRIM_SILENCE`](#an.audio.effects.TRIM_SILENCE)            | The effect that cuts a line's leading and trailing silence (an#254).                                                                                                                                                                                      |
+| [`DFLT_TRIM_THRESHOLD_DB`](#an.audio.effects.DFLT_TRIM_THRESHOLD_DB)  | `trim_silence`'s defaults.                                                                                                                                                                                                                                |
+| [`DFLT_TRIM_KEEP_LEAD_S`](#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S)   | more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound.                                                                                                                                                                |
+| [`DFLT_TRIM_KEEP_TAIL_S`](#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S)   | a word's release and decay.                                                                                                                                                                                                                               |
+| [`TRIM_THRESHOLD_LIMITS`](#an.audio.effects.TRIM_THRESHOLD_LIMITS)   | `threshold_db` bounds (relative to the line's loudest window).                                                                                                                                                                                            |
+| [`TRIM_KEEP_LIMITS`](#an.audio.effects.TRIM_KEEP_LIMITS)        | `keep_lead_s` / `keep_tail_s` bounds, seconds.                                                                                                                                                                                                            |
+| [`TRIM_WINDOW_S`](#an.audio.effects.TRIM_WINDOW_S)           | a change to it (or to anything else that moves a trimmed line's bytes) is a [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION) bump — a test pins the trim's output to the version (an#309).                                                   |
+| [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION)            | Bumped whenever a trimmed line's bytes would change (algorithm, window, record tag, rounding); part of every trimmed line's key.                                                                                                                          |
+| [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)           | The version of the ffmpeg chain every effected line passes (pitch, tempo, and the decode of a non-WAV line before its trim): its filters, rate ([`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)), `atempo` stages and flags (an#309). |
+| [`TRIM_RECORD_TAG`](#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                                                                                                                                                                                            |
 
 ### Functions
 
-| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                |
-|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                            |
-| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                           |
-| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                  |
-| [`trim_record`](#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.    |
-| [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns. |
-| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                    |
+| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                                            |
+|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                                                        |
+| [`decode_chain`](#an.audio.effects.decode_chain)()                             | The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).                 |
+| [`ffmpeg_argv`](#an.audio.effects.ffmpeg_argv)(chain, out_path)               | The argv that runs `chain` over audio on stdin into a bit-exact 16-bit PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)). |
+| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                                                       |
+| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                                              |
+| [`trim_record`](#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.                                |
+| [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns.                             |
+| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                                                |
 
 ### Classes
 
@@ -120,6 +123,16 @@ Design, in the order the pipeline uses it:
 ### an.audio.effects.ATEMPO_STAGE_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 2.0)*
 
 One `atempo` stage’s clean range; a factor beyond it is chained in stages.
+
+### an.audio.effects.CHAIN_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+The version of the ffmpeg chain every effected line passes (pitch, tempo,
+and the decode of a non-WAV line before its trim): its filters, rate
+([`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)), `atempo` stages and flags (an#309). Keyed
+only once it is not the first, so introducing it moved no key; bump it with
+any change to [`filter_chain()`](#an.audio.effects.filter_chain), [`ffmpeg_argv()`](#an.audio.effects.ffmpeg_argv) or their constants
+— a test pins them to the version. Moving the key re-processes each line
+from its raw take, which is cached: nothing is billed.
 
 ### an.audio.effects.DFLT_TRIM_KEEP_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
 
@@ -198,11 +211,17 @@ The effect that cuts a line’s leading and trailing silence (an#254).
 
 ### an.audio.effects.TRIM_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
-Bumped when the trim’s algorithm changes; part of every trimmed line’s key.
+Bumped whenever a trimmed line’s bytes would change (algorithm, window,
+record tag, rounding); part of every trimmed line’s key.
 
 ### an.audio.effects.TRIM_WINDOW_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
 
-The level-measuring window, seconds.
+a change to it (or
+to anything else that moves a trimmed line’s bytes) is a [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION)
+bump — a test pins the trim’s output to the version (an#309).
+
+* **Type:**
+  The level-measuring window, seconds. Not keyed itself
 
 ### *exception* an.audio.effects.VoiceEffectError
 
@@ -238,6 +257,27 @@ One stage when `factor` already fits (the pitch-only chain, always).
 [2.0, 1.5]
 >>> atempo_stages(0.3)
 [0.5, 0.6]
+```
+
+### an.audio.effects.decode_chain()
+
+The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its
+trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.effects.ffmpeg_argv(chain, out_path)
+
+The argv that runs `chain` over audio on stdin into a bit-exact 16-bit
+PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> ffmpeg_argv("aresample=44100", "o.wav")[-3:]
+['-c:a', 'pcm_s16le', 'o.wav']
 ```
 
 ### an.audio.effects.filter_chain(effects)

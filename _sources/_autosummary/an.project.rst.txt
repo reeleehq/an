@@ -15,6 +15,7 @@ an.project
    .. autosummary::
    
       init
+      keep_reports_out_of_git
       load
       save
    

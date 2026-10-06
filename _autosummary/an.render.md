@@ -15,20 +15,22 @@ adapters and the same flow handles them.
 |-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
 | [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
+| [`TMP_TOKEN`](#an.render.TMP_TOKEN)              | What a temp-folder path becomes in a portable text ([`portable_text()`](#an.render.portable_text)).                                                                                                     |
+| [`POSIX_TEMP_DIRS`](#an.render.POSIX_TEMP_DIRS)        | The temp folders every POSIX machine has, besides the one Python reports.                                                                                                                                                  |
 | [`FINDING_GROUPS`](#an.render.FINDING_GROUPS)         | How `an render`'s summary heads each `kind` of finding, in this order; a kind not listed (another warning category) is headed by its own name, after.                                                                      |
 | [`SUMMARY_MAX_PER_GROUP`](#an.render.SUMMARY_MAX_PER_GROUP)  | At most this many findings of one kind are listed in the summary.                                                                                                                                                          |
 | [`UNKNOWN_LIVENESS_MAX_S`](#an.render.UNKNOWN_LIVENESS_MAX_S) | Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from `an cache gc`, for ever. |
 
 ### Functions
 
-| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                         |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_render_findings`](#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                            |
-| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                |
-| [`portable_text`](#an.render.portable_text)(text, \*[, root, home])            | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
-| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                              |
-| [`render_findings`](#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                       |
-| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                      |
+| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                                               |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_render_findings`](#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                                                  |
+| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                                      |
+| [`portable_text`](#an.render.portable_text)(text, \*[, root, home, tmp])       | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, a temp folder `<tmp>` and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
+| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                                                    |
+| [`render_findings`](#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                                             |
+| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                                            |
 
 ### Exceptions
 
@@ -39,6 +41,10 @@ adapters and the same flow handles them.
 
 How `an render`’s summary heads each `kind` of finding, in this order; a
 kind not listed (another warning category) is headed by its own name, after.
+
+### an.render.POSIX_TEMP_DIRS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('/tmp', '/private/tmp', '/var/tmp')*
+
+The temp folders every POSIX machine has, besides the one Python reports.
 
 ### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
 
@@ -70,6 +76,10 @@ Raised on render-pipeline failures with actionable detail.
 ### an.render.SUMMARY_MAX_PER_GROUP *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 5*
 
 At most this many findings of one kind are listed in the summary.
+
+### an.render.TMP_TOKEN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<tmp>'*
+
+What a temp-folder path becomes in a portable text ([`portable_text()`](#an.render.portable_text)).
 
 ### an.render.UNKNOWN_LIVENESS_MAX_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 86400.0*
 
@@ -130,22 +140,32 @@ started (its live marker’s mtime): what `an cache gc` must not race.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.render.portable_text(text, , root=None, home=None)
+### an.render.portable_text(text, , root=None, home=None, tmp=None)
 
 `text` with this machine’s absolute paths taken out: a path under the
-project `root` becomes project-relative, the root itself `.`, and the
-home directory `~` — so a render report (which a project may commit or
-share, and an agent may pass on) names no user, host folder or temp dir.
+project `root` becomes project-relative, the root itself `.`, a temp
+folder `<tmp>` and the home directory `~` — so a render report (which a
+project may commit or share, and an agent may pass on) names no user, host
+folder or temp dir. Only WHOLE path components are replaced, at both ends
+(an#309): a sibling that shares a prefix (`/u/me/proj2` beside
+`/u/me/p`) or a path that merely ends like one (`/mnt/data/p` against
+`/data/p`) is left as it is. A Windows path matches with either
+separator and in any case.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
-...               root="/u/me/p", home="/u/me")
+...               root="/u/me/p", home="/u/me", tmp="/t")
 'missing at assets/a.png; see ~/x.log'
->>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")
+>>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me", tmp="/t")
 'rendered in .'
+>>> portable_text("/u/me/proj2/a.png, /u/me2/x, /t/f.png, /mnt/u/me/p/b",
+...               root="/u/me/p", home="/u/me", tmp="/t")
+'~/proj2/a.png, /u/me2/x, <tmp>/f.png, /mnt/u/me/p/b'
+>>> portable_text("c:/users/me/p/a.png", root=r"C:\Users\me\p", home=r"C:\Users\me", tmp="/t")
+'a.png'
 ```
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)

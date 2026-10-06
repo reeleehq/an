@@ -20,10 +20,11 @@ Layout (from spec §11):
 
 ### Functions
 
-| [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                 |
-|-----------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`load`](#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                   |
-| [`save`](#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json). |
+| [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`keep_reports_out_of_git`](#an.project.keep_reports_out_of_git)(pdir)          | Add [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE) to an OLDER project's `.gitignore` (an `an init` from before an#254 left it out), the first time a render writes a report (an#309) — conservatively: never when the file already says anything about those paths (a project may have chosen to commit its reports, `!artifacts/render_reports/`), never through a symlink (a shared ignore file), and never creating a `.gitignore` in a project that is not in a git work tree. |
+| [`load`](#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`save`](#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json).                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ### Classes
 
@@ -53,6 +54,19 @@ project’s `.gitignore` gains [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNO
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.project.keep_reports_out_of_git(pdir)
+
+Add [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE) to an OLDER project’s `.gitignore` (an
+`an init` from before an#254 left it out), the first time a render
+writes a report (an#309) — conservatively: never when the file already
+says anything about those paths (a project may have chosen to commit its
+reports, `!artifacts/render_reports/`), never through a symlink (a
+shared ignore file), and never creating a `.gitignore` in a project that
+is not in a git work tree.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.project.load(project_dir, , check_kinds=True)
 

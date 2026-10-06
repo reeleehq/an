@@ -28,11 +28,31 @@ True
 | [`OrchestratorReport`](#an.orchestrate.OrchestratorReport)([success, output_path, ...])   | Outcome of an end-to-end orchestrated run.   |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------|
 
-### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None)
+### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an end-to-end orchestrated run.
+
+#### merge_verification(vr)
+
+Add `vr` — less any finding this report already holds: the render
+report repeats what the pre-render validation found (a synthesized
+line still past its shot), and one finding is reported once (an#309).
+The SAME finding: severity, path, location and description (its paths
+made portable) — so a render that escalates a warning to an error, or
+locates it elsewhere, is reported. `vr`’s verdict is kept.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### root *: [Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+descriptions are compared with their
+paths made portable (the render report stores them so; an#309).
+
+* **Type:**
+  The project root, when known
 
 ### an.orchestrate.iterate(project_dir, instruction, \*\*kwargs)
 
