@@ -212,6 +212,7 @@ def apply_patch(
             available_characters=mall.get("characters"),
             available_props=mall.get("props"),
             available_environments=mall.get("environments"),
+            available_styles=mall.get("styles"),
             available_sounds=mall.get("sounds"),
         )
     )

@@ -347,6 +347,27 @@ class StylePack(BaseModel):
     #: environments' own, so they are free-form; a role no plane names simply
     #: paints nothing in that scene.
     gradients: dict[str, Gradient] = Field(default_factory=dict)
+    #: The style's **policy** (ADR 0002 decision 4, an#348): per aspect, the
+    #: methods it prefers, in order (``{"locomotion": ["loco.bounce"]}``: this
+    #: show bounces even when its characters have legs). The first that
+    #: applies wins; a shot's own ``policy`` comes first, an author's request
+    #: before both. ``None`` (the default) leaves every aspect to its chain,
+    #: and is not serialized, so a pack without one dumps as before.
+    policy: dict[str, Any] | None = None
+
+    @field_validator("policy")
+    @classmethod
+    def _policy_shape(cls, v: Any) -> Any:
+        from an.semantic.entries import check_policy_block
+
+        return check_policy_block(v)
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_policy(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and self.policy is None:
+            data.pop("policy", None)
+        return data
 
     @model_validator(mode="after")
     def _every_role_is_reachable(self) -> "StylePack":

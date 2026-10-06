@@ -371,6 +371,35 @@ class Policy:
         return {a: [c.to_json() for c in cs] for a, cs in self.order.items()}
 
 
+def check_policy_block(block: Any) -> Any:
+    """``block`` unchanged when :meth:`Policy.of` can read it, else ``ValueError``.
+
+    The shape check a declared ``policy`` field runs (``Shot.policy``,
+    ``StylePack.policy``, an#348): ``{aspect: [choice, ...]}``, each choice a
+    method id or spelling, or ``{method, args, version}``. Whether the names
+    exist is the registry's question, asked where the policy is used (a check,
+    the compiler), since a genre may not be loaded where the document is read.
+
+    >>> check_policy_block({"locomotion": ["loco.bounce"]})
+    {'locomotion': ['loco.bounce']}
+    >>> check_policy_block({"locomotion": [{"method": "loco.hop", "colour": 1}]})
+    Traceback (most recent call last):
+    ...
+    ValueError: a policy is {aspect: [method, ...]}: a method choice takes method/args/version, got ['colour']
+    """
+    if block is None:
+        return None
+    if not isinstance(block, Mapping):
+        raise ValueError(
+            f"a policy is {{aspect: [method, ...]}}, got {type(block).__name__}"
+        )
+    try:
+        Policy.of(block)
+    except VocabularyError as e:
+        raise ValueError(f"a policy is {{aspect: [method, ...]}}: {e}") from e
+    return block
+
+
 def requirement_terms(requires: Iterable[Requirement]) -> tuple[str, ...]:
     """The spelled terms of a requirement tuple."""
     return tuple(str(r) for r in requires)
