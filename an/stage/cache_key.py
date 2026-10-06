@@ -416,14 +416,21 @@ def _source_facts(path: Path, module: str) -> tuple[str, frozenset[str]]:
     return digest, _IMPORTS_MEMO[(digest, module)]
 
 
+def render_code_modules() -> dict[str, str]:
+    """``{module name: sha256 of its source}`` for every module on the render path.
+
+    What the ``code`` key part digests, spelled out: a shot cache entry keeps
+    it, so a re-render can name the modules that changed (an#395).
+    """
+    return {
+        name: _source_facts(path, name)[0]
+        for name, path in render_path_modules().items()
+    }
+
+
 def render_code_digest() -> str:
     """sha256 over the source of every module on the render path (by module name)."""
-    return canonical_digest(
-        {
-            name: _source_facts(path, name)[0]
-            for name, path in render_path_modules().items()
-        }
-    )
+    return canonical_digest(render_code_modules())
 
 
 _FONTS: dict[str, str] = {}
@@ -618,7 +625,7 @@ def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:
     return ShotKeyInputs(
         parts=parts,
         compile_s=compile_s,
-        details={"warnings": list(caught)},
+        details={"warnings": list(caught), "code_modules": render_code_modules()},
     )
 
 

@@ -200,6 +200,27 @@ def test_an_older_entry_is_said_to_be_another_key_format(tmp_path, fake_render, 
     assert report.summary().endswith(f"not reused: {KEY_FORMAT_CHANGED} (intro, main, end)")
 
 
+def test_a_render_code_change_names_the_modules_that_moved(tmp_path, fake_render, monkeypatch):
+    """an#395: "an's render code changed" says which module(s), from the
+    per-module digests each entry keeps beside the ``code`` part."""
+    from an.stage import cache_key
+
+    root = _crawl_film(tmp_path)
+    modules = cache_key.render_code_modules()
+    monkeypatch.setattr(cache_key, "render_code_modules", lambda: dict(modules))
+    _render(root, fake_render)
+    store = load(root).mall["shot_cache"]
+    assert all(store[k].code == modules for k in list(store) if getattr(store[k], "role", "") == "mp4")
+    edited = {**modules, "an.stage.compile": "e" * 64}
+    monkeypatch.setattr(cache_key, "render_code_modules", lambda: dict(edited))
+    monkeypatch.setattr(cache_key, "render_code_digest", lambda: "c" * 64)
+    report, rendered = _render(root, fake_render)
+    assert rendered == ["intro", "main", "end"]
+    assert report.summary().endswith(
+        "not reused: an's render code (an.stage.compile) changed (intro, main, end)"
+    )
+
+
 # -----------------------------------------------------------------------------
 # The recording view and the explanation, without a project
 # -----------------------------------------------------------------------------
