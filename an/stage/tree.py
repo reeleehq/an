@@ -89,9 +89,7 @@ def child_prefix(node: Any, path: str, prefix: str) -> str:
     return join(prefix, scope) if scope else prefix
 
 
-def _walk(
-    node: Any, prefix: str, ancestors: tuple
-) -> Iterator[tuple[str, Any, tuple]]:
+def _walk(node: Any, prefix: str, ancestors: tuple) -> Iterator[tuple[str, Any, tuple]]:
     path = join(prefix, _get(node, "name"))
     yield path, node, ancestors
     inner = child_prefix(node, path, prefix)
@@ -161,6 +159,8 @@ def chain(root: Any, path: str) -> list[tuple[Any, str]]:
         if p == path:
             found = [*ancestors, (node, p)]
     if found is None:
-        near = sorted(p for p in paths(root) if p.split("/", 1)[0] == path.split("/", 1)[0])
+        near = sorted(
+            p for p in paths(root) if p.split("/", 1)[0] == path.split("/", 1)[0]
+        )
         raise KeyError(f"no node at {path!r}; under that entity: {near or 'nothing'}")
     return [(root, _get(root, "name")), *found]
