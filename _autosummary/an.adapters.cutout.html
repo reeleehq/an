@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../_static/documentation_options.js?v=0f950899"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -923,6 +923,14 @@ so every plane is <code class="docutils literal notranslate"><span class="pre">&
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.NodeJSON.z_index">
+<span class="sig-name descname"><span class="pre">z_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.NodeJSON.z_index" title="Link to this definition">#</a></dt>
+<dd><p>This node’s place among its siblings when its parent sorts them
+(an#403): a nested chain whose declared draw order is not the tree’s
+(a far arm behind the torso it nests under). <code class="docutils literal notranslate"><span class="pre">None</span></code> = insertion order.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1053,6 +1061,13 @@ it always was; the open set is what lets <code class="docutils literal notransla
 <dd><p>Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only <code class="docutils literal notranslate"><span class="pre">rect</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipse</span></code> and <code class="docutils literal notranslate"><span class="pre">svg_sprite</span></code>
 take them; the runtime refuses any other kind.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.VisualJSON.z_index">
+<span class="sig-name descname"><span class="pre">z_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.VisualJSON.z_index" title="Link to this definition">#</a></dt>
+<dd><p>The visual’s place among its node’s children when the node sorts them
+(an#403): a part drawn over the chain nested under it.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1245,6 +1260,7 @@ clothes (an#33).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.NodeJSON"><code class="docutils literal notranslate"><span class="pre">NodeJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.NodeJSON.model_config"><code class="docutils literal notranslate"><span class="pre">NodeJSON.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.NodeJSON.scope"><code class="docutils literal notranslate"><span class="pre">NodeJSON.scope</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.NodeJSON.z_index"><code class="docutils literal notranslate"><span class="pre">NodeJSON.z_index</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.PlacedClipJSON"><code class="docutils literal notranslate"><span class="pre">PlacedClipJSON</span></code></a><ul class="nav section-nav flex-column">
@@ -1267,6 +1283,7 @@ clothes (an#33).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.model_config"><code class="docutils literal notranslate"><span class="pre">VisualJSON.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.path"><code class="docutils literal notranslate"><span class="pre">VisualJSON.path</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.underlays"><code class="docutils literal notranslate"><span class="pre">VisualJSON.underlays</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.VisualJSON.z_index"><code class="docutils literal notranslate"><span class="pre">VisualJSON.z_index</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile_shot"><code class="docutils literal notranslate"><span class="pre">compile_shot()</span></code></a></li>

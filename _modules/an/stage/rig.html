@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../../../_static/documentation_options.js?v=0f950899"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1361,71 +1361,156 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="chain_paint_order">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.chain_paint_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">chain_paint_order</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">built</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""How each container of a nested chain must order what it holds (an#403).</span>
+
+<span class="sd">    The stage draws a container's items in order: its slot's own visual and its</span>
+<span class="sd">    child slots' containers (``None`` is the entity's container, which holds the</span>
+<span class="sd">    root slots and no visual of its own). Sorting those siblings (PixiJS's</span>
+<span class="sd">    ``sortableChildren`` on a ``zIndex``) gives any order in which every slot's</span>
+<span class="sd">    SUBTREE is painted contiguously, a far arm behind the torso it nests under</span>
+<span class="sd">    included. Each item spans the draw orders of its subtree; the items are</span>
+<span class="sd">    sorted, stably, by that ``(lowest, highest)`` span, starting from the</span>
+<span class="sd">    builder's own order (:func:`natural_paint_order`), so equal draw orders keep</span>
+<span class="sd">    their tree order and a chain already painted in declared order is not</span>
+<span class="sd">    reordered. ``built`` limits it to the slots the builder drew.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones",</span>
+<span class="sd">    ...          bones=[NS(name="torso", parent=None), NS(name="arm", parent="torso")],</span>
+<span class="sd">    ...          slots=[NS(name="torso", bone="torso", draw_order=2), NS(name="arm", bone="arm", draw_order=1)])</span>
+<span class="sd">    &gt;&gt;&gt; chain_paint_order(rig)</span>
+<span class="sd">    {None: ['torso'], 'torso': ['arm', 'torso']}</span>
+<span class="sd">    """</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">_draw_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">built</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">built</span><span class="p">]</span>
+    <span class="n">kids</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="n">parents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># A slot caught in a bone cycle maps to itself (`slot_parent_chain`):</span>
+        <span class="c1"># it is a root here; `rig_problems` refuses the cycle.</span>
+        <span class="n">kids</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="n">parent</span> <span class="k">if</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">names</span> <span class="ow">and</span> <span class="n">parent</span> <span class="o">!=</span> <span class="n">name</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">span</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seen</span><span class="p">:</span> <span class="nb">frozenset</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="n">below</span> <span class="o">=</span> <span class="p">[</span><span class="n">span</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">seen</span> <span class="o">|</span> <span class="p">{</span><span class="n">name</span><span class="p">})</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">]</span>
+        <span class="n">own</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">min</span><span class="p">([</span><span class="n">own</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">below</span><span class="p">)]),</span> <span class="nb">max</span><span class="p">([</span><span class="n">own</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">below</span><span class="p">)]))</span>
+
+    <span class="n">held</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="kc">None</span><span class="p">:</span> <span class="n">kids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[]),</span>
+        <span class="o">**</span><span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="n">kids</span><span class="p">[</span><span class="n">n</span><span class="p">]]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">kids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">n</span><span class="p">)},</span>
+    <span class="p">}</span>
+    <span class="n">natural</span> <span class="o">=</span> <span class="n">natural_paint_order</span><span class="p">(</span><span class="n">held</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">container</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">items</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">container</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="n">item</span><span class="p">][</span><span class="mi">0</span><span class="p">],)</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">owner</span> <span class="k">else</span> <span class="n">span</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">container</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="n">natural</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_draw_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{slot: (draw_order, name)}``: the builder's own order of siblings."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="p">(</span><span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"draw_order"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_painted</span><span class="p">(</span><span class="n">order</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The slots in the order the stage paints them, containers sorted by ``order``."""</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">paint</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">container</span> <span class="ow">or</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+                <span class="n">paint</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="n">paint</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="natural_paint_order">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.natural_paint_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">natural_paint_order</span><span class="p">(</span><span class="n">order</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What each container holds in the builder's own order: the slot's visual</span>
+<span class="sd">    first, then its children by their own ``(draw_order, name)``."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">container</span><span class="p">:</span> <span class="p">([</span><span class="n">container</span><span class="p">]</span> <span class="k">if</span> <span class="n">container</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="o">+</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">container</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">container</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stamp_paint_order</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Give the built nodes the ``z_index`` the stage sorts by (an#403), only in</span>
+<span class="sd">    the containers whose declared order differs from the builder's own (a</span>
+<span class="sd">    rig whose tree already paints in declared order stays byte-identical)."""</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">_draw_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">chain_paint_order</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">built</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
+    <span class="n">natural</span> <span class="o">=</span> <span class="n">natural_paint_order</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">container</span><span class="p">,</span> <span class="n">items</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">items</span> <span class="o">==</span> <span class="n">natural</span><span class="p">[</span><span class="n">container</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">z</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">container</span><span class="p">:</span>
+                <span class="n">nodes</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">z_index</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nodes</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">z_index</span> <span class="o">=</span> <span class="n">z</span>
+
+
 <div class="viewcode-block" id="chain_draw_order_problems">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.chain_draw_order_problems">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">chain_draw_order_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Where a nested chain asks the STAGE for a draw order it cannot give (an#340).</span>
+<span class="w">    </span><span class="sd">"""Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).</span>
 
-<span class="sd">    The stage engine (PixiJS) draws a container's own visual before its</span>
-<span class="sd">    children, so a nested part always draws over its parent: a slot nested</span>
-<span class="sd">    under one with a HIGHER ``draw_order`` cannot be honoured. This is the</span>
-<span class="sd">    stage engine's limit, not a rule of rigs (an engine with free slot order</span>
-<span class="sd">    could draw it), so the stage compiler refuses it and the asset</span>
-<span class="sd">    validators only warn. Nothing in ``flat`` nesting: there a nested slot is</span>
-<span class="sd">    a face part over its head, drawn after it by construction.</span>
+<span class="sd">    The stage sorts the items of each container (:func:`chain_paint_order`), so</span>
+<span class="sd">    a part nested under one drawn LATER is fine (a far arm behind its torso).</span>
+<span class="sd">    What it cannot do is interleave two containers: a slot's subtree is always</span>
+<span class="sd">    painted together, so an unrelated part ordered between a chain's members</span>
+<span class="sd">    (a leg between the arms and the head) cannot be honoured. Refused by the</span>
+<span class="sd">    stage compiler; the asset validators only warn. Nothing in ``flat``</span>
+<span class="sd">    nesting.</span>
 
 <span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
-<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],</span>
-<span class="sd">    ...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])</span>
-<span class="sd">    &gt;&gt;&gt; chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(nesting="bones",</span>
+<span class="sd">    ...          bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm"), NS(name="cord", parent=None)],</span>
+<span class="sd">    ...          slots=[NS(name="arm", bone="arm", draw_order=1), NS(name="cord", bone="cord", draw_order=2),</span>
+<span class="sd">    ...                 NS(name="hand", bone="hand", draw_order=3)])</span>
+<span class="sd">    &gt;&gt;&gt; chain_draw_order_problems(rig)[0].startswith("the stage paints each chain's parts together")</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">nesting_of</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BONES_NESTING</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">):</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">"draw_order"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-    <span class="p">}</span>
-    <span class="n">parents</span> <span class="o">=</span> <span class="n">slot_parent_chain</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"slot </span><span class="si">{</span><span class="n">slot</span><span class="si">!r}</span><span class="s2"> (draw_order </span><span class="si">{</span><span class="n">order</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="si">}</span><span class="s2">) nests under </span><span class="si">{</span><span class="n">parent</span><span class="si">!r}</span><span class="s2"> "</span>
-                <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span><span class="si">}</span><span class="s2">), but the stage draws a nested part "</span>
-                <span class="s2">"OVER its parent: raise its draw_order to at least its parent's, "</span>
-                <span class="s2">"flatten it (`nesting: flat`), or reverse the chain"</span>
-            <span class="p">)</span>
-    <span class="k">if</span> <span class="n">out</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">out</span>
-    <span class="c1"># The stage paints a TREE depth first, so a chain also moves everything</span>
-    <span class="c1"># under it past an unrelated part ordered between its members (a leg</span>
-    <span class="c1"># ordered between the arms and the head would paint over the face).</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
-    <span class="n">children</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">):</span>
-        <span class="n">children</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">parents</span><span class="p">[</span><span class="n">slot</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
-    <span class="n">painted</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">stack</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[])))</span>
-    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
-        <span class="n">slot</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
-        <span class="n">painted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
-        <span class="n">stack</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">children</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="p">[])))</span>
-    <span class="n">wanted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">painted</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">painted</span> <span class="o">!=</span> <span class="n">wanted</span><span class="p">:</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">painted</span><span class="p">,</span> <span class="n">wanted</span><span class="p">))</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"the stage paints the chained tree depth first, so slot </span><span class="si">{</span><span class="n">painted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> "</span>
-            <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">painted</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">) would paint before </span><span class="si">{</span><span class="n">wanted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> "</span>
-            <span class="sa">f</span><span class="s2">"(draw_order </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wanted</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">), against the declared order: "</span>
-            <span class="s2">"order each chain's parts together (a part's draw_order between its "</span>
-            <span class="s2">"parent's and its next sibling's), or flatten the rig (`nesting: flat`)"</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">out</span></div>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">_draw_keys</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">painted</span> <span class="o">=</span> <span class="n">_painted</span><span class="p">(</span><span class="n">chain_paint_order</span><span class="p">(</span><span class="n">desc</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">painted</span><span class="p">,</span> <span class="n">painted</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="k">if</span> <span class="n">keys</span><span class="p">[</span><span class="n">after</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">keys</span><span class="p">[</span><span class="n">before</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"the stage paints each chain's parts together (a container's "</span>
+                <span class="sa">f</span><span class="s2">"items can be reordered, not interleaved with another's; it draws "</span>
+                <span class="sa">f</span><span class="s2">"depth first), so slot </span><span class="si">{</span><span class="n">after</span><span class="si">!r}</span><span class="s2"> (draw_order </span><span class="si">{</span><span class="n">keys</span><span class="p">[</span><span class="n">after</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) "</span>
+                <span class="sa">f</span><span class="s2">"would paint after </span><span class="si">{</span><span class="n">before</span><span class="si">!r}</span><span class="s2"> (draw_order </span><span class="si">{</span><span class="n">keys</span><span class="p">[</span><span class="n">before</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">), "</span>
+                <span class="s2">"against the declared order: keep each chain's parts together in "</span>
+                <span class="s2">"draw order (no unrelated part between them), or flatten the rig "</span>
+                <span class="s2">"(`nesting: flat`)"</span>
+            <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[]</span></div>
 
 
 
@@ -2290,6 +2375,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">parent_name</span><span class="p">,</span> <span class="n">kids</span> <span class="ow">in</span> <span class="n">children_of</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">parent_name</span> <span class="ow">and</span> <span class="n">parent_name</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
             <span class="n">nodes</span><span class="p">[</span><span class="n">parent_name</span><span class="p">]</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">kids</span>
+    <span class="k">if</span> <span class="n">bones_mode</span><span class="p">:</span>
+        <span class="n">_stamp_paint_order</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
 
     <span class="c1"># A part is drawn only if its whole chain was built: one whose parent was</span>
     <span class="c1"># not (its art missing) is an orphan, a hole in the picture like the parent</span>

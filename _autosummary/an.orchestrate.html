@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../_static/documentation_options.js?v=0f950899"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.motion" href="an.motion.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -627,7 +627,7 @@ into these primitives.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.orchestrate.render_project" title="an.orchestrate.render_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_project</span></code></a>(project_dir, **kwargs)</p></td>
 <td><p>Render the project's scene to a single mp4 under <code class="docutils literal notranslate"><span class="pre">output/</span></code> — the orchestrator's name for <a class="reference internal" href="an.render.html#an.render.render_project" title="an.render.render_project"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.render.render_project()</span></code></a>, every keyword forwarded.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.orchestrate.validate_project" title="an.orchestrate.validate_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_project</span></code></a>(project_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.orchestrate.validate_project" title="an.orchestrate.validate_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_project</span></code></a>(project_dir, *[, fps])</p></td>
 <td><p>Schema + semantic validation of the scene at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 </tbody>
@@ -739,12 +739,15 @@ rather than the leaf (an#98 review). A pass-through cannot drift.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.orchestrate.validate_project">
-<span class="sig-prename descclassname"><span class="pre">an.orchestrate.</span></span><span class="sig-name descname"><span class="pre">validate_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/orchestrate.html#validate_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.orchestrate.validate_project" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.orchestrate.</span></span><span class="sig-name descname"><span class="pre">validate_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/orchestrate.html#validate_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.orchestrate.validate_project" title="Link to this definition">#</a></dt>
 <dd><p>Schema + semantic validation of the scene at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> that does not PARSE — a dialogue line in no accepted shape
 (an#96), a malformed YAML block — is a Finding, not a traceback: <code class="code docutils literal notranslate"><span class="pre">an</span>
 <span class="pre">validate</span></code> exists to print findings, and it used to be the one tool that
 stack-dumped on the error it should report.</p>
+<p><code class="docutils literal notranslate"><span class="pre">fps</span></code> is the frame rate the render will use when it is not the scene’s
+(<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--fps</span></code>): the checks that depend on it (<code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, a line
+heard during a dissolve) use it, as the render will (an#435).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.validate.html#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></span></p>

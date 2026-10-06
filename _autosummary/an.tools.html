@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../_static/documentation_options.js?v=0f950899"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -648,7 +648,7 @@ without touching these functions, so they stay plain Python.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.tools.sync" title="an.tools.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir[, accept_measured])</p></td>
 <td><p>Reconcile scene.md and ir/scene.json inside <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.validate" title="an.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(project_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.validate" title="an.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(project_dir[, fps])</p></td>
 <td><p>Validate the scene at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 </tbody>
@@ -948,8 +948,10 @@ says what its author wrote.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.validate">
-<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.validate" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.validate" title="Link to this definition">#</a></dt>
 <dd><p>Validate the scene at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>. Prints findings, exit 0 on pass.</p>
+<p>project_dir: the an project
+fps: the frame rate <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--fps</span></code> will use, when not the scene’s (0: the scene’s)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>

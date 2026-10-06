@@ -44,11 +44,13 @@ Two layers live here:
 | [`bone_positions`](#an.stage.rig.bone_positions)(desc)                               | Absolute `(x, y)` per bone, in view_box units.                                                                                                                                                                                           |
 | [`bones_carry_a_rest_pose`](#an.stage.rig.bones_carry_a_rest_pose)(doc)                       | Whether any bone of a (raw or model) rig document has a non-zero `rotation_deg` or a non-unit `scale_x`/`scale_y`.                                                                                                                       |
 | [`build_rig_subtree`](#an.stage.rig.build_rig_subtree)(entity, desc_data, \*, textures) | Build the scene subtree for a rig (a prop or a character), **from its descriptor**.                                                                                                                                                      |
-| [`chain_draw_order_problems`](#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340).                                                                                                                                                            |
+| [`chain_draw_order_problems`](#an.stage.rig.chain_draw_order_problems)(desc)                    | Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).                                                                                                                                                    |
+| [`chain_paint_order`](#an.stage.rig.chain_paint_order)(desc, \*[, built])               | How each container of a nested chain must order what it holds (an#403).                                                                                                                                                                  |
 | [`chain_pose_problems`](#an.stage.rig.chain_pose_problems)(desc)                          | A rest pose the stage cannot apply in a nested chain (an#340).                                                                                                                                                                           |
 | [`declared_origin`](#an.stage.rig.declared_origin)(desc)                              | The rig's DECLARED origin as two floats, or `None` when it declares none.                                                                                                                                                                |
 | [`drawn_attachment`](#an.stage.rig.drawn_attachment)(desc, skin, slot)                 | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                             |
 | [`legacy_rest_pose_unknown`](#an.stage.rig.legacy_rest_pose_unknown)(raw, kind, \*, since)     | The builder guard (an#339): whether `raw` may be a pre-rest-pose document that its migration could not see.                                                                                                                              |
+| [`natural_paint_order`](#an.stage.rig.natural_paint_order)(order, keys)                   | What each container holds in the builder's own order: the slot's visual first, then its children by their own `(draw_order, name)`.                                                                                                      |
 | [`nesting_of`](#an.stage.rig.nesting_of)(desc)                                   | `"flat"` or `"bones"` (an#340); unset is flat.                                                                                                                                                                                           |
 | [`omit_unset_rig_fields`](#an.stage.rig.omit_unset_rig_fields)(data)                        | Drop every unset [`RigDocument`](#an.stage.rig.RigDocument) field from a dumped document, in place.                                                                                                                    |
 | [`part_probe`](#an.stage.rig.part_probe)(characters_store, \*[, art_prefix])     | A probe answering `(art exists, the size it rasterises at)` for a part.                                                                                                                                                                  |
@@ -491,25 +493,54 @@ fit draws the art at its natural shape — never stretched to a fabricated box.
 
 ### an.stage.rig.chain_draw_order_problems(desc)
 
-Where a nested chain asks the STAGE for a draw order it cannot give (an#340).
+Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).
 
-The stage engine (PixiJS) draws a container’s own visual before its
-children, so a nested part always draws over its parent: a slot nested
-under one with a HIGHER `draw_order` cannot be honoured. This is the
-stage engine’s limit, not a rule of rigs (an engine with free slot order
-could draw it), so the stage compiler refuses it and the asset
-validators only warn. Nothing in `flat` nesting: there a nested slot is
-a face part over its head, drawn after it by construction.
+The stage sorts the items of each container ([`chain_paint_order()`](#an.stage.rig.chain_paint_order)), so
+a part nested under one drawn LATER is fine (a far arm behind its torso).
+What it cannot do is interleave two containers: a slot’s subtree is always
+painted together, so an unrelated part ordered between a chain’s members
+(a leg between the arms and the head) cannot be honoured. Refused by the
+stage compiler; the asset validators only warn. Nothing in `flat`
+nesting.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from types import SimpleNamespace as NS
->>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
-...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])
->>> chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")
+>>> rig = NS(nesting="bones",
+...          bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm"), NS(name="cord", parent=None)],
+...          slots=[NS(name="arm", bone="arm", draw_order=1), NS(name="cord", bone="cord", draw_order=2),
+...                 NS(name="hand", bone="hand", draw_order=3)])
+>>> chain_draw_order_problems(rig)[0].startswith("the stage paints each chain's parts together")
 True
+```
+
+### an.stage.rig.chain_paint_order(desc, , built=None)
+
+How each container of a nested chain must order what it holds (an#403).
+
+The stage draws a container’s items in order: its slot’s own visual and its
+child slots’ containers (`None` is the entity’s container, which holds the
+root slots and no visual of its own). Sorting those siblings (PixiJS’s
+`sortableChildren` on a `zIndex`) gives any order in which every slot’s
+SUBTREE is painted contiguously, a far arm behind the torso it nests under
+included. Each item spans the draw orders of its subtree; the items are
+sorted, stably, by that `(lowest, highest)` span, starting from the
+builder’s own order ([`natural_paint_order()`](#an.stage.rig.natural_paint_order)), so equal draw orders keep
+their tree order and a chain already painted in declared order is not
+reordered. `built` limits it to the slots the builder drew.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> rig = NS(nesting="bones",
+...          bones=[NS(name="torso", parent=None), NS(name="arm", parent="torso")],
+...          slots=[NS(name="torso", bone="torso", draw_order=2), NS(name="arm", bone="arm", draw_order=1)])
+>>> chain_paint_order(rig)
+{None: ['torso'], 'torso': ['arm', 'torso']}
 ```
 
 ### an.stage.rig.chain_pose_problems(desc)
@@ -582,6 +613,14 @@ True
 >>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
 False
 ```
+
+### an.stage.rig.natural_paint_order(order, keys)
+
+What each container holds in the builder’s own order: the slot’s visual
+first, then its children by their own `(draw_order, name)`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.stage.rig.nesting_of(desc)
 

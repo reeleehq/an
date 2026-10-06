@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../../../_static/documentation_options.js?v=0f950899"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -730,6 +730,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)</span>
 <span class="sd">front_plane a foreground plane, animated and addressed `&lt;env&gt;/&lt;plane&gt;` (an#343)</span>
 <span class="sd">after_plane a prop placed between two planes under a pan (an#344)</span>
+<span class="sd">rig_order  a nested chain drawn behind the part it hangs from (an#403)</span>
 <span class="sd">transitions a fade in from black and a DISSOLVE between two stage shots: the</span>
 <span class="sd">           film's composed frames, which is what is delivered, are the goldens</span>
 <span class="sd">rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and</span>
@@ -757,7 +758,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -955,6 +956,22 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"stripe alike. A regression in the outline's width, its order under "</span>
             <span class="s2">"the fill, the box growth that keeps it unclipped, or per-word "</span>
             <span class="s2">"alpha moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"rig_order"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/rig_order"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a nested chain drawn BEHIND the part it hangs from (an#403): "</span>
+            <span class="s2">"`rig_chain`'s desk lamp in `nesting: bones` with the whole arm "</span>
+            <span class="s2">"(upper, forearm, shade: draw orders 1-3) behind its base (4). The "</span>
+            <span class="s2">"base's container sorts its own drawing after the arm "</span>
+            <span class="s2">"(`sortableChildren`, `z_index`), which the stage used to refuse. "</span>
+            <span class="s2">"Between the goldens the arm swings as in `rig_chain`; where it "</span>
+            <span class="s2">"passes over the base the base is in front. A regression in the "</span>
+            <span class="s2">"runtime's sort, the compiler's `z_index` or the chain refusal "</span>
+            <span class="s2">"moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"transitions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>

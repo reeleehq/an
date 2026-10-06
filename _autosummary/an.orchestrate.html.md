@@ -21,7 +21,7 @@ True
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`orchestrate`](#an.orchestrate.orchestrate)(project_dir, \*[, output_name, ...]) | Run the full pipeline.                                                                                                                                                                                                  |
 | [`render_project`](#an.orchestrate.render_project)(project_dir, \*\*kwargs)          | Render the project's scene to a single mp4 under `output/` — the orchestrator's name for [`an.render.render_project()`](an.render.html.md#an.render.render_project), every keyword forwarded. |
-| [`validate_project`](#an.orchestrate.validate_project)(project_dir)                    | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
+| [`validate_project`](#an.orchestrate.validate_project)(project_dir, \*[, fps])         | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
 
 ### Classes
 
@@ -102,7 +102,7 @@ rather than the leaf (an#98 review). A pass-through cannot drift.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.orchestrate.validate_project(project_dir)
+### an.orchestrate.validate_project(project_dir, , fps=None)
 
 Schema + semantic validation of the scene at `project_dir`.
 
@@ -110,6 +110,10 @@ A `scene.md` that does not PARSE — a dialogue line in no accepted shape
 (an#96), a malformed YAML block — is a Finding, not a traceback: `an
 validate` exists to print findings, and it used to be the one tool that
 stack-dumped on the error it should report.
+
+`fps` is the frame rate the render will use when it is not the scene’s
+(`an render --fps`): the checks that depend on it (`step_hz`, a line
+heard during a dissolve) use it, as the render will (an#435).
 
 * **Return type:**
   [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)

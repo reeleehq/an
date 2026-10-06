@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../_static/documentation_options.js?v=0f950899"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.render" href="an.stage.render.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -687,19 +687,25 @@ could not have done. The compiler re-exports the old private spellings.</p>
 <td><p>Build the scene subtree for a rig (a prop or a character), <strong>from its descriptor</strong>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.chain_draw_order_problems" title="an.stage.rig.chain_draw_order_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_draw_order_problems</span></code></a>(desc)</p></td>
-<td><p>Where a nested chain asks the STAGE for a draw order it cannot give (an#340).</p></td>
+<td><p>Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.chain_pose_problems" title="an.stage.rig.chain_pose_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_pose_problems</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.chain_paint_order" title="an.stage.rig.chain_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_paint_order</span></code></a>(desc, *[, built])</p></td>
+<td><p>How each container of a nested chain must order what it holds (an#403).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.chain_pose_problems" title="an.stage.rig.chain_pose_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chain_pose_problems</span></code></a>(desc)</p></td>
 <td><p>A rest pose the stage cannot apply in a nested chain (an#340).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.declared_origin" title="an.stage.rig.declared_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_origin</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.declared_origin" title="an.stage.rig.declared_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_origin</span></code></a>(desc)</p></td>
 <td><p>The rig's DECLARED origin as two floats, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it declares none.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.drawn_attachment" title="an.stage.rig.drawn_attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_attachment</span></code></a>(desc, skin, slot)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.drawn_attachment" title="an.stage.rig.drawn_attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_attachment</span></code></a>(desc, skin, slot)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">attachment)</span></code> a slot draws by default, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.legacy_rest_pose_unknown" title="an.stage.rig.legacy_rest_pose_unknown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">legacy_rest_pose_unknown</span></code></a>(raw, kind, *, since)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.legacy_rest_pose_unknown" title="an.stage.rig.legacy_rest_pose_unknown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">legacy_rest_pose_unknown</span></code></a>(raw, kind, *, since)</p></td>
 <td><p>The builder guard (an#339): whether <code class="docutils literal notranslate"><span class="pre">raw</span></code> may be a pre-rest-pose document that its migration could not see.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.rig.natural_paint_order" title="an.stage.rig.natural_paint_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">natural_paint_order</span></code></a>(order, keys)</p></td>
+<td><p>What each container holds in the builder's own order: the slot's visual first, then its children by their own <code class="docutils literal notranslate"><span class="pre">(draw_order,</span> <span class="pre">name)</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.rig.nesting_of" title="an.stage.rig.nesting_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nesting_of</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;flat&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;bones&quot;</span></code> (an#340); unset is flat.</p></td>
@@ -1270,24 +1276,55 @@ fit draws the art at its natural shape — never stretched to a fabricated box.<
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.rig.chain_draw_order_problems">
 <span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">chain_draw_order_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#chain_draw_order_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.chain_draw_order_problems" title="Link to this definition">#</a></dt>
-<dd><p>Where a nested chain asks the STAGE for a draw order it cannot give (an#340).</p>
-<p>The stage engine (PixiJS) draws a container’s own visual before its
-children, so a nested part always draws over its parent: a slot nested
-under one with a HIGHER <code class="docutils literal notranslate"><span class="pre">draw_order</span></code> cannot be honoured. This is the
-stage engine’s limit, not a rule of rigs (an engine with free slot order
-could draw it), so the stage compiler refuses it and the asset
-validators only warn. Nothing in <code class="docutils literal notranslate"><span class="pre">flat</span></code> nesting: there a nested slot is
-a face part over its head, drawn after it by construction.</p>
+<dd><p>Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).</p>
+<p>The stage sorts the items of each container (<a class="reference internal" href="#an.stage.rig.chain_paint_order" title="an.stage.rig.chain_paint_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">chain_paint_order()</span></code></a>), so
+a part nested under one drawn LATER is fine (a far arm behind its torso).
+What it cannot do is interleave two containers: a slot’s subtree is always
+painted together, so an unrelated part ordered between a chain’s members
+(a leg between the arms and the head) cannot be honoured. Refused by the
+stage compiler; the asset validators only warn. Nothing in <code class="docutils literal notranslate"><span class="pre">flat</span></code>
+nesting.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rig</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">nesting</span><span class="o">=</span><span class="s2">"bones"</span><span class="p">,</span> <span class="n">bones</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">)],</span>
-<span class="gp">... </span>         <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">1</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain_draw_order_problems</span><span class="p">(</span><span class="n">rig</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rig</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">nesting</span><span class="o">=</span><span class="s2">"bones"</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">bones</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"cord"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">)],</span>
+<span class="gp">... </span>         <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"cord"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"cord"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">3</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain_draw_order_problems</span><span class="p">(</span><span class="n">rig</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"the stage paints each chain's parts together"</span><span class="p">)</span>
 <span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.rig.chain_paint_order">
+<span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">chain_paint_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">built</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#chain_paint_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.chain_paint_order" title="Link to this definition">#</a></dt>
+<dd><p>How each container of a nested chain must order what it holds (an#403).</p>
+<p>The stage draws a container’s items in order: its slot’s own visual and its
+child slots’ containers (<code class="docutils literal notranslate"><span class="pre">None</span></code> is the entity’s container, which holds the
+root slots and no visual of its own). Sorting those siblings (PixiJS’s
+<code class="docutils literal notranslate"><span class="pre">sortableChildren</span></code> on a <code class="docutils literal notranslate"><span class="pre">zIndex</span></code>) gives any order in which every slot’s
+SUBTREE is painted contiguously, a far arm behind the torso it nests under
+included. Each item spans the draw orders of its subtree; the items are
+sorted, stably, by that <code class="docutils literal notranslate"><span class="pre">(lowest,</span> <span class="pre">highest)</span></code> span, starting from the
+builder’s own order (<a class="reference internal" href="#an.stage.rig.natural_paint_order" title="an.stage.rig.natural_paint_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">natural_paint_order()</span></code></a>), so equal draw orders keep
+their tree order and a chain already painted in declared order is not
+reordered. <code class="docutils literal notranslate"><span class="pre">built</span></code> limits it to the slots the builder drew.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rig</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">nesting</span><span class="o">=</span><span class="s2">"bones"</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">bones</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">)],</span>
+<span class="gp">... </span>         <span class="n">slots</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">NS</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"arm"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">1</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain_paint_order</span><span class="p">(</span><span class="n">rig</span><span class="p">)</span>
+<span class="go">{None: ['torso'], 'torso': ['arm', 'torso']}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1371,6 +1408,18 @@ the migration.</p>
 <span class="go">False</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.rig.natural_paint_order">
+<span class="sig-prename descclassname"><span class="pre">an.stage.rig.</span></span><span class="sig-name descname"><span class="pre">natural_paint_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/rig.html#natural_paint_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.rig.natural_paint_order" title="Link to this definition">#</a></dt>
+<dd><p>What each container holds in the builder’s own order: the slot’s visual
+first, then its children by their own <code class="docutils literal notranslate"><span class="pre">(draw_order,</span> <span class="pre">name)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1845,10 +1894,12 @@ names it and the builder refuses it.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.bones_carry_a_rest_pose"><code class="docutils literal notranslate"><span class="pre">bones_carry_a_rest_pose()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.build_rig_subtree"><code class="docutils literal notranslate"><span class="pre">build_rig_subtree()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.chain_draw_order_problems"><code class="docutils literal notranslate"><span class="pre">chain_draw_order_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.chain_paint_order"><code class="docutils literal notranslate"><span class="pre">chain_paint_order()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.chain_pose_problems"><code class="docutils literal notranslate"><span class="pre">chain_pose_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.declared_origin"><code class="docutils literal notranslate"><span class="pre">declared_origin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.drawn_attachment"><code class="docutils literal notranslate"><span class="pre">drawn_attachment()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.legacy_rest_pose_unknown"><code class="docutils literal notranslate"><span class="pre">legacy_rest_pose_unknown()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.natural_paint_order"><code class="docutils literal notranslate"><span class="pre">natural_paint_order()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.nesting_of"><code class="docutils literal notranslate"><span class="pre">nesting_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.omit_unset_rig_fields"><code class="docutils literal notranslate"><span class="pre">omit_unset_rig_fields()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.rig.part_probe"><code class="docutils literal notranslate"><span class="pre">part_probe()</span></code></a></li>

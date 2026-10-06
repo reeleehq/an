@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=48c9ebd2"></script>
+    <script src="../../_static/documentation_options.js?v=0f950899"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.209" />
+  <meta name="docsearch:version" content="0.1.211" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -786,9 +786,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="validate">
 <a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.validate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Validate the scene at ``project_dir``. Prints findings, exit 0 on pass."""</span>
-    <span class="n">report</span> <span class="o">=</span> <span class="n">validate_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.</span>
+
+<span class="sd">    project_dir: the an project</span>
+<span class="sd">    fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)</span>
+<span class="sd">    """</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">validate_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"validation: passed, no findings"</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"validation: "</span> <span class="o">+</span> <span class="p">(</span><span class="s2">"passed"</span> <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span> <span class="k">else</span> <span class="s2">"FAILED"</span><span class="p">)]</span>

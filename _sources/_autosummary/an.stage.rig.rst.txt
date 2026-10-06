@@ -29,10 +29,12 @@ an.stage.rig
       bones_carry_a_rest_pose
       build_rig_subtree
       chain_draw_order_problems
+      chain_paint_order
       chain_pose_problems
       declared_origin
       drawn_attachment
       legacy_rest_pose_unknown
+      natural_paint_order
       nesting_of
       omit_unset_rig_fields
       part_probe

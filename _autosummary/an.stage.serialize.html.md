@@ -296,6 +296,12 @@ so every plane is `<env>/<plane>` wherever the environment is cut.
 * **Type:**
   Where this node’s CHILDREN are indexed (an#343)
 
+#### z_index *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+This node’s place among its siblings when its parent sorts them
+(an#403): a nested chain whose declared draw order is not the tree’s
+(a far arm behind the torso it nests under). `None` = insertion order.
+
 ### *class* an.stage.serialize.PathJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -475,6 +481,11 @@ The stroke for `kind="path"` (an#160); `None` on every other visual.
 Copies drawn behind this visual, back to front (an#163) — the outline
 and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
 take them; the runtime refuses any other kind.
+
+#### z_index *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The visual’s place among its node’s children when the node sorts them
+(an#403): a part drawn over the chain nested under it.
 
 ### an.stage.serialize.from_dict(d)
 
