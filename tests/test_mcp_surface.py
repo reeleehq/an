@@ -78,7 +78,8 @@ def project(tmp_path):
 @pytest.mark.genre("cutout_animation")
 def test_queries_answer_from_the_registry(project):
     assert {e["kind"] for e in tools.vocabulary()} >= {"method", "motion_preset", "easing"}
-    assert tools.vocabulary_entry("loco.rock")["name"] == "rock"
+    some = next(e for e in tools.vocabulary() if e["kind"] == "method")
+    assert tools.vocabulary_entry(some["id"])["name"] == some["name"]
     assert "timeline" in tools.scene_schema()["properties"]
     assert "slots" in tools.scene_schema("character")["properties"]
     with pytest.raises(ValueError):
@@ -88,10 +89,13 @@ def test_queries_answer_from_the_registry(project):
 @pytest.mark.genre("cutout_animation")
 def test_the_capability_queries_describe_a_character(project):
     d = tools.describe_character(str(project), "gale")
-    assert d["aspects"]["locomotion"]["default"] == "loco.legged_cycle"
+    from an.semantic import aspect
+
+    chain = aspect("locomotion").chain  # the genre's own declaration (an#427)
+    assert d["aspects"]["locomotion"]["default"] == chain[0]
     assert "limbs.legs" in d["affordances"]
-    assert "loco.rock" in tools.applicable_methods("locomotion", str(project), "gale")
-    assert tools.why_not_method("loco.legged_cycle", str(project), "gale") == []
+    assert chain[0] in tools.applicable_methods("locomotion", str(project), "gale")
+    assert tools.why_not_method(chain[0], str(project), "gale") == []
     with pytest.raises(KeyError, match="known"):
         tools.describe_character(str(project), "nobody")
 
