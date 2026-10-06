@@ -337,6 +337,10 @@ def collect_credits(
                     )
             if source is None and store_name == "characters":
                 source = _reconstruct_legacy_source(descriptor)
+            if source is not None and store_name in ("characters", "props"):
+                source = _confirmed_factory_claim(
+                    source, descriptor, digests=_digests_of(store, key)
+                )
             found: list[CreditEntry] = []
             if source is not None:
                 found.append(CreditEntry(asset=f"{store_name}/{key}", source=source))
@@ -382,6 +386,47 @@ def collect_credits(
             )
             report.entries.extend(found)
     return report
+
+
+def _confirmed_factory_claim(
+    source: AssetSource,
+    descriptor: Any,
+    *,
+    digests: Callable[[], Mapping[str, str] | None] | None = None,
+) -> AssetSource:
+    """A descriptor's factory stamp, kept only when it is the factory's (an#413).
+
+    The stamp pins the descriptor's drawing (``source_svg``). Like a part's
+    stamp (:func:`_part_credits`), it counts as "made by an itself" only when
+    this machine's factory record confirms those bytes, and the drawing still
+    holds them. Otherwise it is a claim nothing confirms, reported UNVERIFIED,
+    which is what the asset library says of the same files. Before, the
+    descriptor was listed as an's own work while its files were ``unknown``.
+    Any other source is returned as it is.
+    """
+    raw = source.model_dump(mode="json")
+    if not is_factory_stamp(raw):
+        return source
+    sha = _stamp_digest(raw)
+    doc = descriptor if isinstance(descriptor, Mapping) else None
+    if doc is None and hasattr(descriptor, "model_dump"):
+        doc = descriptor.model_dump(mode="json")
+    drawing = (doc or {}).get("source_svg")
+    files = digests() if digests is not None else None
+    stale = (
+        sha is not None
+        and files is not None
+        and isinstance(drawing, str)
+        and files.get(drawing) not in (None, sha)
+    )
+    if sha is not None and not stale and factory_recorded(sha):
+        return source
+    why = (
+        "a factory stamp about other bytes: the drawing it pins was changed since"
+        if stale
+        else "a factory stamp this machine's factory record does not confirm"
+    )
+    return AssetSource(provider="unknown", extra={"reason": why, "claimed": raw})
 
 
 def _source_identity(source: AssetSource) -> str:
