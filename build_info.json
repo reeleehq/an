@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-06T12:22:16Z",
+  "built_at": "2026-10-06T12:30:32Z",
   "package": {
     "name": "an",
-    "version": "0.1.178",
+    "version": "0.1.179",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "f5413d338a4ce72b2ebdd4655f89f816b09b06b7",
-    "short_commit": "f5413d3",
+    "commit": "f9fdff214744722eb3446e9259d071b4892eb2c5",
+    "short_commit": "f9fdff2",
     "branch": "main",
     "tags": [
-      "0.1.178"
+      "0.1.179"
     ],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/an",
-    "commit_url": "https://github.com/thorwhalen/an/commit/f5413d338a4ce72b2ebdd4655f89f816b09b06b7",
+    "commit_url": "https://github.com/thorwhalen/an/commit/f9fdff214744722eb3446e9259d071b4892eb2c5",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/an",
-    "sha": "25d0e86d6e01ecab105fde6bddf4caa2a92df3b6",
+    "sha": "20360ad3a46a58ff614816ad7a1d09d396c5918a",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "37462099131",
-    "run_url": "https://github.com/thorwhalen/an/actions/runs/37462099131",
+    "run_id": "37462997137",
+    "run_url": "https://github.com/thorwhalen/an/actions/runs/37462997137",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -58,18 +58,20 @@
   },
   "site": {
     "modules_documented": 195,
-    "objects_documented": 2481
+    "objects_documented": 2486
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.178",
-    "relation": "same",
+    "latest": "0.1.180",
+    "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout f5413d338a4ce72b2ebdd4655f89f816b09b06b7\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout f9fdff214744722eb3446e9259d071b4892eb2c5\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.1.179) is behind the latest release on PyPI (0.1.180): `pip install an` gives newer code than these docs describe."
+    ]
   }
 }

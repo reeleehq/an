@@ -351,6 +351,15 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
+#### emotion_intensity *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`maya [angry 0.4]: …`
+in `scene.md`, a typed parameter on the (b-name) emotion. `None` is
+full strength, and is omitted from JSON.
+
+* **Type:**
+  How strongly `emotion` shows, 0..1 (an#253)
+
 #### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 <the synthesized

@@ -1,4 +1,4 @@
-> built 2026-10-06 12:22 UTC from f5413d3 (main) · an 0.1.178. Details: build_info.json
+> built 2026-10-06 12:30 UTC from f9fdff2 (main) · an 0.1.179. Details: build_info.json
 
 # index.html.md
 
@@ -14053,7 +14053,7 @@ genre defined in the same process).
 | [`CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
 | [`RuntimeScript`](_autosummary/an.genres.html.md#an.genres.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
 | [`SwapDeclaration`](_autosummary/an.genres.html.md#an.genres.SwapDeclaration)(sets[, descriptor, ...])            | What one entity's descriptor declares for the stage compiler's swap vocabulary.                                                                                                                                                                              |
-| [`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
+| [`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field (and, declared in `fields`, the parameters it may carry).                                                                                                                        |
 | [`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                                                                                                                                                                                            |
 | [`SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
@@ -14178,16 +14178,30 @@ The callable `run` names.
 2.0
 ```
 
-### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='')
+### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='', fields=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.
+`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field
+(and, declared in `fields`, the parameters it may carry).
 
 `parse(content) -> value` turns what is between the brackets into the
 field’s value (raise `ValueError(why)` to refuse it); `format(line) ->
 str | None` is the inverse (the content, without brackets, or `None` when
 the line carries none). The cut-out genre’s `[emotion]` is one.
+
+A sugar that also sets other `Dialogue` fields (`[angry 0.4]`: the
+emotion and its `emotion_intensity`, an#253) names them in `fields`;
+its `parse` then returns `{field name: value}` over `field` and any
+of `fields`, and `format` writes them back.
+
+#### values(content)
+
+`{Dialogue field: value}` for the bracket `content` (`parse`,
+checked against what the sugar declares).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.ENTRY_POINT_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.genres'*
 
@@ -14712,7 +14726,7 @@ False
 | [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.                                                                                                                                                                               |
 |------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CompilePass`](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
-| [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
+| [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field (and, declared in `fields`, the parameters it may carry).                                                                                                                        |
 | [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`RuntimeScript`](_autosummary/an.genres.registry.html.md#an.genres.registry.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
 | [`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
@@ -14829,16 +14843,30 @@ The bracket pairs a GENRE may claim on a `scene.md` dialogue line. The
 line grammar has three: `(…)` (timing) and `{…}` (delivery direction)
 are the core’s own and never registered; `[…]` is the one left for sugar.
 
-### *class* an.genres.registry.DialogueSugar(name, opener, field, parse, format, description='')
+### *class* an.genres.registry.DialogueSugar(name, opener, field, parse, format, description='', fields=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.
+`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field
+(and, declared in `fields`, the parameters it may carry).
 
 `parse(content) -> value` turns what is between the brackets into the
 field’s value (raise `ValueError(why)` to refuse it); `format(line) ->
 str | None` is the inverse (the content, without brackets, or `None` when
 the line carries none). The cut-out genre’s `[emotion]` is one.
+
+A sugar that also sets other `Dialogue` fields (`[angry 0.4]`: the
+emotion and its `emotion_intensity`, an#253) names them in `fields`;
+its `parse` then returns `{field name: value}` over `field` and any
+of `fields`, and `format` writes them back.
+
+#### values(content)
+
+`{Dialogue field: value}` for the bracket `content` (`parse`,
+checked against what the sugar declares).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.DurationHook
 
@@ -15346,6 +15374,15 @@ How the line is DELIVERED — cues such as `["excited"]` or
 model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
+
+#### emotion_intensity *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`maya [angry 0.4]: …`
+in `scene.md`, a typed parameter on the (b-name) emotion. `None` is
+full strength, and is omitted from JSON.
+
+* **Type:**
+  How strongly `emotion` shows, 0..1 (an#253)
 
 #### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -16669,6 +16706,15 @@ model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
 
+#### emotion_intensity *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`maya [angry 0.4]: …`
+in `scene.md`, a typed parameter on the (b-name) emotion. `None` is
+full strength, and is omitted from JSON.
+
+* **Type:**
+  How strongly `emotion` shows, 0..1 (an#253)
+
 #### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 <the synthesized
@@ -17574,6 +17620,15 @@ How the line is DELIVERED — cues such as `["excited"]` or
 model that takes inline audio tags (ElevenLabs v3/v4) receives them as
 `[excited] Hi!`; others ignore them. Never part of `text`, so
 captions and lip-sync alignment never see a cue.
+
+#### emotion_intensity *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`maya [angry 0.4]: …`
+in `scene.md`, a typed parameter on the (b-name) emotion. `None` is
+full strength, and is omitted from JSON.
+
+* **Type:**
+  How strongly `emotion` shows, 0..1 (an#253)
 
 #### leveled *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -19174,6 +19229,10 @@ its file is called (review-288 S2). Keyword arguments go to [`publish()`](_autos
 
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
+Lineage resolves through `search` and then every library on this machine
+([`an.library.floor.machine_libraries()`](_autosummary/an.library.floor.html.md#an.library.floor.machine_libraries)), so a promoted copy’s parent
+in a genre’s library is read without being named (an#361).
+
 The index is derived data: rebuilding it is always safe, and the way to
 repair a library whose index was lost or written by an older `an`. It also
 (re-)registers the library’s root in the machine registry
@@ -20735,6 +20794,10 @@ caller’s to check. A registry that exists but cannot be read raises
 ### an.library.reindex(library, , search=None)
 
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
+
+Lineage resolves through `search` and then every library on this machine
+([`an.library.floor.machine_libraries()`](_autosummary/an.library.floor.html.md#an.library.floor.machine_libraries)), so a promoted copy’s parent
+in a genre’s library is read without being named (an#361).
 
 The index is derived data: rebuilding it is always safe, and the way to
 repair a library whose index was lost or written by an older `an`. It also
@@ -36405,18 +36468,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-06 12:22 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/f5413d338a4ce72b2ebdd4655f89f816b09b06b7"><code>f5413d3</code></a> on branch <code>main</code>, for **an 0.1.178** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 12:30 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/f9fdff214744722eb3446e9259d071b4892eb2c5"><code>f9fdff2</code></a> on branch <code>main</code>, for **an 0.1.179** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.179) is behind the latest release on PyPI (0.1.180): `pip install an` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/f5413d338a4ce72b2ebdd4655f89f816b09b06b7"><code>f5413d338a4ce72b2ebdd4655f89f816b09b06b7</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/f9fdff214744722eb3446e9259d071b4892eb2c5"><code>f9fdff214744722eb3446e9259d071b4892eb2c5</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.178</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.179</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -36425,9 +36490,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37462099131">37462099131</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37462997137">37462997137</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>25d0e86d6e01ecab105fde6bddf4caa2a92df3b6</code> (in the history of the built commit) |
+| Event commit | <code>20360ad3a46a58ff614816ad7a1d09d396c5918a</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -36452,13 +36517,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.178/">0.1.178</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.180/">0.1.180</a>, newer than the documented version (0.1.179).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout f5413d338a4ce72b2ebdd4655f89f816b09b06b7
+git checkout f9fdff214744722eb3446e9259d071b4892eb2c5
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

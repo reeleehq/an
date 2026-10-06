@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9bd086bd"></script>
+    <script src="../_static/documentation_options.js?v=3fa802a4"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.178" />
+  <meta name="docsearch:version" content="0.1.179" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1082,6 +1082,19 @@ captions and lip-sync alignment never see a cue.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Dialogue.emotion_intensity">
+<span class="sig-name descname"><span class="pre">emotion_intensity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Dialogue.emotion_intensity" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">maya</span> <span class="pre">[angry</span> <span class="pre">0.4]:</span> <span class="pre">…</span></code>
+in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>, a typed parameter on the (b-name) emotion. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
+full strength, and is omitted from JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How strongly <code class="docutils literal notranslate"><span class="pre">emotion</span></code> shows, 0..1 (an#253)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.Dialogue.leveled">
 <span class="sig-name descname"><span class="pre">leveled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Dialogue.leveled" title="Link to this definition">#</a></dt>
 <dd><p>&lt;the synthesized
@@ -1919,6 +1932,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue"><code class="docutils literal notranslate"><span class="pre">Dialogue</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.at"><code class="docutils literal notranslate"><span class="pre">Dialogue.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.direction"><code class="docutils literal notranslate"><span class="pre">Dialogue.direction</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.emotion_intensity"><code class="docutils literal notranslate"><span class="pre">Dialogue.emotion_intensity</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.leveled"><code class="docutils literal notranslate"><span class="pre">Dialogue.leveled</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9bd086bd"></script>
+    <script src="../_static/documentation_options.js?v=3fa802a4"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.genres" href="an.genres.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.178" />
+  <meta name="docsearch:version" content="0.1.179" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -738,7 +738,7 @@ and hooks as plain values: the registry never needs to know what they are.</p>
 <td><p>One step a genre adds to an engine's COMPILER (shot -&gt; compiled document).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.registry.DialogueSugar" title="an.genres.registry.DialogueSugar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DialogueSugar</span></code></a>(name, opener, field, parse, format)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">scene.md</span></code> sugar on a dialogue line: one bracket pair, one <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> field.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.md</span></code> sugar on a dialogue line: one bracket pair, one <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> field (and, declared in <code class="docutils literal notranslate"><span class="pre">fields</span></code>, the parameters it may carry).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.genres.registry.EntityKind" title="an.genres.registry.EntityKind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EntityKind</span></code></a>(name[, space, store, ...])</p></td>
 <td><p>One kind of entity (<code class="docutils literal notranslate"><span class="pre">AssetRef.kind</span></code>): what its nodes' properties are.</p></td>
@@ -901,15 +901,32 @@ are the core’s own and never registered; <code class="docutils literal notrans
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.genres.registry.DialogueSugar">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.registry.</span></span><span class="sig-name descname"><span class="pre">DialogueSugar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opener</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#DialogueSugar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.registry.DialogueSugar" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.genres.registry.</span></span><span class="sig-name descname"><span class="pre">DialogueSugar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opener</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#DialogueSugar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.registry.DialogueSugar" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p><code class="docutils literal notranslate"><span class="pre">scene.md</span></code> sugar on a dialogue line: one bracket pair, one <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> field.</p>
+<p><code class="docutils literal notranslate"><span class="pre">scene.md</span></code> sugar on a dialogue line: one bracket pair, one <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> field
+(and, declared in <code class="docutils literal notranslate"><span class="pre">fields</span></code>, the parameters it may carry).</p>
 <p><code class="docutils literal notranslate"><span class="pre">parse(content)</span> <span class="pre">-&gt;</span> <span class="pre">value</span></code> turns what is between the brackets into the
 field’s value (raise <code class="docutils literal notranslate"><span class="pre">ValueError(why)</span></code> to refuse it); <code class="docutils literal notranslate"><span class="pre">format(line)</span> <span class="pre">-&gt;</span>
 <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code> is the inverse (the content, without brackets, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when
 the line carries none). The cut-out genre’s <code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> is one.</p>
+<p>A sugar that also sets other <code class="docutils literal notranslate"><span class="pre">Dialogue</span></code> fields (<code class="docutils literal notranslate"><span class="pre">[angry</span> <span class="pre">0.4]</span></code>: the
+emotion and its <code class="docutils literal notranslate"><span class="pre">emotion_intensity</span></code>, an#253) names them in <code class="docutils literal notranslate"><span class="pre">fields</span></code>;
+its <code class="docutils literal notranslate"><span class="pre">parse</span></code> then returns <code class="docutils literal notranslate"><span class="pre">{field</span> <span class="pre">name:</span> <span class="pre">value}</span></code> over <code class="docutils literal notranslate"><span class="pre">field</span></code> and any
+of <code class="docutils literal notranslate"><span class="pre">fields</span></code>, and <code class="docutils literal notranslate"><span class="pre">format</span></code> writes them back.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.genres.registry.DialogueSugar.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/genres/registry.html#DialogueSugar.values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.genres.registry.DialogueSugar.values" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{Dialogue</span> <span class="pre">field:</span> <span class="pre">value}</span></code> for the bracket <code class="docutils literal notranslate"><span class="pre">content</span></code> (<code class="docutils literal notranslate"><span class="pre">parse</span></code>,
+checked against what the sugar declares).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -1421,7 +1438,10 @@ their callers in <code class="docutils literal notranslate"><span class="pre">mi
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.DIALOGUE_BRACKETS"><code class="docutils literal notranslate"><span class="pre">DIALOGUE_BRACKETS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.DialogueSugar"><code class="docutils literal notranslate"><span class="pre">DialogueSugar</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.DialogueSugar"><code class="docutils literal notranslate"><span class="pre">DialogueSugar</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.DialogueSugar.values"><code class="docutils literal notranslate"><span class="pre">DialogueSugar.values()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.DurationHook"><code class="docutils literal notranslate"><span class="pre">DurationHook</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.EntityKind"><code class="docutils literal notranslate"><span class="pre">EntityKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.registry.EntityKind.descriptor_kind"><code class="docutils literal notranslate"><span class="pre">EntityKind.descriptor_kind</span></code></a></li>

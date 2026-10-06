@@ -67,7 +67,7 @@ False
 | [`ActionKind`](#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.                                                                                                                                                                               |
 |------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`CompilePass`](#an.genres.registry.CompilePass)(name, run[, order, compiler, ...])      | One step a genre adds to an engine's COMPILER (shot -> compiled document).                                                                                                                                                                                   |
-| [`DialogueSugar`](#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.                                                                                                                                                                                 |
+| [`DialogueSugar`](#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field (and, declared in `fields`, the parameters it may carry).                                                                                                                        |
 | [`EntityKind`](#an.genres.registry.EntityKind)(name[, space, store, ...])               | One kind of entity (`AssetRef.kind`): what its nodes' properties are.                                                                                                                                                                                        |
 | [`RuntimeScript`](#an.genres.registry.RuntimeScript)(name, source[, engine, ...])          | JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4, second batch): for the stage, code that registers visual kinds with `window.anRegisterVisual(kind, make)` -- how the cut-out mouth and eye leave `runtime.js` for `cutan` (P8). |
 | [`SemanticCheck`](#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.                                                                                                                                                                                     |
@@ -184,16 +184,30 @@ The bracket pairs a GENRE may claim on a `scene.md` dialogue line. The
 line grammar has three: `(…)` (timing) and `{…}` (delivery direction)
 are the core’s own and never registered; `[…]` is the one left for sugar.
 
-### *class* an.genres.registry.DialogueSugar(name, opener, field, parse, format, description='')
+### *class* an.genres.registry.DialogueSugar(name, opener, field, parse, format, description='', fields=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.
+`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field
+(and, declared in `fields`, the parameters it may carry).
 
 `parse(content) -> value` turns what is between the brackets into the
 field’s value (raise `ValueError(why)` to refuse it); `format(line) ->
 str | None` is the inverse (the content, without brackets, or `None` when
 the line carries none). The cut-out genre’s `[emotion]` is one.
+
+A sugar that also sets other `Dialogue` fields (`[angry 0.4]`: the
+emotion and its `emotion_intensity`, an#253) names them in `fields`;
+its `parse` then returns `{field name: value}` over `field` and any
+of `fields`, and `format` writes them back.
+
+#### values(content)
+
+`{Dialogue field: value}` for the bracket `content` (`parse`,
+checked against what the sugar declares).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.DurationHook
 

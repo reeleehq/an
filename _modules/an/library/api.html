@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=9bd086bd"></script>
+    <script src="../../../_static/documentation_options.js?v=3fa802a4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.178" />
+  <meta name="docsearch:version" content="0.1.179" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -793,6 +793,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.floor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BlobFloor</span><span class="p">,</span>
     <span class="n">library_origin</span><span class="p">,</span>
+    <span class="n">machine_libraries</span><span class="p">,</span>
     <span class="n">record_statement</span><span class="p">,</span>
     <span class="n">register_library</span><span class="p">,</span>
     <span class="n">remember</span><span class="p">,</span>
@@ -2367,6 +2368,10 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">reindex</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">Libraries</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Rebuild ``library``'s floor index from its versions. Returns the number of blobs indexed.</span>
 
+<span class="sd">    Lineage resolves through ``search`` and then every library on this machine</span>
+<span class="sd">    (:func:`an.library.floor.machine_libraries`), so a promoted copy's parent</span>
+<span class="sd">    in a genre's library is read without being named (an#361).</span>
+
 <span class="sd">    The index is derived data: rebuilding it is always safe, and the way to</span>
 <span class="sd">    repair a library whose index was lost or written by an older ``an``. It also</span>
 <span class="sd">    (re-)registers the library's root in the machine registry</span>
@@ -2379,14 +2384,21 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    R4-N4).</span>
 <span class="sd">    """</span>
     <span class="n">register_library</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
-    <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">library</span><span class="p">,</span>
-        <span class="o">*</span><span class="p">(</span>
-            <span class="n">lib</span>
-            <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="p">(</span><span class="n">as_libraries</span><span class="p">(</span><span class="n">search</span><span class="p">)</span> <span class="k">if</span> <span class="n">search</span> <span class="k">else</span> <span class="p">[])</span>
-            <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span>
-        <span class="p">),</span>
-    <span class="p">]</span>
+    <span class="c1"># The search path first, then every other library on the machine: a</span>
+    <span class="c1"># lineage link pinned to its parent's manifest resolves wherever the parent</span>
+    <span class="c1"># lives, so what a version states does not depend on whether the caller</span>
+    <span class="c1"># passed the parent's library (an#361). An unpinned link resolves by name,</span>
+    <span class="c1"># and the search path is read first.</span>
+    <span class="n">readers</span> <span class="o">=</span> <span class="n">machine_libraries</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">library</span><span class="p">,</span>
+            <span class="o">*</span><span class="p">(</span>
+                <span class="n">lib</span>
+                <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="p">(</span><span class="n">as_libraries</span><span class="p">(</span><span class="n">search</span><span class="p">)</span> <span class="k">if</span> <span class="n">search</span> <span class="k">else</span> <span class="p">[])</span>
+                <span class="k">if</span> <span class="n">lib</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">fresh</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>  <span class="c1"># one memo for the whole library (review N3)</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>

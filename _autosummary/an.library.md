@@ -871,6 +871,10 @@ caller’s to check. A registry that exists but cannot be read raises
 
 Rebuild `library`’s floor index from its versions. Returns the number of blobs indexed.
 
+Lineage resolves through `search` and then every library on this machine
+([`an.library.floor.machine_libraries()`](an.library.floor.md#an.library.floor.machine_libraries)), so a promoted copy’s parent
+in a genre’s library is read without being named (an#361).
+
 The index is derived data: rebuilding it is always safe, and the way to
 repair a library whose index was lost or written by an older `an`. It also
 (re-)registers the library’s root in the machine registry
