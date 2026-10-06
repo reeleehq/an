@@ -81,6 +81,7 @@ from an.library.affordances import (
 from an.library.floor import (
     BlobFloor,
     library_origin,
+    machine_libraries,
     record_statement,
     register_library,
     remember,
@@ -1632,6 +1633,10 @@ def _index_version(
 def reindex(library: Library, *, search: Libraries | None = None) -> int:
     """Rebuild ``library``'s floor index from its versions. Returns the number of blobs indexed.
 
+    Lineage resolves through ``search`` and then every library on this machine
+    (:func:`an.library.floor.machine_libraries`), so a promoted copy's parent
+    in a genre's library is read without being named (an#361).
+
     The index is derived data: rebuilding it is always safe, and the way to
     repair a library whose index was lost or written by an older ``an``. It also
     (re-)registers the library's root in the machine registry
@@ -1644,14 +1649,21 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
     R4-N4).
     """
     register_library(library)
-    readers = [
-        library,
-        *(
-            lib
-            for lib in (as_libraries(search) if search else [])
-            if lib.name != library.name
-        ),
-    ]
+    # The search path first, then every other library on the machine: a
+    # lineage link pinned to its parent's manifest resolves wherever the parent
+    # lives, so what a version states does not depend on whether the caller
+    # passed the parent's library (an#361). An unpinned link resolves by name,
+    # and the search path is read first.
+    readers = machine_libraries(
+        [
+            library,
+            *(
+                lib
+                for lib in (as_libraries(search) if search else [])
+                if lib.name != library.name
+            ),
+        ]
+    )
     fresh: dict[str, dict[str, Any]] = {}
     rule = _PerFileRule(readers)  # one memo for the whole library (review N3)
     for key in sorted(
