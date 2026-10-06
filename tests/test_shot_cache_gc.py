@@ -1327,13 +1327,13 @@ def test_reuse_is_not_at_the_mercy_of_a_source_edit_between_the_two_renders(
     check = FakeRenderCheck(seconds=2.0)
     monkeypatch.setattr(ma, "_manimkit_render_check", lambda: check)
     extra = tmp_path / "an_probe_379.py"
-    extra.write_text("X = 1\n")
+    extra.write_text("X = 1\n", encoding="utf-8")
     real = cache_key.render_path_modules
     monkeypatch.setattr(
         cache_key, "render_path_modules", lambda *a, **k: {**real(*a, **k), "an_probe_379": extra}
     )
     root = _manim_film(tmp_path)
     _render_film(root, solid)
-    extra.write_text("X = 2\n")
+    extra.write_text("X = 2\n", encoding="utf-8")
     warm, rendered, _, _ = _render_film(root, solid)
     assert warm.reused == ["chart", "c"] and rendered == [], warm.summary()
