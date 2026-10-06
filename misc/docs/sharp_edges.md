@@ -30,6 +30,7 @@ Honest list. Don't let it rot either — delete a line when you close it.
 - Never bump `SCHEMA_VERSION` without registering a migration in `an/ir/migrate.py` — and never register one without a read path that runs it. Scene documents are migrated at exactly one place, `an.ir.sync.scene_from_json_doc` (an#105); before it existed, every `migrate()` call in the tree passed `kind="CharacterDescriptor"` and a registered scene migration was decoration.
 - Never let a verifier report success when it failed to run. `VerificationReport.add` flips `passed` only on `"error"`, so an `info` Finding on a failure path is a clean bill of health. `info` is the *not-configured* severity; a configured-and-broken verifier reports at `an.verify.vision.FAILURE_SEVERITY` or higher (an#39).
 - Never let a cassette miss fall through to a real API call, and never rebase `CassetteMiss` on `Exception` — `except Exception` appears twice on the way out of a `verify()` call, so only a `BaseException` reaches a test asserting that a run did not spend.
+- Never reindex a shared library root (one several machines or environments write) with an `an` older than an#345: it cannot read versions at schema `0.2.0` (those with per-file statements), skips them, and their private statements leave that library's floor index.
 - Never introduce a bare `NotImplementedError` as a placeholder — there are currently zero in `an/`, and stubs carry typed, install-hinting errors instead. Keep it that way.
 
 ## CI: what a green tick now covers
