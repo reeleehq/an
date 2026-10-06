@@ -344,18 +344,11 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
     assert provides["action kinds"] == ("play", "expression")
     assert provides["entity kinds"] == ("character",)
     assert provides["dialogue sugar"] == ("emotion",)
-    assert set(provides["checks"]) == {
-        "cutout.play",
-        "cutout.expression",
-        "cutout.brow_acting",
-        "cutout.walk_gait",
-        "cutout.turns",
-        "cutout.hidden_mouth_while_speaking",
-        "cutout.character_refs",
-        "cutout.declared_speech",
-        "cutout.shot_policy",
-        "cutout.view_continuity",
-    }
+    # Its checks are its own declaration, namespaced; WHICH checks it has is
+    # pinned in the genre's repository (cutan), never here: a pin here turned
+    # every open `an` PR red each time the genre added one (an#354, cutan#19).
+    assert set(provides["checks"]) == {c.name for c in CUTOUT.checks}
+    assert provides["checks"] and all(n.startswith("cutout.") for n in provides["checks"])
 
 
 def test_the_nw_genre_slug_is_the_genre_name():
@@ -677,37 +670,33 @@ def test_stagger_refuses_nan():
 
 
 def test_the_report_order_is_pinned():
-    """N3: a genre check lands where it was when all checks were one function."""
-    from an.genres.registry import checks
+    """N3: a check lands where it was when all checks were one function. The
+    CORE's checks are pinned here; where a genre's land among them is pinned in
+    the genre's own repository (cutan's tests/test_genre_checks.py), so a genre
+    adding a check never reddens an `an` PR (an#354, cutan#19)."""
+    from an.genres.registry import CORE_OWNER, check_owner, checks
 
-    assert [c.name for c in checks("shot")] == [
+    def core(stage):
+        return [c.name for c in checks(stage) if check_owner(c.name) == CORE_OWNER]
+
+    assert core("shot") == [
         "renderer",
         "shot_basics",
         "manim.shot",  # an#279: a Manim shot's options, before anything reads them
         "renderable",
         "framing",
-        "cutout.play",
-        "cutout.expression",
-        "cutout.brow_acting",  # an#252: right after the expression check it extends
-        "cutout.walk_gait",  # an#224: a walk's requested gait applies
-        "cutout.shot_policy",  # cutan#32: a shot's style policy, after the walks it orders
         "swap_references",
-        "cutout.turns",
-        "cutout.hidden_mouth_while_speaking",
         "trim_targets",
         "text_blocks",
         "stage_after",  # an#344: a placement's anchor, before the targets it moves
         "action_targets",
         "field_kinds",
         "entity_refs",
-        "cutout.character_refs",
-        "cutout.declared_speech",  # an#248: after the refs it reads
         "voices",
         "dialogue_lines",
         "dialogue_fits",
     ]
-    assert [c.name for c in checks("finish")] == [
-        "cutout.view_continuity",
+    assert core("finish") == [
         "assembly",
         # an#254: its own check, so `an render` can run it after synthesis by name
         "dialogue_in_dissolve",
