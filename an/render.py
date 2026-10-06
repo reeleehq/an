@@ -610,59 +610,106 @@ def _write_render_report(mall, output_name: str, findings, *, root=None) -> None
     may share). Always written — an empty report replaces a stale one — when
     the mall has the store."""
     import json
-    from dataclasses import asdict
+
+    from an.measurements import findings_record
 
     store = mall.get("render_reports")
     if store is None:
         return
-    records = [
-        {
-            **{
-                k: portable_text(v, root=root) if isinstance(v, str) else v
-                for k, v in asdict(f).items()
-            },
-            "kind": kind,
-        }
-        for kind, f in findings
-    ]
+    if root is not None:  # a project from before an#254 gets the line too
+        from an.project import keep_reports_out_of_git
+
+        try:
+            keep_reports_out_of_git(Path(root))
+        except (OSError, UnicodeDecodeError):
+            pass  # a read-only project still gets its report
+    records = findings_record(findings, text=lambda v: portable_text(v, root=root))
     store[output_name] = json.dumps(
         {"findings": records}, indent=2, sort_keys=True
     ).encode("utf-8")
 
 
-def portable_text(text: str, *, root=None, home=None) -> str:
+#: What a temp-folder path becomes in a portable text (:func:`portable_text`).
+TMP_TOKEN: str = "<tmp>"
+
+#: After a path prefix, what may NOT follow for it to be the whole of a path
+#: component: another name character, or a dot that starts an extension. So
+#: ``/u/me/p`` is not a prefix of ``/u/me/proj2`` or ``/u/me/p-old``, but a
+#: sentence may end with ``/u/me/p.``
+_COMPONENT_END = r"(?![\w\-]|\.\w)"
+#: Before a path prefix: the start of the text or of a word, or a URL's
+#: ``file://`` — never the middle of another path (``/mnt/data/p`` is not
+#: ``/data/p``) or of a name.
+_PATH_START = r"(?:^|(?<=[^\w.\-~/\\])|(?<=://))"
+#: The temp folders every POSIX machine has, besides the one Python reports.
+POSIX_TEMP_DIRS: tuple[str, ...] = ("/tmp", "/private/tmp", "/var/tmp")
+
+
+def _spellings(path: str, *, resolve: bool) -> list[str]:
+    """``path`` as text may name it: as given, resolved, and on macOS with and
+    without ``/private`` (``/private/var`` is ``/var``)."""
+    out = [path]
+    if resolve:
+        try:
+            out.append(str(Path(path).resolve()))
+        except OSError:
+            pass
+    out += [p[len("/private") :] for p in list(out) if p.startswith("/private/")]
+    return [p.rstrip("/\\") for p in dict.fromkeys(out) if p.rstrip("/\\")]
+
+
+def _prefix_pattern(prefix: str) -> str:
+    """A regex for ``prefix`` that matches either separator where it has one
+    (``C:\\Users\\me`` is also ``C:/Users/me``)."""
+    return "".join("[/\\\\]" if c in "/\\" else re.escape(c) for c in prefix)
+
+
+def portable_text(text: str, *, root=None, home=None, tmp=None) -> str:
     """``text`` with this machine's absolute paths taken out: a path under the
-    project ``root`` becomes project-relative, the root itself ``.``, and the
-    home directory ``~`` — so a render report (which a project may commit or
-    share, and an agent may pass on) names no user, host folder or temp dir.
+    project ``root`` becomes project-relative, the root itself ``.``, a temp
+    folder ``<tmp>`` and the home directory ``~`` — so a render report (which a
+    project may commit or share, and an agent may pass on) names no user, host
+    folder or temp dir. Only WHOLE path components are replaced, at both ends
+    (an#309): a sibling that shares a prefix (``/u/me/proj2`` beside
+    ``/u/me/p``) or a path that merely ends like one (``/mnt/data/p`` against
+    ``/data/p``) is left as it is. A Windows path matches with either
+    separator and in any case.
 
     >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
-    ...               root="/u/me/p", home="/u/me")
+    ...               root="/u/me/p", home="/u/me", tmp="/t")
     'missing at assets/a.png; see ~/x.log'
-    >>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")
+    >>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me", tmp="/t")
     'rendered in .'
+    >>> portable_text("/u/me/proj2/a.png, /u/me2/x, /t/f.png, /mnt/u/me/p/b",
+    ...               root="/u/me/p", home="/u/me", tmp="/t")
+    '~/proj2/a.png, /u/me2/x, <tmp>/f.png, /mnt/u/me/p/b'
+    >>> portable_text("c:/users/me/p/a.png", root=r"C:\\Users\\me\\p", home=r"C:\\Users\\me", tmp="/t")
+    'a.png'
     """
-    homes = [home] if home is not None else [str(Path.home())]
-    roots: list[str] = []
-    if root is not None:
-        roots.append(str(root))
-        if home is None:
-            try:
-                roots.append(str(Path(root).resolve()))
-            except OSError:
-                pass
-        # macOS spells its temp and var folders both ways (/private/var = /var).
-        roots += [
-            r[len("/private") :] for r in list(roots) if r.startswith("/private/")
-        ]
-    for r in sorted({r.rstrip("/\\") for r in roots if r}, key=len, reverse=True):
-        for sep in ("/", "\\"):
-            text = text.replace(r + sep, "")
-        text = text.replace(r, ".")
-    for h in sorted({h.rstrip("/\\") for h in homes if h}, key=len, reverse=True):
-        if len(h) > 1:
-            text = text.replace(h, "~")
-    return text
+    import tempfile
+
+    explicit = home is not None
+    roots = _spellings(str(root), resolve=not explicit) if root is not None else []
+    tmps = [
+        p
+        for t in ((tmp,) if tmp is not None else (tempfile.gettempdir(), *POSIX_TEMP_DIRS))
+        for p in _spellings(str(t), resolve=tmp is None)
+    ]
+    homes = _spellings(str(home) if explicit else str(Path.home()), resolve=False)
+
+    def swap(text: str, prefixes: list[str], child: str, whole: str) -> str:
+        for prefix in sorted(set(prefixes), key=len, reverse=True):
+            if len(prefix) <= 1:
+                continue  # never "/" itself
+            flags = re.IGNORECASE if re.match(r"^[A-Za-z]:", prefix) else 0
+            head = _PATH_START + _prefix_pattern(prefix)
+            text = re.sub(head + r"[/\\]+", lambda _m: child, text, flags=flags)
+            text = re.sub(head + _COMPONENT_END, lambda _m: whole, text, flags=flags)
+        return text
+
+    text = swap(text, roots, "", ".")  # a root may sit in the temp folder or home
+    text = swap(text, tmps, TMP_TOKEN + "/", TMP_TOKEN)
+    return swap(text, homes, "~/", "~")
 
 
 #: How ``an render``'s summary heads each ``kind`` of finding, in this order; a

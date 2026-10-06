@@ -96,16 +96,40 @@ PROJECT_GITIGNORE: tuple[str, ...] = ("artifacts/render_reports/",)
 
 
 def _ensure_gitignored(pdir: Path, lines: tuple[str, ...]) -> None:
-    """Append to ``pdir/.gitignore`` each of ``lines`` it does not already hold."""
+    """Append to ``pdir/.gitignore`` each of ``lines`` it does not already hold,
+    in the file's own line endings (a CRLF file stays CRLF)."""
     path = pdir / ".gitignore"
-    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    data = path.read_bytes() if path.exists() else b""
+    text = data.decode("utf-8")
     present = {line.strip() for line in text.splitlines()}
     missing = [line for line in lines if line not in present]
     if not missing:
         return
-    if text and not text.endswith("\n"):
-        text += "\n"
-    path.write_text(text + "".join(f"{line}\n" for line in missing), encoding="utf-8")
+    eol = "\r\n" if "\r\n" in text else "\n"
+    if text and not text.endswith(("\n", "\r")):
+        text += eol
+    path.write_bytes((text + "".join(f"{line}{eol}" for line in missing)).encode("utf-8"))
+
+
+def keep_reports_out_of_git(pdir: Path) -> None:
+    """Add :data:`PROJECT_GITIGNORE` to an OLDER project's ``.gitignore`` (an
+    ``an init`` from before an#254 left it out), the first time a render
+    writes a report (an#309) — conservatively: never when the file already
+    says anything about those paths (a project may have chosen to commit its
+    reports, ``!artifacts/render_reports/``), never through a symlink (a
+    shared ignore file), and never creating a ``.gitignore`` in a project that
+    is not in a git work tree."""
+    path = pdir / ".gitignore"
+    if path.is_symlink():
+        return
+    if path.exists():
+        text = path.read_text(encoding="utf-8", errors="replace")
+        names = {line.rstrip("/").rsplit("/", 1)[-1] for line in PROJECT_GITIGNORE}
+        if any(name in text for name in names):
+            return
+    elif not any((d / ".git").exists() for d in (pdir, *pdir.parents)):
+        return
+    _ensure_gitignored(pdir, PROJECT_GITIGNORE)
 
 
 def init(

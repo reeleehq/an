@@ -117,10 +117,22 @@ DFLT_TRIM_KEEP_TAIL_S: float = 0.2
 TRIM_THRESHOLD_LIMITS: tuple[float, float] = (-80.0, -3.0)
 #: ``keep_lead_s`` / ``keep_tail_s`` bounds, seconds.
 TRIM_KEEP_LIMITS: tuple[float, float] = (0.0, 2.0)
-#: The level-measuring window, seconds.
+#: The level-measuring window, seconds. Not keyed itself: a change to it (or
+#: to anything else that moves a trimmed line's bytes) is a :data:`TRIM_VERSION`
+#: bump — a test pins the trim's output to the version (an#309).
 TRIM_WINDOW_S: float = 0.02
-#: Bumped when the trim's algorithm changes; part of every trimmed line's key.
+#: Bumped whenever a trimmed line's bytes would change (algorithm, window,
+#: record tag, rounding); part of every trimmed line's key.
 TRIM_VERSION: int = 1
+#: The version of the ffmpeg chain every effected line passes (pitch, tempo,
+#: and the decode of a non-WAV line before its trim): its filters, rate
+#: (:data:`EFFECT_SAMPLE_RATE`), ``atempo`` stages and flags (an#309). Keyed
+#: only once it is not the first, so introducing it moved no key; bump it with
+#: any change to :func:`filter_chain`, :func:`ffmpeg_argv` or their constants
+#: — a test pins them to the version. Moving the key re-processes each line
+#: from its raw take, which is cached: nothing is billed.
+CHAIN_VERSION: int = 1
+_FIRST_CHAIN_VERSION: int = 1
 #: The prefix of the ``LIST``/``INFO`` comment a trimmed WAV carries.
 TRIM_RECORD_TAG: str = "an:trim_silence "
 
@@ -176,6 +188,8 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, Any]:
     trim = _normalize_trim(raw.get(TRIM_SILENCE))
     if trim:
         out[TRIM_SILENCE] = trim
+    if out and CHAIN_VERSION != _FIRST_CHAIN_VERSION:
+        out["chain_version"] = CHAIN_VERSION
     return out
 
 
@@ -283,6 +297,12 @@ def filter_chain(effects: Mapping[str, Any]) -> str:
     return ",".join([head, *(f"atempo={f:.9f}" for f in atempo_stages(factor))])
 
 
+def decode_chain() -> str:
+    """The chain that decodes a non-WAV line (MP3, from ElevenLabs) before its
+    trim (part of :data:`CHAIN_VERSION`)."""
+    return f"aresample={EFFECT_SAMPLE_RATE}"
+
+
 def apply_voice_effects(audio: bytes, effects: Mapping[str, Any]) -> bytes:
     """``audio`` (any container ffmpeg sniffs) with ``effects`` applied, as WAV bytes.
 
@@ -300,7 +320,7 @@ def apply_voice_effects(audio: bytes, effects: Mapping[str, Any]) -> bytes:
     elif _pcm16_wav(audio):
         wav = audio
     else:  # MP3 (ElevenLabs) and other containers: decoded, then trimmed
-        wav = _ffmpeg_wav(audio, f"aresample={EFFECT_SAMPLE_RATE}", effects)
+        wav = _ffmpeg_wav(audio, decode_chain(), effects)
     if trim:
         wav = trim_silence(
             wav,
@@ -309,6 +329,21 @@ def apply_voice_effects(audio: bytes, effects: Mapping[str, Any]) -> bytes:
             keep_tail_s=trim["keep_tail_s"],
         ).audio
     return wav
+
+
+def ffmpeg_argv(chain: str, out_path: Path | str) -> list[str]:
+    """The argv that runs ``chain`` over audio on stdin into a bit-exact 16-bit
+    PCM WAV at ``out_path`` (part of :data:`CHAIN_VERSION`).
+
+    >>> ffmpeg_argv("aresample=44100", "o.wav")[-3:]
+    ['-c:a', 'pcm_s16le', 'o.wav']
+    """
+    return [
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+        "-i", "pipe:0", "-af", chain,
+        "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact",
+        "-c:a", "pcm_s16le", str(out_path),
+    ]  # fmt: skip
 
 
 def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
@@ -324,27 +359,7 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
     with tempfile.TemporaryDirectory() as tmp:
         out_path = Path(tmp) / "shifted.wav"
         proc = subprocess.run(
-            [
-                "ffmpeg",
-                "-hide_banner",
-                "-loglevel",
-                "error",
-                "-nostdin",
-                "-y",
-                "-i",
-                "pipe:0",
-                "-af",
-                chain,
-                "-map_metadata",
-                "-1",
-                "-fflags",
-                "+bitexact",
-                "-flags:a",
-                "+bitexact",
-                "-c:a",
-                "pcm_s16le",
-                str(out_path),
-            ],
+            ffmpeg_argv(chain, out_path),
             input=audio,
             capture_output=True,
             check=False,
