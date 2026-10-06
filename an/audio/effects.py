@@ -23,15 +23,15 @@ TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.
 
 >>> normalize_effects({"pitch_semitones": 4})
-{'pitch_semitones': 4.0}
+{'pitch_semitones': 4.0, 'chain_version': 2}
 >>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
 >>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
-{'pitch_semitones': -2.0, 'tempo': 1.1}
+{'pitch_semitones': -2.0, 'tempo': 1.1, 'chain_version': 2}
 >>> round(_pitch_filter(12), 3)
 0.5
 >>> filter_chain({"tempo": 1.25})
-'aresample=44100,atempo=1.250000000'
+'aresample=44100,apad=pad_dur=0.25,atempo=1.250000000'
 >>> normalize_effects({"trim_silence": True})["trim_silence"]
 {'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}
 >>> normalize_effects({"trim_silence": False}) == {}
@@ -131,8 +131,16 @@ TRIM_VERSION: int = 1
 #: any change to :func:`filter_chain`, :func:`ffmpeg_argv` or their constants
 #: — a test pins them to the version. Moving the key re-processes each line
 #: from its raw take, which is cached: nothing is billed.
-CHAIN_VERSION: int = 1
+#:
+#: 2 (an#350): silence padded before the ``atempo`` stages and the output cut
+#: to exactly ``input / tempo`` — ``atempo`` dropped the last 20-40 ms.
+CHAIN_VERSION: int = 2
 _FIRST_CHAIN_VERSION: int = 1
+#: Seconds of silence appended before the ``atempo`` stages, so their window
+#: never eats the line's tail (it dropped 20-40 ms of every short padded clip,
+#: an#350); the output is then cut to the exact length the tempo gives.
+#: Enough for the slowest stage of :data:`TEMPO_LIMITS` at every pitch.
+TEMPO_PAD_S: float = 0.25
 #: The prefix of the ``LIST``/``INFO`` comment a trimmed WAV carries.
 TRIM_RECORD_TAG: str = "an:trim_silence "
 
@@ -294,7 +302,13 @@ def filter_chain(effects: Mapping[str, Any]) -> str:
         factor = tempo / ratio
     else:
         head, factor = f"aresample={rate}", tempo
-    return ",".join([head, *(f"atempo={f:.9f}" for f in atempo_stages(factor))])
+    return ",".join(
+        [
+            head,
+            f"apad=pad_dur={TEMPO_PAD_S:g}",
+            *(f"atempo={f:.9f}" for f in atempo_stages(factor)),
+        ]
+    )
 
 
 def decode_chain() -> str:
@@ -331,18 +345,36 @@ def apply_voice_effects(audio: bytes, effects: Mapping[str, Any]) -> bytes:
     return wav
 
 
-def ffmpeg_argv(chain: str, out_path: Path | str) -> list[str]:
+#: The output options of every WAV the chain writes: bit-exact 16-bit PCM.
+_WAV_OUT: tuple[str, ...] = (
+    "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact",
+    "-c:a", "pcm_s16le",
+)  # fmt: skip
+
+
+def ffmpeg_argv(
+    chain: str, out_path: Path | str, *, source_path: Path | str | None = None
+) -> list[str]:
     """The argv that runs ``chain`` over audio on stdin into a bit-exact 16-bit
     PCM WAV at ``out_path`` (part of :data:`CHAIN_VERSION`).
 
+    source_path: also write the input, decoded (:func:`decode_chain`) and
+        untouched, there — in the same run, so its length is known whatever
+        container came in (an#350: a tempo chain's output is cut to it)
+
     >>> ffmpeg_argv("aresample=44100", "o.wav")[-3:]
     ['-c:a', 'pcm_s16le', 'o.wav']
+    >>> ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]
+    's.wav'
     """
+    head = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", "pipe:0"]
+    if source_path is None:
+        return [*head, "-af", chain, *_WAV_OUT, str(out_path)]
+    graph = f"[0:a]asplit=2[fx][src];[fx]{chain}[out];[src]{decode_chain()}[raw]"
     return [
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-        "-i", "pipe:0", "-af", chain,
-        "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact",
-        "-c:a", "pcm_s16le", str(out_path),
+        *head, "-filter_complex", graph,
+        "-map", "[out]", *_WAV_OUT, str(out_path),
+        "-map", "[raw]", *_WAV_OUT, str(source_path),
     ]  # fmt: skip
 
 
@@ -358,8 +390,11 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
     # every downstream duration read wrong.
     with tempfile.TemporaryDirectory() as tmp:
         out_path = Path(tmp) / "shifted.wav"
+        # A tempo chain also writes the decoded input: its length is what the
+        # output is cut to (an#350; `atempo` drops the tail of its window).
+        source_path = Path(tmp) / "source.wav" if "atempo=" in chain else None
         proc = subprocess.run(
-            ffmpeg_argv(chain, out_path),
+            ffmpeg_argv(chain, out_path, source_path=source_path),
             input=audio,
             capture_output=True,
             check=False,
@@ -369,7 +404,38 @@ def _ffmpeg_wav(audio: bytes, chain: str, effects: Mapping[str, Any]) -> bytes:
                 f"ffmpeg failed applying {dict(effects)}: "
                 f"{proc.stderr.decode(errors='replace').strip()}"
             )
-        return out_path.read_bytes()
+        if source_path is None:
+            return out_path.read_bytes()
+        seconds = _seconds(source_path.read_bytes()) / (effects.get("tempo") or 1.0)
+        return _exact_frames(out_path.read_bytes(), round(seconds * EFFECT_SAMPLE_RATE))
+
+
+def _seconds(wav: bytes) -> float:
+    """The length of a 16-bit PCM WAV, seconds."""
+    with wave.open(io.BytesIO(wav), "rb") as w:
+        return w.getnframes() / w.getframerate()
+
+
+def _exact_frames(wav: bytes, frames: int) -> bytes:
+    """``wav`` (16-bit PCM) cut, or padded with silence, to exactly ``frames`` frames.
+
+    >>> import array
+    >>> buf = io.BytesIO()
+    >>> with wave.open(buf, "wb") as w:
+    ...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(8); w.writeframes(array.array("h", [1] * 10).tobytes())
+    >>> [_seconds(_exact_frames(buf.getvalue(), n)) for n in (4, 12)]
+    [0.5, 1.5]
+    """
+    with wave.open(io.BytesIO(wav), "rb") as w:
+        params = w.getparams()
+        data = w.readframes(min(frames, w.getnframes()))
+    width = params.sampwidth * params.nchannels
+    data += b"\x00" * (frames * width - len(data))
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setparams(params)
+        w.writeframes(data)
+    return out.getvalue()
 
 
 def _pcm16_wav(audio: bytes) -> bool:

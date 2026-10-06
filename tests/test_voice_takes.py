@@ -605,7 +605,7 @@ def test_the_prosody_scorer_prefers_the_take_on_target():
 
 def test_tempo_is_validated_and_omitted_at_one():
     assert normalize_effects({"tempo": 1.0}) == {}
-    assert normalize_effects({"tempo": 0.8}) == {"tempo": 0.8}
+    assert normalize_effects({"tempo": 0.8})["tempo"] == 0.8
     for bad in (0.3, 2.5, "fast", True):
         with pytest.raises(VoiceEffectError):
             normalize_effects({"tempo": bad})
@@ -614,12 +614,13 @@ def test_tempo_is_validated_and_omitted_at_one():
 def test_the_pitch_only_chain_is_unchanged_and_tempo_multiplies_into_it():
     ratio = 2 ** (4 / 12)
     assert filter_chain({"pitch_semitones": 4.0}) == (
-        f"aresample=44100,asetrate={44100 * ratio:.6f},aresample=44100,atempo={1 / ratio:.9f}"
+        f"aresample=44100,asetrate={44100 * ratio:.6f},aresample=44100,"
+        f"apad=pad_dur=0.25,atempo={1 / ratio:.9f}"
     )
     both = filter_chain({"pitch_semitones": 4.0, "tempo": 1.5})
     assert both.endswith(f"atempo={1.5 / ratio:.9f}")
     assert filter_chain({"pitch_semitones": 12.0, "tempo": 0.5}).count("atempo=") == 2
-    assert filter_chain({"tempo": 1.25}) == "aresample=44100,atempo=1.250000000"
+    assert filter_chain({"tempo": 1.25}) == "aresample=44100,apad=pad_dur=0.25,atempo=1.250000000"
     assert all(0.5 <= f <= 2.0 for f in atempo_stages(0.25)) and math.prod(atempo_stages(0.25)) == pytest.approx(0.25)
 
 
@@ -630,7 +631,7 @@ def test_tempo_retimes_the_line_without_ffmpeg(monkeypatch):
     words = _Words()
     mall = _mall({"effects": {"tempo": 2.0}})
     line = _line(_run(_scene(), mall, _TakesTTS((2.0,)), lipsync=words))
-    assert line.audio_ref == audio_key(TEXT, "nar", "tones", {"tempo": 2.0})
+    assert line.audio_ref == audio_key(TEXT, "nar", "tones", normalize_effects({"tempo": 2.0}))
     assert line.audio_ref != audio_key(TEXT, "nar", "tones")
     assert line.duration == pytest.approx(1.0, abs=0.01)
     assert words.heard == [mall["audio"][line.audio_ref]]
@@ -645,7 +646,7 @@ def test_takes_are_scored_on_the_audio_heard_without_ffmpeg(monkeypatch):
     line = _line(_run(_scene(), mall, _TakesTTS((2.0, 1.0))))
     assert SCORED == [1.0, 0.5]  # the heard lengths, not the raw 2.0 and 1.0
     assert _record(mall)[1]["chosen"] == 0
-    assert line.audio_ref == audio_key(TEXT, "nar", "tones", {"tempo": 2.0})
+    assert line.audio_ref == audio_key(TEXT, "nar", "tones", normalize_effects({"tempo": 2.0}))
     assert line.duration == pytest.approx(1.0, abs=0.01)
 
 
@@ -658,7 +659,7 @@ def test_tempo_retimes_the_line_and_lipsync_hears_the_retimed_audio():
     assert words.heard == [mall["audio"][line.audio_ref]]
     assert _duration(words.heard[0]) == pytest.approx(1.0, abs=0.02)
     assert line.word_timings[-1].end == pytest.approx(1.0, abs=0.02)
-    assert line.audio_ref == audio_key(TEXT, "nar", "tones", {"tempo": 2.0})
+    assert line.audio_ref == audio_key(TEXT, "nar", "tones", normalize_effects({"tempo": 2.0}))
     assert audio_key(TEXT, "nar", "tones") in mall["audio"]  # the raw take, cached apart
 
 

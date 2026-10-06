@@ -75,13 +75,11 @@ def _seconds(wav_bytes: bytes) -> float:
 
 
 def test_true_resolves_every_default_into_the_key():
-    assert normalize_effects({"trim_silence": True}) == {
-        "trim_silence": {
-            "keep_lead_s": DFLT_TRIM_KEEP_LEAD_S,
-            "keep_tail_s": DFLT_TRIM_KEEP_TAIL_S,
-            "threshold_db": -20.0,
-            "version": TRIM_VERSION,
-        }
+    assert normalize_effects({"trim_silence": True})["trim_silence"] == {
+        "keep_lead_s": DFLT_TRIM_KEEP_LEAD_S,
+        "keep_tail_s": DFLT_TRIM_KEEP_TAIL_S,
+        "threshold_db": -20.0,
+        "version": TRIM_VERSION,
     }
     custom = normalize_effects({"trim_silence": {"threshold_db": -45}})["trim_silence"]
     assert custom["threshold_db"] == -45.0 and custom["keep_lead_s"] == DFLT_TRIM_KEEP_LEAD_S

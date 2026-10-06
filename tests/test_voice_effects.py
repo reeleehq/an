@@ -151,7 +151,10 @@ def test_voice_effects_lookup_tolerates_absent_stores_and_voices():
     assert voice_effects({}, "kid") == {}
     assert voice_effects({"voices": {}}, "kid") == {}
     assert voice_effects({"voices": {"kid": {"provider": "x"}}}, "kid") == {}
-    assert voice_effects(_mall({"pitch_semitones": 4}), "kid") == {"pitch_semitones": 4.0}
+    assert voice_effects(_mall({"pitch_semitones": 4}), "kid") == normalize_effects(
+        {"pitch_semitones": 4}
+    )
+    assert voice_effects(_mall({"pitch_semitones": 4}), "kid")["pitch_semitones"] == 4.0
 
 
 def test_the_chain_is_stock_ffmpeg_and_duration_neutral():
@@ -259,3 +262,43 @@ def test_an_mp3_or_other_container_is_accepted_as_input():
     out = apply_voice_effects(mp3, {"pitch_semitones": 4.0})
     assert out[:4] == b"RIFF"
     assert _measure(out)[1] == pytest.approx(DURATION_S, abs=0.15)  # mp3 padding
+
+
+# ---------------------------------------------------------------- an#350
+
+
+def _padded_clip(seconds: float = 1.3, pad: float = 0.1, rate: int = 22050) -> bytes:
+    import array
+    import io
+    import math
+    import wave
+
+    n, p = int(seconds * rate), int(pad * rate)
+    samples = array.array(
+        "h", [0 if i < p or i >= n - p else int(9000 * math.sin(i / 5)) for i in range(n)]
+    )
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(samples.tobytes())
+    return buf.getvalue()
+
+
+@pytest.mark.ffmpeg
+@pytest.mark.parametrize("tempo", [0.8, 1.25, 2.0])
+@pytest.mark.parametrize("semitones", [0, 3])
+def test_a_tempo_keeps_the_whole_line(tempo, semitones):
+    """an#350: `atempo` dropped 20-40 ms of a short padded clip's tail."""
+    import io
+    import wave
+
+    from an.audio.effects import apply_voice_effects, normalize_effects
+
+    out = apply_voice_effects(
+        _padded_clip(), normalize_effects({"tempo": tempo, "pitch_semitones": semitones})
+    )
+    with wave.open(io.BytesIO(out)) as w:
+        seconds = w.getnframes() / w.getframerate()
+    assert seconds == pytest.approx(1.3 / tempo, abs=0.01)
