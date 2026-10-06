@@ -2359,12 +2359,14 @@ def _check_dialogue_in_dissolves(
             where = []
             if overlap_in and start < overlap_in:
                 where.append(
-                    f"the dissolve from shot {scene.timeline[i - 1].id!r} "
+                    f"the {shot.transition.kind} from shot "
+                    f"{scene.timeline[i - 1].id!r} "
                     f"(0-{overlap_in:.2f}s)"
                 )
             if overlap_out and end > shot.duration - overlap_out:
                 where.append(
-                    f"the dissolve into shot {scene.timeline[i + 1].id!r} "
+                    f"the {scene.timeline[i + 1].transition.kind} into shot "
+                    f"{scene.timeline[i + 1].id!r} "
                     f"({shot.duration - overlap_out:.2f}-{shot.duration:g}s)"
                 )
             if not where:
@@ -2373,7 +2375,7 @@ def _check_dialogue_in_dissolves(
             report.add(
                 "warning",
                 f"timeline/{i}/dialogue/{k}",
-                f"this line plays during a dissolve: line {k} ({line.speaker}) "
+                f"this line plays during a dissolve or wipe: line {k} ({line.speaker}) "
                 f"plays {start:.2f}-{end:.2f}s"
                 + (" (at the offline voice's rate)" if estimated else "")
                 + f", inside {' and '.join(where)}, so it is heard over the "

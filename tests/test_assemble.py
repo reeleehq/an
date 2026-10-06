@@ -246,6 +246,21 @@ def test_validate_warns_about_a_line_inside_a_dissolve():
     )
 
 
+def test_validate_names_a_wipe_when_a_line_plays_inside_one():
+    scene = SceneIR(
+        timeline=[
+            Shot(id="a", duration=2.0,
+                 dialogue=[Dialogue(speaker="x", text="hi", start=1.8, duration=0.3)]),
+            Shot(id="b", duration=2.0, transition=Transition(kind="wipe", duration=0.5)),
+        ],
+    )
+    assert any(
+        "the wipe into shot 'b'" in f.description
+        for f in validate_semantic(scene).findings
+        if f.ir_path == "timeline/0/dialogue/0"
+    )
+
+
 # --- default byte-identity: the concat path is untouched ------------------------
 
 
@@ -698,3 +713,56 @@ def test_a_mid_film_fade_dips_the_sound_too(tmp_path, monkeypatch):
     assert level(0.2, 0.6) == pytest.approx(0.25, rel=0.05)
     assert level(0.97, 1.03) < 0.05  # at the cut, where the picture is black
     assert level(1.5, 1.9) == pytest.approx(0.25, rel=0.05)  # back up after
+
+
+# --- a wipe (an#390) ---------------------------------------------------------------
+
+
+def test_a_wipe_overlaps_like_a_dissolve_and_its_direction_is_omitted_elsewhere():
+    t = Transition(kind="wipe", duration=0.4, direction="up")
+    tl = film_timeline(_shots(("a", 1.0), ("b", 1.0, t)), fps=10)
+    assert tl.dissolve_in == (0, 4) and tl.total_frames == 16 and tl.wipe_in == (None, "up")
+    assert "direction" not in Transition(kind="dissolve").model_dump(mode="json")
+    problems = transition_problems(_shots(("a", 1.0, t)), fps=10)
+    assert problems and "a wipe has nothing to wipe from" in problems[0][1]
+    with pytest.raises(ValueError, match="nothing to wipe into"):
+        Meta(closing_transition=t)
+
+
+@pytest.mark.parametrize("direction", ["left", "right", "up", "down"])
+def test_a_wipe_frame_is_an_exact_edge(direction):
+    from an.assemble import wipe
+
+    a, b = np.zeros((48, 64, 3), np.uint8), np.full((48, 64, 3), 255, np.uint8)
+    for num in range(1, 5):
+        out = wipe(a, b, num, 5, direction)
+        along = 64 if direction in ("left", "right") else 48
+        edge = (along * num) // 5
+        covered = (out[..., 0] == 255)
+        assert covered.sum() == edge * (48 if along == 64 else 64)
+        if direction == "right":
+            assert covered[:, :edge].all()
+        elif direction == "left":
+            assert covered[:, 64 - edge:].all()
+        elif direction == "down":
+            assert covered[:edge].all()
+        else:
+            assert covered[48 - edge:].all()
+
+
+@pytest.mark.ffmpeg
+def test_a_wipe_sweeps_the_incoming_shot_across_and_shortens_the_film(tmp_path, monkeypatch):
+    t = Transition(kind="wipe", duration=0.4, direction="right")
+    scene = SceneIR(meta=_meta(2.0), timeline=[
+        Shot(id="red", duration=1.0), Shot(id="blue", duration=1.0, transition=t)])
+    out = _render(_project(tmp_path, scene), monkeypatch)
+    from PIL import Image
+
+    film_frames = sorted((tmp_path / "demo/.an/render_work/film/frames").glob("*.png"))
+    assert [f.name for f in film_frames] == [f"frame_{i:06d}.png" for i in range(6, 10)]
+    for j, f in enumerate(film_frames):
+        with Image.open(f) as im:
+            row = np.asarray(im.convert("RGB"))[10]
+        edge = (_SIZE[0] * (j + 1)) // 5  # overlap frame j of k=4: (j+1)/(k+1)
+        assert (row[:edge] == (0, 0, 255)).all() and (row[edge:] == (255, 0, 0)).all(), j
+    assert len(_decode_rgb(out)) == 16  # a wipe overlaps like a dissolve

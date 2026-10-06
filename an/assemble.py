@@ -112,6 +112,11 @@ class AssemblyError(RuntimeError):
 # -----------------------------------------------------------------------------
 
 
+#: The transition kinds that OVERLAP two shots (the film gets shorter by their
+#: duration): a dissolve blends them, a wipe sweeps an edge across (an#390).
+_OVERLAPPING: tuple[str, ...] = ("dissolve", "wipe")
+
+
 def _transition_frame_count(shot: Shot, fps: float) -> int:
     """Frames ``shot``'s incoming transition spans; 0 for a cut, or for one so
     short it rounds to nothing — which IS a cut, and must cost like one."""
@@ -164,7 +169,7 @@ def film_duration(scene: SceneIR, *, fps: float | None = None) -> float:
     rate = fps if fps is not None else scene.meta.fps
     total = sum(s.duration for s in scene.timeline)
     for shot in scene.timeline[1:]:
-        if shot.transition is not None and shot.transition.kind == "dissolve":
+        if shot.transition is not None and shot.transition.kind in _OVERLAPPING:
             total -= _transition_frame_count(shot, rate) / rate
     return total
 
@@ -192,6 +197,9 @@ class FilmTimeline:
     fade_out_color: tuple[str | None, ...]
     total_frames: int
     closing: bool = False
+    #: Per shot, the direction its incoming overlap WIPES in (an#390); ``None``
+    #: for a dissolve (or no overlap).
+    wipe_in: tuple[str | None, ...] = ()
 
     @property
     def duration(self) -> float:
@@ -225,7 +233,7 @@ def _transition_frames(
         k = _transition_frame_count(shot, fps)
         if not k:
             continue
-        if t.kind == "dissolve":
+        if t.kind in _OVERLAPPING:
             dissolve_in[i] = k
         elif i == 0:  # a fade on the first shot is a fade up from the colour
             fade_in[i], in_color[i] = k, t.color
@@ -255,11 +263,12 @@ def transition_problems(
     problems: list[tuple[int, str]] = []
     for i, shot in enumerate(shots):
         if i == 0 and dissolve_in[0]:
+            kind = shot.transition.kind if shot.transition else "dissolve"
             problems.append(
                 (
                     0,
-                    f"shot {shot.id!r} is the first shot, so a dissolve has nothing "
-                    "to dissolve from; use a fade (from a colour) or a cut",
+                    f"shot {shot.id!r} is the first shot, so a {kind} has nothing "
+                    f"to {kind} from; use a fade (from a colour) or a cut",
                 )
             )
         # The head of shot i is used by its own incoming transition; the tail by
@@ -308,6 +317,14 @@ def film_timeline(
         fade_out_color=tuple(out_color),
         total_frames=cursor,
         closing=bool(_closing_frame_count(closing, fps)) and bool(frames),
+        wipe_in=tuple(
+            s.transition.direction
+            if dissolve_in[i]
+            and s.transition is not None
+            and s.transition.kind == "wipe"
+            else None
+            for i, s in enumerate(shots)
+        ),
     )
 
 
@@ -345,6 +362,34 @@ def blend(a: Any, b: Any, num: int, den: int) -> Any:
     twice = 2 * remainder
     tie_to_even = (twice == den) & (quotient % 2 == 1)
     return (quotient + ((twice > den) | tie_to_even)).astype(np.uint8)
+
+
+def wipe(a: Any, b: Any, num: int, den: int, direction: str) -> Any:
+    """``b`` swept over ``a`` by a hard edge ``num/den`` of the way across, the
+    edge travelling ``direction`` (an#390): ``left`` brings ``b`` in from the
+    right. The edge is an exact integer row or column, ``(size * num) // den``
+    from where it started, so a wipe frame is a pure function of its inputs.
+
+    >>> import numpy as np
+    >>> a, b = np.zeros((1, 4, 3), np.uint8), np.full((1, 4, 3), 9, np.uint8)
+    >>> wipe(a, b, 1, 2, "right")[0, :, 0].tolist(), wipe(a, b, 1, 2, "left")[0, :, 0].tolist()
+    ([9, 9, 0, 0], [0, 0, 9, 9])
+    """
+    out = a.copy()
+    height, width = a.shape[0], a.shape[1]
+    along = width if direction in ("left", "right") else height
+    edge = (along * num) // den
+    if direction == "right":
+        out[:, :edge] = b[:, :edge]
+    elif direction == "left":
+        out[:, width - edge :] = b[:, width - edge :]
+    elif direction == "down":
+        out[:edge] = b[:edge]
+    elif direction == "up":
+        out[height - edge :] = b[height - edge :]
+    else:
+        raise ValueError(f"unknown wipe direction {direction!r}")
+    return out
 
 
 def _frame_sources(timeline: FilmTimeline) -> list[list[tuple[int, int]]]:
@@ -615,7 +660,7 @@ def _compose_frame(
             fill[..., 3] = arr[..., 3]
         Image.fromarray(blend(arr, fill, num, den)).save(out, format="PNG")
         return
-    # A dissolve: the previous shot's tail under this shot's head.
+    # A dissolve (or a wipe): the previous shot's tail under this shot's head.
     (ia, ja), (ib, jb) = sorted(sources)
     k = timeline.dissolve_in[ib]
     a, b = load(frame_of(ia, ja)), load(frame_of(ib, jb))
@@ -624,6 +669,10 @@ def _compose_frame(
         # change pixel format mid-sequence.
         mode = "RGBA" if a.shape[-1] == 4 else "RGB"
         b = np.asarray(Image.fromarray(b).convert(mode))
+    direction = timeline.wipe_in[ib] if timeline.wipe_in else None
+    if direction is not None:
+        Image.fromarray(wipe(a, b, jb + 1, k + 1, direction)).save(out, format="PNG")
+        return
     Image.fromarray(blend(a, b, jb + 1, k + 1)).save(out, format="PNG")
 
 

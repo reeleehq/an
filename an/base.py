@@ -293,7 +293,10 @@ SUPPORTED_RENDERERS: tuple[str, ...] = get_args(RendererName)
 
 #: The transition kinds a shot may be entered by. ``cut`` is the default and
 #: what every document written before transitions existed means.
-TRANSITION_KINDS: tuple[str, ...] = ("cut", "fade", "dissolve")
+TRANSITION_KINDS: tuple[str, ...] = ("cut", "fade", "dissolve", "wipe")
+
+#: The ways a ``wipe``'s edge can travel across the frame (an#390).
+WIPE_DIRECTIONS: tuple[str, ...] = ("left", "right", "up", "down")
 
 #: Seconds, when a ``fade`` or ``dissolve`` names no duration: half a second
 #: is a conventional editor's default, short enough not to eat a line of

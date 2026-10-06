@@ -758,11 +758,25 @@ class Transition(_IRModel):
       seconds are each shot's "handle"). Dialogue stays in sync with its own
       shot's picture; audio from both shots is heard in the overlap. Not
       allowed on the first shot.
+    - ``wipe`` — overlaps like a dissolve, but a hard edge sweeps across the
+      frame in ``direction`` (the way the edge travels: ``left`` brings this
+      shot in from the right), this shot on the side it has passed (an#390).
+      The edge stands where a dissolve's mix would: ``(j + 1) / (k + 1)`` of
+      the way across on overlap frame ``j`` of ``k``. Not on the first shot.
     """
 
-    kind: Literal["cut", "fade", "dissolve"] = "cut"
+    kind: Literal["cut", "fade", "dissolve", "wipe"] = "cut"
     duration: Seconds = Field(default=DEFAULT_TRANSITION_DURATION, ge=0)
     color: str = DEFAULT_TRANSITION_COLOR
+    #: A ``wipe``'s direction; omitted from a dump for every other kind.
+    direction: Literal["left", "right", "up", "down"] = "left"
+
+    @model_serializer(mode="wrap")
+    def _direction_only_for_a_wipe(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and self.kind != "wipe":
+            data.pop("direction", None)
+        return data
 
     @model_validator(mode="after")
     def _hex_color(self) -> "Transition":
@@ -1113,9 +1127,9 @@ class Meta(_IRModel):
     @field_validator("closing_transition")
     @classmethod
     def _closing_is_a_fade(cls, t: Transition | None) -> Transition | None:
-        if t is not None and t.kind == "dissolve":
+        if t is not None and t.kind in ("dissolve", "wipe"):
             raise ValueError(
-                "closing_transition: a dissolve has nothing to dissolve into at the "
+                f"closing_transition: a {t.kind} has nothing to {t.kind} into at the "
                 "film's end; use a fade (to a colour) or a cut"
             )
         return t
