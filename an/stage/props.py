@@ -204,3 +204,37 @@ class PropDescriptor(RigDocument):
             self.bones = default_prop_bones()
         if not self.slots:
             self.slots = default_prop_slots()
+
+
+#: The prop analyser's version (an#340): bump when its output can change for the same input.
+PROP_ANALYSER_VERSION: str = "0.1.0"
+
+
+def prop_affordances(doc: Any, art: Any = None) -> dict[str, dict[str, Any]]:
+    """A prop's capabilities: what its rig's structure affords (an#340).
+
+    Only a ``PropDescriptor`` is a rig; a path or a text block in the props
+    store affords nothing here.
+
+    >>> prop_affordances({"kind": "TextDescriptor"})
+    {}
+    """
+    if not isinstance(doc, dict) or doc.get("kind") != PROP_DOCUMENT_KIND.name:
+        return {}
+    from an.ir.migrate import migrate
+    from an.stage.rig import rig_affordances
+
+    return rig_affordances(migrate(dict(doc), kind=PROP_DOCUMENT_KIND.name))
+
+
+def register_prop_analyser() -> None:
+    """Register the stage's ``prop`` analyser (an#340); idempotent.
+
+    Stage-side, not a core import side effect: the library calls it when it
+    loads the genres, before it analyses an asset.
+    """
+    from an.capabilities import Analyser, register_analyser
+
+    register_analyser(
+        Analyser("prop", PROP_ANALYSER_VERSION, prop_affordances), owner="an.stage"
+    )

@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T13:07:52Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1750,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "b8a3e9502e980dbbf6543b31fde6dadbdba1e0b6ab9c972891514e7a3fd868b7",
+      "shot_id": "pose",
+      "time": 0.0
+    },
+    {
+      "bytes": 1614,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "02f1233b204d849e0b2e56ada828740819efed27a033590c2c2af933974c2d6c",
+      "shot_id": "pose",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "rig-chains",
+    "dirty": true,
+    "sha": "4460e62676286838501de075868f9730e99c5049"
+  },
+  "reason": "an#340: the rig_chain fixture's first goldens -- a desk-lamp arm in nesting: bones, a shade nested on the forearm, posed by three tweens",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "rig_chain",
+  "scene_contract_sha256": "0911c9668191b81f6f3a301fe69fde8e97137d58c3c8ae540f33efbd66b24b18",
+  "shot_ids": [
+    "pose"
+  ],
+  "source": "misc/bench/corpus/rig_chain",
+  "what_moves": "a desk-lamp prop with `nesting: bones` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."
+}

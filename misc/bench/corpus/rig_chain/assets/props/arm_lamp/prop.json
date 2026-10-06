@@ -1,0 +1,140 @@
+{
+  "origin": [
+    200.0,
+    400.0
+  ],
+  "nesting": "bones",
+  "schema_version": "0.2.0",
+  "kind": "PropDescriptor",
+  "name": "arm_lamp",
+  "display_name": "Desk lamp with a jointed arm",
+  "view_box": [
+    0,
+    0,
+    400,
+    400
+  ],
+  "source_svg": null,
+  "bones": [
+    {
+      "name": "base",
+      "parent": null,
+      "x": 200.0,
+      "y": 376.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "upper",
+      "parent": "base",
+      "x": 0.0,
+      "y": 0.0,
+      "rotation_deg": 30.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "fore",
+      "parent": "upper",
+      "x": 0.0,
+      "y": -150.0,
+      "rotation_deg": -70.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    }
+  ],
+  "slots": [
+    {
+      "name": "base",
+      "bone": "base",
+      "draw_order": 0,
+      "attachment": "base"
+    },
+    {
+      "name": "upper",
+      "bone": "upper",
+      "draw_order": 1,
+      "attachment": "upper"
+    },
+    {
+      "name": "fore",
+      "bone": "fore",
+      "draw_order": 2,
+      "attachment": "fore"
+    },
+    {
+      "name": "shade",
+      "bone": "fore",
+      "draw_order": 3,
+      "attachment": "shade"
+    }
+  ],
+  "skins": {
+    "default": {
+      "name": "default",
+      "slots": {
+        "base": {
+          "base": {
+            "path": "parts/base.svg",
+            "anchor": [
+              0.5,
+              0.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "upper": {
+          "upper": {
+            "path": "parts/upper.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "fore": {
+          "fore": {
+            "path": "parts/fore.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "shade": {
+          "shade": {
+            "path": "parts/shade.svg",
+            "anchor": [
+              0.5,
+              0.0
+            ],
+            "x": 0.0,
+            "y": -120.0,
+            "width": null,
+            "height": null
+          }
+        }
+      }
+    }
+  },
+  "asset_sets": {},
+  "animations": {},
+  "face_overlay": true,
+  "source": null,
+  "metadata": {}
+}

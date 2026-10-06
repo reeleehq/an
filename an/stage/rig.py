@@ -28,10 +28,12 @@ import math
 import warnings
 from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any, Callable, Optional
+from collections.abc import Collection
+from typing import TYPE_CHECKING, Annotated, Any, Callable, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
+from an.capabilities.subjects import RIG_HIERARCHY as _RIG_HIERARCHY_CAPABILITY
 from an.ir.assets import AssetSource
 from an.ir.migrate import (
     KINDS,
@@ -72,7 +74,7 @@ _Finite = Annotated[float, Field(allow_inf_nan=False)]
 #: The fields :class:`RigDocument` adds, each written out of the stored
 #: document when unset (:func:`omit_unset_rig_fields`), so every descriptor
 #: that never set one reads back, and hashes, as it did before the field existed.
-RIG_DOCUMENT_OPTIONAL_FIELDS: tuple[str, ...] = ("origin", "rest_rotation")
+RIG_DOCUMENT_OPTIONAL_FIELDS: tuple[str, ...] = ("origin", "rest_rotation", "nesting")
 
 
 def omit_unset_rig_fields(data: Any) -> Any:
@@ -238,6 +240,14 @@ class RigDocument(RigModel):
     #: (:func:`protect_legacy_rest_pose`).
     rest_rotation: bool | None = None
 
+    #: How slots nest (an#340). Unset or ``"flat"``: a slot nests under its
+    #: OWN bone's primary slot only, so limbs are siblings of the torso (the
+    #: rigs' long-standing shape). ``"bones"``: a slot nests under the primary
+    #: slot of the nearest ancestor bone that has one, to any depth, so a
+    #: forearm turns with its upper arm and a sword with its hand (forward
+    #: kinematics). :func:`slot_parent_chain` is the rule.
+    nesting: Literal["flat", "bones"] | None = None
+
     @model_serializer(mode="wrap")
     def _omit_unset_rig_fields(self, handler):
         return omit_unset_rig_fields(handler(self))
@@ -386,18 +396,321 @@ class Skin(RigModel):
 def primary_slot_per_bone(desc: Any) -> dict[str, str]:
     """``{bone name: the slot that IS that bone}``, when one exists.
 
-    Used for node nesting, which is deliberately **not** the bone hierarchy.
-    The rigs here are flat by design — arms are siblings of the torso, not
-    children (CLAUDE.md pillar 4) — so bone parentage decides *position* only.
-    A slot nests under the primary slot of its bone when it is not that slot
-    itself, which is what puts eyes and mouth under ``head`` and leaves every
-    limb a direct child of the entity.
+    The anchor of node nesting (:func:`slot_parent_chain`). In the default
+    ``flat`` nesting the rigs are flat — arms are siblings of the torso, not
+    children (CLAUDE.md pillar 4) — so bone parentage decides *position* only:
+    a slot nests under the primary slot of its own bone when it is not that
+    slot itself, which puts eyes and mouth under ``head`` and leaves every limb
+    a direct child of the entity. ``nesting: bones`` (an#340) follows the bone
+    hierarchy to the nearest ancestor's primary slot instead.
 
     >>> from types import SimpleNamespace as NS
     >>> primary_slot_per_bone(NS(slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head")]))["head"]
     'head'
     """
     return {s.bone: s.name for s in desc.slots if s.name == s.bone}
+
+
+#: The nesting modes (:attr:`RigDocument.nesting`); unset means the first.
+NESTINGS: tuple[str, ...] = ("flat", "bones")
+FLAT_NESTING, BONES_NESTING = NESTINGS
+
+
+class RigError(ValueError):
+    """A rig cannot be built as declared (a cycle, or a chain the stage cannot draw)."""
+
+
+def nesting_of(desc: Any) -> str:
+    """``"flat"`` or ``"bones"`` (an#340); unset is flat.
+
+    >>> nesting_of({"nesting": "bones"}), nesting_of({})
+    ('bones', 'flat')
+    """
+    return _field_of(desc, "nesting") or FLAT_NESTING
+
+
+def slot_parent_chain(desc: Any) -> dict[str, str | None]:
+    """``{slot: the slot it nests under, or None}``: THE nesting rule (an#340).
+
+    The builder and a genre's part paths (``cutan``'s ``play.slot_parent``,
+    ``slot_node_path``) all read it, so a ``play`` or a preset addresses the
+    node the builder made.
+
+    - ``flat`` (unset): a slot nests under its own bone's primary slot (the
+      slot named like the bone) when it is not that slot; everything else is a
+      child of the entity. Arms are siblings of the torso.
+    - ``bones``: the same, and a slot that IS its bone's primary (or whose bone
+      has none) nests under the primary slot of the nearest ANCESTOR bone that
+      has one, to any depth. A bone cycle stops the walk; ``rig_problems``
+      names it and the builder refuses it.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(bones=[NS(name="arm", parent="torso"), NS(name="hand", parent="arm"),
+    ...                 NS(name="torso", parent=None)],
+    ...          slots=[NS(name="torso", bone="torso"), NS(name="arm", bone="arm"),
+    ...                 NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+    >>> slot_parent_chain(rig)
+    {'torso': None, 'arm': None, 'hand': None, 'sword': 'hand'}
+    >>> rig.nesting = "bones"
+    >>> slot_parent_chain(rig)
+    {'torso': None, 'arm': 'torso', 'hand': 'arm', 'sword': 'hand'}
+    """
+    slots = list(_field_of(desc, "slots") or [])
+    primary = {
+        _field_of(s, "bone"): _field_of(s, "name")
+        for s in slots
+        if _field_of(s, "name") == _field_of(s, "bone")
+    }
+    bones_mode = nesting_of(desc) == BONES_NESTING
+    parent_bone = {
+        _field_of(b, "name"): _field_of(b, "parent") for b in _field_of(desc, "bones") or []
+    }
+    out: dict[str, str | None] = {}
+    for slot in slots:
+        name, bone = _field_of(slot, "name"), _field_of(slot, "bone")
+        own = primary.get(bone)
+        if own is not None and own != name:
+            out[name] = own
+            continue
+        parent = None
+        if bones_mode:
+            seen = {bone}
+            cursor = parent_bone.get(bone)
+            while cursor is not None and cursor not in seen:
+                seen.add(cursor)
+                if cursor in primary:
+                    parent = primary[cursor]
+                    break
+                cursor = parent_bone.get(cursor)
+        out[name] = parent
+    return out
+
+
+def slot_node_paths(desc: Any) -> dict[str, str]:
+    """``{slot: its node path relative to the entity}`` (``torso/arm/hand``), by
+    :func:`slot_parent_chain`; a slot caught in a cycle maps to its own name.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones", bones=[NS(name="a", parent=None), NS(name="b", parent="a")],
+    ...          slots=[NS(name="a", bone="a"), NS(name="b", bone="b")])
+    >>> slot_node_paths(rig)
+    {'a': 'a', 'b': 'a/b'}
+    """
+    parents = slot_parent_chain(desc)
+    out: dict[str, str] = {}
+    for name in parents:
+        parts, seen, cursor = [], set(), name
+        while cursor is not None and cursor not in seen:
+            seen.add(cursor)
+            parts.append(cursor)
+            cursor = parents.get(cursor)
+        out[name] = "/".join(reversed(parts)) if cursor is None else name
+    return out
+
+
+def rig_problems(desc: Any) -> list[str]:
+    """What is structurally wrong with a rig's bones and slots (an#340).
+
+    A bone whose ``parent`` names no bone; a cycle in the bone graph (the one
+    form a closed linkage can take in a model where each bone names one
+    parent: forward kinematics only, so it is refused); a slot whose ``bone``
+    names no bone (it used to land at the origin, silently). Shared by the
+    asset validators (``an character validate``, :func:`an.stage.props.validate_prop`).
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],
+    ...                 slots=[NS(name="s", bone="nope")]))
+    ['bones form a cycle (a closed linkage): a -> b -> a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]
+    """
+    bones = list(_field_of(desc, "bones") or [])
+    names = {_field_of(b, "name") for b in bones}
+    parent_of = {_field_of(b, "name"): _field_of(b, "parent") for b in bones}
+    out: list[str] = []
+    for bone in bones:
+        parent = _field_of(bone, "parent")
+        if parent is not None and parent not in names:
+            out.append(f"bone {_field_of(bone, 'name')!r} names parent {parent!r}, which the rig does not declare")
+    reported: set[frozenset] = set()
+    for start in sorted(names, key=str):
+        path, cursor = [], start
+        while cursor is not None and cursor not in path:
+            path.append(cursor)
+            cursor = parent_of.get(cursor)
+        if cursor is not None:
+            loop = path[path.index(cursor):]
+            key = frozenset(loop)
+            if key not in reported:
+                reported.add(key)
+                out.append(
+                    "bones form a cycle (a closed linkage): "
+                    + " -> ".join([*loop, loop[0]])
+                    + "; a rig is a tree (forward kinematics only)"
+                )
+    for slot in _field_of(desc, "slots") or []:
+        if _field_of(slot, "bone") not in names:
+            out.append(
+                f"slot {_field_of(slot, 'name')!r} is bound to bone "
+                f"{_field_of(slot, 'bone')!r}, which the rig does not declare"
+            )
+    return out
+
+
+def chain_draw_order_problems(desc: Any) -> list[str]:
+    """Where a nested chain asks the STAGE for a draw order it cannot give (an#340).
+
+    The stage engine (PixiJS) draws a container's own visual before its
+    children, so a nested part always draws over its parent: a slot nested
+    under one with a HIGHER ``draw_order`` cannot be honoured. This is the
+    stage engine's limit, not a rule of rigs (an engine with free slot order
+    could draw it), so the stage compiler refuses it and the asset
+    validators only warn. Nothing in ``flat`` nesting: there a nested slot is
+    a face part over its head, drawn after it by construction.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+    ...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])
+    >>> chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")
+    True
+    """
+    if nesting_of(desc) != BONES_NESTING:
+        return []
+    order = {_field_of(s, "name"): _field_of(s, "draw_order", 0) or 0 for s in _field_of(desc, "slots") or []}
+    parents = slot_parent_chain(desc)
+    out = []
+    for slot, parent in parents.items():
+        if parent is not None and order.get(slot, 0) < order.get(parent, 0):
+            out.append(
+                f"slot {slot!r} (draw_order {order[slot]}) nests under {parent!r} "
+                f"(draw_order {order[parent]}), but the stage draws a nested part "
+                "OVER its parent: raise its draw_order to at least its parent's, "
+                "flatten it (`nesting: flat`), or reverse the chain"
+            )
+    if out:
+        return out
+    # The stage paints a TREE depth first, so a chain also moves everything
+    # under it past an unrelated part ordered between its members (a leg
+    # ordered between the arms and the head would paint over the face).
+    key = lambda name: (order.get(name, 0), name)  # noqa: E731
+    children: dict[str | None, list[str]] = {}
+    for slot in sorted(parents, key=key):
+        children.setdefault(parents[slot], []).append(slot)
+    painted: list[str] = []
+    stack = list(reversed(children.get(None, [])))
+    seen: set[str] = set()
+    while stack:
+        slot = stack.pop()
+        if slot in seen:
+            continue
+        seen.add(slot)
+        painted.append(slot)
+        stack.extend(reversed(children.get(slot, [])))
+    wanted = sorted(painted, key=key)
+    if painted != wanted:
+        i = next(i for i, (a, b) in enumerate(zip(painted, wanted)) if a != b)
+        out.append(
+            f"the stage paints the chained tree depth first, so slot {painted[i]!r} "
+            f"(draw_order {order.get(painted[i], 0)}) would paint before {wanted[i]!r} "
+            f"(draw_order {order.get(wanted[i], 0)}), against the declared order: "
+            "order each chain's parts together (a part's draw_order between its "
+            "parent's and its next sibling's), or flatten the rig (`nesting: flat`)"
+        )
+    return out
+
+
+def chain_pose_problems(desc: Any) -> list[str]:
+    """A rest pose the stage cannot apply in a nested chain (an#340).
+
+    A node exists only for a bone that carries a slot. A bone with NO slot
+    between a part and the part it nests under has no node to rotate or
+    scale, so its ``rotation_deg``/``scale_*`` would be lost (its ``x``/``y``
+    are kept: positions sum along the chain). Refused at compile, like the
+    draw order; give the bone a slot or move its pose to the bone below it.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],
+    ...          bones=[NS(name="arm", parent=None), NS(name="elbow", parent="arm", rotation_deg=-70),
+    ...                 NS(name="hand", parent="elbow")])
+    >>> chain_pose_problems(rig)[0].startswith("bone 'elbow' carries no slot")
+    True
+    """
+    if nesting_of(desc) != BONES_NESTING:
+        return []
+    bones = {_field_of(b, "name"): b for b in _field_of(desc, "bones") or []}
+    slot_bone = {_field_of(s, "name"): _field_of(s, "bone") for s in _field_of(desc, "slots") or []}
+    out, said = [], set()
+    for slot, parent in slot_parent_chain(desc).items():
+        if parent is None:
+            continue
+        # The bones strictly between the part's own bone and its parent's.
+        stop, seen = slot_bone.get(parent), set()
+        own = slot_bone.get(slot)
+        cursor = None if own == stop else _field_of(bones.get(own), "parent")
+        while cursor is not None and cursor != stop and cursor not in seen:
+            seen.add(cursor)
+            bone = bones.get(cursor)
+            if bone is not None and cursor not in said and bones_carry_a_rest_pose({"bones": [bone]}):
+                said.add(cursor)
+                out.append(
+                    f"bone {cursor!r} carries no slot, but sits in the chain from "
+                    f"{parent!r} to {slot!r} with a rest rotation or scale: no node "
+                    "carries it, so the pose would be lost; give the bone a slot, or "
+                    "move its pose onto the bone below it"
+                )
+            cursor = _field_of(bone, "parent")
+    return out
+
+
+#: The capability a nested chain affords (ADR 0002 decision 1's name, registered
+#: by the core in :mod:`an.capabilities.subjects`).
+RIG_HIERARCHY: str = _RIG_HIERARCHY_CAPABILITY.name
+
+
+def rig_affordances(desc: Any) -> dict[str, dict[str, Any]]:
+    """What a rig's structure affords, derived from the rig model (an#340).
+
+    ``rig.hierarchy`` when the rig nests in ``bones`` mode and some chain links
+    two different bones: ``keys`` are every slot in such a chain (so
+    ``rig.hierarchy:forearm_l`` asks for a forearm in a chain), ``count`` the
+    deepest chain's number of BONES (``rig.hierarchy>=3`` is "a shoulder, an
+    elbow and a hand"), ``chains`` every root-to-leaf chain of slots. Parts on
+    one bone (a head with its face) add no depth, and a flat rig affords
+    nothing here: that nesting is a drawing convention, not a joint. The core registers it as the ``prop``
+    analyser; a genre's analyser composes it for its own kinds.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
+    ...          slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand"), NS(name="sword", bone="hand")])
+    >>> rig_affordances(rig)
+    {'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}
+    """
+    if nesting_of(desc) != BONES_NESTING or rig_problems(desc):
+        return {}
+    parents = slot_parent_chain(desc)
+    has_child = {p for p in parents.values() if p is not None}
+    chains = []
+    for leaf in sorted(n for n in parents if n not in has_child):
+        chain, cursor = [], leaf
+        while cursor is not None:
+            chain.append(cursor)
+            cursor = parents[cursor]
+        chains.append(list(reversed(chain)))
+    slot_bone = {_field_of(s, "name"): _field_of(s, "bone") for s in _field_of(desc, "slots") or []}
+
+    def joints(chain: list[str]) -> int:
+        # Links between DIFFERENT bones: a face part on the head's own bone is
+        # a drawing convention, not a joint.
+        return 1 + sum(slot_bone[a] != slot_bone[b] for a, b in zip(chain, chain[1:]))
+
+    deep = [c for c in chains if joints(c) > 1]
+    if not deep:
+        return {}
+    return {
+        RIG_HIERARCHY: {
+            "keys": sorted({slot for c in deep for slot in c}),
+            "count": max(joints(c) for c in deep),
+            "chains": deep,
+        }
+    }
 
 
 def drawn_attachment(
@@ -817,6 +1130,25 @@ def rest_transform(bone: Any) -> dict[str, float]:
     }
 
 
+def _legacy_baked_face_slots(desc: Any, parents: Mapping[str, str | None]) -> set[str]:
+    """The builder's pre-an#340 face rule, for a genre that passes no ``skip_slots``.
+
+    With the face baked into the head art (``face_overlay`` false), the eye,
+    brow and mouth slots nested under the HEAD BONE's primary slot would
+    double the baked features, so they were dropped here. Keyed on the bone,
+    not on a slot named "head" (an#88 review). The cut-out genre now passes
+    its own set (``cutan.characters.play.suppressed_slots``).
+    """
+    if _field_of(desc, "face_overlay", True):
+        return set()
+    head = next((s.name for s in desc.slots if s.bone == "head" and s.name == s.bone), None)
+    # The face is the slots ON the head bone (not parts of its child bones,
+    # which nest under the head too in `nesting: bones`).
+    return {
+        s.name for s in desc.slots if head is not None and s.bone == "head" and s.name != head
+    }
+
+
 def build_rig_subtree(
     entity: AssetRef,
     desc_data: dict[str, Any],
@@ -829,8 +1161,22 @@ def build_rig_subtree(
     document_kind: DocumentKind,
     texture_srcs: Mapping[str, str] | None = None,
     digest: Callable[[str], str | None] | None = None,
+    skip_slots: Collection[str] | None = None,
 ) -> NodeJSON:
-    """Build the scene subtree for a character, **from its descriptor's rig**.
+    """Build the scene subtree for a rig (a prop or a character), **from its descriptor**.
+
+    Slots nest by :func:`slot_parent_chain` (``nesting: flat`` or ``bones``,
+    an#340). In ``bones`` mode a nested part is placed relative to its parent
+    BONE, without inheriting the parent's attachment offset, and its bone's
+    rest pose composes through the chain.
+
+    ``skip_slots`` are slots the GENRE says not to build (the cut-out genre's
+    baked face: ``cutan.characters.play.suppressed_slots``); a skipped slot's
+    nested parts are not built either. ``None`` is the legacy rule for a genre
+    that predates the argument (``an.genres.API_LEVEL`` < 5): with
+    ``face_overlay`` false, the slots nested under the ``head`` bone's primary
+    slot. It is the one place the core still names a bone, and it goes when no
+    genre needs it.
 
     A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures
     either, and ``digest(src)`` — a content digest for raster art, ``None``
@@ -907,16 +1253,20 @@ def build_rig_subtree(
     skin = desc.skins.get("default") or next(iter(desc.skins.values()), Skin())
     bones = bone_positions(desc)
     origin = rig_origin(desc)
-    # Shared with `an.characters.play` so a `play` resolves against the
-    # nesting the builder actually uses (an#7 review).
-    nests_under = primary_slot_per_bone(desc)
-
-    # If the head art has its own face baked in (DiceBear / hand-drawn full
-    # avatars), the separate eye/brow/mouth sprites double up with the baked
-    # features. Lip-sync stays audio-only for these; hand-rig for dialogue.
-    # `face_overlay` is the DECLARED fact (0.3.0, an#87) — the old vendor-name
-    # check on metadata.art_provenance lives on only inside the migration.
-    head_has_face = not desc.face_overlay
+    # Shared with a genre's part paths (`cutan.characters.play`) so a `play`
+    # resolves against the nesting the builder actually uses (an#7, an#340).
+    parents = slot_parent_chain(desc)
+    bones_mode = nesting_of(desc) == BONES_NESTING
+    if bones_mode:
+        broken = (
+            [p for p in rig_problems(desc) if "cycle" in p]
+            + chain_draw_order_problems(desc)
+            + chain_pose_problems(desc)
+        )
+        if broken:
+            raise RigError(f"rig {ref!r} cannot be built with `nesting: bones`: " + "; ".join(broken))
+    slot_of = {s.name: s for s in desc.slots}
+    skip = set(skip_slots) if skip_slots is not None else _legacy_baked_face_slots(desc, parents)
 
     def _register(slot_name: str, attachment_name: str, attachment: Attachment) -> str:
         # Slot-qualified on purpose: attachment names are a PER-SLOT namespace
@@ -969,13 +1319,9 @@ def build_rig_subtree(
     children_of: dict[str, list[NodeJSON]] = {}
 
     for slot in sorted(desc.slots, key=lambda s: (s.draw_order, s.name)):
-        parent = nests_under.get(slot.bone)
-        nested = parent is not None and parent != slot.name
-        # Baked face: drop every slot nested under the HEAD BONE's primary
-        # slot — keyed on the bone (the rig's skeleton contract), not on the
-        # slot name "head": a rig whose head slot is named otherwise used to
-        # get its face overlays (and their blinks) back (an#88 review).
-        if nested and head_has_face and parent == nests_under.get("head"):
+        parent = parents.get(slot.name)
+        nested = parent is not None
+        if slot.name in skip:
             continue
 
         resolved = drawn_attachment(desc, skin, slot)
@@ -986,10 +1332,18 @@ def build_rig_subtree(
         # Position = the slot's bone, plus the attachment's own offset from it.
         # Both are needed: five face parts share one `head` bone, so the bone
         # alone would stack them, and the offset alone would ignore the rig.
-        bone_x, bone_y = bones.get(slot.bone, (0.0, 0.0))
+        bone_x, bone_y = bone_x0, bone_y0 = bones.get(slot.bone, (0.0, 0.0))
         if nested:
-            parent_x, parent_y = bones.get(parent, (0.0, 0.0))
-            bone_x, bone_y = bone_x - parent_x, bone_y - parent_y
+            parent_bone = slot_of[parent].bone
+            parent_x, parent_y = bones.get(parent_bone, (0.0, 0.0))
+            bone_x, bone_y = bone_x0 - parent_x, bone_y0 - parent_y
+            if bones_mode:
+                # Relative to the parent BONE: the parent node sits at its bone
+                # plus its own attachment offset, which a chain must not inherit.
+                drawn_parent = drawn_attachment(desc, skin, slot_of[parent])
+                if drawn_parent is not None:
+                    bone_x -= drawn_parent[1].x
+                    bone_y -= drawn_parent[1].y
         else:
             bone_x, bone_y = bone_x - origin[0], bone_y - origin[1]
         bone_x += attachment.x
@@ -1038,10 +1392,12 @@ def build_rig_subtree(
                 visual.asset_geometry = geometry
 
         # The bone's rest pose (an#339) poses the part that IS on it; a slot
-        # nested under its bone's primary slot gets it from that parent.
+        # nested under a part on the SAME bone gets it from that parent.
         rest = (
             rest_transform(bone_of[slot.bone])
-            if apply_rest_pose and not nested and slot.bone in bone_of
+            if apply_rest_pose
+            and slot.bone in bone_of
+            and not (nested and slot_of[parent].bone == slot.bone)
             else {}
         )
         node = NodeJSON(
@@ -1052,11 +1408,48 @@ def build_rig_subtree(
         nodes[slot.name] = node
         children_of.setdefault(parent if nested else "", []).append(node)
 
-    _record_missing_parts(entity, missing_art, drawn=set(nodes), into=resolutions)
-
     for parent_name, kids in children_of.items():
         if parent_name and parent_name in nodes:
             nodes[parent_name].children = kids
+
+    # A part is drawn only if its whole chain was built: one whose parent was
+    # not (its art missing) is an orphan, a hole in the picture like the parent
+    # (an#340). One whose parent the genre skipped is meant to go with it.
+    attached: set[str] = set()
+    pending = list(children_of.get("", []))
+    while pending:
+        node = pending.pop()
+        attached.add(node.name)
+        pending.extend(node.children)
+    _record_missing_parts(entity, missing_art, drawn=attached, into=resolutions)
+
+    def _skipped_above(name: str) -> bool:
+        seen: set[str] = set()
+        cursor = parents.get(name)
+        while cursor is not None and cursor not in seen:
+            if cursor in skip:
+                return True
+            seen.add(cursor)
+            cursor = parents.get(cursor)
+        return False
+
+    for name in sorted(set(nodes) - attached):
+        if resolutions is None or _skipped_above(name):
+            continue
+        resolutions.append(
+            AssetResolutionJSON(
+                id=f"{entity.id}/{name}",
+                kind="part",
+                store=entity.store,
+                ref=entity.ref,
+                resolved="orphaned",
+                fallback=True,
+                detail=(
+                    f"slot {name!r} nests under {parents.get(name)!r}, which was not "
+                    "built (its art is missing), so it draws nothing either"
+                ),
+            )
+        )
 
     return NodeJSON(
         name=entity.id,

@@ -22,6 +22,7 @@ from an.audio.cli import _dispatch_funcs as _voices_dispatch_funcs
 from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
 from an.build.cli import _dispatch_funcs as _cache_dispatch_funcs
 from an.sounds_cli import _dispatch_funcs as _sounds_dispatch_funcs
+from an.props_cli import _dispatch_funcs as _props_dispatch_funcs
 from an.library.root import CORE_PACKAGE
 from an.library.root import project_dir as _project_dir
 
@@ -716,4 +717,6 @@ _dispatch_namespaces: dict[str, list] = {
     "cache": _cache_dispatch_funcs,
     # The sounds store (an#318): `an sounds add <dir> <key> <url> --license …`.
     "sounds": _sounds_dispatch_funcs,
+    # A prop's asset folder (an#340): `an props validate <key>`, `an props contract`.
+    "props": _props_dispatch_funcs,
 }

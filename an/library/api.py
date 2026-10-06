@@ -2888,8 +2888,10 @@ def _load_genres() -> None:
     facet would come back empty. Idempotent and cheap after the first call.
     """
     from an.genres import load
+    from an.stage.props import register_prop_analyser  # the stage's rig kind (an#340)
 
     load()
+    register_prop_analyser()
 
 
 def _check_capability_terms(terms: Iterable[str]) -> None:

@@ -24,6 +24,8 @@ rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
            toppling about it, beside the same rig placed by its bones' extent
 rig_rest   a tripod whose legs are ONE drawing splayed by their bones' rest
            rotation (an#339), tilting as a whole with the splay intact
+rig_chain  a desk-lamp arm in ``nesting: bones`` (an#340): base, upper arm,
+           forearm and a shade nested on it, posed by three tweens
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -43,7 +45,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -287,6 +289,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "intact. A regression that dropped the rest pose (three parallel "
             "legs), applied it twice, or let the entity's rotation replace a "
             "leg's instead of composing with it moves a golden."
+        ),
+    ),
+    "rig_chain": Fixture(
+        path=f"{CORPUS_DIRNAME}/rig_chain",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a desk-lamp prop with `nesting: bones` (an#340): base -> upper arm "
+            "-> forearm, and a shade NESTED on the forearm's bone (the sword in "
+            "the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the "
+            "forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, "
+            "the shade 0 -> 0.6: each turns about its joint and carries what "
+            "hangs from it. A regression that flattened the chain (forearm "
+            "left behind by the upper arm), inherited a parent's attachment "
+            "offset, or applied a rest pose twice moves a golden."
         ),
     ),
 }
