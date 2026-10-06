@@ -6,6 +6,10 @@ preset, a method or a version cannot change without the skill saying so::
 
     python -m an.semantic.docs --write .claude/skills/an/SKILL.md
 
+Each owner renders only its own rows (an#354): ``an``'s skill carries the core
+vocabulary, and a genre keeps its rows in its own skill, regenerated and checked
+there with ``--owner <genre>``, so a genre change cannot turn ``an`` red.
+
 >>> "| `walk` |" in skill_vocabulary_section() or "| `tween` |" in skill_vocabulary_section()
 True
 """
@@ -15,8 +19,10 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from an.genres.registry import CORE_OWNER
 from an.semantic.entries import LEVELS, Entry, Method
-from an.semantic.registry import aspects, entries, methods_of
+from an.semantic import owner_of_aspect
+from an.semantic.registry import aspects, entries, methods_of, owner_of
 
 __all__ = [
     "BEGIN_MARKER",
@@ -46,6 +52,10 @@ def _levels(e: Entry) -> str:
     return ", ".join(lv for lv in LEVELS if lv in e.levels)
 
 
+def _owned_by(owner: str, entry_id: str) -> bool:
+    return owner_of(entry_id) == owner
+
+
 def _table(found: tuple[Entry, ...]) -> list[str]:
     rows = ["| Name | Version | Levels | What it is |", "|---|---|---|---|"]
     for e in found:
@@ -55,24 +65,42 @@ def _table(found: tuple[Entry, ...]) -> list[str]:
     return rows
 
 
-def skill_vocabulary_section() -> str:
-    """The markdown between the markers: one table per kind, then the methods by aspect."""
-    out = [
-        "## Vocabulary (generated)",
-        "",
-        "Every name a scene may use, with its version and the spectrum levels it "
-        "accepts ((a) typed, (b-name) a registered name, (b-llm) a description "
-        "resolved before the IR, (c) a checked goal). `an.semantic.vocabulary()` "
-        "returns the same list as data; easings: `an.timing.easing.easing_entries()`.",
-    ]
+def skill_vocabulary_section(*, owner: str = CORE_OWNER) -> str:
+    """The markdown between the markers: one table per kind, then the methods by aspect.
+
+    Only the rows ``owner`` registered: the core by default, a genre's own with
+    ``owner=<genre>`` (its skill points back here for the core rows).
+    """
+    if owner == CORE_OWNER:
+        out = [
+            "## Vocabulary (generated)",
+            "",
+            "Every core name a scene may use, with its version and the spectrum levels it "
+            "accepts ((a) typed, (b-name) a registered name, (b-llm) a description "
+            "resolved before the IR, (c) a checked goal). A genre adds its own presets "
+            "and methods, listed in its own skill (the cut-out genre's: the `cutan` skill, "
+            "section \"Vocabulary (generated)\"). `an.semantic.vocabulary()` "
+            "returns the whole list as data; easings: `an.timing.easing.easing_entries()`.",
+        ]
+    else:
+        out = [
+            "## Vocabulary (generated)",
+            "",
+            f"The names and methods the `{owner}` genre adds to the core vocabulary, with "
+            "their versions and the spectrum levels each accepts (levels as in the `an` "
+            "skill's vocabulary section, which lists the core names). "
+            "`an.semantic.vocabulary()` returns the whole list as data. Regenerate with "
+            f"`python -m an.semantic.docs --write <this file> --owner {owner}`.",
+        ]
     for kind, heading in SKILL_KINDS:
-        found = entries(kind=kind)
+        found = tuple(e for e in entries(kind=kind) if _owned_by(owner, e.id))
         if found:
             out += ["", f"### {heading}", "", *_table(found)]
     method_rows: list[str] = []
+    own_aspects = tuple(a for a in aspects() if owner_of_aspect(a.name) == owner)
     for a in aspects():
         for m in methods_of(a.name):
-            if not isinstance(m, Method):
+            if not isinstance(m, Method) or not _owned_by(owner, m.id):
                 continue
             needs = ", ".join(f"`{r}`" for r in m.requires) or "nothing"
             method_rows.append(
@@ -83,12 +111,19 @@ def skill_vocabulary_section() -> str:
             "",
             "### Methods, by aspect",
             "",
-            "Default chains: "
-            + "; ".join(
-                f"**{a.name}** " + " → ".join(f"`{c}`" for c in a.chain)
-                for a in aspects()
-            )
-            + ". `an character capabilities <name>` says which apply to a character and what is missing for the rest.",
+            *(
+                [
+                    "Default chains: "
+                    + "; ".join(
+                        f"**{a.name}** " + " → ".join(f"`{c}`" for c in a.chain)
+                        for a in own_aspects
+                    )
+                    + ". "
+                ]
+                if own_aspects
+                else []
+            ),
+            "`an character capabilities <name>` says which apply to a character and what is missing for the rest.",
             "",
             "| Aspect | Method | Spelled | Version | Requires | What it is |",
             "|---|---|---|---|---|---|",
@@ -115,17 +150,25 @@ def current_section(text: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """``--write PATH`` rewrites the section in place; ``--check PATH`` exits 1 when stale."""
+    """``--write PATH`` rewrites the section in place; ``--check PATH`` exits 1 when stale.
+
+    ``--owner NAME`` renders the rows ``NAME`` registered instead of the core's.
+    """
     from an.genres import load
 
     args = list(sys.argv[1:] if argv is None else argv)
-    if len(args) != 2 or args[0] not in ("--write", "--check"):
-        print("usage: python -m an.semantic.docs (--write|--check) SKILL.md")
+    owner = CORE_OWNER
+    if "--owner" in args:
+        i = args.index("--owner")
+        owner = args[i + 1] if i + 1 < len(args) else ""
+        del args[i : i + 2]
+    if len(args) != 2 or args[0] not in ("--write", "--check") or not owner:
+        print("usage: python -m an.semantic.docs (--write|--check) SKILL.md [--owner NAME]")
         return 2
     load()
     path = Path(args[1])
     text = path.read_text(encoding="utf-8")
-    fresh = skill_vocabulary_section()
+    fresh = skill_vocabulary_section(owner=owner)
     if args[0] == "--check":
         stale = current_section(text) != fresh
         print("stale" if stale else "up to date")

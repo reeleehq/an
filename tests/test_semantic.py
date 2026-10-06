@@ -322,14 +322,24 @@ def test_the_prompt_lists_only_easings_a_tween_may_name():
     assert "smooth" not in listed  # a kernel easing the stage does not draw yet
 
 
-@pytest.mark.genre("cutout_animation")
 def test_the_skill_vocabulary_section_is_generated_and_current():
+    """Core rows only (an#354): a genre's rows are checked in the genre's own repository,
+    so this test reads the same with or without a genre installed."""
     from an.semantic.docs import current_section, skill_vocabulary_section
 
     skill = (ROOT / ".claude" / "skills" / "an" / "SKILL.md").read_text(encoding="utf-8")
     assert current_section(skill) == skill_vocabulary_section(), (
         "run: python -m an.semantic.docs --write .claude/skills/an/SKILL.md"
     )
+
+
+def test_the_docs_say_a_legless_walk_glides():
+    """an#335: a legless figure glides since cutan#8; no doc still says it rocks."""
+    skill = (ROOT / ".claude" / "skills" / "an" / "SKILL.md").read_text(encoding="utf-8")
+    assert "legless ones rock" not in skill
+    assert "falls back to a rock on a legless figure" not in skill
+    arch = (ROOT / "misc" / "docs" / "architecture_as_built.md").read_text(encoding="utf-8")
+    assert "a rock for a legless figure;" not in arch
 
 
 # --------------------------------------------------------------------------- the shot digest
