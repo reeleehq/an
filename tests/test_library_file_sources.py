@@ -452,3 +452,18 @@ def test_s2_an_unreadable_parent_stands_in_as_recorded():
     r = publish(lib, "prop.lamp-red", {"name": "red"}, {"a.svg": COLLAR, "b.svg": STRAY},
                 source=CC0)
     assert r.created
+
+
+def test_reindex_resolves_lineage_in_the_machines_libraries():
+    """an#361: a promoted derivative's free files stay free when the core is
+    reindexed without the genre library on its search path."""
+    genre, core = open_library("cutan"), open_library("an")
+    publish(genre, "prop.stu", {"name": "stu"}, STU_FILES, source=CC0,
+            license_parts=HEADS_PRIVATE)
+    publish(genre, "prop.stu-hat", {"name": "hat"}, STU_FILES, source=CC0,
+            derived_from=["cutan:prop.stu@v001"])
+    promote([genre], "cutan:prop.stu-hat@v001", to=core, allow_restricted=True)
+    assert _floor(core, COLLAR) == {"an:prop.stu-hat": "free"}
+    reindex(core)  # no search=: the genre library is found on the machine
+    assert _floor(core, COLLAR) == {"an:prop.stu-hat": "free"}
+    assert _floor(core, HEAD) == {"an:prop.stu-hat": "private"}
