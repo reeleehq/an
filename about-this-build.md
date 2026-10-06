@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-10-06 14:21 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4eac66e5375ae1225c66e30e9c8eb0dc16af2b7e"><code>4eac66e</code></a> on branch <code>main</code>, for **an 0.1.202** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-06 14:49 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/6179b039e7e2c7b43c0534980b3d25d2eb4a224c"><code>6179b03</code></a> on branch <code>main</code>, for **an 0.1.204** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/4eac66e5375ae1225c66e30e9c8eb0dc16af2b7e"><code>4eac66e5375ae1225c66e30e9c8eb0dc16af2b7e</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/6179b039e7e2c7b43c0534980b3d25d2eb4a224c"><code>6179b039e7e2c7b43c0534980b3d25d2eb4a224c</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.202</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.204</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37477382455">37477382455</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37481096038">37481096038</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>9882318f6c523a1338bf1df19643ff4e5ae4012b</code> (in the history of the built commit) |
+| Event commit | <code>fe9e0ac7000ee5fb60a7cbdf5eccdcd5f80b68db</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -33,7 +33,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | epythet  | 0.2.12  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
-| Python   | 3.12.14 |
+| Python   | 3.12.15 |
 
 ## Configuration as resolved
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.202/">0.1.202</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.204/">0.1.204</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 4eac66e5375ae1225c66e30e9c8eb0dc16af2b7e
+git checkout 6179b039e7e2c7b43c0534980b3d25d2eb4a224c
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
