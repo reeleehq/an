@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=f3e4123e"></script>
+    <script src="../_static/documentation_options.js?v=c41c9854"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.surface" href="an.stage.surface.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.215" />
+  <meta name="docsearch:version" content="0.1.216" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -804,11 +804,24 @@ white background.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.text.FontIdentity">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">FontIdentity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedded</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#FontIdentity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.FontIdentity" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.text.</span></span><span class="sig-name descname"><span class="pre">FontIdentity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedded</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'basic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#FontIdentity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.FontIdentity" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Which face drew a block — by its bytes, not its name.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.FontIdentity.features">
+<span class="sig-name descname"><span class="pre">features</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.stage.text.FontIdentity.features" title="Link to this definition">#</a></dt>
+<dd><p>a tag
+asked for and missing here was not in the font. Labelled only when
+there is one, so a block without features labels as before.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The requested OpenType features this face applied (an#362)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.stage.text.FontIdentity.label">
 <span class="sig-name descname"><span class="pre">label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text.html#FontIdentity.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text.FontIdentity.label" title="Link to this definition">#</a></dt>
@@ -923,6 +936,20 @@ strings the frames show. Requires <code class="docutils literal notranslate"><sp
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.features">
+<span class="sig-name descname"><span class="pre">features</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.features" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">[&quot;tnum&quot;]</span></code> sets tabular
+figures. <code class="docutils literal notranslate"><span class="pre">None</span></code> = the block’s default: a <code class="docutils literal notranslate"><span class="pre">counter</span></code> asks for
+<code class="xref py py-data docutils literal notranslate"><span class="pre">COUNTER_FEATURES</span></code>, anything else for none. Whether the face
+has them is recorded with it (<code class="docutils literal notranslate"><span class="pre">meta.fonts</span></code>, <code class="docutils literal notranslate"><span class="pre">features:</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>OpenType features to apply, by tag (an#362)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.text.TextDescriptor.font">
 <span class="sig-name descname"><span class="pre">font</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.text.TextDescriptor.font" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">None</span></code> = the embedded face; else a font FILE path (see the module doc).</p>
@@ -1008,6 +1035,24 @@ tracked string one run per glyph, so a word unit would not exist.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Extra advance per glyph, in em. Only with <code class="docutils literal notranslate"><span class="pre">unit=&quot;glyph&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stage.text.TextDescriptor.typeset_features">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">typeset_features</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.stage.text.TextDescriptor.typeset_features" title="Link to this definition">#</a></dt>
+<dd><p>its own, else a counter’s
+tabular figures (an#362), so a number does not change width as it counts.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TextDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"n"</span><span class="p">,</span> <span class="n">counter</span><span class="o">=</span><span class="p">{</span><span class="s2">"format"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{d}</span><span class="s2">"</span><span class="p">},</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"block"</span><span class="p">)</span><span class="o">.</span><span class="n">typeset_features</span>
+<span class="go">('tnum',)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TextDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"x"</span><span class="p">)</span><span class="o">.</span><span class="n">typeset_features</span>
+<span class="go">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The features the block is set with</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1308,6 +1353,7 @@ swap declaration states it (<code class="docutils literal notranslate"><span cla
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.DFLT_TEXT_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_TEXT_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.DFLT_TEXT_SIZE"><code class="docutils literal notranslate"><span class="pre">DFLT_TEXT_SIZE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.FontIdentity"><code class="docutils literal notranslate"><span class="pre">FontIdentity</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.FontIdentity.features"><code class="docutils literal notranslate"><span class="pre">FontIdentity.features</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.FontIdentity.label"><code class="docutils literal notranslate"><span class="pre">FontIdentity.label()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.FontIdentity.layout_engine"><code class="docutils literal notranslate"><span class="pre">FontIdentity.layout_engine</span></code></a></li>
 </ul>
@@ -1320,6 +1366,7 @@ swap declaration states it (<code class="docutils literal notranslate"><span cla
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.color"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.color</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.content"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.content</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.counter"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.features"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.features</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.font"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.font</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.max_width"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.max_width</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.model_config</span></code></a></li>
@@ -1331,6 +1378,7 @@ swap declaration states it (<code class="docutils literal notranslate"><span cla
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.text"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.text</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.texts"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.texts</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.tracking"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.tracking</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.typeset_features"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.typeset_features</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text.TextDescriptor.unit"><code class="docutils literal notranslate"><span class="pre">TextDescriptor.unit</span></code></a></li>
 </ul>
 </li>

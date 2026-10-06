@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-06T16:13:24Z",
+  "built_at": "2026-10-06T16:27:33Z",
   "package": {
     "name": "an",
-    "version": "0.1.215",
+    "version": "0.1.216",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "5fd85f2012758f8a0786f527595de90f66bcaaf0",
-    "short_commit": "5fd85f2",
+    "commit": "f023c3400279f050ee7ca6a8dac5228fe028a334",
+    "short_commit": "f023c34",
     "branch": "main",
     "tags": [
-      "0.1.215"
+      "0.1.216"
     ],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/an",
-    "commit_url": "https://github.com/thorwhalen/an/commit/5fd85f2012758f8a0786f527595de90f66bcaaf0",
+    "commit_url": "https://github.com/thorwhalen/an/commit/f023c3400279f050ee7ca6a8dac5228fe028a334",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/an",
-    "sha": "505b02859defe6dcb6d959d9a11e639f67d801f9",
+    "sha": "f82cf2edd47376a61b855f0af2920548f67f3ad3",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "37493253686",
-    "run_url": "https://github.com/thorwhalen/an/actions/runs/37493253686",
+    "run_id": "37495177331",
+    "run_url": "https://github.com/thorwhalen/an/actions/runs/37495177331",
     "server_url": "https://github.com"
   },
   "tools": {
     "epythet": "0.2.12",
     "sphinx": "9.1.0",
     "docutils": "0.22.4",
-    "python": "3.12.14"
+    "python": "3.12.15"
   },
   "config": {
     "theme": "auto",
@@ -58,15 +58,15 @@
   },
   "site": {
     "modules_documented": 201,
-    "objects_documented": 2586
+    "objects_documented": 2589
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.215",
+    "latest": "0.1.216",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout 5fd85f2012758f8a0786f527595de90f66bcaaf0\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout f023c3400279f050ee7ca6a8dac5228fe028a334\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

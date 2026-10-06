@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=f3e4123e"></script>
+    <script src="../../../_static/documentation_options.js?v=c41c9854"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.215" />
+  <meta name="docsearch:version" content="0.1.216" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -834,6 +834,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: Line height as a multiple of the size.</span>
 <span class="n">DFLT_LEADING</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span>
+<span class="c1">#: The OpenType features a counter block asks for (an#362): tabular figures,</span>
+<span class="c1">#: so "11" is as wide as "88" and a counting number does not jitter.</span>
+<span class="n">COUNTER_FEATURES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"tnum"</span><span class="p">,)</span>
 
 <span class="c1">#: Font file suffixes a `font` path may carry.</span>
 <span class="n">FONT_SUFFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".ttf"</span><span class="p">,</span> <span class="s2">".otf"</span><span class="p">,</span> <span class="s2">".ttc"</span><span class="p">)</span>
@@ -978,6 +981,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">stroke_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_TEXT_STROKE_COLOUR</span>
     <span class="c1">#: ``None`` = the embedded face; else a font FILE path (see the module doc).</span>
     <span class="n">font</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: OpenType features to apply, by tag (an#362): ``["tnum"]`` sets tabular</span>
+    <span class="c1">#: figures. ``None`` = the block's default: a ``counter`` asks for</span>
+    <span class="c1">#: :data:`COUNTER_FEATURES`, anything else for none. Whether the face</span>
+    <span class="c1">#: has them is recorded with it (``meta.fonts``, ``features:``).</span>
+    <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">align</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"center"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"center"</span>
     <span class="c1">#: Wrap width as a fraction of frame WIDTH; ``None`` = break only at newlines.</span>
     <span class="n">max_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1043,6 +1051,20 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">typeset_features</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The features the block is set with: its own, else a counter's</span>
+<span class="sd">        tabular figures (an#362), so a number does not change width as it counts.</span>
+
+<span class="sd">        &gt;&gt;&gt; TextDescriptor(name="n", counter={"format": "{d}"}, unit="block").typeset_features</span>
+<span class="sd">        ('tnum',)</span>
+<span class="sd">        &gt;&gt;&gt; TextDescriptor(name="t", text="x").typeset_features</span>
+<span class="sd">        ()</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">COUNTER_FEATURES</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1175,6 +1197,10 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: so the same bytes can set differently on two machines. The embedded</span>
     <span class="c1">#: face is always ``basic``.</span>
     <span class="n">layout_engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"basic"</span>
+    <span class="c1">#: The requested OpenType features this face applied (an#362): a tag</span>
+    <span class="c1">#: asked for and missing here was not in the font. Labelled only when</span>
+    <span class="c1">#: there is one, so a block without features labels as before.</span>
+    <span class="n">features</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
 <div class="viewcode-block" id="FontIdentity.label">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.FontIdentity.label">[docs]</a>
@@ -1185,6 +1211,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">family</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="si">}{</span><span class="n">where</span><span class="si">}</span><span class="s2"> sha256:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sha256</span><span class="si">}</span><span class="s2"> "</span>
             <span class="sa">f</span><span class="s2">"layout:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">layout_engine</span><span class="si">}</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" features:</span><span class="si">{</span><span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
         <span class="p">)</span></div>
 </div>
 
@@ -1356,6 +1383,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">request</span> <span class="o">=</span> <span class="n">_font_request</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">base_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">style</span> <span class="o">=</span> <span class="n">TextStyle</span><span class="p">(</span>
         <span class="n">family</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
+        <span class="n">features</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">typeset_features</span><span class="p">,</span>
         <span class="n">size</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
         <span class="n">tracking</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">tracking</span><span class="p">,</span>
         <span class="n">leading</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">leading</span><span class="p">,</span>
@@ -1435,6 +1463,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">sha256</span><span class="o">=</span><span class="n">face_digest</span><span class="p">(</span><span class="n">face</span><span class="p">),</span>
         <span class="n">embedded</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layout_engine</span><span class="o">=</span><span class="n">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">),</span>
+        <span class="n">features</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">applied_features</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">TextLayout</span><span class="p">(</span>
         <span class="n">units</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>

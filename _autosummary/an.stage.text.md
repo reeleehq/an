@@ -136,11 +136,20 @@ white background.
 * **Type:**
   Type size as a FRACTION OF FRAME HEIGHT (tituli’s convention)
 
-### *class* an.stage.text.FontIdentity(family, style, sha256, embedded, layout_engine='basic')
+### *class* an.stage.text.FontIdentity(family, style, sha256, embedded, layout_engine='basic', features=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Which face drew a block — by its bytes, not its name.
+
+#### features *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
+
+a tag
+asked for and missing here was not in the font. Labelled only when
+there is one, so a block without features labels as before.
+
+* **Type:**
+  The requested OpenType features this face applied (an#362)
 
 #### label()
 
@@ -226,6 +235,16 @@ strings the frames show. Requires `unit="block"`; no `text`/`texts`.
 * **Type:**
   A number that reads as text (an#342)
 
+#### features *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`["tnum"]` sets tabular
+figures. `None` = the block’s default: a `counter` asks for
+`COUNTER_FEATURES`, anything else for none. Whether the face
+has them is recorded with it (`meta.fonts`, `features:`).
+
+* **Type:**
+  OpenType features to apply, by tag (an#362)
+
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
@@ -287,6 +306,21 @@ tracked string one run per glyph, so a word unit would not exist.
 
 * **Type:**
   Extra advance per glyph, in em. Only with `unit="glyph"`
+
+#### *property* typeset_features *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+its own, else a counter’s
+tabular figures (an#362), so a number does not change width as it counts.
+
+```pycon
+>>> TextDescriptor(name="n", counter={"format": "{d}"}, unit="block").typeset_features
+('tnum',)
+>>> TextDescriptor(name="t", text="x").typeset_features
+()
+```
+
+* **Type:**
+  The features the block is set with
 
 #### unit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['word', 'glyph', 'line', 'block']*
 
