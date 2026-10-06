@@ -42,6 +42,7 @@ Point = tuple[float, float]
 
 __all__ = [
     "wobble_polyline",
+    "wobble_with_vertices",
     "wobble_point_count",
     "WOBBLE_SAMPLES_PER_WAVELENGTH",
     "MAX_WOBBLE_POINTS",
@@ -98,12 +99,29 @@ def wobble_polyline(
     wavelength: float,
     seed: str,
 ) -> list[Point]:
+    """``points`` resampled and wobbled; see :func:`wobble_with_vertices`."""
+    return wobble_with_vertices(
+        points, amplitude=amplitude, wavelength=wavelength, seed=seed
+    )[0]
+
+
+def wobble_with_vertices(
+    points: Sequence[Point],
+    *,
+    amplitude: float,
+    wavelength: float,
+    seed: str,
+) -> tuple[list[Point], list[int]]:
     """``points`` resampled every ``wavelength / 8`` px and each sample moved
     up to ``amplitude`` px along the path's normal by seeded smooth noise.
 
     The original vertices are kept as samples (a corner stays a corner) and
     move along the bisector of their two legs. Raises ``ValueError`` when the
     result would carry more than :data:`MAX_WOBBLE_POINTS` points.
+
+    Also returns, for each input point, its index in the output (where a
+    vertex landed), so a caller can find the authored points on the wobbled
+    line (:func:`an.stage.paths.drawn_polyline`).
     """
     cum = cumulative_lengths(points)
     length = cum[-1]
@@ -117,6 +135,8 @@ def wobble_polyline(
     vertices = {cum[i]: i for i in range(1, len(points) - 1)}
     stations = sorted({*(length * k / n for k in range(n + 1)), *vertices})
     out: list[Point] = []
+    where = {s: k for k, s in enumerate(stations)}
+    landed = [0, *(where[cum[i]] for i in range(1, len(points) - 1)), len(stations) - 1]
     for s in stations:
         x, y = point_at(points, cum, s)
         edge = min(s, length - s) / wavelength
@@ -124,7 +144,7 @@ def wobble_polyline(
         shift = amplitude * envelope * _noise(seed, s / wavelength)
         nx, ny = _station_normal(points, cum, s, vertices.get(s))
         out.append((x + nx * shift, y + ny * shift))
-    return out
+    return out, landed
 
 
 def _station_normal(

@@ -82,8 +82,6 @@ from an.stage.rig import (  # noqa: F401  (re-exported)
 )
 from an.genres import action_kind, action_kind_names, entity_kind, entity_space_resolver
 from an.genres.registry import CompilePass
-from an.stage.path_geometry import flatten_curve
-from an.stage.path_wobble import wobble_polyline
 from an.ir.compose import FlatAction, flatten
 from an.ir.schema import (
     CameraKey,
@@ -123,7 +121,12 @@ from an.stage.environments import (
     Plane,
 )
 from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
-from an.stage.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
+from an.stage.paths import (
+    PATH_DOCUMENT_KIND,
+    PathDescriptor,
+    drawn_polyline,
+    resolve_path,
+)
 from an.stage import tree as stage_tree
 from an.stage.text_layout import build_text_subtree, svg_data_uri, text_document  # noqa: F401  (re-exported)
 from an.stage.text import font_base_dir, text_entity_problem
@@ -2638,21 +2641,7 @@ def _build_path_subtree(
             resolved="path",
         )
     )
-    points = flatten_curve(
-        desc.points,
-        curve=desc.curve,
-        samples=desc.samples_per_segment,
-        sampling=desc.sampling,
-    )
-    if desc.closed and points[-1] != points[0]:
-        points.append(points[0])
-    if desc.wobble:
-        points = wobble_polyline(
-            points,
-            amplitude=desc.wobble,
-            wavelength=desc.wobble_wavelength_px,
-            seed=f"{entity.id}:{desc.wobble_seed}",
-        )
+    points, _ = drawn_polyline(desc, entity.id)
     colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
         name=entity.id,

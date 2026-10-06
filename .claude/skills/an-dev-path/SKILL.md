@@ -38,9 +38,11 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 
 - **Variable width** (`width_profile`): `path_geometry(..., width=, width_profile=)` adds an `outlines` key (absent otherwise, in both implementations), one polygon per stroke or dash, from `stroke_outline`, mirrored by `runtime.js::pathOutline`/`pathProfileWidth`. The width at a vertex is read at its arc length on the WHOLE path (the piece's start plus the distance along it), so trim never makes the width crawl. Each vertex is offset along the normalised bisector of its legs' normals by `half / cos`, capped at `OUTLINE_MITER_LIMIT` × half (a JS constant pinned by the parity harness). Butt ends; a hairpin can self-intersect (earcut fills it oddly), which smooth flattened curves do not show. `drawPath` fills the outlines and draws no `lineStyle` stroke. The parity battery crosses every case with three profiles. Corpus scene `path_taper`.
 
+- **Per-point timing** (`draw_on_through`): the "per-point trim easing" item, built as an authoring helper rather than a new wire field. `drawn_polyline(desc, entity_id)` is now the ONE place the polyline is made (flatten, close, wobble), used by `_build_path_subtree` too, and it returns where each authored point landed (`wobble_with_vertices` reports the vertices' output indices). The helper's tweens target those points' exact arc fractions, so the tip is on the point at its beat even on a wobbled path.
+
 ## Not built (still in #161)
 
-Round caps on a variable-width stroke; per-point trim easing; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
+Round caps on a variable-width stroke; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
 
 ## A style layer on top (hand-drawn wobble, stroke jitter)
 

@@ -1043,3 +1043,43 @@ def test_the_runtime_fills_a_tapered_stroke_instead_of_stroking_it():
     assert "moveTo" not in names and "lineTo" not in names
     (poly,) = [c for c in calls if c[0] == "drawPolygon"]
     assert poly[1] == [0, 4, 100, 0, 100, 0, 0, -4]
+
+
+# --- arrivals: a draw-on timed per point (an#161) -----------------------------------
+
+
+def _tip_at(scene_doc, entity, t):
+    from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
+
+    return evaluate_timeline(timeline_from_scene(scene_doc), t)[(entity, "trim_end")]
+
+
+@pytest.mark.parametrize("extra", [{}, {"wobble": 3.0, "wobble_wavelength": 30.0}, {"closed": True}])
+def test_the_tip_reaches_each_authored_point_on_its_beat(extra):
+    """`draw_on_through` times each leg; at each arrival the trim is exactly
+    the arc fraction of that point on the polyline the compiler drew (wobble
+    and the closing leg included)."""
+    from an.stage.path_geometry import cumulative_lengths
+    from an.stage.paths import draw_on_through, drawn_polyline, resolve_path
+
+    doc = _doc(trim_end=0.0, **extra)
+    desc = resolve_path(doc)
+    pts, anchors = drawn_polyline(desc, "route")
+    arrivals = [0.25, 0.4, 0.9][: len(anchors) - 1]
+    shot = _shot(actions=draw_on_through("route", doc, arrivals))
+    scene = compile_shot(shot, mall={"props": {"route": doc}}, fps=12, width=320, height=240)
+    drawn = scene.scene.children[0].visual.path.points
+    assert drawn == pts  # the helper measured what the compiler drew
+    cum = cumulative_lengths(pts)
+    for t, i in zip(arrivals, anchors[1:]):
+        assert _tip_at(scene, "route", t) == pytest.approx(cum[i] / cum[-1], abs=1e-12)
+    assert _tip_at(scene, "route", 0.0) == 0.0
+
+
+def test_draw_on_through_refuses_a_wrong_count_or_order():
+    from an.stage.paths import draw_on_through
+
+    with pytest.raises(ValueError, match="takes 2 arrival times"):
+        draw_on_through("route", _doc(), [1.0])
+    with pytest.raises(ValueError, match="must increase"):
+        draw_on_through("route", _doc(), [1.0, 0.5])

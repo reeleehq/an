@@ -62,6 +62,8 @@ __all__ = [
     "PATH_DOCUMENT_KIND",
     "PathDescriptor",
     "resolve_path",
+    "drawn_polyline",
+    "draw_on_through",
     "DFLT_STROKE_COLOUR",
     "MIN_DASH_PERIOD",
 ]
@@ -419,3 +421,99 @@ def resolve_path(
     stored = migrate(dict(document), kind=PATH_DOCUMENT_KIND.name)
     merged = {**stored, **dict(overrides or {})}
     return PathDescriptor.model_validate(merged)
+
+
+def drawn_polyline(
+    desc: PathDescriptor, entity_id: str
+) -> tuple[list[tuple[float, float]], list[int]]:
+    """The polyline the compiler puts on the wire for entity ``entity_id``
+    drawing ``desc`` — flattened, closed, wobbled (the wobble is seeded by
+    the entity) — and the index in it of each AUTHORED on-path point: every
+    point of a polyline, ``p0 p1 p2 ...`` of a cubic chain (not its controls),
+    and the closing return to the first point when ``closed`` added one.
+
+    >>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
+    >>> pts[anchors[-1]], anchors
+    ((0.0, 0.0), [0, 1, 2, 3])
+    """
+    from an.stage.path_geometry import flatten_curve
+    from an.stage.path_wobble import wobble_with_vertices
+
+    points = flatten_curve(
+        desc.points,
+        curve=desc.curve,
+        samples=desc.samples_per_segment,
+        sampling=desc.sampling,
+    )
+    step = desc.samples_per_segment if desc.curve == "cubic" else 1
+    anchors = list(range(0, len(points), step))
+    if desc.closed and points[-1] != points[0]:
+        points.append(points[0])
+        anchors.append(len(points) - 1)
+    if desc.wobble:
+        points, landed = wobble_with_vertices(
+            points,
+            amplitude=desc.wobble,
+            wavelength=desc.wobble_wavelength_px,
+            seed=f"{entity_id}:{desc.wobble_seed}",
+        )
+        anchors = [landed[i] for i in anchors]
+    return points, anchors
+
+
+def draw_on_through(
+    entity_id: str,
+    path: "PathDescriptor | Mapping[str, Any]",
+    arrivals: "list[float]",
+    *,
+    start: float = 0.0,
+    easing: Any = "ease_in_out",
+) -> list:
+    """A draw-on whose tip reaches each authored point at its own time (an#161).
+
+    ``arrivals[k]`` is when the tip reaches authored point ``k + 1`` (the tip
+    is at point 0, hidden, at ``start``): a route that reaches each city on a
+    beat, or slows into the last turn. One ``tween`` of ``trim_end`` per leg,
+    from the arc fraction of one point to the next on the polyline the
+    compiler draws (:func:`drawn_polyline`, wobble included, so the tip is ON
+    the point), each eased by ``easing``, preceded by a ``set`` of
+    ``trim_end`` to 0 at 0. ``arrivals`` are absolute shot times, increasing.
+
+    Returns a list of top-level actions for ``shot.actions.extend(...)``, as
+    :func:`an.stage.text.reveal_units` does.
+
+    >>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
+    ...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
+    >>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
+    [('set', 0.0), ('tween', 0.75), ('sequence', None)]
+    """
+    from an.ir import compose as c
+    from an.stage.path_geometry import cumulative_lengths
+
+    desc = path if isinstance(path, PathDescriptor) else resolve_path(path)
+    points, anchors = drawn_polyline(desc, entity_id)
+    if len(arrivals) != len(anchors) - 1:
+        raise ValueError(
+            f"the path has {len(anchors)} authored points, so it takes "
+            f"{len(anchors) - 1} arrival times (one per point after the first); "
+            f"got {len(arrivals)}"
+        )
+    times = [start, *arrivals]
+    if any(not b > a for a, b in zip(times, times[1:])):
+        raise ValueError(
+            f"arrival times must increase from start={start}; got {list(arrivals)}"
+        )
+    cum = cumulative_lengths(points)
+    fractions = [cum[i] / cum[-1] for i in anchors]
+    out: list = [c.set_(entity_id, "trim_end", 0.0)]
+    for k in range(1, len(times)):
+        tween = c.tween(
+            entity_id,
+            "trim_end",
+            to=fractions[k],
+            from_=fractions[k - 1],
+            duration=times[k] - times[k - 1],
+            easing=easing,
+        )
+        out.append(c.sequence(c.delay(times[k - 1]), tween) if times[k - 1] else tween)
+    return out
