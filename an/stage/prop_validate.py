@@ -47,7 +47,9 @@ BLOCKING: str = "error"
 ADVISORY: str = "warning"
 
 
-def validate_prop(prop_dir: str | Path, *, name: str | None = None) -> VerificationReport:
+def validate_prop(
+    prop_dir: str | Path, *, name: str | None = None
+) -> VerificationReport:
     """Check a prop folder (``prop.json`` + ``parts/``) against the rig contract, offline.
 
     Blocking: no or an unreadable descriptor, a structural rig problem (an
@@ -82,7 +84,11 @@ def validate_prop(prop_dir: str | Path, *, name: str | None = None) -> Verificat
     for problem in rig_problems(desc):
         report.add(BLOCKING, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
     for problem in chain_draw_order_problems(desc) + chain_pose_problems(desc):
-        report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem} (compiling a shot refuses it)")
+        report.add(
+            ADVISORY,
+            f"{PROP_META_NAME}#rig",
+            f"{who}: {problem} (compiling a shot refuses it)",
+        )
     for problem in rig_origin_problems(desc) + rig_rest_problems(desc):
         report.add(ADVISORY, f"{PROP_META_NAME}#rig", f"{who}: {problem}")
 

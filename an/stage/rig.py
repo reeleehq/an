@@ -463,7 +463,8 @@ def slot_parent_chain(desc: Any) -> dict[str, str | None]:
     }
     bones_mode = nesting_of(desc) == BONES_NESTING
     parent_bone = {
-        _field_of(b, "name"): _field_of(b, "parent") for b in _field_of(desc, "bones") or []
+        _field_of(b, "name"): _field_of(b, "parent")
+        for b in _field_of(desc, "bones") or []
     }
     out: dict[str, str | None] = {}
     for slot in slots:
@@ -529,7 +530,9 @@ def rig_problems(desc: Any) -> list[str]:
     for bone in bones:
         parent = _field_of(bone, "parent")
         if parent is not None and parent not in names:
-            out.append(f"bone {_field_of(bone, 'name')!r} names parent {parent!r}, which the rig does not declare")
+            out.append(
+                f"bone {_field_of(bone, 'name')!r} names parent {parent!r}, which the rig does not declare"
+            )
     reported: set[frozenset] = set()
     for start in sorted(names, key=str):
         path, cursor = [], start
@@ -537,7 +540,7 @@ def rig_problems(desc: Any) -> list[str]:
             path.append(cursor)
             cursor = parent_of.get(cursor)
         if cursor is not None:
-            loop = path[path.index(cursor):]
+            loop = path[path.index(cursor) :]
             key = frozenset(loop)
             if key not in reported:
                 reported.add(key)
@@ -574,7 +577,10 @@ def chain_draw_order_problems(desc: Any) -> list[str]:
     """
     if nesting_of(desc) != BONES_NESTING:
         return []
-    order = {_field_of(s, "name"): _field_of(s, "draw_order", 0) or 0 for s in _field_of(desc, "slots") or []}
+    order = {
+        _field_of(s, "name"): _field_of(s, "draw_order", 0) or 0
+        for s in _field_of(desc, "slots") or []
+    }
     parents = slot_parent_chain(desc)
     out = []
     for slot, parent in parents.items():
@@ -636,7 +642,10 @@ def chain_pose_problems(desc: Any) -> list[str]:
     if nesting_of(desc) != BONES_NESTING:
         return []
     bones = {_field_of(b, "name"): b for b in _field_of(desc, "bones") or []}
-    slot_bone = {_field_of(s, "name"): _field_of(s, "bone") for s in _field_of(desc, "slots") or []}
+    slot_bone = {
+        _field_of(s, "name"): _field_of(s, "bone")
+        for s in _field_of(desc, "slots") or []
+    }
     out, said = [], set()
     for slot, parent in slot_parent_chain(desc).items():
         if parent is None:
@@ -648,7 +657,11 @@ def chain_pose_problems(desc: Any) -> list[str]:
         while cursor is not None and cursor != stop and cursor not in seen:
             seen.add(cursor)
             bone = bones.get(cursor)
-            if bone is not None and cursor not in said and bones_carry_a_rest_pose({"bones": [bone]}):
+            if (
+                bone is not None
+                and cursor not in said
+                and bones_carry_a_rest_pose({"bones": [bone]})
+            ):
                 said.add(cursor)
                 out.append(
                     f"bone {cursor!r} carries no slot, but sits in the chain from "
@@ -694,7 +707,10 @@ def rig_affordances(desc: Any) -> dict[str, dict[str, Any]]:
             chain.append(cursor)
             cursor = parents[cursor]
         chains.append(list(reversed(chain)))
-    slot_bone = {_field_of(s, "name"): _field_of(s, "bone") for s in _field_of(desc, "slots") or []}
+    slot_bone = {
+        _field_of(s, "name"): _field_of(s, "bone")
+        for s in _field_of(desc, "slots") or []
+    }
 
     def joints(chain: list[str]) -> int:
         # Links between DIFFERENT bones: a face part on the head's own bone is
@@ -1141,11 +1157,15 @@ def _legacy_baked_face_slots(desc: Any, parents: Mapping[str, str | None]) -> se
     """
     if _field_of(desc, "face_overlay", True):
         return set()
-    head = next((s.name for s in desc.slots if s.bone == "head" and s.name == s.bone), None)
+    head = next(
+        (s.name for s in desc.slots if s.bone == "head" and s.name == s.bone), None
+    )
     # The face is the slots ON the head bone (not parts of its child bones,
     # which nest under the head too in `nesting: bones`).
     return {
-        s.name for s in desc.slots if head is not None and s.bone == "head" and s.name != head
+        s.name
+        for s in desc.slots
+        if head is not None and s.bone == "head" and s.name != head
     }
 
 
@@ -1264,9 +1284,16 @@ def build_rig_subtree(
             + chain_pose_problems(desc)
         )
         if broken:
-            raise RigError(f"rig {ref!r} cannot be built with `nesting: bones`: " + "; ".join(broken))
+            raise RigError(
+                f"rig {ref!r} cannot be built with `nesting: bones`: "
+                + "; ".join(broken)
+            )
     slot_of = {s.name: s for s in desc.slots}
-    skip = set(skip_slots) if skip_slots is not None else _legacy_baked_face_slots(desc, parents)
+    skip = (
+        set(skip_slots)
+        if skip_slots is not None
+        else _legacy_baked_face_slots(desc, parents)
+    )
 
     def _register(slot_name: str, attachment_name: str, attachment: Attachment) -> str:
         # Slot-qualified on purpose: attachment names are a PER-SLOT namespace

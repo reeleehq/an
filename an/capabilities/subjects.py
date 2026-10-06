@@ -170,6 +170,7 @@ RIG_HIERARCHY = register_capability(
     ),
 )
 
+
 def _real_probe() -> dict[str, Any]:
     from an.check_requirements import playwright_browser_dirs
 

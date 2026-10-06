@@ -1893,7 +1893,9 @@ def _check_rig_document(
     # pre-flight is an ERROR; a flat rig's dangling bone only misplaces a part.
     if nesting_of(doc) == BONES_NESTING:
         cycles = [p for p in rig_problems(doc) if "cycle" in p]
-        for problem in cycles + chain_draw_order_problems(doc) + chain_pose_problems(doc):
+        for problem in (
+            cycles + chain_draw_order_problems(doc) + chain_pose_problems(doc)
+        ):
             report.add(
                 "error",
                 ir_path,
