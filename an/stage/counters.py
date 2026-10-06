@@ -281,6 +281,8 @@ def lower_counters(state: Any) -> None:
         keys = [_key_for(s, taken) for s in shown]
         texts = {k: taken[k] for k in dict.fromkeys(keys)}
         document = {**block.document, **dict(block.entity.overrides or {})}
+        # The lowered set keeps the counter's typesetting (tabular figures).
+        document["features"] = list(block.desc.typeset_features)
         document.pop("counter", None)
         document.pop("text", None)
         document.update(texts=texts, rest=keys[0], unit="block")

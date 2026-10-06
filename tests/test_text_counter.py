@@ -297,3 +297,97 @@ def test_a_value_tween_inside_a_loop_is_lowered_too():
     keys = _shown(doc, frames=30)
     assert keys[0] == "v_1" and keys[11] == "v_5", keys
     assert keys[12] == "v_1", "the second pass of the loop starts again from 1"
+
+
+# ------------------------------------------------- tabular figures (an#362)
+
+_UPM, _NARROW, _WIDE = 1000, 300, 600
+
+
+def _digits_font(path):
+    """A font FILE whose default digits are proportional ("1" narrow, the rest
+    wide) and whose `tnum` makes every digit one width."""
+    pytest.importorskip("fontTools")
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    from fontTools.fontBuilder import FontBuilder
+    from fontTools.pens.ttGlyphPen import TTGlyphPen
+
+    def box(width):
+        pen = TTGlyphPen(None)
+        for x, y in ((50, 0), (50, 700), (width - 50, 700), (width - 50, 0)):
+            (pen.lineTo if pen.points else pen.moveTo)((x, y))
+        pen.closePath()
+        return pen.glyph()
+
+    digits = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    widths = {".notdef": _WIDE, "space": _WIDE}
+    widths.update({d: (_NARROW if d == "one" else _WIDE) for d in digits})
+    widths.update({f"{d}.tnum": _WIDE for d in digits})
+    fb = FontBuilder(_UPM, isTTF=True)
+    fb.setupGlyphOrder(list(widths))
+    fb.setupCharacterMap({0x20: "space", **{0x30 + i: d for i, d in enumerate(digits)}})
+    fb.setupGlyf({n: box(w) for n, w in widths.items()})
+    fb.setupHorizontalMetrics({n: (w, 50) for n, w in widths.items()})
+    fb.setupHorizontalHeader(ascent=800, descent=-200)
+    fb.setupNameTable({"familyName": "Digits Test", "styleName": "Regular"})
+    fb.setupOS2(sTypoAscender=800, sTypoDescender=-200, usWinAscent=800, usWinDescent=200)
+    fb.setupPost()
+    subs = " ".join(f"sub {d} by {d}.tnum;" for d in digits)
+    addOpenTypeFeaturesFromString(fb.font, f"feature tnum {{ {subs} }} tnum;")
+    fb.save(str(path))
+    return str(path)
+
+
+def test_a_counter_sets_tabular_figures_so_it_does_not_change_width(tmp_path):
+    """In a font whose "1" is narrower than its "8", a counter's 11 and 88 are
+    one width: the block asks for `tnum` and the face records it applied."""
+    from an.stage.text import layout_text
+
+    font = _digits_font(tmp_path / "digits.ttf")
+
+    def width(**doc):
+        desc = TextDescriptor(name="n", unit="block", font=font, **doc)
+        lay = layout_text(desc, width=W, height=H)
+        x0, _, x1, _ = lay.units[0].box
+        return x1 - x0, lay.font
+
+    (w11, face), (w88, _) = (width(counter={"format": "{d}", "start": s}) for s in (11, 88))
+    assert w11 == w88
+    assert face.features == ("tnum",) and face.label().endswith(" features:tnum")
+    # the same strings as plain text are proportional: the jitter tnum removes
+    (p11, plain), (p88, _) = (width(text=s) for s in ("11", "88"))
+    assert p11 < p88 and plain.features == () and "features" not in plain.label()
+    # a block may ask for features itself, or turn the counter's off
+    assert width(text="11", features=["tnum"])[0] == w11
+    assert width(counter={"format": "{d}", "start": 11}, features=[])[0] == p11
+
+
+def test_the_embedded_face_has_no_tnum_so_its_label_is_unchanged():
+    """Aileron's digits are already one width; the request is recorded as not
+    applied, and the compiled label (golden-visible) does not move."""
+    from an.stage.text import layout_text
+
+    lay = layout_text(TextDescriptor(name="n", unit="block", counter={"format": "{d}", "start": 7}), width=W, height=H)
+    assert lay.font.features == () and "features" not in lay.font.label()
+
+
+def test_the_lowered_counter_keeps_its_tabular_figures(tmp_path):
+    """The lowering rebuilds the block as a `texts` set; the set is set with
+    the counter's `tnum`, and the compiled document records it. The test
+    font's digits are one box drawn at two widths, so with `tnum` every
+    drawing from 11 to 88 is the same texture; without it, "1"s are narrow."""
+    font = _digits_font(tmp_path / "digits.ttf")
+    shot = _shot([tween("day", "value", 88.0, 1.0, easing="linear")])
+
+    def compiled(**extra):
+        doc = {**_doc(format="{d}", start=11), "font": font, **extra}
+        return to_dict(compile_shot(shot, {"props": {"day": doc}}, width=W, height=H, fps=FPS))
+
+    def drawings(out):
+        return set(out["scene"]["children"][0]["children"][0]["visual"]["asset_sets"]["text"].values())
+
+    tabular, proportional = compiled(), compiled(features=[])
+    assert tabular["meta"]["fonts"]["day"].endswith(" features:tnum")
+    assert "features" not in proportional["meta"]["fonts"]["day"]
+    assert len(drawings(tabular)) == 1
+    assert len(drawings(proportional)) > 1

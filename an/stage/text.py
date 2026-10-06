@@ -122,6 +122,9 @@ DFLT_TEXT_STROKE_COLOUR: str = "#1a1a1a"
 
 #: Line height as a multiple of the size.
 DFLT_LEADING: float = 1.2
+#: The OpenType features a counter block asks for (an#362): tabular figures,
+#: so "11" is as wide as "88" and a counting number does not jitter.
+COUNTER_FEATURES: tuple[str, ...] = ("tnum",)
 
 #: Font file suffixes a `font` path may carry.
 FONT_SUFFIXES: tuple[str, ...] = (".ttf", ".otf", ".ttc")
@@ -252,6 +255,11 @@ class TextDescriptor(BaseModel):
     stroke_color: str = DFLT_TEXT_STROKE_COLOUR
     #: ``None`` = the embedded face; else a font FILE path (see the module doc).
     font: str | None = None
+    #: OpenType features to apply, by tag (an#362): ``["tnum"]`` sets tabular
+    #: figures. ``None`` = the block's default: a ``counter`` asks for
+    #: :data:`COUNTER_FEATURES`, anything else for none. Whether the face
+    #: has them is recorded with it (``meta.fonts``, ``features:``).
+    features: list[str] | None = None
     align: Literal["left", "center", "right"] = "center"
     #: Wrap width as a fraction of frame WIDTH; ``None`` = break only at newlines.
     max_width: float | None = Field(default=None, gt=0, le=1, allow_inf_nan=False)
@@ -317,6 +325,20 @@ class TextDescriptor(BaseModel):
         if self.texts is None:
             return None
         return self.rest if self.rest is not None else next(iter(self.texts))
+
+    @property
+    def typeset_features(self) -> tuple[str, ...]:
+        """The features the block is set with: its own, else a counter's
+        tabular figures (an#362), so a number does not change width as it counts.
+
+        >>> TextDescriptor(name="n", counter={"format": "{d}"}, unit="block").typeset_features
+        ('tnum',)
+        >>> TextDescriptor(name="t", text="x").typeset_features
+        ()
+        """
+        if self.features is not None:
+            return tuple(self.features)
+        return COUNTER_FEATURES if self.counter is not None else ()
 
     @property
     def content(self) -> str:
@@ -440,6 +462,10 @@ class FontIdentity:
     #: so the same bytes can set differently on two machines. The embedded
     #: face is always ``basic``.
     layout_engine: str = "basic"
+    #: The requested OpenType features this face applied (an#362): a tag
+    #: asked for and missing here was not in the font. Labelled only when
+    #: there is one, so a block without features labels as before.
+    features: tuple[str, ...] = ()
 
     def label(self) -> str:
         """``"Aileron Regular (embedded) sha256:6985… layout:basic"`` — what the
@@ -448,6 +474,7 @@ class FontIdentity:
         return (
             f"{self.family} {self.style}{where} sha256:{self.sha256} "
             f"layout:{self.layout_engine}"
+            + (f" features:{','.join(self.features)}" if self.features else "")
         )
 
 
@@ -602,6 +629,7 @@ def _layout_string(
     request = _font_request(desc, Path(base_dir) if base_dir is not None else None)
     style = TextStyle(
         family=request,
+        features=desc.typeset_features,
         size=desc.size,
         tracking=desc.tracking,
         leading=desc.leading,
@@ -681,6 +709,7 @@ def _layout_string(
         sha256=face_digest(face),
         embedded=face.path is None,
         layout_engine=_layout_engine_name(face),
+        features=face.applied_features,
     )
     return TextLayout(
         units=tuple(units),
