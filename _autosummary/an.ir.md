@@ -275,6 +275,17 @@ Scene metadata.
 Captions from the dialogue’s word timings (`Captions`, an#175);
 `None` — the default — is none, omitted from JSON like `style_pack`.
 
+#### closing_transition *: [Transition](an.ir.schema.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a `fade` to its `color` over its
+`duration`, on the last shot’s last frames (the film’s length is
+unchanged, and its final frame is the colour; the sound fades with it).
+`None` (or a `cut`) ends on the last frame as drawn. A dissolve has
+nothing to dissolve into, so it is refused.
+
+* **Type:**
+  How the film ENDS (an#389)
+
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with

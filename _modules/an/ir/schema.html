@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c6ffc81d"></script>
+    <script src="../../../_static/documentation_options.js?v=62874c04"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.196" />
+  <meta name="docsearch:version" content="0.1.197" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1904,6 +1904,23 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Captions from the dialogue's word timings (:class:`Captions`, an#175);</span>
     <span class="c1">#: ``None`` — the default — is none, omitted from JSON like ``style_pack``.</span>
     <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: How the film ENDS (an#389): a ``fade`` to its ``color`` over its</span>
+    <span class="c1">#: ``duration``, on the last shot's last frames (the film's length is</span>
+    <span class="c1">#: unchanged, and its final frame is the colour; the sound fades with it).</span>
+    <span class="c1">#: ``None`` (or a ``cut``) ends on the last frame as drawn. A dissolve has</span>
+    <span class="c1">#: nothing to dissolve into, so it is refused.</span>
+    <span class="n">closing_transition</span><span class="p">:</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"closing_transition"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_closing_is_a_fade</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"dissolve"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"closing_transition: a dissolve has nothing to dissolve into at the "</span>
+                <span class="s2">"film's end; use a fade (to a colour) or a cut"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span>
+
     <span class="c1">#: One loudness for every voice (:class:`VoiceLoudness`, an#315); ``None``</span>
     <span class="c1">#: — the default — levels nothing, and is omitted from JSON.</span>
     <span class="n">voice_loudness</span><span class="p">:</span> <span class="n">VoiceLoudness</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1938,6 +1955,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># `voice_loudness` likewise (an#315).</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">voice_loudness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"voice_loudness"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># `closing_transition` likewise (an#389).</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">closing_transition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"closing_transition"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c6ffc81d"></script>
+    <script src="../../../_static/documentation_options.js?v=62874c04"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.196" />
+  <meta name="docsearch:version" content="0.1.197" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1065,7 +1065,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_field</span><span class="p">(</span>
             <span class="s2">"meta"</span><span class="p">,</span>
             <span class="s2">"meta: {title, author, duration, fps, resolution, default_renderer, "</span>
-            <span class="s2">"notes, default_easing, step_hz, style_pack, sounds, captions}"</span><span class="p">,</span>
+            <span class="s2">"notes, default_easing, step_hz, style_pack, sounds, captions, "</span>
+            <span class="s2">"closing_transition}"</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">"the film's header"</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">_field</span><span class="p">(</span>
@@ -1178,6 +1179,15 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"bed is {sound: &lt;key&gt;, loop: true, duck_db: -12, fade_in, fade_out}; "</span>
             <span class="s2">"duck_db ducks it under every dialogue line."</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">"sounds on the film's clock (a music bed)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">_field</span><span class="p">(</span>
+            <span class="s2">"meta.closing_transition"</span><span class="p">,</span>
+            <span class="s2">"meta.closing_transition (optional): how the film ENDS — {kind: "</span>
+            <span class="s2">"'fade', duration: seconds, color: '#rrggbb'}: the last shot's last "</span>
+            <span class="s2">"duration fades to color (its final frame IS the color) and the "</span>
+            <span class="s2">"sound fades with it; the film's length is unchanged. Omitted (or "</span>
+            <span class="s2">"'cut') = it ends on its last frame. A dissolve is refused."</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"how the film ends"</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">_field</span><span class="p">(</span>
             <span class="s2">"meta.captions"</span><span class="p">,</span>

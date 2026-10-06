@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c6ffc81d"></script>
+    <script src="../_static/documentation_options.js?v=62874c04"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.whiteboard" href="an.adapters.whiteboard.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.196" />
+  <meta name="docsearch:version" content="0.1.197" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -665,8 +665,8 @@ whatever the transitions do.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.film_duration" title="an.assemble.film_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">film_duration</span></code></a>(scene, *[, fps])</p></td>
 <td><p>Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.film_timeline" title="an.assemble.film_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">film_timeline</span></code></a>(shots, *, fps)</p></td>
-<td><p>Lay <code class="docutils literal notranslate"><span class="pre">shots</span></code> end to end, overlapping each dissolve.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.film_timeline" title="an.assemble.film_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">film_timeline</span></code></a>(shots, *, fps[, closing])</p></td>
+<td><p>Lay <code class="docutils literal notranslate"><span class="pre">shots</span></code> end to end, overlapping each dissolve, the last fading out by <code class="docutils literal notranslate"><span class="pre">closing</span></code> (the film's closing fade, an#389).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.needs_assembly" title="an.assemble.needs_assembly"><code class="xref py py-obj docutils literal notranslate"><span class="pre">needs_assembly</span></code></a>(scene, *[, fps])</p></td>
 <td><p>True when the scene asks for anything beyond hard cuts and shot audio.</p></td>
@@ -680,7 +680,7 @@ whatever the transitions do.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.shot_windows" title="an.assemble.shot_windows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shot_windows</span></code></a>(timeline, *[, min_segment_frames])</p></td>
 <td><p>Each shot's <a class="reference internal" href="#an.assemble.ShotWindow" title="an.assemble.ShotWindow"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotWindow</span></code></a>: the frames its transitions touch, widened until every segment of the picture has <code class="docutils literal notranslate"><span class="pre">min_segment_frames</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_problems</span></code></a>(shots, fps)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_problems</span></code></a>(shots, fps, *[, closing])</p></td>
 <td><p>Every reason these shots' transitions cannot be assembled, as <code class="docutils literal notranslate"><span class="pre">(shot</span> <span class="pre">index,</span> <span class="pre">message)</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.write_film_frames" title="an.assemble.write_film_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_film_frames</span></code></a>(timeline, frame_of, out_dir, *)</p></td>
@@ -692,7 +692,7 @@ whatever the transitions do.</p>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.FilmTimeline" title="an.assemble.FilmTimeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilmTimeline</span></code></a>(fps, frames, starts, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.FilmTimeline" title="an.assemble.FilmTimeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilmTimeline</span></code></a>(fps, frames, starts, ...[, closing])</p></td>
 <td><p>Where each shot's frames land in the film, and what blends them.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.Segment" title="an.assemble.Segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Segment</span></code></a>(kind, shot, start, stop)</p></td>
@@ -725,13 +725,16 @@ whatever the transitions do.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.assemble.FilmTimeline">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">FilmTimeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissolve_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_in_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#FilmTimeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.FilmTimeline" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">FilmTimeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissolve_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_in_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fade_out_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#FilmTimeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.FilmTimeline" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Where each shot’s frames land in the film, and what blends them.</p>
 <p><code class="docutils literal notranslate"><span class="pre">dissolve_in[i]</span></code> — frames shot <code class="docutils literal notranslate"><span class="pre">i</span></code> overlaps the previous shot by.
 <code class="docutils literal notranslate"><span class="pre">fade_in[i]</span></code> — frames at shot <code class="docutils literal notranslate"><span class="pre">i</span></code>’s head that fade up from a colour.
 <code class="docutils literal notranslate"><span class="pre">fade_out[i]</span></code> — frames at shot <code class="docutils literal notranslate"><span class="pre">i</span></code>’s tail that fade to a colour (the
-NEXT shot’s fade colour).</p>
+NEXT shot’s fade colour, or the film’s closing fade’s on the last shot).
+<code class="docutils literal notranslate"><span class="pre">closing</span></code> — the last shot’s <code class="docutils literal notranslate"><span class="pre">fade_out</span></code> is the film’s closing fade
+(<code class="docutils literal notranslate"><span class="pre">Meta.closing_transition</span></code>, an#389), so its final frame IS the colour:
+no next shot reaches it instead.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
@@ -894,8 +897,9 @@ every existing document’s arithmetic is unchanged.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.assemble.film_timeline">
-<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">film_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#film_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.film_timeline" title="Link to this definition">#</a></dt>
-<dd><p>Lay <code class="docutils literal notranslate"><span class="pre">shots</span></code> end to end, overlapping each dissolve. Raises
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">film_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#film_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.film_timeline" title="Link to this definition">#</a></dt>
+<dd><p>Lay <code class="docutils literal notranslate"><span class="pre">shots</span></code> end to end, overlapping each dissolve, the last fading out
+by <code class="docutils literal notranslate"><span class="pre">closing</span></code> (the film’s closing fade, an#389). Raises
 <a class="reference internal" href="#an.assemble.AssemblyError" title="an.assemble.AssemblyError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssemblyError</span></code></a> on any <a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">transition_problems()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -986,7 +990,7 @@ picture of one segment has no minimum (there is nothing to concatenate).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.assemble.transition_problems">
-<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">transition_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#transition_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.transition_problems" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">transition_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">closing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#transition_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.transition_problems" title="Link to this definition">#</a></dt>
 <dd><p>Every reason these shots’ transitions cannot be assembled, as
 <code class="docutils literal notranslate"><span class="pre">(shot</span> <span class="pre">index,</span> <span class="pre">message)</span></code>. The ONE list <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> reports and
 <a class="reference internal" href="#an.assemble.film_timeline" title="an.assemble.film_timeline"><code class="xref py py-func docutils literal notranslate"><span class="pre">film_timeline()</span></code></a> raises on, so the two cannot disagree.</p>

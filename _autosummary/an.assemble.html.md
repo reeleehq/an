@@ -58,21 +58,21 @@ whatever the transitions do.
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`duck_gain`](#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release)  | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
 | [`film_duration`](#an.assemble.film_duration)(scene, \*[, fps])                    | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
-| [`film_timeline`](#an.assemble.film_timeline)(shots, \*, fps)                      | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
+| [`film_timeline`](#an.assemble.film_timeline)(shots, \*, fps[, closing])           | Lay `shots` end to end, overlapping each dissolve, the last fading out by `closing` (the film's closing fade, an#389).                                                          |
 | [`needs_assembly`](#an.assemble.needs_assembly)(scene, \*[, fps])                   | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
 | [`picture_segments`](#an.assemble.picture_segments)(timeline, windows)                | The film's picture as segments, in film order.                                                                                                                                  |
 | [`shot_parts`](#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)      | A rendered shot's [`ShotParts`](#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
 | [`shot_windows`](#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])   | Each shot's [`ShotWindow`](#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
-| [`transition_problems`](#an.assemble.transition_problems)(shots, fps)                    | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
+| [`transition_problems`](#an.assemble.transition_problems)(shots, fps, \*[, closing])     | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
 | [`write_film_frames`](#an.assemble.write_film_frames)(timeline, frame_of, out_dir, \*) | Every frame of the film as a PNG, in `out_dir` — what the delivered picture shows, frame for frame, BEFORE it is encoded.                                                       |
 
 ### Classes
 
-| [`FilmTimeline`](#an.assemble.FilmTimeline)(fps, frames, starts, ...)   | Where each shot's frames land in the film, and what blends them.                                                                                                                                                                                       |
-|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Segment`](#an.assemble.Segment)(kind, shot, start, stop)         | One independently encoded run of the film's picture, film frames `[start, stop)`: a whole shot's own stream (`"shot"`), a shot's encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).                                                 |
-| [`ShotParts`](#an.assemble.ShotParts)(window, frames[, body])        | What a film takes from a shot its transitions touch: the PNGs inside its [`ShotWindow`](#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its body, encoded once (`body`; `None` when the window covers the shot). |
-| [`ShotWindow`](#an.assemble.ShotWindow)(frames[, head, tail])         | Which of one shot's `frames` its film needs as PNGs: the first `head` and the last `tail`.                                                                                                                                                             |
+| [`FilmTimeline`](#an.assemble.FilmTimeline)(fps, frames, starts, ...[, closing])   | Where each shot's frames land in the film, and what blends them.                                                                                                                                                                                       |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Segment`](#an.assemble.Segment)(kind, shot, start, stop)                    | One independently encoded run of the film's picture, film frames `[start, stop)`: a whole shot's own stream (`"shot"`), a shot's encoded body (`"body"`), or a run of PNGs composed here (`"frames"`).                                                 |
+| [`ShotParts`](#an.assemble.ShotParts)(window, frames[, body])                   | What a film takes from a shot its transitions touch: the PNGs inside its [`ShotWindow`](#an.assemble.ShotWindow) (`frames`: shot-local index -> path) and its body, encoded once (`body`; `None` when the window covers the shot). |
+| [`ShotWindow`](#an.assemble.ShotWindow)(frames[, head, tail])                    | Which of one shot's `frames` its film needs as PNGs: the first `head` and the last `tail`.                                                                                                                                                             |
 
 ### Exceptions
 
@@ -85,7 +85,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The shots cannot be assembled as the scene asks. Carries the fix.
 
-### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames)
+### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames, closing=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -94,7 +94,10 @@ Where each shot’s frames land in the film, and what blends them.
 `dissolve_in[i]` — frames shot `i` overlaps the previous shot by.
 `fade_in[i]` — frames at shot `i`’s head that fade up from a colour.
 `fade_out[i]` — frames at shot `i`’s tail that fade to a colour (the
-NEXT shot’s fade colour).
+NEXT shot’s fade colour, or the film’s closing fade’s on the last shot).
+`closing` — the last shot’s `fade_out` is the film’s closing fade
+(`Meta.closing_transition`, an#389), so its final frame IS the colour:
+no next shot reaches it instead.
 
 #### end_seconds(i)
 
@@ -222,9 +225,10 @@ every existing document’s arithmetic is unchanged.
 3.5
 ```
 
-### an.assemble.film_timeline(shots, , fps)
+### an.assemble.film_timeline(shots, , fps, closing=None)
 
-Lay `shots` end to end, overlapping each dissolve. Raises
+Lay `shots` end to end, overlapping each dissolve, the last fading out
+by `closing` (the film’s closing fade, an#389). Raises
 [`AssemblyError`](#an.assemble.AssemblyError) on any [`transition_problems()`](#an.assemble.transition_problems).
 
 * **Return type:**
@@ -301,7 +305,7 @@ picture of one segment has no minimum (there is nothing to concatenate).
 [(0, 1), (3, 0)]
 ```
 
-### an.assemble.transition_problems(shots, fps)
+### an.assemble.transition_problems(shots, fps, , closing=None)
 
 Every reason these shots’ transitions cannot be assembled, as
 `(shot index, message)`. The ONE list `an validate` reports and
