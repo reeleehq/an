@@ -29,13 +29,20 @@ def _quiet_compile(shot, **kw):
 
 
 @pytest.mark.genre("cutout_animation")
-def test_the_passes_run_in_the_order_the_document_was_always_built_in():
-    assert [p.name for p in compile_passes_for_stage()] == [
-        # cutan#32: a style's `policy:` block resolves right after the scene
-        # an#342: `counters` lowers `value` after every pass that can add one
-        "scene", "style_policy", "speech", "counters", "actions", "swap_pose", "view_spans",
-        "visemes", "face", "camera", "parallax", "checks",
-    ]
+def test_the_stage_passes_keep_their_order_with_the_genres_passes_between_them():
+    """Only the stage's own passes are pinned here; WHICH passes the genre adds, and
+    where they sit between these, is pinned in the genre's repository (an#427: a pin
+    on the interleaving turned every open `an` PR red when cutan added a pass)."""
+    from cutan.genre import CUTOUT
+
+    with_genre = [p.name for p in compile_passes_for_stage()]
+    with without_genres():
+        stage_only = [p.name for p in compile_passes_for_stage()]
+    assert [n for n in with_genre if n in stage_only] == stage_only
+    # The genre's passes that run in this compile (a declared pass may run elsewhere).
+    assert {n for n in with_genre if n not in stage_only} <= {
+        p.name for p in CUTOUT.compile_passes
+    }
 
 
 @pytest.mark.genre("cutout_animation")
@@ -43,7 +50,7 @@ def test_the_cutout_passes_are_the_genres_not_the_stages():
     from cutan.genre import CUTOUT, CUTOUT_COMPILE_PASSES
 
     assert CUTOUT.compile_passes == CUTOUT_COMPILE_PASSES
-    assert "rig" in CUTOUT.provides()["compile passes"]
+    assert set(CUTOUT.provides()["compile passes"]) >= {p.name for p in CUTOUT.compile_passes}
     with without_genres():
         assert [p.name for p in compile_passes_for_stage()] == [
             "scene", "counters", "actions", "camera", "parallax", "checks",
@@ -104,7 +111,8 @@ def test_a_genres_passes_are_inspectable_before_the_stage_loads():
     with pytest.raises(Exception, match="neither a callable"):
         CompilePass("bad", "not-a-reference").resolve()
     declared = available()
-    assert "face" in declared["cutout_animation"].provides()["compile passes"]
+    genre = declared["cutout_animation"]
+    assert set(genre.provides()["compile passes"]) >= {p.name for p in genre.compile_passes}
 
 
 # ------------------------------------------------ collisions and generic slots

@@ -333,16 +333,15 @@ def test_a_complete_rig_affords_everything_the_first_analyser_knows(alice_dir):
     lib = _memory()
     publish_dir(lib, alice_dir, "character.alice", source=MIT)
     a = _afford(lib, "character.alice")
-    assert sorted(a) == [
-        "face.brows",  # an#252
-        "face.mouth",
-        "limbs.arms",
-        "limbs.legs",
-        "swap.view",
-    ]
+    # What the analyser knows, and the forms and views it reads, are the genre's
+    # declarations (an#427): read them, never copy them.
+    from cutan.characters.mouth_set import DEFAULT_MOUTH_VARIANTS
+    from cutan.characters.schema import VIEWS
+    from cutan.library import CHARACTER_CAPABILITIES
+
+    assert sorted(a) == sorted(c.name for c in CHARACTER_CAPABILITIES)
     assert a["limbs.legs"]["slots"] == ["leg_l", "leg_r"]
-    assert a["swap.view"]["keys"] == ["front", "three_quarter", "side", "back"]
-    # the factory's default forms are cutan's to choose (cutan#61 adds angry)
+    assert a["swap.view"]["keys"] == list(VIEWS)
     assert a["face.mouth"]["keys"] == ["rhubarb9"]
     assert a["face.mouth"]["variants"] == sorted(DEFAULT_MOUTH_VARIANTS)
     assert lib.versions["character.alice@v001"]["analysers"] == {

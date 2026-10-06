@@ -4,6 +4,8 @@ Moved out of `CLAUDE.md` (an#156) so the orientation file stays short. `CLAUDE.m
 
 ## Genuine gaps and sharp edges
 
+- **A test in `tests/` never pins content the genre owns (an#427).** Four cutan merges on 2026-10-06 turned every open `an` PR red because an test copied a genre's literal (vocabulary rows, check ids, CLI subcommands, factory mouth forms; then compile passes, action/entity kinds, analyser capabilities and views). A cutan change that touches only genre content must never fail `an`'s suite. A test that needs the genre does one of: (1) pins only the core's values (the stage's own passes, the core's CLI commands, the core's vocabulary rows); (2) READS the genre's registered declaration (`CUTOUT.compile_passes`, `CUTOUT.checks`, `CHARACTER_CAPABILITIES`, `cutan.characters.schema.VIEWS`) and compares the core's behaviour to it; or (3) lives in `cutan`. Never an exact list, count, order, digest, factory build or message wording of the genre's. The mechanics of a matcher or a registry are tested with a demo `Genre` (see `test_semantic.py`), not with cutan's methods.
+
 Honest list. Don't let it rot either — delete a line when you close it.
 
 - **The Manim adapter is not a compiler.** `_render_script` in `an/adapters/manim_adapter.py` emits a single `Text(title)` title card of the right duration and shells out to `manim -ql`. Nothing in the Shot — entities, actions, dialogue, camera — reaches the generated script. A real shot-to-Manim compiler is unbuilt design work.
