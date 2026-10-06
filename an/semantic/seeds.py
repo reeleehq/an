@@ -366,6 +366,15 @@ def _core_fields() -> tuple[Entry, ...]:
             description="the shot's camera",
         ),
         _field(
+            "shot.camera.shake",
+            "camera.shake (optional): jolts of the frame layered on the move or keys "
+            "— [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, "
+            "seed: 0}], amplitude a fraction of the frame height; for an impact, a "
+            "slam, an explosion. The frame is at rest before `at` and after the end; "
+            "shakes may not overlap or run past the shot.",
+            description="a jolt of the frame inside the shot",
+        ),
+        _field(
             "shot.entities",
             "entities: list of {kind, id, store, ref, ...}; kind MUST be a "
             "registered entity kind. A prop needs a PropDescriptor in the props "
