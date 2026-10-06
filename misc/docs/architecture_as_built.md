@@ -259,6 +259,7 @@ an/
 │   ├── schema.py            Pydantic models: SceneIR, Shot, Action, Dialogue, AssetRef, ...;
 │   │                        the open union (core kinds + ExtensionAction); the core
 │   │                        entity kinds; the cut-out models parked until P8
+│   ├── crowd.py             crowd() places N seeded members; fan_out() copies an action across them (an#437)
 │   ├── compose.py           sequence/parallel/delay/loop/stagger/tween/set_/play +
 │   │                        flatten / duration_of, dispatched through the registry
 │   ├── camera.py            camera_keys: the NINE moves and Camera.keys resolved
