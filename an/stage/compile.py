@@ -53,9 +53,31 @@ from an.stage.rig import (
     Attachment,
     Bone,
     Skin,
+    art_src,
     attachment_box,
     drawn_attachment,
+    build_rig_subtree,
+    part_probe,
     primary_slot_per_bone,
+    raster_digest,
+)
+
+# The rig builder lives in `an.stage.rig`, public since an#338. These are the
+# compiler's historical spellings, re-exported so old imports keep working.
+from an.stage.rig import (  # noqa: F401  (re-exported)
+    CHARACTER_ART_PREFIX,
+    CONTAIN_FIT,
+    PROP_ART_PREFIX,
+    SCENE_PX_PER_VIEW_BOX,
+    _record_missing_parts,
+    _register_texture,
+    _swap_key_geometry,
+    art_src as _svg_asset_src,
+    bone_extent_centre as _rig_origin,
+    bone_positions as _bone_positions,
+    build_rig_subtree as _build_svg_character_subtree,
+    part_probe as _part_probe,
+    raster_digest as _raster_digest,
 )
 from an.genres import action_kind, action_kind_names, entity_kind, entity_space_resolver
 from an.genres.registry import CompilePass
@@ -188,13 +210,17 @@ def _has_raster_parts(desc_data: Mapping[str, Any]) -> bool:
     return False
 
 
-def _note_raster_rig(
+def note_raster_rig(
     entity: AssetRef,
     desc_data: Mapping[str, Any],
     pack: "StylePack | None",
     raster: set[str] | None,
 ) -> None:
-    """Record a rig with raster parts that a colour-setting pack is applied to."""
+    """Record a rig with raster parts that a colour-setting pack is applied to.
+
+    Public (an#338) because a genre that builds a rig calls it before
+    :func:`an.stage.rig.build_rig_subtree`, as the prop builder does.
+    """
     if (
         raster is not None
         and pack is not None
@@ -202,6 +228,9 @@ def _note_raster_rig(
         and _has_raster_parts(desc_data)
     ):
         raster.add(entity.id)
+
+
+_note_raster_rig = note_raster_rig  # the historical spelling, re-exported
 
 
 def _warn_raster_parts_not_recoloured(
@@ -1489,8 +1518,8 @@ def _build_plane_subtree(
     then decides whether that is fatal, at the one place that decides it for
     every fallback.
     """
-    probe = _part_probe(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
-    digest = _raster_digest(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
+    probe = part_probe(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
+    digest = raster_digest(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
     ref = entity.ref or entity.id
     nodes: list[NodeJSON] = []
     for plane in env.planes:
@@ -1667,7 +1696,7 @@ def _plane_node(
         )
     if not art.src:
         return None
-    src = _svg_asset_src(ref, art.src, art_prefix=ENVIRONMENT_ART_PREFIX)
+    src = art_src(ref, art.src, art_prefix=ENVIRONMENT_ART_PREFIX)
     if probe is not None and not probe(src)[0]:
         return None
     alias = f"{ref}.{plane.name}"
@@ -1995,18 +2024,18 @@ def _build_prop_subtree(
             resolved="descriptor",
         )
     )
-    _note_raster_rig(entity, meta, style_pack, raster)
+    note_raster_rig(entity, meta, style_pack, raster)
     already = len(resolutions)
-    node = _build_svg_character_subtree(
+    node = build_rig_subtree(
         entity,
         meta,
         textures=textures if textures is not None else {},
-        probe=_part_probe(props_store, art_prefix=PROP_ART_PREFIX),
+        probe=part_probe(props_store, art_prefix=PROP_ART_PREFIX),
         resolutions=resolutions,
         art_prefix=PROP_ART_PREFIX,
         descriptor_model=PropDescriptor,
         document_kind=PROP_DOCUMENT_KIND,
-        digest=_raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
+        digest=raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
     )
     if not _draws_anything(node) and not any(r.fallback for r in resolutions[already:]):
         # Nothing on disk is MISSING — the document simply names no art (no
@@ -2211,531 +2240,6 @@ def _path_colour(
     if reached is not None:
         reached.add(entity.id)
     return chosen
-
-
-# -----------------------------------------------------------------------------
-# Phase 11b: SVG-textured character rig from a CharacterDescriptor
-# -----------------------------------------------------------------------------
-
-
-#: Scene-graph pixels spanned by a descriptor's full ``view_box`` height.
-#:
-#: The single number that maps descriptor space to scene space. One uniform
-#: factor ``k = SCENE_PX_PER_VIEW_BOX / view_box_height`` scales bone positions
-#: and part extents alike — uniform by construction, so the compiler cannot
-#: violate the invariant that aspect ratio is intrinsic to the art (an#74).
-#:
-#: 345 is a calibration, not a preference. It is what reproduces the framing the
-#: seven deleted ``_SVG_*_SIZE`` constants hand-tuned: at k = 345/1024 = 0.3369,
-#: ``saturated-rig``'s own art gives torso 107.8x129.4 against the old 110x130,
-#: legs 37.7x118.6 against 38x120. The constants were an approximation of
-#: exactly this product, which is the evidence that the rig should have been
-#: driving it all along.
-SCENE_PX_PER_VIEW_BOX: float = 345.0
-
-#: The fit policy every compiled sprite carries. Named rather than inlined so
-#: the one place that decides "the art keeps its shape" is greppable.
-CONTAIN_FIT: str = "contain"
-
-
-#: The `assets.textures` `src` prefix a rig's art is addressed under, which is
-#: also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).
-#: A parameter rather than a literal because the rig builder is the same code
-#: for a character and for a prop, and the store is the ONLY thing that differs
-#: about where their art lives. Two hardcoded copies of `"characters/"` — the
-#: `src` builder and the probe's own — reached three call sites, and that is
-#: what made "a prop is a rig too" read as a rewrite instead of an argument
-#: (an#108).
-CHARACTER_ART_PREFIX: str = "characters/"
-
-#: The same, for props. Both are keys of `render.ASSET_SRC_PREFIX_TO_STORE`,
-#: which is what decides where the staging step copies the art from.
-PROP_ART_PREFIX: str = "props/"
-
-
-def _svg_asset_src(
-    ref: str, rel_path: str, *, art_prefix: str = CHARACTER_ART_PREFIX
-) -> str:
-    """Path used inside the runtime dir, relative to ``index.html``.
-
-    >>> _svg_asset_src("maya", "parts/head.svg")
-    'characters/maya/parts/head.svg'
-    >>> _svg_asset_src("lamp", "parts/body.svg", art_prefix="props/")
-    'props/lamp/parts/body.svg'
-    """
-    return f"{art_prefix}{ref}/{rel_path}"
-
-
-def _register_texture(
-    textures: dict[str, AssetJSON],
-    alias: str,
-    src: str,
-) -> str:
-    """Add a texture entry if not already present; return ``alias``."""
-    if alias not in textures:
-        textures[alias] = AssetJSON(src=src)
-    return alias
-
-
-def _part_probe(
-    characters_store: Mapping,
-    *,
-    art_prefix: str = CHARACTER_ART_PREFIX,
-) -> Callable[[str], tuple[bool, tuple[float, float] | None]] | None:
-    """A probe answering ``(art exists, the size it rasterises at)`` for a part.
-
-    **Two questions, deliberately not one.** Whether the art is *there* decides
-    whether the compiler declares a texture for it; whether it can be *measured*
-    decides only whether the sprite's box comes from the art or from the
-    runtime's fit. Collapsing them is a real bug and it was here: a degenerate
-    ``<svg/>`` is unmeasurable but present, and treating that as absent made the
-    part vanish from the scene silently — trading an#79's hang for exactly the
-    invisible-art failure #76 exists to stop.
-
-    Returns ``None`` when the store has no filesystem root — **not** a probe
-    that answers "absent" — because a store that can answer nothing must drop
-    no parts rather than all of them.
-
-    Size is read from the SVG root's ``width``/``height``, falling back to the
-    viewBox extent as a browser does — or, for PNG/JPEG/WebP art, from the
-    image header (an#211): a header parse, not a render, either way. Before
-    an#211 a PNG was parsed AS SVG here and the compile died on an XML error.
-    """
-    root = getattr(characters_store, "_root", None)
-    if root is None:
-        return None
-    base = Path(root)
-    prefix = art_prefix
-
-    def probe(src: str) -> tuple[bool, tuple[float, float] | None]:
-        if not src.startswith(prefix):
-            return False, None
-        path = base / src[len(prefix) :]
-        if not path.is_file():
-            return False, None
-        try:
-            return True, art_size(path)
-        except (OSError, ValueError):
-            # Present but unreadable or malformed. Still declared, so the
-            # failure is loud at load rather than an absence nobody sees.
-            return True, None
-
-    return probe
-
-
-def _raster_digest(
-    store: Mapping,
-    *,
-    art_prefix: str = CHARACTER_ART_PREFIX,
-) -> Callable[[str], str | None]:
-    """``digest(src)``: a short content digest for RASTER art, else ``None``.
-
-    A raster texture is addressed by its bytes (an#211): the digest goes into
-    the texture's alias, so a re-carved part is a different texture — the
-    runtime's loader ignores a re-added alias on hot reload (an#155) — and a
-    different compiled contract, whose hash then covers the pixels drawn. SVG
-    art keeps its plain alias, which is what keeps every existing document
-    byte-identical.
-    """
-    root = getattr(store, "_root", None)
-
-    def digest(src: str) -> str | None:
-        if root is None or not is_raster(src) or not src.startswith(art_prefix):
-            return None
-        path = Path(root) / src[len(art_prefix) :]
-        try:
-            return short_digest(path)
-        except OSError:
-            return None  # absent art is the probe's business, not this one's
-
-    return digest
-
-
-def _bone_positions(desc: Any) -> dict[str, tuple[float, float]]:
-    """Absolute ``(x, y)`` per bone, in view_box units.
-
-    Bone transforms are parent-relative, so a bone's position is the sum along
-    its parent chain. A cycle or a dangling parent stops the walk rather than
-    looping — a malformed rig is #78's business, not this function's.
-    """
-    by_name = {b.name: b for b in desc.bones}
-    out: dict[str, tuple[float, float]] = {}
-    for bone in desc.bones:
-        x = y = 0.0
-        seen: set[str] = set()
-        cursor: Bone | None = bone
-        while cursor is not None and cursor.name not in seen:
-            seen.add(cursor.name)
-            x += cursor.x
-            y += cursor.y
-            cursor = by_name.get(cursor.parent) if cursor.parent else None
-        out[bone.name] = (x, y)
-    return out
-
-
-def _record_missing_parts(
-    entity: AssetRef,
-    missing: list[tuple[str, str, str]],
-    *,
-    drawn: set[str],
-    into: list[AssetResolutionJSON] | None,
-) -> None:
-    """Record every declared part whose art is not on disk, as a fallback.
-
-    A skin declares an inventory, and a slot that ends up with nothing to draw
-    is a hole in the picture. Recording it here routes it through the one place
-    that decides what a stand-in costs: audible always, fatal under
-    ``strict_assets`` (an#76). Raising from the compiler instead would put a
-    second policy next to that one.
-
-    A slot that still drew *something* — one attachment missing out of several,
-    as when a rig ships open eyes but no closed ones — is reported separately
-    and NOT as a fallback, because the frame is not wrong, only the inventory
-    is incomplete. Conflating the two would make every rig without a blink
-    refuse to render under ``strict_assets``.
-    """
-    if into is None or not missing:
-        return
-    empty = [m for m in missing if m[0] not in drawn]
-    partial = [m for m in missing if m[0] in drawn]
-    for slot_name, attachment, path in empty:
-        into.append(
-            AssetResolutionJSON(
-                id=f"{entity.id}/{slot_name}",
-                kind="part",
-                store=entity.store,
-                ref=entity.ref,
-                resolved="missing",
-                fallback=True,
-                detail=(
-                    f"slot {slot_name!r} declares attachment {attachment!r} at "
-                    f"{path!r}, which is not in the store — the slot draws nothing"
-                ),
-            )
-        )
-    for slot_name, attachment, path in partial:
-        into.append(
-            AssetResolutionJSON(
-                id=f"{entity.id}/{slot_name}",
-                kind="part",
-                store=entity.store,
-                ref=entity.ref,
-                resolved="incomplete",
-                fallback=False,
-                detail=(
-                    f"slot {slot_name!r} is missing attachment {attachment!r} at "
-                    f"{path!r}; the slot still draws, but that key cannot be swapped to"
-                ),
-            )
-        )
-
-
-def _rig_origin(bones: dict[str, tuple[float, float]]) -> tuple[float, float]:
-    """The point in view_box space that the entity's placement refers to.
-
-    The centre of the rig's bone extent, **not** the root bone. The scene root
-    positions a character on x only and leaves y at 0, so this point is what
-    lands at the frame's vertical centre — and a rig whose root is its ground
-    contact (the default puts it at the feet, y=980) would therefore hang its
-    whole body above the placement point, head off-frame.
-
-    Centring on the extent makes framing independent of where an author chose
-    to put the root, which is a rigging decision and should not be a framing
-    one. On the default rig it lands at y=700, within 20 units of the torso
-    bone — i.e. it reproduces the convention the deleted `torso_y = 0.0`
-    literal encoded, without hardcoding a bone name.
-    """
-    if not bones:
-        return (0.0, 0.0)
-    xs = [x for x, _ in bones.values()]
-    ys = [y for _, y in bones.values()]
-    return ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
-
-
-def _build_svg_character_subtree(
-    entity: AssetRef,
-    desc_data: dict[str, Any],
-    *,
-    textures: dict[str, AssetJSON],
-    probe: Callable[[str], tuple[bool, tuple[float, float] | None]] | None = None,
-    resolutions: list[AssetResolutionJSON] | None = None,
-    art_prefix: str = CHARACTER_ART_PREFIX,
-    descriptor_model: type,
-    document_kind: DocumentKind,
-    texture_srcs: Mapping[str, str] | None = None,
-    digest: Callable[[str], str | None] | None = None,
-) -> NodeJSON:
-    """Build the scene subtree for a character, **from its descriptor's rig**.
-
-    A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures
-    either, and ``digest(src)`` — a content digest for raster art, ``None``
-    for SVG — is appended to a raster texture's alias so the texture is
-    addressed by its bytes.
-
-    **Every swap key keeps its own geometry** (an#211). A swap re-textures the
-    sprite, and the box, anchor and offset were the DEFAULT attachment's, so a
-    key drawn on a different canvas was fitted into the wrong box — a closed
-    mouth on a thin canvas squashed every open mouth to a fraction of a pixel.
-    A key whose box, anchor or offset differs from the drawn attachment's is
-    listed in ``VisualJSON.asset_geometry`` and the runtime applies it with the
-    texture; a rig whose keys share a canvas emits nothing new.
-
-    ``texture_srcs`` maps a part path to the ``src`` its texture loads from
-    instead of the stored file — a style pack's recoloured art
-    (:func:`_recoloured_texture_srcs`). Such a texture's alias carries a digest
-    of its content, so a different recolour is a different texture (the
-    runtime's loader ignores a re-added alias on hot reload, an#155). The part
-    is still probed and sized from the stored file, whose geometry is the same.
-
-    Every part's position comes from a bone, every part's extent from its own
-    art, and both are scaled by one uniform factor. Nothing here is a module
-    constant: the seven ``_SVG_*_SIZE`` values and the four y-offset literals
-    this replaced are gone, and gutting ``bones``/``slots``/``skins``/``view_box``
-    now changes the output — which it provably did not before (an#73).
-
-    A slot whose art is not on disk is recorded in ``resolutions`` as a fallback,
-    which makes it audible by default and fatal under ``strict_assets`` — the
-    same treatment a missing *character* already got (an#33), now reaching
-    inside the descriptor to the individual part (an#76). It is recorded rather
-    than raised here because the decision belongs to one place, and that place
-    is :func:`_raise_or_warn_on_asset_fallbacks`.
-
-    ``probe(src) -> (exists, size)`` answers whether a part's art is on disk and
-    what size it rasterises at. Existence decides whether a texture is declared
-    at all. The sprite's box is the attachment's declared ``width``/``height``
-    when it has them — **a declared size wins**, with the art's aspect kept
-    (:func:`an.characters.schema.attachment_box`, an#220) — else the art's own
-    extent (a raster's pixel count); failing both, the runtime's ``contain``
-    fit draws the art at its natural shape — never stretched to a fabricated box.
-    """
-    # Two documents, one builder. `PropDescriptor` carries the same field NAMES
-    # the rig maths reads — view_box, bones, slots, skins, asset_sets,
-    # face_overlay — and differs only in what it seeds when they are empty, so
-    # the code below never asks which kind it has (an#108).
-    desc = descriptor_model.model_validate(
-        migrate(dict(desc_data), kind=document_kind.name)
-    )
-    ref = entity.ref or entity.id
-    _, _, _, view_box_height = desc.view_box
-    k = SCENE_PX_PER_VIEW_BOX / float(view_box_height or 1)
-
-    skin = desc.skins.get("default") or next(iter(desc.skins.values()), Skin())
-    bones = _bone_positions(desc)
-    origin = _rig_origin(bones)
-    # Shared with `an.characters.play` so a `play` resolves against the
-    # nesting the builder actually uses (an#7 review).
-    nests_under = primary_slot_per_bone(desc)
-
-    # If the head art has its own face baked in (DiceBear / hand-drawn full
-    # avatars), the separate eye/brow/mouth sprites double up with the baked
-    # features. Lip-sync stays audio-only for these; hand-rig for dialogue.
-    # `face_overlay` is the DECLARED fact (0.3.0, an#87) — the old vendor-name
-    # check on metadata.art_provenance lives on only inside the migration.
-    head_has_face = not desc.face_overlay
-
-    def _register(slot_name: str, attachment_name: str, attachment: Attachment) -> str:
-        # Slot-qualified on purpose: attachment names are a PER-SLOT namespace
-        # (both eye slots carry `open`/`closed`), and the old `{entity}.{name}`
-        # alias space was silently first-wins on cross-slot collision.
-        alias = f"{entity.id}.{slot_name}.{attachment_name}"
-        src = (texture_srcs or {}).get(attachment.path)
-        if src is None:
-            src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
-            sha = digest(src) if digest is not None else None
-            if sha:
-                alias += "." + sha
-                src = versioned_src(src, sha)
-        else:
-            alias += "." + hashlib.sha256(src.encode("ascii")).hexdigest()[:12]
-        return _register_texture(textures, alias, src)
-
-    def _box_of(attachment: Attachment) -> tuple[float, float] | None:
-        # The declared box wins, keeping the art's aspect; else the art's own
-        # extent (from its header) — a raster's pixel count (an#220).
-        src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
-        return attachment_box(
-            attachment.width,
-            attachment.height,
-            probe(src)[1] if probe else None,
-        )
-
-    # Every attachment in the skin is registered, not just the active one, so a
-    # swap has its texture already loaded when the key changes.
-    #
-    # Except the ones whose art is not there. A skin declares an inventory —
-    # `eye_l_closed` is in the default skin and in REQUIRED_PARTS, but the bench
-    # rigs do not ship it — and declaring a texture the staging step cannot find
-    # makes the render fail at load over art no node draws. Registering only
-    # what resolves keeps the compiler from fabricating; reporting the gap in
-    # the art package is `an character validate`'s job (#78), not this one's.
-    aliases: dict[str, dict[str, str]] = {}
-    missing_art: list[tuple[str, str, str]] = []
-    for slot_name, attachments in skin.slots.items():
-        resolved_here: dict[str, str] = {}
-        for name, att in attachments.items():
-            src = _svg_asset_src(ref, att.path, art_prefix=art_prefix)
-            if probe is not None and not probe(src)[0]:
-                missing_art.append((slot_name, name, att.path))
-                continue
-            resolved_here[name] = _register(slot_name, name, att)
-        aliases[slot_name] = resolved_here
-
-    nodes: dict[str, NodeJSON] = {}
-    children_of: dict[str, list[NodeJSON]] = {}
-
-    for slot in sorted(desc.slots, key=lambda s: (s.draw_order, s.name)):
-        parent = nests_under.get(slot.bone)
-        nested = parent is not None and parent != slot.name
-        # Baked face: drop every slot nested under the HEAD BONE's primary
-        # slot — keyed on the bone (the rig's skeleton contract), not on the
-        # slot name "head": a rig whose head slot is named otherwise used to
-        # get its face overlays (and their blinks) back (an#88 review).
-        if nested and head_has_face and parent == nests_under.get("head"):
-            continue
-
-        resolved = drawn_attachment(desc, skin, slot)
-        if resolved is None or resolved[0] not in aliases.get(slot.name, {}):
-            continue
-        attachment_name, attachment = resolved
-
-        # Position = the slot's bone, plus the attachment's own offset from it.
-        # Both are needed: five face parts share one `head` bone, so the bone
-        # alone would stack them, and the offset alone would ignore the rig.
-        bone_x, bone_y = bones.get(slot.bone, (0.0, 0.0))
-        if nested:
-            parent_x, parent_y = bones.get(parent, (0.0, 0.0))
-            bone_x, bone_y = bone_x - parent_x, bone_y - parent_y
-        else:
-            bone_x, bone_y = bone_x - origin[0], bone_y - origin[1]
-        bone_x += attachment.x
-        bone_y += attachment.y
-
-        extent = _box_of(attachment)
-        visual = VisualJSON(
-            kind="svg_sprite",
-            asset_id=aliases[slot.name][attachment_name],
-            anchor_x=attachment.anchor[0],
-            anchor_y=attachment.anchor[1],
-            fit=CONTAIN_FIT,
-            **({"width": extent[0] * k, "height": extent[1] * k} if extent else {}),
-        )
-        # The per-slot PROJECTION of the descriptor's asset_sets (an#87): a
-        # channel projects onto every slot whose attachments its keys name —
-        # `viseme` lands on the mouth because the mouth's attachments carry
-        # the viseme map's values, `eyelid` lands on BOTH eye slots because
-        # both carry `open`/`closed`. No slot names appear here: the skin is
-        # the binding. Keys whose art did not resolve are absent from the map
-        # (an inventory gap — `_record_missing_parts` records it; a key a
-        # channel actually USES escalates via the fallback machinery).
-        projected = {
-            channel: resolved
-            for channel, key_map in desc.asset_sets.items()
-            if (
-                resolved := {
-                    key: aliases[slot.name][name]
-                    for key, name in key_map.items()
-                    if name in aliases[slot.name]
-                }
-            )
-        }
-        if projected:
-            visual.asset_sets = projected
-            geometry = _swap_key_geometry(
-                projected,
-                aliases[slot.name],
-                skin.slots.get(slot.name, {}),
-                drawn=attachment,
-                built=extent,
-                box_of=_box_of,
-                k=k,
-            )
-            if geometry:
-                visual.asset_geometry = geometry
-
-        node = NodeJSON(
-            name=slot.name,
-            transform=TransformJSON(x=bone_x * k, y=bone_y * k),
-            visual=visual,
-        )
-        nodes[slot.name] = node
-        children_of.setdefault(parent if nested else "", []).append(node)
-
-    _record_missing_parts(entity, missing_art, drawn=set(nodes), into=resolutions)
-
-    for parent_name, kids in children_of.items():
-        if parent_name and parent_name in nodes:
-            nodes[parent_name].children = kids
-
-    return NodeJSON(
-        name=entity.id,
-        transform=TransformJSON(),
-        children=children_of.get("", []),
-    )
-
-
-def _swap_key_geometry(
-    projected: Mapping[str, Mapping[str, str]],
-    alias_of: Mapping[str, str],
-    attachments: Mapping[str, Attachment],
-    *,
-    drawn: Attachment,
-    built: tuple[float, float] | None,
-    box_of: Callable[[Attachment], tuple[float, float] | None],
-    k: float,
-) -> dict[str, dict[str, float]]:
-    """``{asset_id: geometry}`` for each swap key drawn unlike the built one.
-
-    The geometry is the key's own fit box (its art's extent × ``k``, the rig's
-    one uniform scale), its anchor, and its offset from the drawn attachment
-    in scene pixels — so every key is placed and scaled exactly as it would be
-    if it were the slot's default. A key whose art cannot be measured keeps
-    the built box: there is nothing better to say about it.
-
-    >>> a = Attachment(path="parts/m_x.svg", width=100, height=10)
-    >>> b = Attachment(path="parts/m_a.svg", width=100, height=60, y=5)
-    >>> _swap_key_geometry({"viseme": {"X": "c.m.x", "A": "c.m.a"}},
-    ...                    {"x": "c.m.x", "a": "c.m.a"}, {"x": a, "a": b},
-    ...                    drawn=a, built=(100, 10),
-    ...                    box_of=lambda att: (att.width, att.height), k=0.5)
-    {'c.m.a': {'width': 50.0, 'height': 30.0, 'anchor_x': 0.5, 'anchor_y': 0.5, 'x': 0.0, 'y': 2.5}}
-    """
-    name_of = {alias: name for name, alias in alias_of.items()}
-    built_geometry = (
-        (float(built[0]) * k, float(built[1]) * k) if built else None,
-        (float(drawn.anchor[0]), float(drawn.anchor[1])),
-        (0.0, 0.0),
-    )
-    out: dict[str, dict[str, float]] = {}
-    for key_map in projected.values():
-        for alias in key_map.values():
-            if alias in out or alias not in name_of:
-                continue
-            att = attachments.get(name_of[alias])
-            if att is None:
-                continue
-            box = box_of(att)
-            if box is None:
-                continue
-            geometry = (
-                (float(box[0]) * k, float(box[1]) * k),
-                (float(att.anchor[0]), float(att.anchor[1])),
-                (
-                    (float(att.x) - float(drawn.x)) * k,
-                    (float(att.y) - float(drawn.y)) * k,
-                ),
-            )
-            if geometry == built_geometry:
-                continue
-            (w, h), (ax, ay), (dx, dy) = geometry
-            out[alias] = {
-                "width": w,
-                "height": h,
-                "anchor_x": ax,
-                "anchor_y": ay,
-                "x": dx,
-                "y": dy,
-            }
-    return out
 
 
 # -----------------------------------------------------------------------------

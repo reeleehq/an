@@ -52,7 +52,7 @@ from an.stage.rig import (
     DEFAULT_VIEW_BOX,
     Attachment,  # noqa: F401
     Bone,
-    RigModel as _CharModel,
+    RigDocument,
     Skin,
     Slot,
 )
@@ -110,7 +110,7 @@ def default_prop_slots() -> list[Slot]:
     return [Slot(name=DFLT_PROP_SLOT, bone=DFLT_PROP_BONE, draw_order=0)]
 
 
-class PropDescriptor(_CharModel):
+class PropDescriptor(RigDocument):
     """The on-disk prop schema. Saved as ``prop.json``.
 
     >>> p = PropDescriptor(name="lamp")
@@ -141,6 +141,15 @@ class PropDescriptor(_CharModel):
     >>> back = PropDescriptor.model_validate_json(lamp.model_dump_json())
     >>> back.skins["default"].slots["body"]["on"].path
     'parts/on.svg'
+
+    A prop stands where it is put by its declared ``origin`` (an#338), in
+    view_box units; unset, by the centre of its bones' extent, and the stored
+    document does not mention it:
+
+    >>> PropDescriptor(name="tripod", origin=(512, 1010)).origin
+    (512.0, 1010.0)
+    >>> "origin" in PropDescriptor(name="lamp").model_dump()
+    False
     """
 
     schema_version: str = PROP_SCHEMA_VERSION

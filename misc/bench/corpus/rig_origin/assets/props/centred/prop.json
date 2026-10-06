@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PropDescriptor",
+  "name": "centred",
+  "display_name": "The same signpost, no declared origin",
+  "view_box": [
+    0,
+    0,
+    200,
+    400
+  ],
+  "source_svg": null,
+  "bones": [
+    {
+      "name": "root",
+      "parent": null,
+      "x": 100.0,
+      "y": 390.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "post",
+      "parent": "root",
+      "x": 0.0,
+      "y": -10.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    },
+    {
+      "name": "sign",
+      "parent": "post",
+      "x": 0.0,
+      "y": -250.0,
+      "rotation_deg": 0.0,
+      "scale_x": 1.0,
+      "scale_y": 1.0,
+      "pivot": null
+    }
+  ],
+  "slots": [
+    {
+      "name": "base",
+      "bone": "root",
+      "draw_order": 0,
+      "attachment": "base"
+    },
+    {
+      "name": "post",
+      "bone": "post",
+      "draw_order": 1,
+      "attachment": "post"
+    },
+    {
+      "name": "sign",
+      "bone": "sign",
+      "draw_order": 2,
+      "attachment": "sign"
+    }
+  ],
+  "skins": {
+    "default": {
+      "name": "default",
+      "slots": {
+        "base": {
+          "base": {
+            "path": "parts/base.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "x": 0.0,
+            "y": 10.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "post": {
+          "post": {
+            "path": "parts/post.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        },
+        "sign": {
+          "sign": {
+            "path": "parts/sign.svg",
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "x": 0.0,
+            "y": 0.0,
+            "width": null,
+            "height": null
+          }
+        }
+      }
+    }
+  },
+  "asset_sets": {},
+  "animations": {},
+  "face_overlay": true,
+  "source": null,
+  "metadata": {}
+}

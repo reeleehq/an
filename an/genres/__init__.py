@@ -111,7 +111,9 @@ class GenreError(RegistryError):
 #: 1 = moved-module shims (``an._shims.moved_to_package``) and this check (an#296, P8 B0a).
 #: 2 = the cut-out genre's move (an#225): ``Genre.services``, ``ActionKind.lowering``,
 #:     ``EntityKind.swap_declaration``, ``an.stage.rig``.
-API_LEVEL: int = 2
+#: 3 = the public rig builder (an#338): ``an.stage.rig.build_rig_subtree``, ``rig_origin``,
+#:     ``RigDocument`` (``origin``), ``omit_unset_rig_fields``, ``an.stage.compile.note_raster_rig``.
+API_LEVEL: int = 3
 
 
 class GenreAPILevelError(GenreError, ImportError):
