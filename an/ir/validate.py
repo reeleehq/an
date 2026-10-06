@@ -1696,6 +1696,55 @@ def _core_text_blocks(ctx: ValidationContext) -> None:
     _text_ids(ctx)
 
 
+def _core_stage_after(ctx: ValidationContext) -> None:
+    """``stage.after`` names an anchor the shot has, without a cycle, and never
+    on an overlay text block; ``__`` in an entity id is the stage's own
+    (an#344: its synthetic containers are named ``<env>__band_<k>`` and
+    ``<env>__after_<k>``, and a collision would index one path twice)."""
+    from an.stage.compile import SYNTHETIC_MARK, after_problems
+
+    shot, path, report = ctx.shot, ctx.path, ctx.report
+    for j, entity in enumerate(shot.entities):
+        if SYNTHETIC_MARK in entity.id:
+            report.add(
+                "error",
+                f"{path}/entities/{j}",
+                f"entity id {entity.id!r} contains {SYNTHETIC_MARK!r}, which is "
+                "reserved for the stage's own containers (`<env>__band_1`, "
+                "`<env>__after_0`); rename it.",
+            )
+    afters = [
+        (j, e) for j, e in enumerate(shot.entities) if e.stage is not None and e.stage.after
+    ]
+    if not afters:
+        return
+    stores = ctx.stores or {}
+    for j, why in after_problems(
+        shot, stores, planes_known=stores.get("environments") is not None
+    ):
+        report.add("error", f"{path}/entities/{j}/stage/after", f"{why} — compiling this shot raises.")
+    props = stores.get("props")
+    if props is None:
+        return
+    from an.stage.text import resolve_text
+    from an.stage.text_layout import text_document
+
+    for j, entity in afters:
+        doc = text_document(entity, props) if entity.kind == "prop" else None
+        try:
+            layer = resolve_text(doc, entity.overrides).layer if doc else None
+        except ValueError:
+            continue  # reported by `_check_text_blocks`
+        if layer == "overlay":
+            report.add(
+                "error",
+                f"{path}/entities/{j}/stage/after",
+                f"overlay text {entity.id!r} declares `stage.after`; the overlay "
+                "is drawn over the scene, outside the camera — compiling this "
+                "shot raises. Use `layer: world`, or drop `after`.",
+            )
+
+
 def _core_action_targets(ctx: ValidationContext) -> None:
     res = ctx.scene.meta.resolution
     _check_action_targets(
@@ -2012,6 +2061,7 @@ def _register_core_checks() -> None:
         SemanticCheck("swap_references", _core_swap_references, order=50),
         SemanticCheck("trim_targets", _core_trim_targets, order=70),
         SemanticCheck("text_blocks", _core_text_blocks, order=80),
+        SemanticCheck("stage_after", _core_stage_after, order=85),
         SemanticCheck("action_targets", _core_action_targets, order=90),
         SemanticCheck("field_kinds", _core_field_kinds, order=95),
         SemanticCheck("entity_refs", _core_entity_refs, order=100),

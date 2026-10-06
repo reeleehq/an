@@ -395,6 +395,25 @@ def test_declared_planes_are_found_including_the_foreground_container():
     }
 
 
+def test_declared_planes_are_found_in_every_band_container():
+    """an#344: an environment cut into bands keeps its planes at `<env>/<plane>`
+    in containers whose `scope` names it; a `scope=""` wrapper is not one."""
+    from an.bench.run import _plane_colours
+
+    doc = _staged(
+        [
+            {"name": "street", "children": [_rect("sky", "#204080")]},
+            {"name": "street__after_0", "scope": "", "children": [_rect("disc", "#ffd040")]},
+            {"name": "street__band_1", "scope": "street", "children": [_rect("wall", "#c04020")]},
+        ],
+        [{"id": "street", "kind": "environment", "resolved": "planes"}],
+    )
+    assert _plane_colours(_fake_capture(doc)) == {
+        "street/sky": 0x204080,
+        "street/wall": 0xC04020,
+    }
+
+
 def test_the_tripwire_floor_sits_below_what_the_fixture_measures():
     """The floor is "half the first bless's measured minimum", and both halves
     of that sentence are load-bearing: a floor at or above the measured value

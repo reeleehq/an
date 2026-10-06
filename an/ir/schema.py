@@ -179,6 +179,12 @@ class StagePlacement(_IRModel):
     compiler already places characters in — so an author reads it off the same
     ruler as a camera pivot. `scale` multiplies the rig's own uniform scale.
 
+    **`after` landed in an#344** (a studio set's sky disc between a sky plane
+    and a holed wall plate): it names the anchor the entity is drawn right
+    after. `depth` is still not a field: an entity takes the depth of the plane
+    it is placed after. The paragraphs below are the record of why both were
+    deferred, kept because `depth`'s reason still holds.
+
     **Deliberately only two fields, and the reason has been re-stated because
     the first one expired.** #108 sketched `depth` and `after` as well, deferred
     on the grounds that they belong to a stage vocabulary that had not arrived.
@@ -224,6 +230,20 @@ class StagePlacement(_IRModel):
     ) = None
     #: Uniform scale multiplier on the built rig. ``1.0`` = the rig's own size.
     scale: float = Field(default=1.0, gt=0, allow_inf_nan=False)
+    #: What this entity is drawn immediately after (an#344): an environment
+    #: plane (``"set/skyline"``) or another placed entity (``"grid"``).
+    #: ``None`` = the default band, where the environment's
+    #: ``characters_after`` cuts. A plane's parallax carries an entity placed
+    #: after it; an entity placed after an entity rides the default depth.
+    after: str | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_after(self, handler):
+        """``after: null`` is never written: every stored scene stays as it was."""
+        data = handler(self)
+        if isinstance(data, dict) and self.after is None:
+            data.pop("after", None)
+        return data
 
 
 class AssetRef(_IRModel):

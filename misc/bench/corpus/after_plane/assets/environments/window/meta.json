@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "EnvironmentDescriptor",
+  "name": "window",
+  "planes": [
+    {
+      "name": "sky",
+      "art": {
+        "kind": "fill",
+        "color": "#2c4f7c",
+        "src": null
+      },
+      "depth": 0.25,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": null,
+      "fit": "contain"
+    },
+    {
+      "name": "wall_left",
+      "art": {
+        "kind": "fill",
+        "color": "#a06a48",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        -140.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        200.0,
+        240.0
+      ],
+      "fit": "contain"
+    },
+    {
+      "name": "wall_right",
+      "art": {
+        "kind": "fill",
+        "color": "#a06a48",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        140.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        200.0,
+        240.0
+      ],
+      "fit": "contain"
+    },
+    {
+      "name": "sill",
+      "art": {
+        "kind": "fill",
+        "color": "#7a4d33",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        100.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        480.0,
+        60.0
+      ],
+      "fit": "contain"
+    }
+  ]
+}
