@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=972bc27a"></script>
+    <script src="../../../_static/documentation_options.js?v=a0d34810"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.205" />
+  <meta name="docsearch:version" content="0.1.206" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -873,7 +873,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="rest_pose_protection">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.rig.html#an.stage.rig.rest_pose_protection">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">rest_pose_protection</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">migrated</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rig document"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rest_pose_protection</span><span class="p">(</span>
+    <span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">migrated</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rig document"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).</span>
 
 <span class="sd">    The protective step writes ``rest_rotation: false`` onto a document from</span>
@@ -890,7 +892,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"rest_rotation"</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">migrated</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">(</span><span class="n">migrated</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">_field_of</span><span class="p">(</span><span class="n">migrated</span><span class="p">,</span> <span class="s2">"rest_rotation"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">bones_carry_a_rest_pose</span><span class="p">(</span>
+        <span class="n">migrated</span>
+    <span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="s2">"its bones carry a rotation or scale that is NOT applied: `rest_rotation: "</span>
