@@ -1,0 +1,26 @@
+an.sound\_fetch
+===============
+
+.. automodule:: an.sound_fetch
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Fetcher
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_sound_from_url
+      cut_to_wav
+      yb_fetcher
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Fetched
+   

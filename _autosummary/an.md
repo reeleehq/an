@@ -720,7 +720,9 @@ which decides how long a dissolve’s overlap is.
 | [`raster`](an.raster.md#module-an.raster)             | Moved to [`an.stage.raster`](an.stage.raster.md#module-an.stage.raster) (an#247); this path is a LIVE alias of it.             |
 | [`render`](an.render.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.                                                                         |
 | [`semantic`](an.semantic.md#module-an.semantic)         | The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.                                                                |
+| [`sound_fetch`](an.sound_fetch.md#module-an.sound_fetch)   | Add a sound from a URL, with its provenance and the cut taken (an#318).                                                                                 |
 | [`sounds`](an.sounds.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.                                                                        |
+| [`sounds_cli`](an.sounds_cli.md#module-an.sounds_cli)     | `an sounds …`: the project's sounds store from the shell (an#318).                                                                                      |
 | [`stage`](an.stage.md#module-an.stage)               | The 2D stage: the default engine, shipped with `an` but outside the core (an#247).                                                                      |
 | [`stores`](an.stores.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                                                                             |
 | [`styles`](an.styles.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.                                                                  |

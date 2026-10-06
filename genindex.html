@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=95c89233"></script>
+    <script src="_static/documentation_options.js?v=a2301859"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.185" />
+  <meta name="docsearch:version" content="0.1.186" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -745,9 +745,13 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.ActionLowering">ActionLowering (class in an.stage.compile)</a>
 </li>
+      <li><a href="_autosummary/an.sounds_cli.html#an.sounds_cli.add">add() (in module an.sounds_cli)</a>
+</li>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.add_audio">add_audio() (in module an.media.mp4)</a>
 </li>
       <li><a href="_autosummary/an.sounds.html#an.sounds.add_sound">add_sound() (in module an.sounds)</a>
+</li>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.add_sound_from_url">add_sound_from_url() (in module an.sound_fetch)</a>
 </li>
       <li><a href="_autosummary/an.timing.html#an.timing.Address">Address (class in an.timing)</a>
 
@@ -1590,8 +1594,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.media.shutter.html#module-an.media.shutter">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     an.media.sinks
 
@@ -1599,6 +1601,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.media.sinks.html#module-an.media.sinks">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     an.media.supersample
 
@@ -1747,10 +1751,24 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li>
+    an.sound_fetch
+
+      <ul>
+        <li><a href="_autosummary/an.sound_fetch.html#module-an.sound_fetch">module</a>
+</li>
+      </ul></li>
+      <li>
     an.sounds
 
       <ul>
         <li><a href="_autosummary/an.sounds.html#module-an.sounds">module</a>
+</li>
+      </ul></li>
+      <li>
+    an.sounds_cli
+
+      <ul>
+        <li><a href="_autosummary/an.sounds_cli.html#module-an.sounds_cli">module</a>
 </li>
       </ul></li>
       <li>
@@ -2799,6 +2817,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.library.ids.html#an.library.ids.check_namespace">check_namespace() (in module an.library.ids)</a>
 </li>
+      <li><a href="_autosummary/an.genres.registry.html#an.genres.registry.check_owner">check_owner() (in module an.genres.registry)</a>
+</li>
       <li><a href="_autosummary/an.library.html#an.library.check_pins">check_pins() (in module an.library)</a>
 </li>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.check_pix_fmt">check_pix_fmt() (in module an.media.mp4)</a>
@@ -3074,6 +3094,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.timing.easing.html#an.timing.easing.Curve">Curve (in module an.timing.easing)</a>
+</li>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.cut_to_wav">cut_to_wav() (in module an.sound_fetch)</a>
 </li>
       <li><a href="_autosummary/an.stage.cache_key.html#an.stage.cache_key.cutout_environment">cutout_environment() (in module an.stage.cache_key)</a>
 </li>
@@ -3745,6 +3767,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.engines.protocol.html#an.engines.protocol.FEATURE_MEMBERS">FEATURE_MEMBERS (in module an.engines.protocol)</a>
 </li>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.Fetched">Fetched (class in an.sound_fetch)</a>
+</li>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.Fetcher">Fetcher (in module an.sound_fetch)</a>
+</li>
       <li><a href="_autosummary/an.audio.effects.html#an.audio.effects.ffmpeg_argv">ffmpeg_argv() (in module an.audio.effects)</a>
 </li>
       <li><a href="_autosummary/an.stage.cache_key.html#an.stage.cache_key.ffmpeg_build">ffmpeg_build() (in module an.stage.cache_key)</a>
@@ -3859,14 +3885,14 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.bench.metrics.html#an.bench.metrics.FLICKER_DELTA_TOL">FLICKER_DELTA_TOL (in module an.bench.metrics)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Captions.font">font (an.ir.schema.Captions attribute)</a>
 
       <ul>
         <li><a href="_autosummary/an.stage.text.html#an.stage.text.TextDescriptor.font">(an.stage.text.TextDescriptor attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.stage.text.html#an.stage.text.font_base_dir">font_base_dir() (in module an.stage.text)</a>
 </li>
       <li><a href="_autosummary/an.stage.cache_key.html#an.stage.cache_key.FONT_DIRS">FONT_DIRS (in module an.stage.cache_key)</a>
@@ -5427,7 +5453,11 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="_autosummary/an.semantic.views.html#module-an.semantic.views">an.semantic.views</a>
 </li>
+        <li><a href="_autosummary/an.sound_fetch.html#module-an.sound_fetch">an.sound_fetch</a>
+</li>
         <li><a href="_autosummary/an.sounds.html#module-an.sounds">an.sounds</a>
+</li>
+        <li><a href="_autosummary/an.sounds_cli.html#module-an.sounds_cli">an.sounds_cli</a>
 </li>
         <li><a href="_autosummary/an.stage.html#module-an.stage">an.stage</a>
 </li>
@@ -6165,6 +6195,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.audio.takes.html#an.audio.takes.ProsodyTakeScorer">ProsodyTakeScorer (class in an.audio.takes)</a>
 </li>
       <li><a href="_autosummary/an.verify.prosody.html#an.verify.prosody.ProsodyTargetError">ProsodyTargetError</a>
+</li>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.Fetched.provider">provider (an.sound_fetch.Fetched attribute)</a>
 </li>
       <li><a href="_autosummary/an.audio.voices.html#an.audio.voices.PROVIDER_KEY">PROVIDER_KEY (in module an.audio.voices)</a>
 </li>
@@ -8449,6 +8481,10 @@ window.runMermaid = runMermaid;</script>
 
 <h2 id="Y">Y</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.yb_fetcher">yb_fetcher() (in module an.sound_fetch)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.bench.imageio.html#an.bench.imageio.YUV_PIX_FMT">YUV_PIX_FMT (in module an.bench.imageio)</a>
 </li>

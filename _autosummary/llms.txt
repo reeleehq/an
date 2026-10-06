@@ -142,7 +142,9 @@
 - [an.semantic.registry](an.semantic.registry.html.md): The one vocabulary registry (ADR 0003 decision 6): entries and aspects, by owner.
 - [an.semantic.seeds](an.semantic.seeds.html.md): The core’s vocabulary: views over the kind and easing registries, camera moves, IR fields.
 - [an.semantic.views](an.semantic.views.html.md): View spaces: what a camera move moves through, defined once for every engine (an#257).
+- [an.sound_fetch](an.sound_fetch.html.md): Add a sound from a URL, with its provenance and the cut taken (an#318).
 - [an.sounds](an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
+- [an.sounds_cli](an.sounds_cli.html.md): &#96;an sounds …&#96;: the project’s sounds store from the shell (an#318).
 - [an.stage](an.stage.html.md): The 2D stage: the default engine, shipped with &#96;an&#96; but outside the core (an#247).
 - [an.stage.cache_key](an.stage.cache_key.html.md): What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).
 - [an.stage.canvas_capture](an.stage.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.

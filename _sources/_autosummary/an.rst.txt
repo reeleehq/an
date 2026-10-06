@@ -85,7 +85,9 @@
    raster
    render
    semantic
+   sound_fetch
    sounds
+   sounds_cli
    stage
    stores
    styles

@@ -1,0 +1,12 @@
+an.sounds\_cli
+==============
+
+.. automodule:: an.sounds_cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add
+   

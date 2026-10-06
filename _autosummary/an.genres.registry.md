@@ -36,6 +36,7 @@ False
 | [`action_kind_names`](#an.genres.registry.action_kind_names)(\*[, owner])                    | Registered action-kind names in registration order; `owner`'s only when given.    |
 | `action_kind_owner`(name)                                                                          |                                                                                   |
 | `check_names`(\*[, owner])                                                                         |                                                                                   |
+| [`check_owner`](#an.genres.registry.check_owner)(name)                                 | Who registered the check `name` (`CORE_OWNER` for the core's), or `None`.         |
 | [`checks`](#an.genres.registry.checks)(stage)                                     | The registered checks of `stage`, in run order (`order`, then registration).      |
 | `compile_pass_names`(\*[, owner])                                                                  |                                                                                   |
 | [`compile_pass_owner`](#an.genres.registry.compile_pass_owner)(name)                          | Who registered the compile pass `name` (a genre's name), or `None`.               |
@@ -358,6 +359,13 @@ Registered action-kind names in registration order; `owner`’s only when given.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.check_owner(name)
+
+Who registered the check `name` (`CORE_OWNER` for the core’s), or `None`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.genres.registry.checks(stage)
 

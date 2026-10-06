@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=95c89233"></script>
+    <script src="../../_static/documentation_options.js?v=a2301859"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.185" />
+  <meta name="docsearch:version" content="0.1.186" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -952,6 +952,11 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># A provider's terms that hold beyond the class (an#332: Stable</span>
         <span class="c1"># Audio's revenue cap), on any asset made under them.</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">restriction</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cut_label</span>
+
+    <span class="k">if</span> <span class="n">cut</span> <span class="o">:=</span> <span class="n">cut_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
+        <span class="c1"># A sound cut from fetched media says which part of which page (an#318).</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — </span><span class="si">{</span><span class="n">cut</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — covers </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">return</span> <span class="n">out</span>

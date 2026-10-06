@@ -21,6 +21,7 @@ an.genres.registry
       action_kind_names
       action_kind_owner
       check_names
+      check_owner
       checks
       compile_pass_names
       compile_pass_owner
