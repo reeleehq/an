@@ -210,6 +210,9 @@ class VisualJSON(_JSONModel):
     #: on a thin canvas squashed every open mouth to a fraction of a pixel. Only
     #: keys whose geometry differs are listed; ``None`` = every key shares it.
     asset_geometry: dict[str, dict[str, float]] | None = None
+    #: The visual's place among its node's children when the node sorts them
+    #: (an#403): a part drawn over the chain nested under it.
+    z_index: float | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_path(self, handler):
@@ -222,7 +225,7 @@ class VisualJSON(_JSONModel):
         """
         data = handler(self)
         if isinstance(data, dict):
-            for key in ("path", "underlays", "blend", "asset_geometry"):
+            for key in ("path", "underlays", "blend", "asset_geometry", "z_index"):
                 if data.get(key) is None:
                     data.pop(key, None)
         return data
@@ -242,6 +245,10 @@ class NodeJSON(_JSONModel):
     #: so every plane is ``<env>/<plane>`` wherever the environment is cut.
     #: :mod:`an.stage.tree` is the Python statement of the rule.
     scope: str | None = None
+    #: This node's place among its siblings when its parent sorts them
+    #: (an#403): a nested chain whose declared draw order is not the tree's
+    #: (a far arm behind the torso it nests under). ``None`` = insertion order.
+    z_index: float | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_scope(self, handler):
@@ -251,6 +258,8 @@ class NodeJSON(_JSONModel):
         data = handler(self)
         if isinstance(data, dict) and self.scope is None:
             data.pop("scope", None)
+        if isinstance(data, dict) and self.z_index is None:
+            data.pop("z_index", None)
         return data
 
 

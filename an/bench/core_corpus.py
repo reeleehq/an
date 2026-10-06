@@ -18,6 +18,7 @@ text_swap  text content over time — a `texts` replacement set swapped twice,
 text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
 front_plane a foreground plane, animated and addressed `<env>/<plane>` (an#343)
 after_plane a prop placed between two planes under a pan (an#344)
+rig_order  a nested chain drawn behind the part it hangs from (an#403)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
@@ -45,7 +46,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -240,6 +241,22 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "stripe alike. A regression in the outline's width, its order under "
             "the fill, the box growth that keeps it unclipped, or per-word "
             "alpha moves a golden."
+        ),
+    ),
+    "rig_order": Fixture(
+        path=f"{CORPUS_DIRNAME}/rig_order",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a nested chain drawn BEHIND the part it hangs from (an#403): "
+            "`rig_chain`'s desk lamp in `nesting: bones` with the whole arm "
+            "(upper, forearm, shade: draw orders 1-3) behind its base (4). The "
+            "base's container sorts its own drawing after the arm "
+            "(`sortableChildren`, `z_index`), which the stage used to refuse. "
+            "Between the goldens the arm swings as in `rig_chain`; where it "
+            "passes over the base the base is in front. A regression in the "
+            "runtime's sort, the compiler's `z_index` or the chain refusal "
+            "moves a golden."
         ),
     ),
     "transitions": Fixture(

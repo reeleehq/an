@@ -142,12 +142,32 @@
         return pathPrefix ? pathPrefix + '/' + node.scope : node.scope;
     }
 
+    // A container whose children carry a declared paint order (an#403: a
+    // nested chain whose draw order is not the tree's, a far arm behind the
+    // torso it hangs from) sorts them by it; every other container keeps its
+    // insertion order and is never made sortable. A child with no index takes
+    // its predecessor's, so PixiJS's stable sort keeps it right after it. The
+    // Python statement of the order is an.stage.rig.chain_paint_order.
+    function applyPaintOrder(container) {
+        const kids = container.children;
+        if (!kids.some(c => c._anZ !== undefined)) return;
+        let last = 0;
+        for (const child of kids) {
+            if (child._anZ !== undefined) last = child._anZ;
+            child.zIndex = last;
+        }
+        container.sortableChildren = true;
+    }
+
     function buildSceneTree(node, parent, pathPrefix) {
         const path = pathPrefix ? pathPrefix + '/' + node.name : node.name;
         const container = new PIXI.Container();
         container.name = path;
         applyTransform(container, node.transform);
         nodeIndex[path] = container;
+        if (node.z_index !== undefined && node.z_index !== null) {
+            container._anZ = node.z_index;
+        }
 
         if (node.visual) {
             const visual = makeVisual(node.visual);
@@ -156,9 +176,13 @@
             // it — which is why a tween, a play or the camera moves them with
             // no channel of their own. Built once, from the document; nothing
             // here is a filter and nothing is random.
+            const visualZ = node.visual.z_index;
             for (const copy of makeUnderlays(node.visual, visual)) {
+                // Tied to its visual, so a sorted container keeps it just behind.
+                if (visualZ !== undefined && visualZ !== null) copy._anZ = visualZ;
                 container.addChild(copy);
             }
+            if (visualZ !== undefined && visualZ !== null) visual._anZ = visualZ;
             if (node.visual.blend) {
                 visual.blendMode = blendModeOf(node.visual.blend);
             }
@@ -170,6 +194,7 @@
         for (const child of node.children || []) {
             buildSceneTree(child, container, inner);
         }
+        applyPaintOrder(container);
 
         parent.addChild(container);
         return container;

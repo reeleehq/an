@@ -589,69 +589,145 @@ def rig_problems(desc: Any) -> list[str]:
     return out
 
 
-def chain_draw_order_problems(desc: Any) -> list[str]:
-    """Where a nested chain asks the STAGE for a draw order it cannot give (an#340).
+def chain_paint_order(
+    desc: Any, *, built: Any = None
+) -> dict[str | None, list[str]]:
+    """How each container of a nested chain must order what it holds (an#403).
 
-    The stage engine (PixiJS) draws a container's own visual before its
-    children, so a nested part always draws over its parent: a slot nested
-    under one with a HIGHER ``draw_order`` cannot be honoured. This is the
-    stage engine's limit, not a rule of rigs (an engine with free slot order
-    could draw it), so the stage compiler refuses it and the asset
-    validators only warn. Nothing in ``flat`` nesting: there a nested slot is
-    a face part over its head, drawn after it by construction.
+    The stage draws a container's items in order: its slot's own visual and its
+    child slots' containers (``None`` is the entity's container, which holds the
+    root slots and no visual of its own). Sorting those siblings (PixiJS's
+    ``sortableChildren`` on a ``zIndex``) gives any order in which every slot's
+    SUBTREE is painted contiguously, a far arm behind the torso it nests under
+    included. Each item spans the draw orders of its subtree; the items are
+    sorted, stably, by that ``(lowest, highest)`` span, starting from the
+    builder's own order (:func:`natural_paint_order`), so equal draw orders keep
+    their tree order and a chain already painted in declared order is not
+    reordered. ``built`` limits it to the slots the builder drew.
 
     >>> from types import SimpleNamespace as NS
-    >>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
-    ...          slots=[NS(name="arm", bone="arm", draw_order=3), NS(name="hand", bone="hand", draw_order=1)])
-    >>> chain_draw_order_problems(rig)[0].startswith("slot 'hand' (draw_order 1) nests under 'arm' (draw_order 3)")
+    >>> rig = NS(nesting="bones",
+    ...          bones=[NS(name="torso", parent=None), NS(name="arm", parent="torso")],
+    ...          slots=[NS(name="torso", bone="torso", draw_order=2), NS(name="arm", bone="arm", draw_order=1)])
+    >>> chain_paint_order(rig)
+    {None: ['torso'], 'torso': ['arm', 'torso']}
+    """
+    parents = slot_parent_chain(desc)
+    keys = _draw_keys(desc)
+    names = [n for n in keys if built is None or n in built]
+    kids: dict[str | None, list[str]] = {}
+    for name in names:
+        parent = parents.get(name)
+        # A slot caught in a bone cycle maps to itself (`slot_parent_chain`):
+        # it is a root here; `rig_problems` refuses the cycle.
+        kids.setdefault(parent if parent in names and parent != name else None, []).append(name)
+
+    def span(name: str, seen: frozenset = frozenset()) -> tuple:
+        below = [span(k, seen | {name}) for k in kids.get(name, []) if k not in seen]
+        own = keys[name][0]
+        return (min([own, *(b[0] for b in below)]), max([own, *(b[1] for b in below)]))
+
+    held = {None: kids.get(None, []), **{n: [n, *kids[n]] for n in names if kids.get(n)}}
+    natural = natural_paint_order(held, keys)
+    return {
+        container: sorted(
+            items,
+            key=lambda item, owner=container: (
+                (keys[item][0],) * 2 if item == owner else span(item)
+            ),
+        )
+        for container, items in natural.items()
+    }
+
+
+def _draw_keys(desc: Any) -> dict[str, tuple]:
+    """``{slot: (draw_order, name)}``: the builder's own order of siblings."""
+    return {
+        _field_of(s, "name"): (_field_of(s, "draw_order", 0) or 0, _field_of(s, "name"))
+        for s in _field_of(desc, "slots") or []
+    }
+
+
+def _painted(order: dict[str | None, list[str]]) -> list[str]:
+    """The slots in the order the stage paints them, containers sorted by ``order``."""
+    out: list[str] = []
+
+    def paint(container: str | None) -> None:
+        for item in order.get(container, []):
+            if item == container or item in out:
+                if item not in out:
+                    out.append(item)
+            elif item in order:
+                paint(item)
+            else:
+                out.append(item)
+
+    paint(None)
+    return out
+
+
+def natural_paint_order(order: dict[str | None, list[str]], keys: dict) -> dict:
+    """What each container holds in the builder's own order: the slot's visual
+    first, then its children by their own ``(draw_order, name)``."""
+    return {
+        container: ([container] if container is not None else [])
+        + sorted((i for i in items if i != container), key=lambda i: keys[i])
+        for container, items in order.items()
+    }
+
+
+def _stamp_paint_order(desc: Any, nodes: dict[str, NodeJSON]) -> None:
+    """Give the built nodes the ``z_index`` the stage sorts by (an#403), only in
+    the containers whose declared order differs from the builder's own (a
+    rig whose tree already paints in declared order stays byte-identical)."""
+    keys = _draw_keys(desc)
+    order = chain_paint_order(desc, built=set(nodes))
+    natural = natural_paint_order(order, keys)
+    for container, items in order.items():
+        if items == natural[container]:
+            continue
+        for z, item in enumerate(items, start=1):
+            if item == container:
+                nodes[item].visual.z_index = z
+            else:
+                nodes[item].z_index = z
+
+
+def chain_draw_order_problems(desc: Any) -> list[str]:
+    """Where a nested chain asks the STAGE for a draw order it cannot give (an#340, an#403).
+
+    The stage sorts the items of each container (:func:`chain_paint_order`), so
+    a part nested under one drawn LATER is fine (a far arm behind its torso).
+    What it cannot do is interleave two containers: a slot's subtree is always
+    painted together, so an unrelated part ordered between a chain's members
+    (a leg between the arms and the head) cannot be honoured. Refused by the
+    stage compiler; the asset validators only warn. Nothing in ``flat``
+    nesting.
+
+    >>> from types import SimpleNamespace as NS
+    >>> rig = NS(nesting="bones",
+    ...          bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm"), NS(name="cord", parent=None)],
+    ...          slots=[NS(name="arm", bone="arm", draw_order=1), NS(name="cord", bone="cord", draw_order=2),
+    ...                 NS(name="hand", bone="hand", draw_order=3)])
+    >>> chain_draw_order_problems(rig)[0].startswith("the stage paints each chain's parts together")
     True
     """
     if nesting_of(desc) != BONES_NESTING:
         return []
-    order = {
-        _field_of(s, "name"): _field_of(s, "draw_order", 0) or 0
-        for s in _field_of(desc, "slots") or []
-    }
-    parents = slot_parent_chain(desc)
-    out = []
-    for slot, parent in parents.items():
-        if parent is not None and order.get(slot, 0) < order.get(parent, 0):
-            out.append(
-                f"slot {slot!r} (draw_order {order[slot]}) nests under {parent!r} "
-                f"(draw_order {order[parent]}), but the stage draws a nested part "
-                "OVER its parent: raise its draw_order to at least its parent's, "
-                "flatten it (`nesting: flat`), or reverse the chain"
-            )
-    if out:
-        return out
-    # The stage paints a TREE depth first, so a chain also moves everything
-    # under it past an unrelated part ordered between its members (a leg
-    # ordered between the arms and the head would paint over the face).
-    key = lambda name: (order.get(name, 0), name)  # noqa: E731
-    children: dict[str | None, list[str]] = {}
-    for slot in sorted(parents, key=key):
-        children.setdefault(parents[slot], []).append(slot)
-    painted: list[str] = []
-    stack = list(reversed(children.get(None, [])))
-    seen: set[str] = set()
-    while stack:
-        slot = stack.pop()
-        if slot in seen:
-            continue
-        seen.add(slot)
-        painted.append(slot)
-        stack.extend(reversed(children.get(slot, [])))
-    wanted = sorted(painted, key=key)
-    if painted != wanted:
-        i = next(i for i, (a, b) in enumerate(zip(painted, wanted)) if a != b)
-        out.append(
-            f"the stage paints the chained tree depth first, so slot {painted[i]!r} "
-            f"(draw_order {order.get(painted[i], 0)}) would paint before {wanted[i]!r} "
-            f"(draw_order {order.get(wanted[i], 0)}), against the declared order: "
-            "order each chain's parts together (a part's draw_order between its "
-            "parent's and its next sibling's), or flatten the rig (`nesting: flat`)"
-        )
-    return out
+    keys = _draw_keys(desc)
+    painted = _painted(chain_paint_order(desc))
+    for before, after in zip(painted, painted[1:]):
+        if keys[after][0] < keys[before][0]:
+            return [
+                f"the stage paints each chain's parts together (a container's "
+                f"items can be reordered, not interleaved with another's; it draws "
+                f"depth first), so slot {after!r} (draw_order {keys[after][0]}) "
+                f"would paint after {before!r} (draw_order {keys[before][0]}), "
+                "against the declared order: keep each chain's parts together in "
+                "draw order (no unrelated part between them), or flatten the rig "
+                "(`nesting: flat`)"
+            ]
+    return []
 
 
 def chain_pose_problems(desc: Any) -> list[str]:
@@ -1474,6 +1550,8 @@ def build_rig_subtree(
     for parent_name, kids in children_of.items():
         if parent_name and parent_name in nodes:
             nodes[parent_name].children = kids
+    if bones_mode:
+        _stamp_paint_order(desc, nodes)
 
     # A part is drawn only if its whole chain was built: one whose parent was
     # not (its art missing) is an orphan, a hole in the picture like the parent
