@@ -9,7 +9,8 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 
 - A path is a **prop** whose document `kind` is `PathDescriptor` (`an/stage/paths.py`), in the props store. `_build_prop_subtree` dispatches on the document kind; no scene-IR field, no migration.
 - The entity's `overrides` are merged over the stored document and validated **strictly** by `an.stage.paths.resolve_path` — the one call both the compiler and `an validate` make, so their verdicts agree (`tests/test_path.py::test_validate_and_compile_reach_the_same_verdict`).
-- Cubic Béziers are **flattened in the compiler** (`an.stage.path_geometry.flatten_curve`, uniform in the parameter). The wire (`VisualJSON.path`, a `PathJSON`) only ever carries a polyline.
+- Cubic Béziers are **flattened in the compiler** (`an.stage.path_geometry.flatten_curve`): uniform in the parameter by default; `sampling: arclength` on the document spaces the points evenly along the curve (an#161, opt-in, so no golden moved). The wire (`VisualJSON.path`, a `PathJSON`) only ever carries a polyline.
+- **Tail and double-headed arrows** (an#161): `tail_arrowhead: true` puts a head at the trimmed START, pointing back along the leg the path leaves on (`_segment_from`, the mirror of `_segment_at`: a tip on a corner takes the outgoing leg). With `arrowhead`, it's a double-headed arrow. While the visible length is shorter than the heads together, both scale by one factor. A single head scales exactly as before, and the geometry has a `tail` key only when a tail is on. The wire carries `tail_head_length/width` only when on, so no existing path document's hash moved. `runtime.js::pathGeometry` mirrors it (`pathSegmentFrom`, `pathHead`), and the node parity battery covers tails and a trim starting on a corner.
 - `trim_start` / `trim_end` are in `an.base.TRANSFORM_PROPERTIES` (rest 0.0 / 1.0), so they tween, step and hold like `alpha`. They are path-only: `_check_trim_target` (compile) and `_check_trim_targets` (validate) refuse any other target, and the runtime's `applyTrim` throws.
 - The runtime draws `pathGeometry(points, trim_start, trim_end, head_length, head_width, dash, gap, dash_offset)` → `{stroke, head[, dashes]}`; `an/stage/path_geometry.py::path_geometry` is its **executable spec**.
 
@@ -33,7 +34,7 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 
 ## Not built (still in #161)
 
-Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); closed and filled shapes (borders as regions, fill colour and alpha); per-point trim easing / tail arrowhead / double-headed arrows; arc-length-uniform Bézier sampling; the hand-drawn wobble/boil layer (below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
+Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); closed and filled shapes (borders as regions, fill colour and alpha); per-point trim easing; the hand-drawn wobble/boil layer (below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
 
 ## A style layer on top (hand-drawn wobble, stroke jitter)
 

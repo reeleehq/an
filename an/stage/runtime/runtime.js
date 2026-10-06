@@ -498,8 +498,39 @@
         return v < 0 ? 0 : (v > 1 ? 1 : v);
     }
 
+    // The first non-degenerate segment whose END lies beyond s, so a tail
+    // tip exactly on a vertex points back along the leg the path leaves on
+    // (an#161). Mirror of path_geometry.py::_segment_from.
+    function pathSegmentFrom(cum, s) {
+        let last = 0;
+        for (let i = 0; i < cum.length - 1; i++) {
+            if (cum[i + 1] > cum[i]) {
+                last = i;
+                if (s < cum[i + 1]) return i;
+            }
+        }
+        return last;
+    }
+
+    // A triangle, tip at arc length s on segment i, its base `length` back
+    // (sign -1) or forward (sign +1) along it. Mirror of path_geometry.py::_head.
+    function pathHead(pts, cum, s, i, length, width, sign) {
+        const dx = pts[i + 1][0] - pts[i][0];
+        const dy = pts[i + 1][1] - pts[i][1];
+        const seg = Math.sqrt(dx * dx + dy * dy);
+        const ux = dx / seg;
+        const uy = dy / seg;
+        const tip = pathPointAt(pts, cum, s);
+        const tx = tip[0], ty = tip[1];
+        const bx = tx + sign * ux * length;
+        const by = ty + sign * uy * length;
+        const nx = -uy * (width / 2);
+        const ny = ux * (width / 2);
+        return [[tx, ty], [bx + nx, by + ny], [bx - nx, by - ny]];
+    }
+
     function pathGeometry(pts, trimStart, trimEnd, headLength, headWidth,
-                          dash, gap, dashOffset) {
+                          dash, gap, dashOffset, tailHeadLength, tailHeadWidth) {
         const cum = pathLengths(pts);
         const total = cum[cum.length - 1];
         const lo = clamp01(Math.min(trimStart, trimEnd));
@@ -507,36 +538,38 @@
         const a = lo * total;
         const b = hi * total;
         if (!(b > a)) return { stroke: [], head: null };
+        const tailOn = tailHeadLength > 0;
         let head = null;
+        let tail = null;
+        let strokeStart = a;
         let strokeEnd = b;
+        // While the visible length is shorter than the heads together, both
+        // shrink by one factor (an#161), so a draw-on grows them in.
+        const heads = (headLength > 0 ? headLength : 0.0) + (tailOn ? tailHeadLength : 0.0);
+        const visible = b - a;
+        const k = visible < heads ? visible / heads : 1.0;
         if (headLength > 0) {
-            const visible = b - a;
-            const k = visible < headLength ? visible / headLength : 1.0;
             const hl = headLength * k;
-            const hw = headWidth * k;
-            const i = pathSegmentAt(cum, b);
-            const dx = pts[i + 1][0] - pts[i][0];
-            const dy = pts[i + 1][1] - pts[i][1];
-            const seg = Math.sqrt(dx * dx + dy * dy);
-            const ux = dx / seg;
-            const uy = dy / seg;
-            const tip = pathPointAt(pts, cum, b);
-            const tx = tip[0], ty = tip[1];
-            const bx = tx - ux * hl;
-            const by = ty - uy * hl;
-            const nx = -uy * (hw / 2);
-            const ny = ux * (hw / 2);
-            head = [[tx, ty], [bx + nx, by + ny], [bx - nx, by - ny]];
+            head = pathHead(pts, cum, b, pathSegmentAt(cum, b), hl, headWidth * k, -1.0);
             strokeEnd = b - hl * PATH_HEAD_STROKE_INSET;
         }
-        if (dash > 0) {
-            const spans = strokeEnd > a
-                ? pathDashSpans(a, strokeEnd, dash, gap, dashOffset || 0) : [];
-            const dashes = spans.map(sp => pathTrim(pts, cum, sp[0], sp[1]));
-            return { stroke: [], head: head, dashes: dashes };
+        if (tailOn) {
+            const tl = tailHeadLength * k;
+            tail = pathHead(pts, cum, a, pathSegmentFrom(cum, a), tl, tailHeadWidth * k, 1.0);
+            strokeStart = a + tl * PATH_HEAD_STROKE_INSET;
         }
-        const stroke = strokeEnd > a ? pathTrim(pts, cum, a, strokeEnd) : [];
-        return { stroke: stroke, head: head };
+        let out;
+        if (dash > 0) {
+            const spans = strokeEnd > strokeStart
+                ? pathDashSpans(strokeStart, strokeEnd, dash, gap, dashOffset || 0) : [];
+            const dashes = spans.map(sp => pathTrim(pts, cum, sp[0], sp[1]));
+            out = { stroke: [], head: head, dashes: dashes };
+        } else {
+            const stroke = strokeEnd > strokeStart ? pathTrim(pts, cum, strokeStart, strokeEnd) : [];
+            out = { stroke: stroke, head: head };
+        }
+        if (tailOn) out.tail = tail;
+        return out;
     }
 
     function drawPath(g) {
@@ -545,7 +578,8 @@
         const geo = pathGeometry(
             spec.points, st.trim_start, st.trim_end,
             spec.head_length || 0, spec.head_width || 0,
-            spec.dash || 0, spec.gap || 0, st.dash_offset
+            spec.dash || 0, spec.gap || 0, st.dash_offset,
+            spec.tail_head_length || 0, spec.tail_head_width || 0
         );
         const color = parseColor(spec.color);
         g.clear();
@@ -564,13 +598,14 @@
                 g.lineTo(line[i][0], line[i][1]);
             }
         }
-        if (geo.head) {
+        for (const tri of [geo.head, geo.tail]) {
+            if (!tri) continue;
             g.lineStyle(0);
             g.beginFill(color, 1.0);
             g.drawPolygon([
-                geo.head[0][0], geo.head[0][1],
-                geo.head[1][0], geo.head[1][1],
-                geo.head[2][0], geo.head[2][1],
+                tri[0][0], tri[0][1],
+                tri[1][0], tri[1][1],
+                tri[2][0], tri[2][1],
             ]);
             g.endFill();
         }

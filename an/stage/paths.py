@@ -137,6 +137,9 @@ class PathDescriptor(BaseModel):
     points: list[tuple[float, float]] = Field(min_length=2)
     curve: Literal["polyline", "cubic"] = "polyline"
     samples_per_segment: int = Field(default=DFLT_SAMPLES_PER_CUBIC, ge=1, le=512)
+    #: How a cubic's samples are spaced (an#161): ``"parameter"`` (uniform in
+    #: the curve's parameter, the default) or ``"arclength"`` (evenly along it).
+    sampling: Literal["parameter", "arclength"] = "parameter"
     #: ``#rrggbb``.
     color: str = DFLT_STROKE_COLOUR
     width: float = Field(default=DFLT_STROKE_WIDTH, gt=0, allow_inf_nan=False)
@@ -158,6 +161,9 @@ class PathDescriptor(BaseModel):
     #: is the "marching ants" route; only a dashed path has one.
     dash_offset: float = Field(default=0.0, allow_inf_nan=False)
     arrowhead: bool = False
+    #: An arrowhead at the START too, pointing back along the path (an#161):
+    #: with ``arrowhead``, a double-headed arrow. Same size as the end's.
+    tail_arrowhead: bool = False
     #: Scene pixels; ``None`` = a multiple of ``width``.
     head_length: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     head_width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
@@ -211,10 +217,13 @@ class PathDescriptor(BaseModel):
             for name in self.model_fields_set
             if getattr(self, name) != fields[name].default
         }
-        if not self.arrowhead and given & {"head_length", "head_width"}:
+        if not (self.arrowhead or self.tail_arrowhead) and given & {
+            "head_length",
+            "head_width",
+        }:
             raise ValueError(
-                "head_length/head_width are set but arrowhead is false, so "
-                "they would draw nothing; set `arrowhead: true` or drop them"
+                "head_length/head_width are set but arrowhead is false (and so is "
+                "tail_arrowhead), so they would draw nothing; set one or drop them"
             )
         if self.dash is None and given & {"gap", "dash_offset"}:
             raise ValueError(
@@ -227,10 +236,10 @@ class PathDescriptor(BaseModel):
                 f"{MIN_DASH_PERIOD}: that is thousands of dashes redrawn every "
                 "frame and finer than a pixel"
             )
-        if self.curve == "polyline" and "samples_per_segment" in given:
+        if self.curve == "polyline" and given & {"samples_per_segment", "sampling"}:
             raise ValueError(
-                "samples_per_segment only applies to curve='cubic'; a "
-                "polyline is drawn through its points as given"
+                "samples_per_segment (and sampling) only applies to curve='cubic'; "
+                "a polyline is drawn through its points as given"
             )
         if all(p == self.points[0] for p in self.points):
             raise ValueError(

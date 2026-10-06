@@ -56,14 +56,58 @@ __all__ = [
 HEAD_STROKE_INSET: float = 0.5
 
 
+#: How many parameter steps per output sample the arc-length table of a
+#: cubic takes (``sampling="arclength"``): fine enough that the spacing's error
+#: is far below a pixel for any curve a scene draws.
+ARCLENGTH_TABLE_FACTOR: int = 16
+
+
+def _bezier(p0, c1, c2, p1, t: float) -> Point:
+    u = 1.0 - t
+    b0, b1, b2, b3 = u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t
+    return (
+        b0 * p0[0] + b1 * c1[0] + b2 * c2[0] + b3 * p1[0],
+        b0 * p0[1] + b1 * c1[1] + b2 * c2[1] + b3 * p1[1],
+    )
+
+
+def _arclength_params(p0, c1, c2, p1, samples: int) -> list[float]:
+    """The parameters ``t_1 .. t_samples`` (the last is 1) at equal arc length
+    along one cubic, read off a dense table of its length by parameter."""
+    n = samples * ARCLENGTH_TABLE_FACTOR
+    ts = [i / n for i in range(n + 1)]
+    pts = [_bezier(p0, c1, c2, p1, t) for t in ts]
+    cum = cumulative_lengths(pts)
+    total = cum[-1]
+    if not total > 0:
+        return [i / samples for i in range(1, samples + 1)]
+    out = []
+    j = 0
+    for i in range(1, samples):
+        target = total * i / samples
+        while cum[j + 1] < target:
+            j += 1
+        span = cum[j + 1] - cum[j]
+        u = (target - cum[j]) / span if span > 0 else 0.0
+        out.append(ts[j] + (ts[j + 1] - ts[j]) * u)
+    return [*out, 1.0]
+
+
 def flatten_curve(
-    points: Sequence[Sequence[float]], *, curve: str = "polyline", samples: int = 24
+    points: Sequence[Sequence[float]],
+    *,
+    curve: str = "polyline",
+    samples: int = 24,
+    sampling: str = "parameter",
 ) -> list[Point]:
     """The polyline the runtime draws for ``points``.
 
     ``curve="cubic"`` reads ``points`` as chained cubic Béziers
-    (``p0 c1 c2 p1 c1 c2 p2 ...``) and samples each uniformly in its parameter
-    at ``samples`` steps; shared endpoints appear once.
+    (``p0 c1 c2 p1 c1 c2 p2 ...``) and samples each at ``samples`` steps;
+    shared endpoints appear once. ``sampling="parameter"`` (the default) steps
+    uniformly in each curve's parameter, so points crowd where the curve is
+    slow; ``"arclength"`` (an#161) steps uniformly along its length, so the
+    points are evenly spaced (a smoother bend for the same count).
 
     >>> flatten_curve([(0, 0), (10, 0)])
     [(0.0, 0.0), (10.0, 0.0)]
@@ -78,19 +122,19 @@ def flatten_curve(
         raise ValueError(f"unknown curve {curve!r}; known: 'polyline', 'cubic'")
     if (len(pts) - 1) % 3 or len(pts) < 4:
         raise ValueError(f"a cubic path takes 3n + 1 points; got {len(pts)}")
+    if sampling not in ("parameter", "arclength"):
+        raise ValueError(
+            f"unknown sampling {sampling!r}; known: 'parameter', 'arclength'"
+        )
     out = [pts[0]]
     for k in range(0, len(pts) - 1, 3):
         p0, c1, c2, p1 = pts[k], pts[k + 1], pts[k + 2], pts[k + 3]
-        for i in range(1, samples + 1):
-            t = i / samples
-            u = 1.0 - t
-            b0, b1, b2, b3 = u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t
-            out.append(
-                (
-                    b0 * p0[0] + b1 * c1[0] + b2 * c2[0] + b3 * p1[0],
-                    b0 * p0[1] + b1 * c1[1] + b2 * c2[1] + b3 * p1[1],
-                )
-            )
+        params = (
+            _arclength_params(p0, c1, c2, p1, samples)
+            if sampling == "arclength"
+            else [i / samples for i in range(1, samples + 1)]
+        )
+        out.extend(_bezier(p0, c1, c2, p1, t) for t in params)
     return out
 
 
@@ -123,6 +167,39 @@ def _segment_at(cum: Sequence[float], s: float) -> int:
             if s <= cum[i + 1]:
                 return i
     return last
+
+
+def _segment_from(cum: Sequence[float], s: float) -> int:
+    """The index ``i`` of the segment ``[i, i+1]`` LEAVING arc length ``s``.
+
+    The first non-degenerate segment whose END lies beyond ``s`` — so a point
+    exactly on a vertex belongs to the segment departing it, which is what
+    makes a TAIL arrowhead at a corner point back along the leg the path
+    leaves on (an#161). Mirror of ``runtime.js::pathSegmentFrom``.
+    """
+    last = 0
+    for i in range(len(cum) - 1):
+        if cum[i + 1] > cum[i]:
+            last = i
+            if s < cum[i + 1]:
+                return i
+    return last
+
+
+def _head(pts, cum, s, i, length, width, sign):
+    """A triangle with its tip at arc length ``s`` on segment ``i``, its base
+    ``length`` back along the path (``sign`` = -1) or forward (``sign`` = +1)."""
+    dx = pts[i + 1][0] - pts[i][0]
+    dy = pts[i + 1][1] - pts[i][1]
+    seg = math.sqrt(dx * dx + dy * dy)
+    ux = dx / seg
+    uy = dy / seg
+    tx, ty = point_at(pts, cum, s)
+    bx = tx + sign * ux * length
+    by = ty + sign * uy * length
+    nx = -uy * (width / 2)
+    ny = ux * (width / 2)
+    return [(tx, ty), (bx + nx, by + ny), (bx - nx, by - ny)]
 
 
 def point_at(points: Sequence[Point], cum: Sequence[float], s: float) -> Point:
@@ -197,8 +274,17 @@ def path_geometry(
     dash: float = 0.0,
     gap: float = 0.0,
     dash_offset: float = 0.0,
+    tail_head_length: float = 0.0,
+    tail_head_width: float = 0.0,
 ) -> dict:
     """What the runtime draws: ``{"stroke": [points], "head": [3 points] | None}``.
+
+    ``tail_head_length > 0`` adds a TAIL arrowhead at the trimmed start,
+    pointing back along the path (an#161: a double-headed arrow with both); it
+    is then under a ``"tail"`` key (absent otherwise), and the stroke starts
+    :data:`HEAD_STROKE_INSET` of its length in from that tip. While the visible
+    length is shorter than the heads together, both are scaled by the same
+    factor, so a draw-on grows them in.
 
     ``dash > 0`` makes the stroke a dash pattern: ``stroke`` is then ``[]`` and
     a ``"dashes"`` key (absent otherwise) holds one polyline per visible dash.
@@ -222,30 +308,34 @@ def path_geometry(
     if not b > a:
         return {"stroke": [], "head": None}
     head = None
+    tail = None
+    stroke_start = a
     stroke_end = b
+    heads = (head_length if head_length > 0 else 0.0) + (
+        tail_head_length if tail_head_length > 0 else 0.0
+    )
+    visible = b - a
+    k = visible / heads if visible < heads else 1.0
     if head_length > 0:
-        visible = b - a
-        k = visible / head_length if visible < head_length else 1.0
         hl = head_length * k
-        hw = head_width * k
-        i = _segment_at(cum, b)
-        dx = pts[i + 1][0] - pts[i][0]
-        dy = pts[i + 1][1] - pts[i][1]
-        seg = math.sqrt(dx * dx + dy * dy)
-        ux = dx / seg
-        uy = dy / seg
-        tx, ty = point_at(pts, cum, b)
-        bx = tx - ux * hl
-        by = ty - uy * hl
-        nx = -uy * (hw / 2)
-        ny = ux * (hw / 2)
-        head = [(tx, ty), (bx + nx, by + ny), (bx - nx, by - ny)]
+        head = _head(pts, cum, b, _segment_at(cum, b), hl, head_width * k, -1.0)
         stroke_end = b - hl * HEAD_STROKE_INSET
+    if tail_head_length > 0:
+        tl = tail_head_length * k
+        tail = _head(pts, cum, a, _segment_from(cum, a), tl, tail_head_width * k, 1.0)
+        stroke_start = a + tl * HEAD_STROKE_INSET
+    extra = {"tail": tail} if tail_head_length > 0 else {}
     if dash > 0:
         spans = (
-            dash_spans(a, stroke_end, dash, gap, dash_offset) if stroke_end > a else []
+            dash_spans(stroke_start, stroke_end, dash, gap, dash_offset)
+            if stroke_end > stroke_start
+            else []
         )
         dashes = [trim_polyline(pts, cum, lo_s, hi_s) for lo_s, hi_s in spans]
-        return {"stroke": [], "head": head, "dashes": dashes}
-    stroke = trim_polyline(pts, cum, a, stroke_end) if stroke_end > a else []
-    return {"stroke": stroke, "head": head}
+        return {"stroke": [], "head": head, "dashes": dashes, **extra}
+    stroke = (
+        trim_polyline(pts, cum, stroke_start, stroke_end)
+        if stroke_end > stroke_start
+        else []
+    )
+    return {"stroke": stroke, "head": head, **extra}

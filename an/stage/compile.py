@@ -2514,7 +2514,10 @@ def _build_path_subtree(
         )
     )
     points = flatten_curve(
-        desc.points, curve=desc.curve, samples=desc.samples_per_segment
+        desc.points,
+        curve=desc.curve,
+        samples=desc.samples_per_segment,
+        sampling=desc.sampling,
     )
     colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
@@ -2535,6 +2538,8 @@ def _build_path_subtree(
                 dash=desc.dash or 0.0,
                 gap=desc.gap_px,
                 dash_offset=desc.dash_offset,
+                tail_head_length=desc.head_length_px if desc.tail_arrowhead else 0.0,
+                tail_head_width=desc.head_width_px if desc.tail_arrowhead else 0.0,
             ),
         ),
     )
