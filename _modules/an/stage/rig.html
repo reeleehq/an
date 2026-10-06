@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=60641c4d"></script>
+    <script src="../../../_static/documentation_options.js?v=887ebf8f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.217" />
+  <meta name="docsearch:version" content="0.1.218" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2242,7 +2242,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># A chain interleaved with an unrelated part is no longer refused</span>
         <span class="c1"># here (an#430): it is painted from a global list (`paint_order`),</span>
         <span class="c1"># and the compiler refuses it only for an engine that cannot.</span>
-        <span class="n">broken</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"cycle"</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span> <span class="o">+</span> <span class="n">chain_pose_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+        <span class="n">broken</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rig_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"cycle"</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span> <span class="o">+</span> <span class="n">chain_pose_problems</span><span class="p">(</span>
+            <span class="n">desc</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">broken</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">RigError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"rig </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> cannot be built with `nesting: bones`: "</span>
