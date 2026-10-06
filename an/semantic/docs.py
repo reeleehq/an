@@ -79,7 +79,7 @@ def skill_vocabulary_section(*, owner: str = CORE_OWNER) -> str:
             "accepts ((a) typed, (b-name) a registered name, (b-llm) a description "
             "resolved before the IR, (c) a checked goal). A genre adds its own presets "
             "and methods, listed in its own skill (the cut-out genre's: the `cutan` skill, "
-            "section \"Vocabulary (generated)\"). `an.semantic.vocabulary()` "
+            'section "Vocabulary (generated)"). `an.semantic.vocabulary()` '
             "returns the whole list as data; easings: `an.timing.easing.easing_entries()`.",
         ]
     else:
@@ -163,7 +163,9 @@ def main(argv: list[str] | None = None) -> int:
         owner = args[i + 1] if i + 1 < len(args) else ""
         del args[i : i + 2]
     if len(args) != 2 or args[0] not in ("--write", "--check") or not owner:
-        print("usage: python -m an.semantic.docs (--write|--check) SKILL.md [--owner NAME]")
+        print(
+            "usage: python -m an.semantic.docs (--write|--check) SKILL.md [--owner NAME]"
+        )
         return 2
     load()
     path = Path(args[1])
