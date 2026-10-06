@@ -207,3 +207,28 @@ def test_which_substitutions_strict_assets_makes_fatal():
     assert not policy.fatal and "policy chose" in policy.sentence()
     gone = Substitution("speech", "prop", None, "noop", "noop")
     assert gone.fatal and "no-op" in gone.sentence()
+
+
+def test_describe_reports_an_override_that_removed_a_capability():
+    """an#381: a declared fact that REMOVES a capability shows under
+    `overrides`, through the analyser's own `overrides` hook (the ones on an
+    afforded capability's params were already there)."""
+    from an.capabilities import Analyser, Capability, drop_owner, register_analyser, register_capability
+    from an.semantic.describe import describe_asset
+
+    register_capability(Capability("demo.wings", "wings", "draw them"), owner="demo381")
+    register_analyser(
+        Analyser(
+            "demo381_kind",
+            "1",
+            lambda doc, art: {} if doc.get("clipped") else {"demo.wings": {}},
+            declares=("clipped",),
+            overrides=lambda doc, art: ["clipped"] if doc.get("clipped") else [],
+        ),
+        owner="demo381",
+    )
+    try:
+        assert describe_asset({"clipped": True}, {}, kind="demo381_kind", aspects=())["overrides"] == ["clipped"]
+        assert describe_asset({}, {}, kind="demo381_kind", aspects=())["overrides"] == []
+    finally:
+        drop_owner("demo381")

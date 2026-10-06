@@ -132,12 +132,20 @@ def describe_asset(
             profile, kind=kind, aspects=aspects, declared=declared, policy=policy
         ),
     }
+    # declared overrides the derivation used: those on an afforded capability's
+    # params, and those that removed one (the analyser says, an#381)
+    removed = (
+        analyser.overrides(raw, dict(art or {}))
+        if analyser is not None and analyser.overrides is not None
+        else ()
+    )
     out["overrides"] = sorted(
         {
             o
             for params in profile.values()
             for o in (params or {}).get(OVERRIDES_PARAM, ())
         }
+        | set(removed)
     )
     return out
 

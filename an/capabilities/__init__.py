@@ -268,6 +268,15 @@ class Analyser:
     #: (``rest_view``, ``face_overlay``) or reads as a request (``gait``):
     #: reported by ``describe_asset`` (ADR 0002 decision 2).
     declares: tuple[str, ...] = ()
+    #: ``(doc, art) -> declared field names`` the derivation USED as overrides
+    #: that do not show on an afforded capability's params: a declared fact
+    #: that REMOVES a capability (a character's ``occluded``, an#381). Those on
+    #: an afforded capability are already in its ``overrides`` param.
+    #: ``None``: none beyond those. Reporting only: it changes no profile, so
+    #: adding it does not bump ``version``.
+    overrides: Callable[[Any, Mapping[str, Any]], Iterable[str]] | None = field(
+        default=None, compare=False, repr=False
+    )
 
     def __post_init__(self) -> None:
         if self.subject not in SUBJECTS:
