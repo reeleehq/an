@@ -16,19 +16,36 @@ from pathlib import Path
 
 
 def _resolve_dir(name: str, out_dir: str) -> Path:
+    """The prop folder ``name`` means: a path to the folder (or to its
+    ``prop.json``) when it is one, else a KEY under ``out_dir`` (an#459: an
+    end user passed the path and was told the prop had no ``prop.json``)."""
+    given = Path(name)
+    if given.name == "prop.json" and given.is_file():
+        return given.parent
+    if (given / "prop.json").is_file():
+        return given
     return Path(out_dir or Path.cwd() / "assets" / "props") / name
 
 
 def validate(name: str, out_dir: str = "") -> str:
     """Check a prop's folder (prop.json + parts/) against the rig contract, offline.
 
-    name: the prop's key (its folder name)
-    out_dir: parent directory; defaults to ./assets/props
+    name: the prop's key (its folder name under out_dir), or a path to its
+        folder or to its prop.json
+    out_dir: parent directory of the keys; defaults to ./assets/props
     """
     from an.stage.prop_validate import validate_prop
 
-    report = validate_prop(_resolve_dir(name, out_dir), name=name)
-    lines = [f"{name}: {'PASSED' if report.passed else 'FAILED'}"]
+    directory = _resolve_dir(name, out_dir)
+    if not directory.is_dir():
+        where = Path(out_dir or Path.cwd() / "assets" / "props")
+        return (
+            f"{name}: FAILED\n  no prop folder at {directory}: pass a prop's KEY "
+            f"(a folder name under {where}, set by --out-dir), or a path to a "
+            "folder that holds a prop.json"
+        )
+    report = validate_prop(directory, name=directory.name)
+    lines = [f"{directory.name}: {'PASSED' if report.passed else 'FAILED'}"]
     lines += [
         f"  [{f.severity}] {f.ir_path}: {f.description}"
         + (f"\n      fix: {f.suggested_fix}" if f.suggested_fix else "")
