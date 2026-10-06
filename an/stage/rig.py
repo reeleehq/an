@@ -107,7 +107,11 @@ def bones_carry_a_rest_pose(doc: Any) -> bool:
         rotation = _field_of(bone, "rotation_deg", 0.0) or 0.0
         sx = _field_of(bone, "scale_x", 1.0)
         sy = _field_of(bone, "scale_y", 1.0)
-        if rotation != 0 or (sx is not None and sx != 1) or (sy is not None and sy != 1):
+        if (
+            rotation != 0
+            or (sx is not None and sx != 1)
+            or (sy is not None and sy != 1)
+        ):
             return True
     return False
 
@@ -138,7 +142,9 @@ class RestPoseWarning(UserWarning):
     """A rig's bone rest pose was NOT applied, because the document may predate it."""
 
 
-def legacy_rest_pose_unknown(raw: Mapping[str, Any], kind: DocumentKind, *, since: str) -> bool:
+def legacy_rest_pose_unknown(
+    raw: Mapping[str, Any], kind: DocumentKind, *, since: str
+) -> bool:
     """The builder guard (an#339): whether ``raw`` may be a pre-rest-pose
     document that its migration could not see.
 
@@ -773,7 +779,11 @@ def rig_rest_problems(desc: Any) -> list[str]:
         if not available:
             continue
         wanted = _field_of(slot, "attachment")
-        attachment = available.get(wanted) if wanted in available else next(iter(available.values()))
+        attachment = (
+            available.get(wanted)
+            if wanted in available
+            else next(iter(available.values()))
+        )
         dx = float(_field_of(attachment, "x", 0.0) or 0.0)
         dy = float(_field_of(attachment, "y", 0.0) or 0.0)
         if dx or dy:

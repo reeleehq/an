@@ -1866,7 +1866,9 @@ def _core_entity_refs(ctx: ValidationContext) -> None:
         )
 
 
-def _check_rig_document(doc: dict, entity, ir_path: str, report: "ValidationReport") -> None:
+def _check_rig_document(
+    doc: dict, entity, ir_path: str, report: "ValidationReport"
+) -> None:
     """A rig's declared ``origin`` is finite and inside its view_box (an#338),
     and a bone's rest rotation turns its part about the joint (an#339).
 
@@ -1874,7 +1876,10 @@ def _check_rig_document(doc: dict, entity, ir_path: str, report: "ValidationRepo
     :func:`an.stage.rig.rig_rest_problems`), so ``an validate`` and the rig's
     own validator say the same thing.
     """
-    from an.stage.rig import rig_origin_problems, rig_rest_problems  # the builder's own rules
+    from an.stage.rig import (
+        rig_origin_problems,
+        rig_rest_problems,
+    )  # the builder's own rules
 
     for problem in rig_origin_problems(doc) + rig_rest_problems(doc):
         report.add("warning", ir_path, f"{entity.kind} ref {entity.ref!r}: {problem}")
