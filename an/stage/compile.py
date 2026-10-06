@@ -917,7 +917,9 @@ def duplicate_paths(root: NodeJSON, overlay: Iterable[NodeJSON] = ()) -> list[st
     return sorted(p for p, n in counts.items() if n > 1)
 
 
-def _check_unique_paths(root: NodeJSON, overlay: list[NodeJSON], *, shot_id: str) -> None:
+def _check_unique_paths(
+    root: NodeJSON, overlay: list[NodeJSON], *, shot_id: str
+) -> None:
     dupes = duplicate_paths(root, overlay)
     if dupes:
         raise CutoutCompileError(
@@ -1440,7 +1442,9 @@ def _place_after(
         else:
             atoms.append(("entity", node.name, node))
     for node in build.in_front:
-        atoms.extend(("plane", node.scope or node.name, plane) for plane in node.children)
+        atoms.extend(
+            ("plane", node.scope or node.name, plane) for plane in node.children
+        )
     placed = {name for kind, name, _ in atoms if kind == "entity"}
     for eid in afters:
         if eid not in placed:
@@ -2329,7 +2333,9 @@ def _add_compensation_clip(
     tracks.append(
         TrackJSON(
             target_root="__parallax__",
-            clips=[PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
+            clips=[
+                PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)
+            ],
         )
     )
 

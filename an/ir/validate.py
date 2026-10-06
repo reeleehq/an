@@ -1714,7 +1714,9 @@ def _core_stage_after(ctx: ValidationContext) -> None:
                 "`<env>__after_0`); rename it.",
             )
     afters = [
-        (j, e) for j, e in enumerate(shot.entities) if e.stage is not None and e.stage.after
+        (j, e)
+        for j, e in enumerate(shot.entities)
+        if e.stage is not None and e.stage.after
     ]
     if not afters:
         return
@@ -1722,7 +1724,11 @@ def _core_stage_after(ctx: ValidationContext) -> None:
     for j, why in after_problems(
         shot, stores, planes_known=stores.get("environments") is not None
     ):
-        report.add("error", f"{path}/entities/{j}/stage/after", f"{why} — compiling this shot raises.")
+        report.add(
+            "error",
+            f"{path}/entities/{j}/stage/after",
+            f"{why} — compiling this shot raises.",
+        )
     props = stores.get("props")
     if props is None:
         return
