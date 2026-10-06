@@ -341,9 +341,10 @@ def test_registration_is_all_or_nothing_and_cannot_replace_core_kinds():
 def test_the_cut_out_genre_is_one_plain_inspectable_object():
     assert CUTOUT.name == "cutout_animation"  # the persisted nw slug, unchanged
     provides = CUTOUT.provides()
-    assert provides["action kinds"] == ("play", "expression")
-    assert provides["entity kinds"] == ("character",)
-    assert provides["dialogue sugar"] == ("emotion",)
+    # What it declares is the genre's to pin (an#427): read it, never copy it.
+    assert tuple(provides["action kinds"]) == tuple(x.name for x in CUTOUT.action_kinds)
+    assert tuple(provides["entity kinds"]) == tuple(x.name for x in CUTOUT.entity_kinds)
+    assert tuple(provides["dialogue sugar"]) == tuple(x.name for x in CUTOUT.dialogue_sugar)
     # Its checks are its own declaration, namespaced; WHICH checks it has is
     # pinned in the genre's repository (cutan), never here: a pin here turned
     # every open `an` PR red each time the genre added one (an#354, cutan#19).
