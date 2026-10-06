@@ -365,7 +365,11 @@ an/
 │   │                        chains: slot_parent_chain is the one nesting rule, the
 │   │                        genre passes skip_slots, rig_problems /
 │   │                        chain_draw_order_problems, rig_affordances -> rig.hierarchy
-│   │                        (an#340)
+│   │                        (an#340); free draw order within a container: the
+│   │                        builder stamps z_index where the declared order is not
+│   │                        the tree's (chain_paint_order) and runtime.js sorts that
+│   │                        container (sortableChildren); only a subtree split by an
+│   │                        unrelated part is refused (an#403)
 │   ├── prop_validate.py     `an props validate|contract` (an/props_cli.py): the prop's
 │   │                        twin of `an character validate` (an#340)
 │   ├── timeline.py          timeline_from_scene + screen space (Transform2D,

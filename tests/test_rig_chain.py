@@ -118,13 +118,16 @@ def test_a_chain_drawn_against_its_order_is_refused_at_compile_and_validate(tmp_
     doc = _doc()
     for slot in doc["slots"]:
         if slot["name"] == "fore":
-            slot["draw_order"] = 0  # under the upper arm (1): the stage cannot
+            # Under the upper arm (1) while the shade nested on it stays at 3:
+            # the forearm's subtree would have to wrap around the upper arm,
+            # which no sorting of one container can do (an#403).
+            slot["draw_order"] = 0
     mall = _mall(tmp_path, doc)
-    with pytest.raises(CutoutCompileError, match="draws a nested part"):
+    with pytest.raises(CutoutCompileError, match="paints each chain's parts together"):
         compile_shot(_shot(), mall=mall)
     report = validate_semantic(SceneIR(meta=Meta(), timeline=[_shot()]), available_props=mall["props"])
     assert not report.passed
-    assert any("draws a nested part" in f.description for f in report.findings)
+    assert any("paints each chain's parts together" in f.description for f in report.findings)
 
 
 def test_a_bone_cycle_is_a_closed_linkage_and_is_refused(tmp_path):
@@ -258,3 +261,83 @@ def test_the_legacy_face_rule_keeps_a_part_on_a_child_bone_of_the_head():
             slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head"), NS(name="hat", bone="hat")],
         )
         assert _legacy_baked_face_slots(desc, slot_parent_chain(desc)) == {"mouth"}
+
+
+# ------------------------------------------------------- free draw order (an#403)
+
+
+def _nodes(node, out=None):
+    out = {} if out is None else out
+    out[node.name] = node
+    for child in node.children:
+        _nodes(child, out)
+    return out
+
+
+def test_a_chain_behind_the_part_it_hangs_from_is_drawn_in_its_order(tmp_path):
+    """The usual cut-out layout: the far arm BEHIND the torso it nests under.
+    R3 refused it; the base's container now sorts its own drawing after the
+    arm, and nothing else is touched."""
+    from an.stage.rig import chain_draw_order_problems
+
+    doc = _doc()
+    for slot in doc["slots"]:
+        slot["draw_order"] = {"upper": 1, "fore": 2, "shade": 3, "base": 4}[slot["name"]]
+    assert chain_draw_order_problems(doc) == []
+    scene = compile_shot(_shot(), mall=_mall(tmp_path, doc))
+    nodes = _nodes(scene.scene)
+    assert nodes["base"].visual.z_index == 2 and nodes["upper"].z_index == 1
+    stamped = {n for n, node in nodes.items() if node.z_index is not None or (node.visual and node.visual.z_index is not None)}
+    assert stamped == {"base", "upper"}, stamped
+
+
+def test_equal_draw_orders_are_free_so_a_chain_can_swap_past_its_twin(tmp_path):
+    """The `gale` layout: both arms at 2, a hand at 3 under the LEFT arm. In
+    tree order the hand would paint before the right arm; equal orders state
+    no order between the arms, so the right one is sorted first (it was
+    refused while ties were broken by name)."""
+    from types import SimpleNamespace as NS
+
+    from an.stage.rig import _painted, chain_draw_order_problems, chain_paint_order
+
+    rig = NS(
+        nesting="bones",
+        bones=[NS(name="torso", parent=None), NS(name="arm_l", parent="torso"),
+               NS(name="arm_r", parent="torso"), NS(name="hand_l", parent="arm_l")],
+        slots=[NS(name="torso", bone="torso", draw_order=1), NS(name="arm_l", bone="arm_l", draw_order=2),
+               NS(name="arm_r", bone="arm_r", draw_order=2), NS(name="left_hand", bone="hand_l", draw_order=3)],
+    )
+    assert chain_draw_order_problems(rig) == []
+    assert _painted(chain_paint_order(rig)) == ["torso", "arm_r", "arm_l", "left_hand"]
+
+
+def test_a_chain_already_in_tree_order_carries_no_index(tmp_path):
+    """Byte identity: the committed fixture paints depth first in its declared
+    order, so nothing is stamped and the document is what it was."""
+    from an.stage.serialize import to_dict
+
+    doc = json.dumps(to_dict(compile_shot(_shot(), mall=_mall(tmp_path))))
+    assert "z_index" not in doc
+
+
+def test_the_runtime_sorts_only_a_container_with_an_index():
+    """`applyPaintOrder`, lifted verbatim from runtime.js: an indexed child gets
+    its index, an unindexed one its predecessor's (so the stable sort keeps it
+    right after it), and a container with no index is never made sortable."""
+    from tests._node import run_node
+
+    src = (ROOT / "an" / "stage" / "runtime" / "runtime.js").read_text(encoding="utf-8")
+    start = src.index("function applyPaintOrder(")
+    body = src[start : src.index("\n    }", start) + len("\n    }")]
+    script = body + """
+    const mk = (z) => (z === undefined ? {} : {_anZ: z});
+    const a = {children: [mk(), mk(2), mk(), mk(1)]};
+    applyPaintOrder(a);
+    const b = {children: [mk(), mk()]};
+    applyPaintOrder(b);
+    console.log(JSON.stringify([a.sortableChildren, a.children.map(c => c.zIndex),
+                                b.sortableChildren === undefined]));
+    """
+    proc = run_node(script)
+    assert proc.returncode == 0, proc.stderr
+    assert json.loads(proc.stdout.strip().splitlines()[-1]) == [True, [0, 2, 2, 1], True]
