@@ -581,12 +581,13 @@ def match_license_parts(
     Matched against the paths the version stores (after clutter is skipped),
     NFC on both sides. Refused, with a sentence: a glob matching nothing; a
     path two globs give different sources; and a NEAR miss — a path no glob
-    matches that one would match ignoring case or extension
+    matches that one would match ignoring case, extension, the ``_``/``-``/space
+    separators or extra folders
     (``parts/Head_3.PNG``, ``parts/head_3.jpg`` beside ``parts/head_*.png``),
     since a miss falls to the looser asset-level label.
 
     >>> match_license_parts({"parts/head_*.png": "private"},
-    ...                     ["parts/head_1.png", "parts/sub/head_2.png", "parts/body.svg"])
+    ...                     ["parts/head_1.png", "parts/body.svg"])
     {'parts/head_1.png': ('parts/head_*.png', 'private')}
     >>> sorted(match_license_parts({"**/*.png": "x"}, ["a.png", "parts/sub/b.png"]))
     ['a.png', 'parts/sub/b.png']
@@ -622,9 +623,10 @@ def match_license_parts(
         )
         if missed:
             raise LibraryError(
-                f"--license-part {glob!r} nearly matches {missed} (another case or "
-                "extension), which would fall to the asset-level label: name them "
-                "with their own --license-part, or widen the glob"
+                f"--license-part {glob!r} nearly matches {missed} (another case, "
+                "extension, separator or folder), which would fall to the "
+                "asset-level label: name them with their own --license-part, or "
+                "widen the glob"
             )
     return found
 
