@@ -14,24 +14,26 @@ True
 
 ### Functions
 
-| [`set_`](#an.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).       |
-|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`tween`](#an.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.             |
-| [`sequence`](#an.sequence)(\*actions)                              | Run children one after the other.                                           |
-| [`parallel`](#an.parallel)(\*actions)                              | Run all children at once.                                                   |
-| [`stagger`](#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
-| [`delay`](#an.delay)(duration)                                  | An empty span that consumes time.                                           |
-| [`loop`](#an.loop)(action, count)                              | Repeat `action` `count` times.                                              |
-| [`flatten`](#an.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
-| [`validate_schema`](#an.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema. |
-| [`validate_semantic`](#an.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                |
-| [`markdown_to_ir`](#an.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.               |
-| [`ir_to_markdown`](#an.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                    |
-| [`init`](#an.init)(project_dir, \*[, name, force])             | Create a fresh an project at `project_dir`.                                 |
-| [`load`](#an.load)(project_dir, \*[, check_kinds])             | Load an existing project.                                                   |
-| [`save`](#an.save)(project)                                    | Persist a Project's current scene back to disk (md + json).                 |
-| [`build_project_mall`](#an.build_project_mall)(project_dir, \*[, ensure])    | Build the standard project mall over `project_dir`.                         |
-| [`check_requirements`](#an.check_requirements)()                             | Return a per-tool status dict.                                              |
+| [`set_`](#an.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).          |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`tween`](#an.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                |
+| [`sequence`](#an.sequence)(\*actions)                              | Run children one after the other.                                              |
+| [`parallel`](#an.parallel)(\*actions)                              | Run all children at once.                                                      |
+| [`stagger`](#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                 |
+| [`crowd`](#an.crowd)(id, \*, ref, count[, kind, store, ...])    | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
+| [`fan_out`](#an.fan_out)(action, members, \*[, crowd_id])         | A copy of `action` per member, its targets moved from the crowd to the member. |
+| [`delay`](#an.delay)(duration)                                  | An empty span that consumes time.                                              |
+| [`loop`](#an.loop)(action, count)                              | Repeat `action` `count` times.                                                 |
+| [`flatten`](#an.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.            |
+| [`validate_schema`](#an.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
+| [`validate_semantic`](#an.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                   |
+| [`markdown_to_ir`](#an.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.                  |
+| [`ir_to_markdown`](#an.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                       |
+| [`init`](#an.init)(project_dir, \*[, name, force])             | Create a fresh an project at `project_dir`.                                    |
+| [`load`](#an.load)(project_dir, \*[, check_kinds])             | Load an existing project.                                                      |
+| [`save`](#an.save)(project)                                    | Persist a Project's current scene back to disk (md + json).                    |
+| [`build_project_mall`](#an.build_project_mall)(project_dir, \*[, ensure])    | Build the standard project mall over `project_dir`.                            |
+| [`check_requirements`](#an.check_requirements)()                             | Return a per-tool status dict.                                                 |
 
 ### Classes
 
@@ -436,12 +438,67 @@ can inspect the dict directly.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
+### an.crowd(id, , ref, count, kind='prop', store=None, layout='grid', area=(-480.0, -60.0, 480.0, 240.0), scale=1.0, scale_jitter=0.0, jitter=0.0, seed=0)
+
+`count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.
+
+id: the crowd’s name; member `k` is `<id>_<k>` (`member_id()`)
+ref: the asset every member draws
+count: how many (at least 1)
+kind: the entity kind (`prop`, or a genre’s, such as `character`)
+store: the store the asset lives in (default: the kind’s registered store)
+layout: `grid` (rows filled from the back), `row` or `scatter`
+area: `(x0, y0, x1, y1)` in scene pixels about the stage centre; a
+
+> member’s stage point stands inside it
+
+scale: every member’s stage scale
+scale_jitter: each member’s scale varies by up to this fraction (`0.1`: ±10%)
+jitter: each grid or row member moves by up to this fraction of its cell
+seed: the scatter and the jitters are drawn from it
+
+```pycon
+>>> [m.stage.at for m in crowd("line", ref="dot", count=3, layout="row", area=(0, 0, 300, 100))]
+[(50.0, 50.0), (150.0, 50.0), (250.0, 50.0)]
+>>> crowd("x", ref="dot", count=0)
+Traceback (most recent call last):
+...
+ValueError: a crowd needs at least one member; got count=0
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`AssetRef`](an.ir.schema.html.md#an.ir.schema.AssetRef)]
+
 ### an.delay(duration)
 
 An empty span that consumes time. Useful inside `sequence`.
 
 * **Return type:**
   [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction)
+
+### an.fan_out(action, members, , crowd_id=None)
+
+A copy of `action` per member, its targets moved from the crowd to the member.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+action: any action, leaf or composite; every target naming the crowd
+: (`army`, or a node of it, `army/arm_l`) is rewritten
+
+members: the crowd’s members (`AssetRef` s or ids), in order
+crowd_id: the crowd’s name (default: read off the first member’s id,
+
+> `army_0` -> `army`)
+
+Pair it with [`an.ir.compose.stagger()`](an.ir.compose.html.md#an.ir.compose.stagger) for a ripple through the ranks,
+or [`parallel()`](an.ir.compose.html.md#an.ir.compose.parallel) for the crowd moving as one.
+
+```pycon
+>>> from an.ir.compose import tween
+>>> [a.target for a in fan_out(tween("army/arm_l", "rotation", to=1.0, duration=0.5), ["army_0", "army_1"])]
+['army_0/arm_l', 'army_1/arm_l']
+```
 
 ### an.flatten(action, , start=0.0, play_extent=None)
 

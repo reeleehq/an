@@ -138,7 +138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>)
+### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -160,6 +160,15 @@ cache keys on it) – and `StageRenderer` is the same class.
 #### error
 
 alias of [`CutoutRenderError`](an.stage.render.html.md#an.stage.render.CutoutRenderError)
+
+#### paint_orders *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('container', 'global')*
+
+one container’s
+items sorted (`applyPaintOrder`) and one list across containers
+(`applyGlobalPaint`). Read as the `engine.paint_order` capability.
+
+* **Type:**
+  The paint orders the stage runtime honours (an#430)
 
 #### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 
@@ -214,6 +223,14 @@ One node in the scene tree.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### paint_order *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The order its descendants’ visuals are PAINTED in, when it is not the
+tree’s (an#430): node paths relative to this node, back to front. Set on
+a rig’s entity node whose nested chain interleaves with an unrelated
+part (an upper arm 1, a cord 2, a forearm 3); the runtime keeps each
+visual in its transform tree and paints it from this list.
 
 #### scope *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

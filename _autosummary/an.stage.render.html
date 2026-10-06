@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c41c9854"></script>
+    <script src="../_static/documentation_options.js?v=60641c4d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.raster" href="an.stage.raster.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.216" />
+  <meta name="docsearch:version" content="0.1.217" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -783,7 +783,7 @@ rather than as an error, which is what this warning exists to prevent.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.render.CutoutRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'stage')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.stage.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.render.CutoutRenderer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'stage')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.stage.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paint_orders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('container'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'global')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.render.CutoutRenderer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="an.engines.frame_stage.html#an.engines.frame_stage.FrameStageRenderer" title="an.engines.frame_stage.FrameStageRenderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameStageRenderer</span></code></a></p>
 <p>The stage renderer: the stage engine through the core frame stage.</p>
 <p>It claims both renderer names (ADR 0001 decision 9): <code class="docutils literal notranslate"><span class="pre">stage</span></code>, the
@@ -803,6 +803,19 @@ cache keys on it) – and <a class="reference internal" href="#an.stage.render.S
 <dt class="sig sig-object py" id="an.stage.render.CutoutRenderer.error">
 <span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#an.stage.render.CutoutRenderer.error" title="Link to this definition">#</a></dt>
 <dd><p>alias of <a class="reference internal" href="#an.stage.render.CutoutRenderError" title="an.stage.render.CutoutRenderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.render.CutoutRenderer.paint_orders">
+<span class="sig-name descname"><span class="pre">paint_orders</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('container',</span> <span class="pre">'global')</span></span><a class="headerlink" href="#an.stage.render.CutoutRenderer.paint_orders" title="Link to this definition">#</a></dt>
+<dd><p>one container’s
+items sorted (<code class="docutils literal notranslate"><span class="pre">applyPaintOrder</span></code>) and one list across containers
+(<code class="docutils literal notranslate"><span class="pre">applyGlobalPaint</span></code>). Read as the <code class="docutils literal notranslate"><span class="pre">engine.paint_order</span></code> capability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The paint orders the stage runtime honours (an#430)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1066,6 +1079,7 @@ mode, ADR 0005) changes both or neither (an#316 review). <code class="docutils l
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.CutoutRenderError"><code class="docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.CutoutRenderer"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.CutoutRenderer.error"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.error</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.CutoutRenderer.paint_orders"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.paint_orders</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.render.CutoutRenderer.supported_renderers"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.supported_renderers</span></code></a></li>
 </ul>
 </li>

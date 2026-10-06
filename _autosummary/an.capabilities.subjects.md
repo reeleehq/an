@@ -47,9 +47,10 @@ Both analysers take their evidence as `doc` so a test can inject it:
 |---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`environment_affordances`](#an.capabilities.subjects.environment_affordances)(\*[, probe]) | What this machine affords: tools on PATH, a browser, API keys set.             |
 
-### an.capabilities.subjects.ENGINE_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+### an.capabilities.subjects.ENGINE_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
 
 `engine.measure_duration` joined the derivation (an#279).
+“3”: `engine.paint_order` joined it (an#430).
 
 * **Type:**
   ”2”

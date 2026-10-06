@@ -33,6 +33,7 @@ an.stage.rig
       chain_pose_problems
       declared_origin
       drawn_attachment
+      global_paint_order
       legacy_rest_pose_unknown
       natural_paint_order
       nesting_of

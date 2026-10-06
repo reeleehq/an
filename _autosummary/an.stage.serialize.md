@@ -284,6 +284,14 @@ One node in the scene tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### paint_order *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The order its descendants’ visuals are PAINTED in, when it is not the
+tree’s (an#430): node paths relative to this node, back to front. Set on
+a rig’s entity node whose nested chain interleaves with an unrelated
+part (an upper arm 1, a cord 2, a forearm 3); the runtime keeps each
+visual in its transform tree and paints it from this list.
+
 #### scope *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 as the children of the

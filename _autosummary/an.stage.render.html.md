@@ -126,7 +126,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.stage.render.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>)
+### *class* an.stage.render.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -148,6 +148,15 @@ cache keys on it) – and [`StageRenderer`](#an.stage.render.StageRenderer) is t
 #### error
 
 alias of [`CutoutRenderError`](#an.stage.render.CutoutRenderError)
+
+#### paint_orders *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('container', 'global')*
+
+one container’s
+items sorted (`applyPaintOrder`) and one list across containers
+(`applyGlobalPaint`). Read as the `engine.paint_order` capability.
+
+* **Type:**
+  The paint orders the stage runtime honours (an#430)
 
 #### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 

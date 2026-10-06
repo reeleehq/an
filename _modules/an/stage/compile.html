@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c41c9854"></script>
+    <script src="../../../_static/documentation_options.js?v=60641c4d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.216" />
+  <meta name="docsearch:version" content="0.1.217" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1746,6 +1746,36 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_paint_orders_needed</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The paint orders a compiled tree asks of its engine (an#430):</span>
+<span class="sd">    ``container`` for a ``z_index``, ``global`` for a ``paint_order``."""</span>
+    <span class="n">need</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">paint_order</span><span class="p">:</span>
+            <span class="n">need</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"global"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">z_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">z_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">need</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"container"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">need</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_paint_orders</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="s2">"CompileState"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a paint order the shot's engine cannot honour, by its capability</span>
+<span class="sd">    name (an#430, G16): the stage honours both, an engine that declares no</span>
+<span class="sd">    ``paint_orders`` would draw the parts in tree order, silently wrong."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities.subjects</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENGINE_PAINT_ORDER</span><span class="p">,</span> <span class="n">missing_engine_terms</span>
+
+    <span class="n">need</span> <span class="o">=</span> <span class="n">_paint_orders_needed</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">scene_root</span><span class="p">)</span>
+    <span class="n">lacking</span> <span class="o">=</span> <span class="n">missing_engine_terms</span><span class="p">(</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ENGINE_PAINT_ORDER</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">need</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">lacking</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: its rig asks the engine for </span><span class="si">{</span><span class="n">lacking</span><span class="si">}</span><span class="s2">, which "</span>
+            <span class="sa">f</span><span class="s2">"renderer </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> does not afford: "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ENGINE_PAINT_ORDER</span><span class="o">.</span><span class="n">remedy</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_checks_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""After EVERY emission pass: targets, easings, stand-in assets, faded treatments."""</span>
     <span class="c1"># No channel may reach the runtime's frame loop naming a node it will not</span>
@@ -1753,6 +1783,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_check_channel_targets</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">paths</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="n">_check_keyframe_easings</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="n">_check_planes</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">_check_paint_orders</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="c1"># AFTER action + viseme compilation, deliberately: a swap key the timeline</span>
     <span class="c1"># actually USES whose art is missing is recorded as a fallback during</span>
     <span class="c1"># those passes (usage-aware escalation, an#87), and this is the one place</span>

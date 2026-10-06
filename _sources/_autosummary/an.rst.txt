@@ -13,6 +13,8 @@
       sequence
       parallel
       stagger
+      crowd
+      fan_out
       delay
       loop
       flatten
