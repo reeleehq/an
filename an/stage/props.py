@@ -97,7 +97,9 @@ DFLT_PROP_BONE = "root"
 DFLT_PROP_SLOT = "body"
 
 
-def default_prop_bones(view_box: tuple[int, int, int, int] = DEFAULT_VIEW_BOX) -> list[Bone]:
+def default_prop_bones(
+    view_box: tuple[int, int, int, int] = DEFAULT_VIEW_BOX,
+) -> list[Bone]:
     """One bone, at the CENTRE of the view_box (an#408).
 
     A part is centred on its bone (anchor 0.5), so with the bone at the centre

@@ -144,7 +144,9 @@ class RestPoseWarning(UserWarning):
     """A rig's bone rest pose was NOT applied, because the document may predate it."""
 
 
-def rest_pose_protection(raw: Any, migrated: Any, *, kind: str = "rig document") -> str | None:
+def rest_pose_protection(
+    raw: Any, migrated: Any, *, kind: str = "rig document"
+) -> str | None:
     """What to say when the MIGRATION, on this read, kept a rig's pose unapplied (an#407).
 
     The protective step writes ``rest_rotation: false`` onto a document from
@@ -161,7 +163,9 @@ def rest_pose_protection(raw: Any, migrated: Any, *, kind: str = "rig document")
     """
     if not isinstance(raw, Mapping) or "rest_rotation" in raw:
         return None
-    if _field_of(migrated, "rest_rotation") is not False or not bones_carry_a_rest_pose(migrated):
+    if _field_of(migrated, "rest_rotation") is not False or not bones_carry_a_rest_pose(
+        migrated
+    ):
         return None
     return (
         "its bones carry a rotation or scale that is NOT applied: `rest_rotation: "

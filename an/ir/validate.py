@@ -1892,7 +1892,9 @@ def _check_rig_document(
 
     protected = rest_pose_protection(raw, doc)
     for problem in (
-        rig_origin_problems(doc) + rig_rest_problems(doc) + ([protected] if protected else [])
+        rig_origin_problems(doc)
+        + rig_rest_problems(doc)
+        + ([protected] if protected else [])
     ):
         report.add("warning", ir_path, f"{entity.kind} ref {entity.ref!r}: {problem}")
     # A nested chain the stage cannot build is a compile raise (an#340), so its
