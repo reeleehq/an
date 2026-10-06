@@ -69,7 +69,7 @@ def _errors(shot, mall) -> list[str]:
     [
         ({"texts": _SET}, "needs unit='block'"),
         ({"texts": _SET, "unit": "word"}, "needs unit='block'"),
-        ({"texts": _SET, "unit": "block", "text": "x"}, "both were given"),
+        ({"texts": _SET, "unit": "block", "text": "x"}, "text and texts were given"),
         ({"unit": "block"}, "neither was given"),
         ({"texts": _SET, "unit": "block", "rest": "d9"}, "not a key of `texts`"),
         ({"text": "x", "rest": "d1"}, "needs `texts`"),

@@ -267,7 +267,7 @@ The stage is `an.stage` (outside the core firewall, `an[stage]` extra). Its old
 paths (`an.adapters.cutout.compile`, `an.environments`, `an.props`, ...) are
 LIVE aliases, so reading and rebinding through them reaches the code.
 `compile_shot` is an ordered run of passes over a `CompileState`: the stage's
-own (`scene`, `actions`, `camera`, `parallax`, `checks`) and any
+own (`scene`, `counters`, `actions`, `camera`, `parallax`, `checks`) and any
 `an.genres.CompilePass` registered for the `"stage"` compiler. Entities are built
 by kind through builders (`environment` is the backdrop phase; `prop` and the
 cut-out genre's `rig` for `character` build the cast in entity order). **Add a

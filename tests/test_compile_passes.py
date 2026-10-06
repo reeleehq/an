@@ -32,7 +32,8 @@ def _quiet_compile(shot, **kw):
 def test_the_passes_run_in_the_order_the_document_was_always_built_in():
     assert [p.name for p in compile_passes_for_stage()] == [
         # cutan#32: a style's `policy:` block resolves right after the scene
-        "scene", "style_policy", "speech", "actions", "swap_pose", "view_spans",
+        # an#342: `counters` lowers `value` after every pass that can add one
+        "scene", "style_policy", "speech", "counters", "actions", "swap_pose", "view_spans",
         "visemes", "face", "camera", "parallax", "checks",
     ]
 
@@ -45,7 +46,7 @@ def test_the_cutout_passes_are_the_genres_not_the_stages():
     assert "rig" in CUTOUT.provides()["compile passes"]
     with without_genres():
         assert [p.name for p in compile_passes_for_stage()] == [
-            "scene", "actions", "camera", "parallax", "checks",
+            "scene", "counters", "actions", "camera", "parallax", "checks",
         ]
 
 

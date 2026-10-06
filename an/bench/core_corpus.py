@@ -14,6 +14,7 @@ text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
 text_swap  text content over time — a `texts` replacement set swapped twice,
            right-aligned (an#341)
+text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and
@@ -37,7 +38,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_swap', 'transitions']
+['path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -169,6 +170,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "from a fixed right edge: a regression in the swap set, in the "
             "per-key geometry anchored on the `align` edge, or in the "
             "entity-level fan-out moves a golden."
+        ),
+    ),
+    "text_counter": Fixture(
+        path=f"{CORPUS_DIRNAME}/text_counter",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 12 / 24),
+        golden_note=(
+            "a calendar counting 1 to 30 with ONE text block (an#342): a "
+            "right-aligned `counter: {format: '{d}', start: 1}` under one linear "
+            "`tween day value -> 30` over 1 s, lowered at compile to a replacement "
+            "set of the strings the frames show. Frame 0 shows 1; frame 12's "
+            "value is exactly 15.5, which nearest-half-even rounding shows as 16 "
+            "(15 would mean ties away from even, 15/17 a sampling or set-time "
+            "shift). A regression in the sampling grid, the half-frame set "
+            "time, the rounding or the right-edge geometry moves a golden."
         ),
     ),
     "transitions": Fixture(

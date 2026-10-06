@@ -74,6 +74,7 @@ __all__ = [
     "TEXT_SCHEMA_VERSION",
     "TEXT_DOCUMENT_KIND",
     "TextDescriptor",
+    "Counter",
     "TextFontError",
     "TextLayoutError",
     "TextUnit",
@@ -162,6 +163,39 @@ class TextLayoutError(ValueError):
     """The text cannot be set as asked (a glyph the face lacks, nothing to draw)."""
 
 
+class Counter(BaseModel):
+    """A counter block's number-to-text rule (an#342): ``format`` in the
+    declared d3-format subset (:mod:`an.formats`), and the value shown before
+    any ``value`` action (``start``; ``None`` = the first action's value).
+
+    >>> Counter(format="Day {d}", start=1).format
+    'Day {d}'
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    format: str = "{d}"
+    start: float | None = Field(default=None, allow_inf_nan=False)
+
+    @model_serializer(mode="wrap")
+    def _dump_what_was_authored(self, handler):
+        return omit_unset(self, handler(self))
+
+    @field_validator("format")
+    @classmethod
+    def _declared_subset(cls, fmt):
+        from an.formats import parse_format
+
+        parse_format(fmt)  # raises CounterFormatError (a ValueError), naming the subset
+        return fmt
+
+    def show(self, value: float) -> str:
+        """``value`` as this counter draws it."""
+        from an.formats import format_number
+
+        return format_number(value, self.format)
+
+
 class TextDescriptor(BaseModel):
     """The on-disk text schema, saved as a prop's ``prop.json``.
 
@@ -192,6 +226,10 @@ class TextDescriptor(BaseModel):
     texts: dict[str, str] | None = None
     #: The key drawn when nothing has been set; default: the first key.
     rest: str | None = None
+    #: A number that reads as text (an#342): ``tween <id> value a→b`` and
+    #: ``set <id> value v`` are lowered at compile to a replacement set of the
+    #: strings the frames show. Requires ``unit="block"``; no ``text``/``texts``.
+    counter: Counter | None = None
     layer: Layer = "world"
     #: What one addressable node is: a word, a glyph, a whole line, or the
     #: whole block (``block_0``, one node however many lines).
@@ -270,20 +308,28 @@ class TextDescriptor(BaseModel):
 
     @property
     def content(self) -> str:
-        """The string the block draws at rest."""
+        """The string the block draws at rest (a counter: its ``start``, else
+        zero, until the compiler lowers its ``value`` channel)."""
+        if self.counter is not None:
+            return self.counter.show(self.counter.start or 0.0)
         return self.texts[self.rest_key] if self.texts is not None else self.text
 
     @model_validator(mode="after")
     def _nothing_set_is_ignored(self) -> "TextDescriptor":
-        if (self.text is None) == (self.texts is None):
+        given = [
+            name
+            for name in ("text", "texts", "counter")
+            if getattr(self, name) is not None
+        ]
+        if len(given) != 1:
             raise ValueError(
-                "a text block draws `text` (one string) or `texts` (a "
-                "replacement set, an#341); "
-                + ("both were given" if self.text is not None else "neither was given")
+                "a text block draws `text` (one string), `texts` (a replacement "
+                "set, an#341) or `counter` (a number, an#342); "
+                + (f"{' and '.join(given)} were given" if given else "neither was given")
             )
-        if self.texts is not None and self.unit != BLOCK_UNIT:
+        if given[0] != "text" and self.unit != BLOCK_UNIT:
             raise ValueError(
-                f"`texts` swaps the WHOLE string, so it needs unit='block' (one "
+                f"`{given[0]}` swaps the WHOLE string, so it needs unit='block' (one "
                 f"node, `block_0`); got unit={self.unit!r}. Per-{self.unit} units "
                 "of different strings do not line up, and a tween on one could "
                 "not say which string it meant."
