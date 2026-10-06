@@ -1943,9 +1943,14 @@ def _check_rig_document(
         # A chain interleaved with an unrelated part is painted from a global
         # list (an#430): an error only for an engine that cannot (G16).
         if renderer is not None and chain_draw_order_problems(doc):
-            from an.capabilities.subjects import ENGINE_PAINT_ORDER, missing_engine_terms
+            from an.capabilities.subjects import (
+                ENGINE_PAINT_ORDER,
+                missing_engine_terms,
+            )
 
-            lacking = missing_engine_terms(renderer, [f"{ENGINE_PAINT_ORDER.name}:global"])
+            lacking = missing_engine_terms(
+                renderer, [f"{ENGINE_PAINT_ORDER.name}:global"]
+            )
             if lacking:
                 report.add(
                     "error",

@@ -1014,7 +1014,9 @@ def _paint_orders_needed(root: NodeJSON) -> set[str]:
     for _, node in stage_tree.walk(root):
         if node.paint_order:
             need.add("global")
-        if node.z_index is not None or (node.visual is not None and node.visual.z_index is not None):
+        if node.z_index is not None or (
+            node.visual is not None and node.visual.z_index is not None
+        ):
             need.add("container")
     return need
 

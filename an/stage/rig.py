@@ -1417,7 +1417,9 @@ def build_rig_subtree(
         # A chain interleaved with an unrelated part is no longer refused
         # here (an#430): it is painted from a global list (`paint_order`),
         # and the compiler refuses it only for an engine that cannot.
-        broken = [p for p in rig_problems(desc) if "cycle" in p] + chain_pose_problems(desc)
+        broken = [p for p in rig_problems(desc) if "cycle" in p] + chain_pose_problems(
+            desc
+        )
         if broken:
             raise RigError(
                 f"rig {ref!r} cannot be built with `nesting: bones`: "
