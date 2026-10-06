@@ -201,6 +201,15 @@ class Camera(_IRModel):
     #: `[]`, for the reason `keys` gives.
     shake: list[CameraShake] | None = None
 
+    @model_serializer(mode="wrap")
+    def _omit_unset_shake(self, handler):
+        """No shake, no key: every document written before an#429 dumps
+        byte-identically (the round-trip guard reads every committed scene)."""
+        data = handler(self)
+        if isinstance(data, dict) and data.get("shake") is None:
+            data.pop("shake", None)
+        return data
+
 
 # -----------------------------------------------------------------------------
 # Asset references
