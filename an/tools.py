@@ -69,11 +69,19 @@ def init(
     return f"initialized an project at {path}"
 
 
+<<<<<<< HEAD
 def validate(project_dir: str, fps: float = 0.0) -> str:
     """Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
+=======
+def validate(project_dir: str, fps: int = 0) -> str:
+    """Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.
+
+    project_dir: path to an an project
+    fps: the frame rate the render will use, when it is not the scene's meta.fps (0: the scene's); the step_hz and dialogue-timing checks are made against it
+>>>>>>> aac2f3aaa (Validate step_hz against the render's fps; an validate --fps (an#435))
     """
     report = validate_project(project_dir, fps=fps or None)
     if report.passed and not report.findings:
