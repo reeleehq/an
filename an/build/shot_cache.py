@@ -156,6 +156,10 @@ def _make_record_type():
         #: the ``assets`` part spelled out, so a re-render can name the asset
         #: that moved. Empty for a shot keyed on the whole project.
         reads: dict[str, str] = Field(default_factory=dict)
+        #: ``{module: source digest}``: the ``code`` part spelled out (an#395),
+        #: so a re-render can name the modules that changed. Empty for an older
+        #: entry, or a renderer whose keyer does not say.
+        code: dict[str, str] = Field(default_factory=dict)
         #: The key composition it was written under (`SHOT_KEY_IMPL_VERSION`);
         #: 0 for an entry older than the field.
         key_version: int = 0
@@ -294,6 +298,8 @@ class ShotPlan:
     inputs: dict[str, str] = field(default_factory=dict)
     #: The asset entries the shot read, digested (``{"store/key": digest}``).
     reads: dict[str, str] = field(default_factory=dict)
+    #: The render path's modules, digested (``{module: digest}``, an#395).
+    code: dict[str, str] = field(default_factory=dict)
     cached: "RenderResult | None" = None
     reason: str = ""
     key_s: float | None = None
@@ -569,6 +575,7 @@ class ShotCache:
             key=key,
             inputs=parts,
             reads=reads,
+            code=dict(inputs.details.get("code_modules") or {}),
             key_s=key_s,
             compile_s=inputs.compile_s,
             needs_frames=needs_frames,
@@ -780,6 +787,7 @@ class ShotCache:
         return explain_change(
             dict(previous.inputs), dict(getattr(previous, "reads", {}) or {}),
             plan.inputs, plan.reads,
+            before_code=dict(getattr(previous, "code", {}) or {}), after_code=plan.code,
         )  # fmt: skip
 
     def _previous_entries(self) -> dict[tuple[str, str], Any]:
@@ -1019,6 +1027,7 @@ class ShotCache:
             renderer=plan.renderer,
             inputs=dict(plan.inputs),
             reads=dict(plan.reads),
+            code=dict(plan.code),
             key_version=SHOT_KEY_IMPL_VERSION,
             timings=timings,
         )
@@ -1099,11 +1108,37 @@ FOLLOWS_ASSETS: frozenset[str] = frozenset(
 KEY_FORMAT_CHANGED: str = "the shot key's format changed (an upgrade)"
 
 
+#: How many changed modules the summary names before "and N more".
+CODE_MODULES_NAMED: int = 3
+
+
+def _code_label(before: Mapping[str, str], after: Mapping[str, str]) -> str:
+    """``an's render code`` with the modules whose source moved, when both entries say.
+
+    >>> _code_label({"an.stage.compile": "a", "an.motion": "b"}, {"an.stage.compile": "c", "an.motion": "b"})
+    "an's render code (an.stage.compile)"
+    >>> _code_label({}, {"an.motion": "b"})
+    "an's render code"
+    """
+    label = PART_LABELS["code"]
+    if not before or not after:
+        return label
+    moved = sorted(m for m in set(before) | set(after) if before.get(m) != after.get(m))
+    if not moved:
+        return label
+    named = moved[:CODE_MODULES_NAMED]
+    more = len(moved) - len(named)
+    return f"{label} ({', '.join(named)}{f' and {more} more' if more else ''})"
+
+
 def explain_change(
     before: Mapping[str, str],
     before_reads: Mapping[str, str],
     after: Mapping[str, str],
     after_reads: Mapping[str, str],
+    *,
+    before_code: Mapping[str, str] | None = None,
+    after_code: Mapping[str, str] | None = None,
 ) -> str:
     """Why a shot keyed ``after`` is not the entry keyed ``before``, in words.
 
@@ -1124,6 +1159,9 @@ def explain_change(
     'the system fonts changed'
     >>> explain_change({"assets": "a"}, {}, {"assets": "b"}, {})  # an unrecorded shot
     'a project asset changed'
+    >>> explain_change({"code": "a"}, {}, {"code": "b"}, {},
+    ...                before_code={"an.motion": "1"}, after_code={"an.motion": "2"})
+    "an's render code (an.motion) changed"
     """
     names = list(dict.fromkeys([*after, *before]))
     moved = [name for name in names if before.get(name) != after.get(name)]
@@ -1138,7 +1176,9 @@ def explain_change(
         name for name in moved if not (assets and name in FOLLOWS_ASSETS)
     ]
     labels = [
-        PART_LABELS.get(name, name)
+        _code_label(before_code or {}, after_code or {})
+        if name == "code"
+        else PART_LABELS.get(name, name)
         if name != "assets"
         else "a project asset"  # a whole-project digest: nothing to name
         for name in others
