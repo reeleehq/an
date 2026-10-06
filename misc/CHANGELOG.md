@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-06
+- **The changelog merges as a union** (`.gitattributes`: `misc/CHANGELOG.md merge=union`): two branches adding a line under the same date rebase without a conflict.
 - **EXIF-rotated JPEG parts get their displayed box** (an#218): `an.stage.raster.image_size` reads a JPEG's EXIF orientation (IFD0 tag 0x0112) on the marker walk and transposes the box for orientations 5-8, which Chromium draws a quarter turn; a browser test renders a stored-landscape orientation-6 JPEG part and finds it drawn portrait, its left half on top.
 - **Skill: the counter recipe** (an#398, end-user test findings 4 and 5): a `TextDescriptor` takes exactly one of `text`, `texts` or `counter` (the recipe said it needs `text`); the counter's Python form without `text`; even counter steps (tween from `first − 0.49` to `last + 0.49`, or one `set` per value).
 - **Skill: the counter recipe** (an#398, end-user test findings 4 and 5): a `TextDescriptor` takes exactly one of `text`, `texts` or `counter` (the recipe said it needs `text`); the counter's Python form without `text`; even counter steps (tween from `first − 0.5` to `last + 0.49`, or one `set` per value).

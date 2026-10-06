@@ -11,3 +11,6 @@ an/stage/runtime/vendor/pixi.LICENSE.txt -text
 # binary and must never be touched.
 misc/bench/golden/**/*.png -text
 tests/fixtures/png/*.png -text
+
+# Two PRs each adding a line under the same date must rebase without a conflict: keep both lines.
+misc/CHANGELOG.md merge=union
