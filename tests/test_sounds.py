@@ -287,3 +287,40 @@ def test_the_mix_keeps_the_record_for_a_file_it_cannot_measure(tmp_path):
     )
     plan = mix_plan(scene, film_timeline(scene.timeline, fps=24), mall, tmp_path / "mix")
     assert plan.placements[0].play == pytest.approx(0.75)
+
+
+# ---------------------------------------------------------------- an#332
+
+
+def test_a_sound_whose_terms_forbid_keeping_its_bytes_is_refused(tmp_path):
+    from an.ir.assets import AssetSource
+
+    store = SoundsStore(tmp_path)
+    freesound = {"provider": "freesound", "license": "cc0-1.0", "cacheable": False}
+    with pytest.raises(SoundError, match="cacheable=False"):
+        add_sound(store, "rain", synth_hit(seed=3), source=freesound)
+    assert "rain" not in store
+    # Not recorded is not a yes, and not a no: the default is None.
+    assert AssetSource(provider="p").cacheable is None
+    add_sound(store, "rain", synth_hit(seed=3), source={**freesound, "cacheable": None})
+
+
+def test_versioned_cc_codes_and_stable_audio_are_classified():
+    from an.ir.assets import AssetSource, license_class, provider_terms_restriction
+
+    for code in ("cc-by-nc-4.0", "cc-by-nc-3.0", "cc-by-3.0", "cc-by-sa-4.0", "CC-BY-NC-4.0"):
+        assert license_class(AssetSource(provider="freesound", license=code)) == "attribution"
+    assert license_class(AssetSource(provider="p", license="cc-by-nc-sa-4.0")) == "unknown"
+    stable = AssetSource(provider="stability", license="stability-community")
+    assert license_class(stable) == "free"
+    assert "1,000,000" in provider_terms_restriction(stable)
+    # Another provider's output is not Stability's to license.
+    assert license_class(AssetSource(provider="elevenlabs", license="stability-community")) == "unknown"
+
+
+def test_credits_name_stable_audios_revenue_cap(tmp_path):
+    mall = build_project_mall(tmp_path, ensure=True)
+    add_sound(mall["sounds"], "drone", synth_hit(seed=4),
+              source={"provider": "stability", "license": "stability-community"})
+    text = collect_credits(mall).format()
+    assert "1,000,000" in text

@@ -122,6 +122,15 @@ render-end check read. Four answers, and the fourth is not the second:
 | `private` | `all-rights-reserved…`, `private-study…`, `arr` | **not publishable**: all rights reserved, private study only — `an credits` opens with it and `render` ends with a `PrivateStudyWarning` |
 | `unknown` | anything else, or none | UNVERIFIED — behaves like a refusal until someone reads the licence |
 
+A licence version at the end of a code counts as its family (`cc-by-nc-4.0` is
+`cc-by-nc`'s class). Provider terms (`an.ir.assets.PROVIDER_TERMS`) class what a
+provider made for you under its own terms, and their restriction is printed
+wherever the asset is listed: ElevenLabs' paid and free plans, and Stable
+Audio's `stability-community` (`free`; the licence ends above USD 1M annual
+revenue — read at stability.ai/community-license-agreement, 2026-10-06).
+`AssetSource.cacheable` is `None` when not recorded; `False` means the terms
+forbid keeping the bytes, and the sounds store refuses them (an#332).
+
 `private` exists because end users study real footage: art carved from a film
 is legitimately used to learn a style, and must never be shipped. Recording it
 honestly (not as a permissive licence nobody granted) is what lets the tool say

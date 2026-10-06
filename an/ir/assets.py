@@ -100,17 +100,32 @@ LicenseClass = Literal["attribution", "free", "private", "unknown"]
 #:   ``unknown`` — not publishable — with its restriction named
 #:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).
 #:   Check the current terms before shipping.
+#: - Stability AI (Stable Audio Open and the other community models): under the
+#:   Stability AI Community License (read 2026-10-06 at
+#:   stability.ai/community-license-agreement, last updated 2024-07-05) "You
+#:   own any outputs generated from the Models", no notice is owed for outputs,
+#:   and the licence terminates once the user (with affiliates) makes more than
+#:   USD 1,000,000 in annual revenue; outputs must follow Stability's acceptable
+#:   use policy. So ``free``, with that cap named wherever it is listed (an#332).
+_STABILITY_TERMS: dict[str, LicenseClass] = {"stability-community": "free"}
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "elevenlabs": {
         "elevenlabs-paid-plan": "free",
         "elevenlabs-free-plan": "unknown",
     },
+    # The names a Stable Audio output's source is recorded under.
+    "stability": _STABILITY_TERMS,
+    "stability-ai": _STABILITY_TERMS,
+    "stable-audio": _STABILITY_TERMS,
 }
 #: What a provider-terms code restricts beyond its class, by code: the words a
 #: credits report prints beside it.
 PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
     "elevenlabs-free-plan": "ElevenLabs free plan: non-commercial use only, and "
     "the video must credit ElevenLabs (elevenlabs.io); not publishable as is",
+    "stability-community": "Stability AI Community License: the licence ends once "
+    "you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "
+    "licence is needed), and use must follow Stability's acceptable use policy",
 }
 
 
@@ -172,6 +187,9 @@ ATTRIBUTION_REQUIRING_LICENSES: frozenset[str] = frozenset(
         "cc-by-nc",
     }
 )
+#: A licence version at the end of a code (``cc-by-nc-4.0``, ``cc-by-3.0``): a
+#: code is attribution-requiring when the code without it is listed (an#332).
+_LICENSE_VERSION_RE = re.compile(r"-\d+(?:\.\d+)*$")
 
 
 class AssetSource(BaseModel):
@@ -204,7 +222,11 @@ class AssetSource(BaseModel):
     source_page_url: str | None = None
     author: str | None = None
     author_url: str | None = None
-    cacheable: bool = True
+    #: Whether the terms let the bytes be KEPT (stored, cached): ``False`` —
+    #: they do not (the Freesound API keeps every sound by reference), and no
+    #: store takes them; ``None`` — not recorded, which is not a yes (an#332,
+    #: as ``lacing.Rights``); ``True`` — they do.
+    cacheable: bool | None = None
 
     # --- an's own.
     sha256: str | None = Field(
@@ -241,6 +263,8 @@ def license_class(source: AssetSource) -> LicenseClass:
     'private'
     >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
     'attribution'
+    >>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
+    'attribution'
     >>> license_class(AssetSource(provider="p", license="bespoke"))
     'unknown'
 
@@ -254,7 +278,10 @@ def license_class(source: AssetSource) -> LicenseClass:
     if not source.license:
         return "unknown"
     raw = source.license.strip().lower()
-    if raw in ATTRIBUTION_REQUIRING_LICENSES:
+    if (
+        raw in ATTRIBUTION_REQUIRING_LICENSES
+        or _LICENSE_VERSION_RE.sub("", raw) in ATTRIBUTION_REQUIRING_LICENSES
+    ):
         return "attribution"
     code = normalise_license(raw)
     if code in _PRIVATE_EXACT or any(p in code for p in _PRIVATE_PHRASES):
