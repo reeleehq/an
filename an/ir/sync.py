@@ -252,7 +252,13 @@ def _strip_retired_camera_fields(camera: Any, *, shot_id: str) -> Any:
             f"shot {shot_id!r}: camera {sorted(authored)} dropped — an#109 "
             "removed them because they described a 3D camera this package "
             "never had (the cutout camera is `root.pivot` plus `root.scale`). "
-            "A non-default value was set, so this is said out loud.",
+            "A non-default value was set, so this is said out loud."
+            + (
+                " To keep an entity in frame, use `camera.follow: {target: <id>}` "
+                "(an#445)."
+                if "target" in authored
+                else ""
+            ),
             stacklevel=3,
         )
     return camera

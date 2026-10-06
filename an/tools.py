@@ -69,13 +69,14 @@ def init(
     return f"initialized an project at {path}"
 
 
-def validate(project_dir: str, fps: float = 0.0) -> str:
+def validate(project_dir: str, fps: float = 0.0, strict_assets: bool = False) -> str:
     """Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
+    strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error
     """
-    report = validate_project(project_dir, fps=fps or None)
+    report = validate_project(project_dir, fps=fps or None, strict_assets=strict_assets)
     if report.passed and not report.findings:
         return "validation: passed, no findings"
     lines = ["validation: " + ("passed" if report.passed else "FAILED")]

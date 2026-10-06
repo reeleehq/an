@@ -513,3 +513,28 @@ def test_twos_and_threes_are_what_the_docs_say_they_are():
         gaps = {round((b.time - a.time) * fps) for a, b in zip(kfs, kfs[1:])}
         assert gaps == {frames_per_pose}, (hz, gaps)
         assert math.isclose(kfs[-1].time, 1.0)
+
+
+def test_an_validate_strict_assets_refuses_a_stand_in_as_render_would(tmp_path):
+    """an#456: an unknown environment is drawn as the default backdrop (a
+    warning); `an render --strict-assets` refuses it, and so does validate."""
+    from an.ir.schema import AssetRef
+    from an.project import init, load
+    from an.tools import validate
+
+    root = init(tmp_path / "p")
+    proj = load(root)
+    proj.mall["scenes"]["main"] = SceneIR(
+        meta=Meta(title="t", duration=1.0, fps=12),
+        timeline=[
+            Shot(
+                id="s",
+                renderer="cutout",
+                duration=1.0,
+                entities=[AssetRef(kind="environment", id="bg", store="environments", ref="nowhere")],
+            )
+        ],
+    )
+    assert "FAILED" not in validate(str(root))
+    strict = validate(str(root), strict_assets=True)
+    assert "FAILED" in strict and "--strict-assets` refuses shot 's'" in strict, strict

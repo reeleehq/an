@@ -141,6 +141,7 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
     duration = max(0.001, float(shot.duration))
     if camera.keys is not None:
         keys = list(camera.keys)
+        _refuse_unknown_key_fields(shot, keys)
         _refuse_keys_that_cannot_play(shot, keys, duration)
         return keys
     if camera.move is None:
@@ -162,6 +163,22 @@ def camera_keys(shot: Shot, *, width: int, height: int) -> list[CameraKey]:
     # canvas, which only the caller knows.
     span = float(height if move in _VERTICAL_MOVES else width) * PAN_FRACTION
     return [k.model_copy(update={"x": k.x * span, "y": k.y * span}) for k in keys]
+
+
+def _refuse_unknown_key_fields(shot: Shot, keys: list[CameraKey]) -> None:
+    """A key field the camera does not read is a typo, not a choice (an#454):
+    `{t: 0, x: 0}` would otherwise play `at: 0` and ignore `t`, silently."""
+    known = sorted(CameraKey.model_fields)
+    for i, key in enumerate(keys):
+        unknown = sorted(key.model_extra or {})
+        if unknown:
+            raise CameraError(
+                f"shot {shot.id!r}: camera key {i} has {unknown}, which no camera "
+                f"reads (a key is {{{', '.join(known)}}}: `at` in shot seconds, "
+                "`x`/`y` the camera's position in scene pixels, `+x` moving it "
+                "right, `zoom` a magnification, `rotation` in radians, `easing` "
+                "for the segment that starts at this key)."
+            )
 
 
 def _refuse_keys_that_cannot_play(

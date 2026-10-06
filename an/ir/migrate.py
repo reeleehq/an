@@ -304,7 +304,13 @@ def _drop_dead_camera_fields(doc: dict[str, Any]) -> dict[str, Any]:
                 f"{shot.get('id')!r}: an#109 removed them because they described a "
                 "3D camera this package never had — the cutout camera is "
                 "`root.pivot` plus `root.scale`. A non-default value was set, so "
-                "this one is said out loud; the defaults are dropped in silence.",
+                "this one is said out loud; the defaults are dropped in silence."
+                + (
+                    " To keep an entity in frame, use `camera.follow: {target: <id>}` "
+                    "(an#445)."
+                    if "target" in authored
+                    else ""
+                ),
                 stacklevel=4,
             )
     return doc
