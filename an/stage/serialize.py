@@ -104,6 +104,18 @@ class PathJSON(_JSONModel):
     dash: float = 0.0
     gap: float = 0.0
     dash_offset: float = 0.0
+    #: A tail arrowhead at the trimmed start (an#161), ``0`` = none. Omitted
+    #: from the wire when off, so no existing path document's hash moves.
+    tail_head_length: float = 0.0
+    tail_head_width: float = 0.0
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_tail(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and not self.tail_head_length:
+            data.pop("tail_head_length", None)
+            data.pop("tail_head_width", None)
+        return data
 
 
 class UnderlayJSON(_JSONModel):

@@ -155,8 +155,11 @@ def _battery() -> list[dict]:
         (0.0, 1.0), (0.0, 0.5), (0.25, 0.75), (0.75, 0.25), (0.0, 0.0),
         (0.3, 0.3), (-1.0, 2.0), (0.0, 1e-9), (0.1, 0.9999999999999999),
         (1.0 / 3.0, 2.0 / 3.0),
+        (0.5, 1.0),  # the first path's trim starts ON its corner (a tail's leaving leg)
     ]
     heads = [(0.0, 0.0), (20.0, 10.0), (1e6, 3.0)]
+    # the tail head (an#161): none, a normal one, and one far longer than the path
+    tails = [(0.0, 0.0), (14.0, 9.0), (1e6, 3.0)]
     # (dash, gap, offset): solid, plain, an irrational period with a negative
     # offset, a dash far longer than the path, and a hairline dash
     dashes = [
@@ -176,11 +179,14 @@ def _battery() -> list[dict]:
             "dash": d,
             "gap": g,
             "off": o,
+            "thl": thl,
+            "thw": thw,
         }
         for pts in rng_pts
         for ts, te in trims
         for hl, hw in heads
         for d, g, o in dashes
+        for thl, thw in tails
     ]
 
 
@@ -201,6 +207,8 @@ def _extract_js_block(src: str, start_marker: str) -> str:
 _GEOMETRY_FUNCS = (
     "function pathLengths",
     "function pathSegmentAt",
+    "function pathSegmentFrom",
+    "function pathHead",
     "function pathPointAt",
     "function pathTrim",
     "function pathDashSpans",
@@ -233,7 +241,7 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             "const cases = JSON.parse(require('fs').readFileSync("
             "process.argv[1], 'utf8'));",
             "console.log(JSON.stringify(cases.map(c => "
-            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off))));",
+            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off, c.thl, c.thw))));",
         ]
     )
     js = node_json(script, str(cases_file))
@@ -247,6 +255,8 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             dash=case["dash"],
             gap=case["gap"],
             dash_offset=case["off"],
+            tail_head_length=case["thl"],
+            tail_head_width=case["thw"],
         )
         want_json = json.loads(json.dumps(want))
         assert got == want_json, case
@@ -734,3 +744,97 @@ def test_an_arrow_draws_itself_with_its_head_on_the_moving_tip(tmp_path):
     assert max(x for x, _ in m) <= cx + head_w / 2 + 2
     # The first leg is fully drawn by now.
     assert min(x for x, _ in m) <= cx - 118
+
+
+# --- tail and double-headed arrows, arc-length sampling (an#161) -------------------
+
+
+def test_a_tail_head_points_back_along_the_leg_the_path_leaves_on():
+    g = path_geometry(L_POINTS, 0.0, 1.0, tail_head_length=20.0, tail_head_width=10.0)
+    tip, b1, b2 = g["tail"]
+    assert tip == pytest.approx((-120.0, -60.0))  # at the trimmed start
+    assert b1[0] == pytest.approx(-100.0) and b2[0] == pytest.approx(-100.0)  # base 20 px in, along +x
+    assert {round(b1[1], 6), round(b2[1], 6)} == {-55.0, -65.0}
+    assert g["stroke"][0][0] == pytest.approx(-120.0 + 20.0 * HEAD_STROKE_INSET)
+    assert g["head"] is None  # no end head asked for
+
+
+def test_a_tail_tip_on_a_corner_points_back_along_the_outgoing_leg():
+    g = path_geometry(L_POINTS, 0.5, 1.0, tail_head_length=20.0, tail_head_width=10.0)
+    tip, b1, _ = g["tail"]
+    assert tip == pytest.approx((0.0, -60.0))
+    assert b1[1] == pytest.approx(-40.0)  # base down the second leg (+y), not back along the first
+
+
+def test_both_heads_shrink_together_while_the_visible_length_is_short():
+    full = path_geometry(L_POINTS, 0.0, 1.0, head_length=20.0, head_width=10.0,
+                         tail_head_length=20.0, tail_head_width=10.0)
+    short = path_geometry(L_POINTS, 0.0, 20.0 / 240.0, head_length=20.0, head_width=10.0,
+                          tail_head_length=20.0, tail_head_width=10.0)
+    def length(tri):
+        (tx, ty), (bx, by), (cx, cy) = tri
+        return math.hypot(tx - (bx + cx) / 2, ty - (by + cy) / 2)
+    assert length(full["head"]) == pytest.approx(20.0) and length(full["tail"]) == pytest.approx(20.0)
+    assert length(short["head"]) == pytest.approx(10.0) and length(short["tail"]) == pytest.approx(10.0)
+
+
+def test_one_head_scales_and_draws_exactly_as_before():
+    """No tail asked for: no `tail` key, and the end head is what it was (the parity battery pins it)."""
+    g = path_geometry(L_POINTS, 0.0, 0.05, head_length=20.0, head_width=10.0)
+    assert "tail" not in g
+
+
+def test_a_double_headed_arrow_reaches_the_wire_and_a_single_one_has_no_tail_field():
+    def wire(**doc):
+        scene = compile_shot(_shot(), {"props": {"route": _doc(**doc)}})
+        return scene.scene.children[0].visual.path.model_dump(mode="json")
+
+    wire_both = wire(arrowhead=True, tail_arrowhead=True)
+    wire_one = wire(arrowhead=True)
+    assert wire_both["tail_head_length"] == wire_both["head_length"] > 0
+    assert "tail_head_length" not in wire_one and "tail_head_width" not in wire_one  # no hash moves
+
+
+def test_head_sizes_with_only_a_tail_are_not_inert():
+    PathDescriptor(name="x", points=L_POINTS, tail_arrowhead=True, head_length=10.0)
+    with pytest.raises(ValueError, match="arrowhead is false"):
+        PathDescriptor(name="x", points=L_POINTS, head_length=10.0)
+
+
+def test_arclength_sampling_spaces_a_cubic_evenly():
+    cubic = [(0, 0), (0, 300), (30, 0), (300, 0)]  # slow at the start, fast at the end
+    def spread(pts):
+        steps = [math.dist(a, b) for a, b in zip(pts, pts[1:])]
+        return max(steps) / min(steps)
+    by_param = flatten_curve(cubic, curve="cubic", samples=24)
+    by_length = flatten_curve(cubic, curve="cubic", samples=24, sampling="arclength")
+    assert by_length[0] == by_param[0] and by_length[-1] == by_param[-1]  # same endpoints
+    assert spread(by_param) > 3 and spread(by_length) < 1.1
+    with pytest.raises(ValueError, match="sampling"):
+        PathDescriptor(name="x", points=L_POINTS, sampling="arclength")  # a polyline: inert
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_a_double_headed_arrow_draws_both_heads(tmp_path):
+    """The L arrow drawn whole, a head at each end: at its start (pixel 40, 60)
+    the tail spreads across the leg pointing -x, at its end (160, 180) the head
+    points +y. Same canvas as the draw-on test above."""
+    from an.adapters._base import RenderContext
+    from an.adapters.cutout.render import CutoutRenderer
+
+    head_len, head_w = 21.0, 18.0
+    mall = {"props": {"route": _doc(color="#ff0000", width=6.0, arrowhead=True,
+                                    tail_arrowhead=True, head_length=head_len,
+                                    head_width=head_w)}}
+    result = CutoutRenderer().render(
+        _shot(),
+        RenderContext(mall=mall, work_dir=tmp_path, fps=12, resolution=(320, 240),
+                      strict_assets=True),
+    )
+    m = _ink_mask(result.frame_manifest[0])
+    cx, cy = 160, 120
+    assert abs(min(x for x, _ in m) - (cx - 120)) <= 2  # the tail's tip
+    near_tail_base = [y for x, y in m if x == cx - 120 + int(head_len) - 3]
+    assert max(near_tail_base) - min(near_tail_base) >= head_w * 0.7, near_tail_base
+    assert abs(max(y for _, y in m) - (cy + 60)) <= 2  # the end head's tip
