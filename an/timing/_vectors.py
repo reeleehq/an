@@ -13,7 +13,7 @@ Two seeds, as the core study §6 step 1 asks:
   quadratic (:mod:`an.timing.easing`).
 - **`an`'s parity cases**, in the ``stage.node`` space: the channel battery of
   ``tests/test_cutout_channel_parity.py`` and the timeline battery of
-  ``tests/test_pure_pose.py``, the an#86 boundary (``(t - a.time) / span``
+  ``cutan``'s ``tests/test_pure_pose.py``, the an#86 boundary (``(t - a.time) / span``
   rounds to 1.0 while ``t < b.time``), and cross-track inclusive-end ties.
 
 Sample times: every clip start and end, every keyframe's absolute time (per loop

@@ -57,6 +57,7 @@ Used consistently in this review, the cut-out review, the ADRs and `design_princ
 | adjust without redoing everything | **incremental rebuild** / **non-destructive editing**, by a **dependency graph** with **invalidation** and **early cutoff**; in production, a **retake** | | | audio caches only |
 | say it in words vs in numbers | **semantic** specification (natural-language **direction**, **intent**, **goals**) vs **structured** specification (typed **parameters**) | | | `[emotion]`, preset names, `an iterate`; style lint |
 | the part every genre shares | the **core** (here: `an`) | | | — |
+| "kind" (three different things) | **document kind** (what schema a stored document is: `SceneIR`, `CharacterDescriptor`, versioned by `an.ir.migrate`), **field kind** (how one property interpolates: number, angle, colour, discrete key — declared by a property space, ADR 0001 decision 11), **entity kind** (what an `AssetRef` casts: `prop`, `environment`, a genre's `character` — `an.genres.EntityKind`) | three axes that share a word; always say which | | `DocumentKind`, `FieldKind`, `EntityKind` (an#239 N7) |
 
 ---
 

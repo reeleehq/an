@@ -170,7 +170,7 @@ def evaluate_timeline(
     while both played).
 
     ``runtime.js::evaluateTimeline`` is a port of this function and
-    ``tests/test_pure_pose.py`` holds the two to it.
+    ``cutan``'s ``tests/test_pure_pose.py`` holds the two to it.
 
     >>> from an.timing.channel import Channel, Keyframe
     >>> from an.timing.clip import Clip

@@ -383,7 +383,7 @@ def _stage_job(
     """Lay out per-shot directories + copy the runtime files + SVG assets.
 
     The whole layout a stage render uses, for callers that drive a page
-    themselves (``tests/test_pure_pose.py``); the renderer itself gets its
+    themselves (``cutan``'s ``tests/test_pure_pose.py``); the renderer itself gets its
     workspace and frames directory from the core frame stage, so rebinding this
     name changes no render.
     """

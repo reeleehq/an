@@ -1192,7 +1192,7 @@
     // Timeline evaluation
     // ------------------------------------------------------------------------
 
-    // Port of `an/adapters/cutout/clip.py::_wrap_time` — that function is the spec,
+    // Port of `an/timing/clip.py::_wrap_time` — that function is the spec,
     // and this must stay bit-identical to it. Three modes:
     //   once      clamp; past `duration` the last frame holds
     //   loop      t % duration  (at exactly t == duration this is 0, so the FIRST
@@ -1212,7 +1212,7 @@
 
     // The properties `applyProperty` handles itself; anything else names a
     // swap set on the node's visual. Mirror of `an.base.TRANSFORM_PROPERTIES`
-    // (tests/test_pure_pose.py pins the two, and this list against the switch).
+    // (cutan's tests/test_pure_pose.py pins the two, and this list against the switch).
     const RUNTIME_PROPERTIES = new Set([
         'x', 'y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x',
         'skew_y', 'pivot_x', 'pivot_y', 'alpha', 'tint_r', 'tint_g', 'tint_b',
@@ -1222,7 +1222,7 @@
     const SWAP_WRITE_GROUP = '<swap>';
     const SHARED_WRITES = { rotation_rad: 'rotation' };
 
-    // Port of `timeline.py::write_group`: what a property WRITES on its node.
+    // Port of `an/timing/timeline.py::write_group`: what a property WRITES on its node.
     // Every swap set on a node swaps its one visual; `rotation_rad` is
     // `rotation`; everything else writes only itself.
     function writeGroup(prop) {
@@ -1725,8 +1725,8 @@
         return kind(a.value, b.value, eased, { t: t, start: a.time, end: b.time });
     }
 
-    // Port of `an/adapters/cutout/timeline.py::evaluate_timeline` — that
-    // function is the spec, and tests/test_pure_pose.py runs this one against
+    // Port of `an/timing/timeline.py::evaluate_timeline` — that
+    // function is the spec, and cutan's tests/test_pure_pose.py runs this one against
     // it. The pose is a PURE function of t (an#185): a key a playing clip
     // writes takes its value (later wins); a key whose clips have all ENDED
     // holds the value the latest-ending one reached at its end (a tie goes to
