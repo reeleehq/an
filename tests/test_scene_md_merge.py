@@ -234,3 +234,61 @@ def test_sync_from_a_newer_json_updates_the_markdown_in_place(tmp_path):
     out = (tmp_path / "scene.md").read_text(encoding="utf-8")
     assert markdown_to_ir(out).timeline[0].duration == 2.5
     assert "Alice enters from the left; Bob is already there." in out
+
+
+# ------------------------------------------------- a tie between the two files (an#412)
+
+
+def _tie(tmp_path):
+    md, js = tmp_path / "scene.md", tmp_path / "ir" / "scene.json"
+    t = md.stat().st_mtime
+    os.utime(md, (t, t))
+    os.utime(js, (t, t))
+    return md, js
+
+
+def test_an_edit_made_in_the_same_instant_as_the_json_wins_and_says_so(tmp_path):
+    """`cp -r film t1 && sed -i ... t1/scene.md` in one second: the two files
+    are the same age and disagree. The JSON used to win silently (an#412), and
+    the next store write reverted the edit in scene.md (an#411)."""
+    from an.ir.sync import SyncTieWarning
+
+    (tmp_path / "scene.md").write_text(AUTHORED, encoding="utf-8")
+    sync(tmp_path)
+    edited = AUTHORED.replace("to: 120", "to: 80")
+    (tmp_path / "scene.md").write_text(edited, encoding="utf-8")
+    _tie(tmp_path)
+    with pytest.warns(SyncTieWarning, match="source of truth"):
+        result = sync(tmp_path)
+    assert result.wrote_json and not result.wrote_md
+    scene = ScenesStore(tmp_path)["main"]
+    assert scene.timeline[0].actions[0].to_value == 80
+
+
+def test_a_consistent_pair_of_the_same_age_is_left_alone(tmp_path):
+    (tmp_path / "scene.md").write_text(AUTHORED, encoding="utf-8")
+    sync(tmp_path)
+    _tie(tmp_path)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = sync(tmp_path)
+    assert not result.wrote_json and not result.wrote_md
+
+
+def test_a_render_s_write_back_no_longer_reverts_the_edit(tmp_path):
+    """The whole an#411 chain: a same-second edit, a load, then the pipeline's
+    store write. The edit survives, and so does its flow style and `at: 0.0`."""
+    from an.ir.sync import SyncTieWarning
+
+    (tmp_path / "scene.md").write_text(AUTHORED, encoding="utf-8")
+    sync(tmp_path)
+    edited = AUTHORED.replace("value: 1.0, at: 0.0}", "value: 0.5, at: 0.0}")
+    (tmp_path / "scene.md").write_text(edited, encoding="utf-8")
+    _tie(tmp_path)
+    with pytest.warns(SyncTieWarning):
+        sync(tmp_path)
+    store = ScenesStore(tmp_path)
+    scene = store["main"]
+    scene.timeline[0].dialogue[0].audio_ref = "sha256:" + "2" * 64  # a render's stamp
+    store["main"] = scene
+    assert (tmp_path / "scene.md").read_text(encoding="utf-8") == edited
