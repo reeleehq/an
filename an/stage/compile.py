@@ -60,6 +60,7 @@ from an.stage.rig import (
     part_probe,
     primary_slot_per_bone,
     raster_digest,
+    RigError,
 )
 
 # The rig builder lives in `an.stage.rig`, public since an#338. These are the
@@ -2431,17 +2432,21 @@ def _build_prop_subtree(
     )
     note_raster_rig(entity, meta, style_pack, raster)
     already = len(resolutions)
-    node = build_rig_subtree(
-        entity,
-        meta,
-        textures=textures if textures is not None else {},
-        probe=part_probe(props_store, art_prefix=PROP_ART_PREFIX),
-        resolutions=resolutions,
-        art_prefix=PROP_ART_PREFIX,
-        descriptor_model=PropDescriptor,
-        document_kind=PROP_DOCUMENT_KIND,
-        digest=raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
-    )
+    try:
+        node = build_rig_subtree(
+            entity,
+            meta,
+            textures=textures if textures is not None else {},
+            probe=part_probe(props_store, art_prefix=PROP_ART_PREFIX),
+            resolutions=resolutions,
+            art_prefix=PROP_ART_PREFIX,
+            descriptor_model=PropDescriptor,
+            document_kind=PROP_DOCUMENT_KIND,
+            digest=raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
+            skip_slots=(),  # a prop has no face to suppress
+        )
+    except RigError as e:
+        raise CutoutCompileError(f"prop {entity.id!r}: {e}") from e
     if not _draws_anything(node) and not any(r.fallback for r in resolutions[already:]):
         # Nothing on disk is MISSING — the document simply names no art (no
         # skin, or slots with no attachment) — so `_record_missing_parts` has

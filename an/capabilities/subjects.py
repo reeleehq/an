@@ -152,6 +152,23 @@ for _member in ENGINE_OPTIONAL_MEMBERS:
         subject="engine",
     )
 
+#: ADR 0002 decision 1's name for a rig whose parts nest in chains (an#340):
+#: ``keys`` the chain roots, ``count`` the deepest chain's length in parts, so
+#: ``rig.hierarchy>=3`` is "a limb with an elbow and a hand". Derived from the
+#: rig model by ``an.stage.rig.rig_affordances``, for props by the stage's
+#: ``prop`` analyser (``an.stage.props``) and for a genre's rigged kinds by the
+#: genre's analyser.
+RIG_HIERARCHY = register_capability(
+    "rig.hierarchy",
+    description=(
+        "the rig nests its parts in chains (`nesting: bones`): keys = the chain "
+        "roots, count = the deepest chain's length in parts"
+    ),
+    remedy=(
+        "declare `nesting: bones` on the rig document and parent each part's "
+        "bone to the bone it hangs from (an elbow's to the shoulder's)"
+    ),
+)
 
 def _real_probe() -> dict[str, Any]:
     from an.check_requirements import playwright_browser_dirs

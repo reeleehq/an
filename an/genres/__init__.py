@@ -115,7 +115,9 @@ class GenreError(RegistryError):
 #:     ``RigDocument`` (``origin``), ``omit_unset_rig_fields``, ``an.stage.compile.note_raster_rig``.
 #: 4 = the bones' rest pose (an#339): ``an.stage.rig.register_rest_pose_migration``,
 #:     ``rig_rest_problems``, ``RigDocument.rest_rotation``.
-API_LEVEL: int = 4
+#: 5 = nested chains (an#340): ``build_rig_subtree(skip_slots=)``, ``slot_parent_chain``,
+#:     ``slot_node_paths``, ``rig_problems``, ``rig_affordances``, ``RigError``, ``rig.hierarchy``.
+API_LEVEL: int = 5
 
 
 class GenreAPILevelError(GenreError, ImportError):

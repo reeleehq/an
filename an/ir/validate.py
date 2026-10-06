@@ -1870,19 +1870,35 @@ def _check_rig_document(
     doc: dict, entity, ir_path: str, report: "ValidationReport"
 ) -> None:
     """A rig's declared ``origin`` is finite and inside its view_box (an#338),
-    and a bone's rest rotation turns its part about the joint (an#339).
+    a bone's rest rotation turns its part about the joint (an#339), and a
+    ``nesting: bones`` chain is one the stage can build (an#340).
 
     Warnings, the stage's own rules (:func:`an.stage.rig.rig_origin_problems`,
     :func:`an.stage.rig.rig_rest_problems`), so ``an validate`` and the rig's
     own validator say the same thing.
     """
-    from an.stage.rig import (
+    from an.stage.rig import (  # the builder's own rules
+        BONES_NESTING,
+        chain_draw_order_problems,
+        chain_pose_problems,
+        nesting_of,
         rig_origin_problems,
+        rig_problems,
         rig_rest_problems,
-    )  # the builder's own rules
+    )
 
     for problem in rig_origin_problems(doc) + rig_rest_problems(doc):
         report.add("warning", ir_path, f"{entity.kind} ref {entity.ref!r}: {problem}")
+    # A nested chain the stage cannot build is a compile raise (an#340), so its
+    # pre-flight is an ERROR; a flat rig's dangling bone only misplaces a part.
+    if nesting_of(doc) == BONES_NESTING:
+        cycles = [p for p in rig_problems(doc) if "cycle" in p]
+        for problem in cycles + chain_draw_order_problems(doc) + chain_pose_problems(doc):
+            report.add(
+                "error",
+                ir_path,
+                f"{entity.kind} ref {entity.ref!r}: {problem} (rendering this shot raises)",
+            )
 
 
 def _core_voices(ctx: ValidationContext) -> None:
