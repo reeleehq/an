@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-06
+- **A policy is an order, not a request** (an#334): `resolve` treats only the author's request as one; a policy's entries passed over on the way to its first applicable one are listed in `Resolution.skipped` (and its JSON), never recorded as a fatal `missing` substitution, so `[profile, legs]` on a front-only figure and `[hem, glide]` on a legless one pass `--strict-assets`. A policy's choice on an aspect that records its own fallback (speech) stays a `policy` record.
 - **The skill vocabulary section is the core's only** (an#354, an#349): `skill_vocabulary_section(owner=...)` / `--owner NAME` render one owner's rows; `an`'s skill lists the core names and points to the `cutan` skill for the genre's, which cutan generates and checks itself, so a cutan merge no longer reddens `an` PRs. Stale guidance fixed: a legless walk glides (an#335), style specs ship in `cutan.style_spec` (an#333).
 - **Tests follow cutan#32** (the style-policy compile pass `style_policy` and the check `cutout.shot_policy`): the pinned pass and check orders, and the genre's listed checks, name them; `main`'s genre lane was red from the moment cutan#32 merged.
 

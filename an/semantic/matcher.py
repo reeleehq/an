@@ -11,8 +11,11 @@ the methods the vocabulary registry holds for an aspect.
   applicable choice of the policy (shot before style, :meth:`Policy.layered`);
   else the aspect's default chain. Every departure from what was asked is a
   :class:`~an.capabilities.Substitution` on the result: ``missing`` when what
-  was asked does not apply, ``policy`` when a policy chose against the chain
-  (information, never fatal), ``noop`` when the aspect does not apply at all.
+  the author asked does not apply, ``policy`` when a policy chose against the
+  chain (information, never fatal), ``noop`` when the aspect does not apply at
+  all. A policy is an order, not a request: its entries passed over on the way
+  to its first applicable one are listed in :attr:`Resolution.skipped`, never
+  recorded as a ``missing`` substitution (an#334).
 
 >>> from an.semantic.entries import Aspect, Method
 >>> from an.semantic.registry import register_aspect, register_entry, drop_owner
@@ -81,7 +84,9 @@ class Resolution:
     ``source`` is ``request``, ``policy``, ``chain`` or ``noop``;
     ``substitution`` is the record when the choice departs from what was asked
     (``None`` when it did not); ``considered`` is the trail of methods tried
-    before it, each with what it was missing.
+    before it, each with what it was missing; ``skipped`` the policy's entries
+    among them (a policy is an order: an entry that does not apply is passed
+    over, information for whoever records the choice, never a substitution).
     """
 
     aspect: str
@@ -90,6 +95,7 @@ class Resolution:
     source: str = "chain"
     substitution: Substitution | None = None
     considered: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    skipped: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -104,6 +110,10 @@ class Resolution:
         if self.considered:
             out["considered"] = [
                 {"method": m, "missing": list(t)} for m, t in self.considered
+            ]
+        if self.skipped:
+            out["skipped"] = [
+                {"method": m, "missing": list(t)} for m, t in self.skipped
             ]
         return out
 
@@ -188,6 +198,7 @@ def resolve(
     asked = _as_choice(requested, aspect_name)
     policy_choices = Policy.of(policy).choices(aspect_name)
     considered: list[tuple[str, tuple[str, ...]]] = []
+    skipped: list[tuple[str, tuple[str, ...]]] = []
 
     def trial(choice: Choice) -> Method | None:
         m = _method(choice, aspect_name)
@@ -201,7 +212,7 @@ def resolve(
 
     def done(m: Method, choice: Choice | None, source: str) -> Resolution:
         args = {**m.defaults(), **dict(choice.args if choice else {})}
-        effective = asked or (policy_choices[0] if policy_choices else None)
+        effective = asked  # only the author's request; a policy is an order (an#334)
         sub = None
         if m is NOOP:
             sub = Substitution(
@@ -226,6 +237,17 @@ def resolve(
                 missing=gaps,
                 remedies={t: wanted.remedies.get(t) or remedy_for(t) for t in gaps},
             )
+        elif source == "policy":
+            if chain_choice is not None and chain_choice.id != m.id:
+                sub = Substitution(
+                    aspect_name,
+                    entity,
+                    chain_choice.id,
+                    m.id,
+                    "policy",
+                    requested_version=chain_choice.version,
+                    chosen_version=m.version,
+                )
         elif effective is None and asp.records_fallback and m.id != asp.chain[0]:
             head = _method(asp.chain[0], aspect_name)
             gaps = next((g for mid, g in considered if mid == head.id), ())
@@ -240,19 +262,9 @@ def resolve(
                 missing=gaps,
                 remedies={t: head.remedies.get(t) or remedy_for(t) for t in gaps},
             )
-        elif (
-            source == "policy" and chain_choice is not None and chain_choice.id != m.id
-        ):
-            sub = Substitution(
-                aspect_name,
-                entity,
-                chain_choice.id,
-                m.id,
-                "policy",
-                requested_version=chain_choice.version,
-                chosen_version=m.version,
-            )
-        return Resolution(aspect_name, m, args, source, sub, tuple(considered))
+        return Resolution(
+            aspect_name, m, args, source, sub, tuple(considered), tuple(skipped)
+        )
 
     if asked is not None:
         m = trial(asked)
@@ -262,6 +274,7 @@ def resolve(
         m = trial(choice)
         if m is not None:
             return done(m, choice, "policy")
+        skipped.append(considered[-1])
     for mid in asp.chain:
         m = NOOP if mid == NOOP.id else trial(Choice(mid))
         if m is not None:
