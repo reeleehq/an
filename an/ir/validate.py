@@ -27,7 +27,7 @@ from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
-from an.ir.schema import SceneIR
+from an.ir.schema import CueAnchor, SceneIR
 from an.base import SUPPORTED_RENDERERS
 from an.genres.registry import (
     CORE_OWNER,
@@ -2353,6 +2353,8 @@ def _check_assembly(
 
         length = film_duration(scene)
         for j, cue in enumerate(scene.meta.sounds):
+            if isinstance(cue.at, CueAnchor):
+                continue  # timed by the picture: resolved (and checked) at render
             if cue.at >= length:
                 report.add(
                     "warning",
@@ -2363,6 +2365,8 @@ def _check_assembly(
     for i, shot in enumerate(scene.timeline):
         for j, cue in enumerate(shot.sounds):
             cues.append((f"timeline/{i}/sounds", j, cue))
+            if isinstance(cue.at, CueAnchor):
+                continue  # timed by the picture: resolved (and checked) at render
             if cue.at >= shot.duration:
                 report.add(
                     "warning",

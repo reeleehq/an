@@ -598,6 +598,7 @@ def _render_film(
     if engine is not None:
         _finish_run(work_dir)
     findings += [("measurement", f) for f in shot_findings]
+    findings += [("sound", f) for f in prep.sound_findings]
     return output_path, scene, findings, effective_fps
 
 
@@ -982,6 +983,8 @@ class _PreparedShots:
     windows: tuple | None
     scene: object = None
     findings: list = field(default_factory=list)
+    #: Cues timed by the picture, as resolved (an#317): ``info`` findings.
+    sound_findings: list = field(default_factory=list)
 
 
 def _prepare_shots(
@@ -1048,6 +1051,20 @@ def _prepare_shots(
     if measure:
         warn_findings(findings)
 
+    # Cues timed by the picture (an#317), on the settled copy: before the film
+    # timeline, captions, the mix and every key read a cue's `at`.
+    from an.sound_anchors import has_anchors, resolve_cue_anchors
+
+    sound_findings: list = []
+    if has_anchors(scene):
+        laid_out = film_timeline(list(scene.timeline), fps=effective_fps)
+        scene, sound_findings = resolve_cue_anchors(
+            scene,
+            ctx,
+            [_DEFAULT_REGISTRY.find_for(s) for s in scene.timeline],
+            film_starts=[laid_out.start_seconds(i) for i in range(len(scene.timeline))],
+        )
+
     shots = list(scene.timeline)
     windows = None
     if needs_assembly(scene, fps=effective_fps):
@@ -1093,6 +1110,7 @@ def _prepare_shots(
         windows=windows,
         scene=scene,
         findings=findings,
+        sound_findings=sound_findings,
     )
 
 
