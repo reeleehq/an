@@ -115,7 +115,11 @@ def cut_to_wav(
             "cutting a fetched sound needs the ffmpeg binary on PATH "
             "(macOS: `brew install ffmpeg`; Debian/Ubuntu: `apt install ffmpeg`)"
         )
-    for name, value in (("start", start), ("duration", duration), ("fade_out", fade_out)):
+    for name, value in (
+        ("start", start),
+        ("duration", duration),
+        ("fade_out", fade_out),
+    ):
         if value is not None and value < 0:
             raise SoundError(f"{name} must not be negative, got {value}")
     with tempfile.TemporaryDirectory(prefix="an-cut-") as tmp:
