@@ -1103,6 +1103,23 @@ class Meta(_IRModel):
     #: Captions from the dialogue's word timings (:class:`Captions`, an#175);
     #: ``None`` — the default — is none, omitted from JSON like ``style_pack``.
     captions: Captions | None = None
+    #: How the film ENDS (an#389): a ``fade`` to its ``color`` over its
+    #: ``duration``, on the last shot's last frames (the film's length is
+    #: unchanged, and its final frame is the colour; the sound fades with it).
+    #: ``None`` (or a ``cut``) ends on the last frame as drawn. A dissolve has
+    #: nothing to dissolve into, so it is refused.
+    closing_transition: Transition | None = None
+
+    @field_validator("closing_transition")
+    @classmethod
+    def _closing_is_a_fade(cls, t: Transition | None) -> Transition | None:
+        if t is not None and t.kind == "dissolve":
+            raise ValueError(
+                "closing_transition: a dissolve has nothing to dissolve into at the "
+                "film's end; use a fade (to a colour) or a cut"
+            )
+        return t
+
     #: One loudness for every voice (:class:`VoiceLoudness`, an#315); ``None``
     #: — the default — levels nothing, and is omitted from JSON.
     voice_loudness: VoiceLoudness | None = None
@@ -1137,6 +1154,9 @@ class Meta(_IRModel):
         # `voice_loudness` likewise (an#315).
         if isinstance(data, dict) and self.voice_loudness is None:
             data.pop("voice_loudness", None)
+        # `closing_transition` likewise (an#389).
+        if isinstance(data, dict) and self.closing_transition is None:
+            data.pop("closing_transition", None)
         return data
 
 

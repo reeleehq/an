@@ -61,7 +61,7 @@ from an.base import (
     MP4_FASTSTART_ARGS,
 )
 from an.frame_clock import frame_count
-from an.ir.schema import SceneIR, Shot, SoundCue
+from an.ir.schema import SceneIR, Shot, SoundCue, Transition
 
 __all__ = [
     "MIN_SEGMENT_FRAMES",
@@ -121,6 +121,14 @@ def _transition_frame_count(shot: Shot, fps: float) -> int:
     return int(round(t.duration * fps))
 
 
+def _closing_frame_count(closing: Transition | None, fps: float) -> int:
+    """Frames the film's closing fade spans; 0 for none, a cut, or one so short
+    it rounds to nothing."""
+    if closing is None or closing.kind != "fade":
+        return 0
+    return int(round(closing.duration * fps))
+
+
 def needs_assembly(scene: SceneIR, *, fps: float | None = None) -> bool:
     """True when the scene asks for anything beyond hard cuts and shot audio.
 
@@ -138,6 +146,8 @@ def needs_assembly(scene: SceneIR, *, fps: float | None = None) -> bool:
     if scene.meta.sounds or any(shot.sounds for shot in scene.timeline):
         return True
     rate = fps if fps is not None else scene.meta.fps
+    if _closing_frame_count(scene.meta.closing_transition, rate):
+        return True
     return any(_transition_frame_count(shot, rate) for shot in scene.timeline)
 
 
@@ -166,7 +176,10 @@ class FilmTimeline:
     ``dissolve_in[i]`` — frames shot ``i`` overlaps the previous shot by.
     ``fade_in[i]`` — frames at shot ``i``'s head that fade up from a colour.
     ``fade_out[i]`` — frames at shot ``i``'s tail that fade to a colour (the
-    NEXT shot's fade colour).
+    NEXT shot's fade colour, or the film's closing fade's on the last shot).
+    ``closing`` — the last shot's ``fade_out`` is the film's closing fade
+    (``Meta.closing_transition``, an#389), so its final frame IS the colour:
+    no next shot reaches it instead.
     """
 
     fps: float
@@ -178,6 +191,7 @@ class FilmTimeline:
     fade_in_color: tuple[str | None, ...]
     fade_out_color: tuple[str | None, ...]
     total_frames: int
+    closing: bool = False
 
     @property
     def duration(self) -> float:
@@ -196,8 +210,11 @@ class FilmTimeline:
         return any(self.dissolve_in) or any(self.fade_in) or any(self.fade_out)
 
 
-def _transition_frames(shots: Sequence[Shot], fps: float):
-    """Per shot: (frames, dissolve_in, fade_in, fade_out, in_colour, out_colour)."""
+def _transition_frames(
+    shots: Sequence[Shot], fps: float, *, closing: Transition | None = None
+):
+    """Per shot: (frames, dissolve_in, fade_in, fade_out, in_colour, out_colour);
+    ``closing`` (the film's closing fade) takes the last shot's tail."""
     n = len(shots)
     frames = [frame_count(s.duration, fps) for s in shots]
     dissolve_in, fade_in, fade_out = [0] * n, [0] * n, [0] * n
@@ -215,10 +232,15 @@ def _transition_frames(shots: Sequence[Shot], fps: float):
         else:  # half out of the previous shot, half into this one
             fade_out[i - 1], out_color[i - 1] = k // 2, t.color
             fade_in[i], in_color[i] = k - k // 2, t.color
+    k = _closing_frame_count(closing, fps)
+    if k and n:
+        fade_out[n - 1], out_color[n - 1] = k, closing.color
     return frames, dissolve_in, fade_in, fade_out, in_color, out_color
 
 
-def transition_problems(shots: Sequence[Shot], fps: float) -> list[tuple[int, str]]:
+def transition_problems(
+    shots: Sequence[Shot], fps: float, *, closing: Transition | None = None
+) -> list[tuple[int, str]]:
     """Every reason these shots' transitions cannot be assembled, as
     ``(shot index, message)``. The ONE list `an validate` reports and
     :func:`film_timeline` raises on, so the two cannot disagree.
@@ -227,7 +249,9 @@ def transition_problems(shots: Sequence[Shot], fps: float) -> list[tuple[int, st
     >>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
     [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
     """
-    frames, dissolve_in, fade_in, fade_out, _, _ = _transition_frames(shots, fps)
+    frames, dissolve_in, fade_in, fade_out, _, _ = _transition_frames(
+        shots, fps, closing=closing
+    )
     problems: list[tuple[int, str]] = []
     for i, shot in enumerate(shots):
         if i == 0 and dissolve_in[0]:
@@ -255,14 +279,17 @@ def transition_problems(shots: Sequence[Shot], fps: float) -> list[tuple[int, st
     return problems
 
 
-def film_timeline(shots: Sequence[Shot], *, fps: float) -> FilmTimeline:
-    """Lay ``shots`` end to end, overlapping each dissolve. Raises
+def film_timeline(
+    shots: Sequence[Shot], *, fps: float, closing: Transition | None = None
+) -> FilmTimeline:
+    """Lay ``shots`` end to end, overlapping each dissolve, the last fading out
+    by ``closing`` (the film's closing fade, an#389). Raises
     :class:`AssemblyError` on any :func:`transition_problems`."""
-    problems = transition_problems(shots, fps)
+    problems = transition_problems(shots, fps, closing=closing)
     if problems:
         raise AssemblyError("; ".join(msg for _, msg in problems))
     frames, dissolve_in, fade_in, fade_out, in_color, out_color = _transition_frames(
-        shots, fps
+        shots, fps, closing=closing
     )
     starts: list[int] = []
     cursor = 0
@@ -280,6 +307,7 @@ def film_timeline(shots: Sequence[Shot], *, fps: float) -> FilmTimeline:
         fade_in_color=tuple(in_color),
         fade_out_color=tuple(out_color),
         total_frames=cursor,
+        closing=bool(_closing_frame_count(closing, fps)) and bool(frames),
     )
 
 
@@ -343,7 +371,9 @@ def _colour_weight(
     h = timeline.fade_out[i]
     tail = j - (timeline.frames[i] - h)
     if h and tail >= 0:
-        return tail + 1, h + 1, timeline.fade_out_color[i]
+        # the film's closing fade reaches the colour on its last frame (an#389)
+        last = timeline.closing and i == len(timeline.frames) - 1
+        return tail + 1, h if last else h + 1, timeline.fade_out_color[i]
     return 0, 1, None
 
 
@@ -826,6 +856,10 @@ class MixPlan:
     duration: float
     placements: list[Placement] = field(default_factory=list)
     dialogue_spans: list[tuple[float, float]] = field(default_factory=list)
+    #: The picture's fades as ``(start, end, rising)`` film-time windows
+    #: (an#389): the whole mix follows them, down to silence where the picture
+    #: is the colour. Empty for a film with no fade, whose mix is unchanged.
+    fade_ramps: list[tuple[float, float, bool]] = field(default_factory=list)
 
 
 def _cue_placement(
@@ -865,7 +899,7 @@ def mix_plan(
     from an.sounds import SoundError, get_sound, wav_duration
 
     stage_dir.mkdir(parents=True, exist_ok=True)
-    plan = MixPlan(duration=timeline.duration)
+    plan = MixPlan(duration=timeline.duration, fade_ramps=fade_ramps(timeline))
     audio_store = mall.get("audio")
     for i, shot in enumerate(scene.timeline):
         offset = timeline.start_seconds(i)
@@ -929,6 +963,57 @@ def mix_plan(
                 container_end=timeline.end_seconds(i),
             )
     return plan
+
+
+def fade_ramps(timeline: FilmTimeline) -> list[tuple[float, float, bool]]:
+    """The picture's fades in film seconds, ``(start, end, rising)``: a shot's
+    head fading up from a colour rises, a tail fading to one falls (an#389).
+
+    >>> from an.ir.schema import Shot, Transition
+    >>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
+    ...     transition=Transition(kind="fade", duration=0.5))], fps=10)
+    >>> fade_ramps(tl)
+    [(0.8, 1.0, False), (1.0, 1.3, True)]
+    """
+    out = []
+    fps = timeline.fps
+    for i in range(len(timeline.frames)):
+        start, end = timeline.start_seconds(i), timeline.end_seconds(i)
+        if timeline.fade_in[i]:
+            out.append((start, start + timeline.fade_in[i] / fps, True))
+        if timeline.fade_out[i]:
+            out.append((end - timeline.fade_out[i] / fps, end, False))
+    return sorted(out)
+
+
+def fade_gain(t: float, ramps: Sequence[tuple[float, float, bool]]) -> float:
+    """The linear gain of the whole mix at film time ``t``: 1 away from a fade,
+    a linear ramp across one (to 0 where the picture is the colour) — the spec
+    :func:`_fade_expression` is written from.
+
+    >>> ramps = [(0.8, 1.0, False), (1.0, 1.3, True)]
+    >>> [round(fade_gain(t, ramps), 3) for t in (0.5, 0.9, 1.0, 1.15, 2.0)]
+    [1.0, 0.5, 0.0, 0.5, 1.0]
+    """
+    gain = 1.0
+    for a, b, rising in ramps:
+        if a <= t <= b:
+            u = (t - a) / (b - a) if b > a else 1.0
+            gain = min(gain, u if rising else 1.0 - u)
+    return gain
+
+
+def _fade_expression(ramps: Sequence[tuple[float, float, bool]]) -> str:
+    """:func:`fade_gain` as one ffmpeg ``volume`` expression in ``t``."""
+    terms = []
+    for a, b, rising in ramps:
+        u = f"(t-{a:.6f})/{b - a:.6f}"
+        ramp = u if rising else f"1-{u}"
+        terms.append(f"if(between(t\\,{a:.6f}\\,{b:.6f})\\,clip({ramp}\\,0\\,1)\\,1)")
+    expr = terms[0]
+    for term in terms[1:]:
+        expr = f"min({expr}\\,{term})"
+    return expr
 
 
 def merge_spans(
@@ -1056,9 +1141,17 @@ def mix_command(plan: MixPlan, video: Path, output: Path) -> list[str]:
         label = f"[s{n}]"
         parts.append(f"[{n + 2}:a]{','.join(chain)}{label}")
         labels.append(label)
+    mixed = "[mix]" if plan.fade_ramps else "[aout]"
     parts.append(
-        f"{''.join(labels)}amix=inputs={len(labels)}:dropout_transition=0:normalize=0[aout]"
+        f"{''.join(labels)}amix=inputs={len(labels)}:dropout_transition=0:normalize=0{mixed}"
     )
+    if plan.fade_ramps:
+        # The picture's fades take the sound with them (an#389): per-frame gain,
+        # on chunks short enough for the ramp to be smooth.
+        parts.append(
+            f"[mix]asetnsamples=n={DUCK_FRAME_SAMPLES}:p=0,"
+            f"volume=eval=frame:volume='{_fade_expression(plan.fade_ramps)}'[aout]"
+        )
     cmd += [
         "-filter_complex", ";".join(parts),
         "-map", "0:v", "-map", "[aout]",
@@ -1115,7 +1208,9 @@ def assemble_film(
     the one mux did (measured, an#260), and each frame decodes to exactly what
     its own segment decodes to.
     """
-    timeline = film_timeline(scene.timeline, fps=fps)
+    timeline = film_timeline(
+        scene.timeline, fps=fps, closing=scene.meta.closing_transition
+    )
     windows = shot_windows(timeline)
     work = Path(work_dir) / "film"
     work.mkdir(parents=True, exist_ok=True)

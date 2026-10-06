@@ -225,7 +225,11 @@ def capture_fixture(
         from an.bench.core_corpus import FILM_SEGMENT_ID, compose_film_frames
 
         film_dir = compose_film_frames(scene, work_dir)
-        total = film_timeline(list(scene.timeline), fps=scene.meta.fps).total_frames
+        total = film_timeline(
+            list(scene.timeline),
+            fps=scene.meta.fps,
+            closing=scene.meta.closing_transition,
+        ).total_frames
         film = ShotCapture(
             shot_id=FILM_SEGMENT_ID,
             frames_dir=film_dir,

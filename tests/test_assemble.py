@@ -596,3 +596,105 @@ def test_a_cue_stays_on_its_shots_frames_across_cuts(tmp_path, monkeypatch):
     onset = np.argmax(np.abs(audio) > 0.05) / 44100
     assert onset == pytest.approx(first_blue / _FPS, abs=0.005)
     assert _stream_duration(out, "a") == pytest.approx(_stream_duration(out, "v"), abs=0.03)
+
+
+# --- a closing fade, and sound that dips with a fade (an#389) --------------------
+
+
+def test_a_closing_fade_takes_the_last_shots_tail_and_holds_the_length():
+    closing = Transition(kind="fade", duration=0.4, color="#000000")
+    tl = film_timeline(_shots(("a", 1.0, None), ("b", 1.0, None)), fps=10, closing=closing)
+    assert tl.fade_out == (0, 4) and tl.closing and tl.total_frames == 20
+    from an.assemble import _colour_weight
+
+    # its last frame IS the colour (no next shot reaches it instead)
+    assert [_colour_weight(tl, 1, j)[:2] for j in range(6, 10)] == [(1, 4), (2, 4), (3, 4), (4, 4)]
+
+
+def test_a_closing_dissolve_is_refused_and_a_cut_is_nothing():
+    with pytest.raises(ValueError, match="nothing to dissolve into"):
+        Meta(closing_transition=Transition(kind="dissolve"))
+    plain = SceneIR(timeline=[Shot(id="a")], meta=Meta(closing_transition=Transition(kind="cut")))
+    assert not needs_assembly(plain)
+    faded = plain.model_copy(update={"meta": Meta(closing_transition=Transition(kind="fade"))})
+    assert needs_assembly(faded)
+
+
+def test_the_fade_ramps_follow_the_picture():
+    from an.assemble import fade_gain, fade_ramps
+
+    t = Transition(kind="fade", duration=0.4)
+    tl = film_timeline(_shots(("a", 1.0, None), ("b", 1.0, t)), fps=10,
+                       closing=Transition(kind="fade", duration=0.5))
+    ramps = fade_ramps(tl)
+    assert ramps == [(0.8, 1.0, False), (1.0, 1.2, True), (1.5, 2.0, False)]
+    assert fade_gain(1.0, ramps) == 0.0 and fade_gain(2.0, ramps) == 0.0
+    assert fade_gain(1.4, ramps) == 1.0
+
+
+def test_a_closing_fade_round_trips_through_scene_md_and_is_omitted_when_unset():
+    from an.ir.sync import ir_to_markdown, markdown_to_ir
+
+    scene = SceneIR(meta=Meta(closing_transition=Transition(kind="fade", duration=1.5)),
+                    timeline=[Shot(id="a")])
+    assert markdown_to_ir(ir_to_markdown(scene)).meta.closing_transition == scene.meta.closing_transition
+    assert "closing_transition" not in Meta().model_dump(mode="json")
+
+
+@pytest.mark.ffmpeg
+def test_a_closing_fade_darkens_to_black_and_takes_the_sound_with_it(tmp_path, monkeypatch):
+    from an.sounds import SYNTH_SOURCE, add_sound, synth_tone
+
+    closing = Transition(kind="fade", duration=0.5, color="#000000")
+    scene = SceneIR(
+        meta=_meta(2.0).model_copy(update={
+            "closing_transition": closing,
+            "sounds": [SoundCue(sound="bed", loop=True)],
+        }),
+        timeline=[Shot(id="red", duration=2.0)],
+    )
+    project = _project(tmp_path, scene)
+    add_sound(project.mall["sounds"], "bed",
+              synth_tone(200.0, 0.5, amplitude=0.25, attack=0, release=0), source=SYNTH_SOURCE)
+    out = _render(project, monkeypatch, auto_audio=False)
+    rgb = _decode_rgb(out)
+    assert len(rgb) == 2 * _FPS  # the length holds
+    k = int(round(0.5 * _FPS))
+    luma = [float(f[..., 0].mean()) for f in rgb[-k - 1:]]
+    assert all(b <= a + 1 for a, b in zip(luma, luma[1:]))  # falls monotonically
+    assert luma[-1] < 3  # the last frame is black (codec noise aside)
+    audio = _decode_audio(out)
+
+    def level(t0, t1):
+        seg = audio[int(t0 * 44100): int(t1 * 44100)]
+        return float(np.sqrt(2 * (seg.astype(np.float64) ** 2).mean()))
+
+    full = level(0.5, 1.0)
+    assert full == pytest.approx(0.25, rel=0.05)  # full before the fade
+    # down through the fade (a linear gain to 0 at the last sample) ...
+    steps = [level(a, a + 0.1) for a in (1.5, 1.6, 1.7, 1.8)]
+    assert all(b < a for a, b in zip(steps, steps[1:])), steps
+    assert level(1.99, 2.0) < 0.05 * full  # ... to all but silence at the end (AAC smears the last ms)
+
+
+@pytest.mark.ffmpeg
+def test_a_mid_film_fade_dips_the_sound_too(tmp_path, monkeypatch):
+    from an.sounds import SYNTH_SOURCE, add_sound, synth_tone
+
+    t = Transition(kind="fade", duration=0.4, color="#000000")
+    scene = SceneIR(
+        meta=_meta(2.0).model_copy(update={"sounds": [SoundCue(sound="bed", loop=True)]}),
+        timeline=[Shot(id="red", duration=1.0), Shot(id="blue", duration=1.0, transition=t)],
+    )
+    project = _project(tmp_path, scene)
+    add_sound(project.mall["sounds"], "bed",
+              synth_tone(200.0, 0.5, amplitude=0.25, attack=0, release=0), source=SYNTH_SOURCE)
+    audio = _decode_audio(_render(project, monkeypatch, auto_audio=False))
+
+    def level(t0, t1):
+        seg = audio[int(t0 * 44100): int(t1 * 44100)]
+        return float(np.sqrt(2 * (seg.astype(np.float64) ** 2).mean()))
+
+    assert level(0.2, 0.6) == pytest.approx(0.25, rel=0.05)
+    assert level(0.97, 1.03) < 0.05  # at the cut, where the picture is black
+    assert level(1.5, 1.9) == pytest.approx(0.25, rel=0.05)  # back up after

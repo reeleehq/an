@@ -2293,9 +2293,10 @@ def _check_dialogue_in_dissolves(
     from an.assemble import film_timeline, transition_problems
 
     fps = fps if fps is not None else scene.meta.fps
-    if not fps or fps <= 0 or transition_problems(scene.timeline, fps):
+    closing = scene.meta.closing_transition
+    if not fps or fps <= 0 or transition_problems(scene.timeline, fps, closing=closing):
         return
-    timeline = film_timeline(scene.timeline, fps=fps)
+    timeline = film_timeline(scene.timeline, fps=fps, closing=closing)
     n = len(scene.timeline)
     for i, shot in enumerate(scene.timeline):
         overlap_out = timeline.dissolve_in[i + 1] / fps if i + 1 < n else 0.0
@@ -2348,7 +2349,9 @@ def _check_assembly(
     fps = scene.meta.fps
     if fps <= 0:
         return  # already its own error
-    problems = transition_problems(scene.timeline, fps)
+    problems = transition_problems(
+        scene.timeline, fps, closing=scene.meta.closing_transition
+    )
     for i, message in problems:
         report.add("error", f"timeline/{i}/transition", message)
 

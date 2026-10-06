@@ -480,7 +480,14 @@ def srt_for_scene(
 
     if pages is None:
         pages = caption_pages(scene, fps=fps)
-    return dump_srt(caption_cues(pages, film_timeline(scene.timeline, fps=fps)))
+    return dump_srt(
+        caption_cues(
+            pages,
+            film_timeline(
+                scene.timeline, fps=fps, closing=scene.meta.closing_transition
+            ),
+        )
+    )
 
 
 # -----------------------------------------------------------------------------
