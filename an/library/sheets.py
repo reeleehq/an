@@ -98,6 +98,29 @@ def _specimen_frame(libraries, ref: str, kind, *, canvas: int) -> bytes:
         shutil.rmtree(folder, ignore_errors=True)
 
 
+#: The largest canvas a specimen is re-drawn on to fill its cell (an#460).
+MAX_SPECIMEN_CANVAS: int = 4096
+
+
+def _sharp_specimen(libraries, ref: str, kind, version, cell: int) -> bytes:
+    """A specimen frame at least ``cell`` pixels on its long side where the
+    entity allows: one that comes out smaller (a text block, whose size is a
+    fraction of the frame) is drawn again on a canvas grown in proportion, so
+    the sheet shows it sharp instead of magnifying a few pixels (an#460). A
+    drawing whose size is fixed in scene pixels does not grow; the first
+    frame is kept."""
+    from an.bench.png import decode_png
+
+    canvas = _canvas(version)
+    data = _specimen_frame(libraries, ref, kind, canvas=canvas)
+    side = max(decode_png(data).shape[:2])
+    if side >= cell or canvas >= MAX_SPECIMEN_CANVAS:
+        return data
+    bigger = min(MAX_SPECIMEN_CANVAS, int(canvas * cell / side) + 1)
+    again = _specimen_frame(libraries, ref, kind, canvas=bigger)
+    return again if max(decode_png(again).shape[:2]) > side else data
+
+
 def sheet(
     refs: Iterable[str],
     *,
@@ -149,18 +172,16 @@ def sheet(
             # Each file as the library states it (an#345: a carved head can
             # be private while the drawn collar beside it is free).
             part_classes = [_part_class(library, version, d) for _, d in art]
-            labels += [f"{pinned} {p} [{c}]" for (p, _), c in zip(art, part_classes)]
+            labels += [(f"{pinned} {p}", f" [{c}]") for (p, _), c in zip(art, part_classes)]
             classes += part_classes
             continue
         kind = entity_kind(pinned.kind)
         if kind is None or getattr(kind, "specimen", None) is None:
             images.append(_placeholder(cell))
-            labels.append(f"{pinned} [{cls}] (no specimen for a {pinned.kind})")
+            labels.append((f"{pinned}", f" [{cls}] (no specimen)"))
         else:
-            images.append(
-                _specimen_frame(libraries, str(pinned), kind, canvas=_canvas(version))
-            )
-            labels.append(f"{pinned} [{cls}]")
+            images.append(_sharp_specimen(libraries, str(pinned), kind, version, cell))
+            labels.append((f"{pinned}", f" [{cls}]"))
         classes.append(cls)
     if not images:
         raise ValueError(f"nothing to draw: {refs} hold no art files")

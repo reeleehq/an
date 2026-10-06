@@ -185,3 +185,56 @@ def test_a_parts_sheet_captions_each_file_with_its_own_statement(tmp_path):
     off = (folder / "parts" / "off.svg").read_bytes()
     on = (folder / "parts" / "on.svg").read_bytes()
     assert (_part_class(lib, version, off), _part_class(lib, version, on)) == ("free", "private")
+
+
+# ------------------------------------------- the sheet's captions and specimens (an#460)
+
+
+def test_a_caption_keeps_its_licence_class_however_long_the_reference():
+    from an.media.grid import fit_caption
+
+    shown = fit_caption(("cutan:prop.desk-oversimplified@v001", " [private]"), 22, len)
+    assert shown.endswith(" [private]") and "…" in shown and len(shown) <= 22
+
+
+def test_a_small_specimen_is_drawn_again_on_a_bigger_canvas(monkeypatch):
+    """A text block's size is a fraction of the frame: grow the canvas and it
+    grows, so the sheet shows it sharp. A drawing of fixed size keeps the first frame."""
+    import an.library.sheets as sheets
+
+    def frame_of(scales):
+        def fake(libraries, ref, kind, *, canvas):
+            side = max(1, round(canvas * scales))
+            calls.append(canvas)
+            return encode_png(np.zeros((side, side, 3), np.uint8))
+
+        return fake
+
+    calls: list[int] = []
+    monkeypatch.setattr(sheets, "_specimen_frame", frame_of(0.05))  # 768 -> 38 px
+    out = sheets._sharp_specimen(None, "an:prop.day@v001", None, {"doc": {}}, 256)
+    assert calls[0] == sheets.SPECIMEN_CANVAS and len(calls) == 2
+    # grown in proportion, up to the cap: 768 -> 4096, so 38 px -> 205 px
+    assert calls[1] == sheets.MAX_SPECIMEN_CANVAS
+    assert max(decode_png(out).shape[:2]) == round(sheets.MAX_SPECIMEN_CANVAS * 0.05)
+
+    calls.clear()
+    monkeypatch.setattr(sheets, "_specimen_frame", lambda *a, canvas, **k: (calls.append(canvas), encode_png(np.zeros((40, 40, 3), np.uint8)))[1])
+    out = sheets._sharp_specimen(None, "an:prop.dot@v001", None, {"doc": {}}, 256)
+    assert len(calls) == 2 and decode_png(out).shape[:2] == (40, 40)
+
+
+@pytest.mark.browser
+def test_a_text_props_specimen_fills_its_cell(tmp_path):
+    from an.genres import entity_kind
+    from an.library.api import read_version
+    from an.library.sheets import _sharp_specimen
+
+    lib = open_library("an", records={}, versions={}, blobs={})
+    doc = {"kind": "TextDescriptor", "name": "day", "text": "1", "unit": "block"}
+    publish(lib, "prop.day", doc, source=CC0)
+    version = read_version(lib, "prop.day", "v001")
+    data = _sharp_specimen([lib], "an:prop.day@v001", entity_kind("prop"), version, 256)
+    # The end-user test's "1" was ~40 px magnified into a 256 px cell; drawn
+    # on the grown canvas it is most of the cell (the canvas cap stops it short).
+    assert max(decode_png(data).shape[:2]) >= 0.7 * 256
