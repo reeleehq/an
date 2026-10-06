@@ -312,7 +312,7 @@ The scorer as a record names it: name, version and configuration.
 
 The partial voice document a style casts `role` as, with target NAMES resolved.
 
-A style spec (the `an-style` skill’s `styles/<name>.yaml`) declares
+A style spec (`cutan.style_spec(name)`) declares
 `live.voice.roles.<role>` and may name a delivery’s targets by its key in
 `prosody_targets` (`takes: {n: 3, targets: narrator}`). This returns a
 copy whose `takes` (and each cue’s) hold the target VALUES, ready to merge

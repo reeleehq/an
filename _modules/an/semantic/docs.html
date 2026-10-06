@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=5b67d2e0"></script>
+    <script src="../../../_static/documentation_options.js?v=b843b5b2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.169" />
+  <meta name="docsearch:version" content="0.1.170" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,6 +721,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    python -m an.semantic.docs --write .claude/skills/an/SKILL.md</span>
 
+<span class="sd">Each owner renders only its own rows (an#354): ``an``'s skill carries the core</span>
+<span class="sd">vocabulary, and a genre keeps its rows in its own skill, regenerated and checked</span>
+<span class="sd">there with ``--owner &lt;genre&gt;``, so a genre change cannot turn ``an`` red.</span>
+
 <span class="sd">&gt;&gt;&gt; "| `walk` |" in skill_vocabulary_section() or "| `tween` |" in skill_vocabulary_section()</span>
 <span class="sd">True</span>
 <span class="sd">"""</span>
@@ -730,8 +734,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.entries</span><span class="w"> </span><span class="kn">import</span> <span class="n">LEVELS</span><span class="p">,</span> <span class="n">Entry</span><span class="p">,</span> <span class="n">Method</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">aspects</span><span class="p">,</span> <span class="n">entries</span><span class="p">,</span> <span class="n">methods_of</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">owner_of_aspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.semantic.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">aspects</span><span class="p">,</span> <span class="n">entries</span><span class="p">,</span> <span class="n">methods_of</span><span class="p">,</span> <span class="n">owner_of</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"BEGIN_MARKER"</span><span class="p">,</span>
@@ -761,6 +767,10 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lv</span> <span class="k">for</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">LEVELS</span> <span class="k">if</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_owned_by</span><span class="p">(</span><span class="n">owner</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">entry_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">owner_of</span><span class="p">(</span><span class="n">entry_id</span><span class="p">)</span> <span class="o">==</span> <span class="n">owner</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_table</span><span class="p">(</span><span class="n">found</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Entry</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"| Name | Version | Levels | What it is |"</span><span class="p">,</span> <span class="s2">"|---|---|---|---|"</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">found</span><span class="p">:</span>
@@ -772,24 +782,42 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="skill_vocabulary_section">
 <a class="viewcode-back" href="../../../_autosummary/an.semantic.docs.html#an.semantic.docs.skill_vocabulary_section">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">skill_vocabulary_section</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The markdown between the markers: one table per kind, then the methods by aspect."""</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">"## Vocabulary (generated)"</span><span class="p">,</span>
-        <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"Every name a scene may use, with its version and the spectrum levels it "</span>
-        <span class="s2">"accepts ((a) typed, (b-name) a registered name, (b-llm) a description "</span>
-        <span class="s2">"resolved before the IR, (c) a checked goal). `an.semantic.vocabulary()` "</span>
-        <span class="s2">"returns the same list as data; easings: `an.timing.easing.easing_entries()`."</span><span class="p">,</span>
-    <span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">skill_vocabulary_section</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_OWNER</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The markdown between the markers: one table per kind, then the methods by aspect.</span>
+
+<span class="sd">    Only the rows ``owner`` registered: the core by default, a genre's own with</span>
+<span class="sd">    ``owner=&lt;genre&gt;`` (its skill points back here for the core rows).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">owner</span> <span class="o">==</span> <span class="n">CORE_OWNER</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"## Vocabulary (generated)"</span><span class="p">,</span>
+            <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"Every core name a scene may use, with its version and the spectrum levels it "</span>
+            <span class="s2">"accepts ((a) typed, (b-name) a registered name, (b-llm) a description "</span>
+            <span class="s2">"resolved before the IR, (c) a checked goal). A genre adds its own presets "</span>
+            <span class="s2">"and methods, listed in its own skill (the cut-out genre's: the `cutan` skill, "</span>
+            <span class="s1">'section "Vocabulary (generated)"). `an.semantic.vocabulary()` '</span>
+            <span class="s2">"returns the whole list as data; easings: `an.timing.easing.easing_entries()`."</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">"## Vocabulary (generated)"</span><span class="p">,</span>
+            <span class="s2">""</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"The names and methods the `</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">` genre adds to the core vocabulary, with "</span>
+            <span class="s2">"their versions and the spectrum levels each accepts (levels as in the `an` "</span>
+            <span class="s2">"skill's vocabulary section, which lists the core names). "</span>
+            <span class="s2">"`an.semantic.vocabulary()` returns the whole list as data. Regenerate with "</span>
+            <span class="sa">f</span><span class="s2">"`python -m an.semantic.docs --write &lt;this file&gt; --owner </span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">`."</span><span class="p">,</span>
+        <span class="p">]</span>
     <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">heading</span> <span class="ow">in</span> <span class="n">SKILL_KINDS</span><span class="p">:</span>
-        <span class="n">found</span> <span class="o">=</span> <span class="n">entries</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span> <span class="k">if</span> <span class="n">_owned_by</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">""</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"### </span><span class="si">{</span><span class="n">heading</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="o">*</span><span class="n">_table</span><span class="p">(</span><span class="n">found</span><span class="p">)]</span>
     <span class="n">method_rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">own_aspects</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aspects</span><span class="p">()</span> <span class="k">if</span> <span class="n">owner_of_aspect</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="n">owner</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aspects</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">methods_of</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Method</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_owned_by</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="n">needs</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="s2">`"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">requires</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"nothing"</span>
             <span class="n">method_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -800,12 +828,19 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">""</span><span class="p">,</span>
             <span class="s2">"### Methods, by aspect"</span><span class="p">,</span>
             <span class="s2">""</span><span class="p">,</span>
-            <span class="s2">"Default chains: "</span>
-            <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"**</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">** "</span> <span class="o">+</span> <span class="s2">" → "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">`"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">chain</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aspects</span><span class="p">()</span>
-            <span class="p">)</span>
-            <span class="o">+</span> <span class="s2">". `an character capabilities &lt;name&gt;` says which apply to a character and what is missing for the rest."</span><span class="p">,</span>
+            <span class="o">*</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">"Default chains: "</span>
+                    <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"**</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">** "</span> <span class="o">+</span> <span class="s2">" → "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">`"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">chain</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">own_aspects</span>
+                    <span class="p">)</span>
+                    <span class="o">+</span> <span class="s2">". "</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">own_aspects</span>
+                <span class="k">else</span> <span class="p">[]</span>
+            <span class="p">),</span>
+            <span class="s2">"`an character capabilities &lt;name&gt;` says which apply to a character and what is missing for the rest."</span><span class="p">,</span>
             <span class="s2">""</span><span class="p">,</span>
             <span class="s2">"| Aspect | Method | Spelled | Version | Requires | What it is |"</span><span class="p">,</span>
             <span class="s2">"|---|---|---|---|---|---|"</span><span class="p">,</span>
@@ -836,17 +871,27 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``--write PATH`` rewrites the section in place; ``--check PATH`` exits 1 when stale."""</span>
+<span class="w">    </span><span class="sd">"""``--write PATH`` rewrites the section in place; ``--check PATH`` exits 1 when stale.</span>
+
+<span class="sd">    ``--owner NAME`` renders the rows ``NAME`` registered instead of the core's.</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">argv</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">argv</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"--write"</span><span class="p">,</span> <span class="s2">"--check"</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"usage: python -m an.semantic.docs (--write|--check) SKILL.md"</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">CORE_OWNER</span>
+    <span class="k">if</span> <span class="s2">"--owner"</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"--owner"</span><span class="p">)</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">del</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"--write"</span><span class="p">,</span> <span class="s2">"--check"</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">owner</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">"usage: python -m an.semantic.docs (--write|--check) SKILL.md [--owner NAME]"</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="mi">2</span>
     <span class="n">load</span><span class="p">()</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="n">fresh</span> <span class="o">=</span> <span class="n">skill_vocabulary_section</span><span class="p">()</span>
+    <span class="n">fresh</span> <span class="o">=</span> <span class="n">skill_vocabulary_section</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"--check"</span><span class="p">:</span>
         <span class="n">stale</span> <span class="o">=</span> <span class="n">current_section</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">!=</span> <span class="n">fresh</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"stale"</span> <span class="k">if</span> <span class="n">stale</span> <span class="k">else</span> <span class="s2">"up to date"</span><span class="p">)</span>
