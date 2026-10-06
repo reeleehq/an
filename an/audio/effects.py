@@ -367,7 +367,16 @@ def ffmpeg_argv(
     >>> ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]
     's.wav'
     """
-    head = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", "pipe:0"]
+    head = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-nostdin",
+        "-y",
+        "-i",
+        "pipe:0",
+    ]
     if source_path is None:
         return [*head, "-af", chain, *_WAV_OUT, str(out_path)]
     graph = f"[0:a]asplit=2[fx][src];[fx]{chain}[out];[src]{decode_chain()}[raw]"
