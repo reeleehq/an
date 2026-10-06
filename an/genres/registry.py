@@ -397,6 +397,11 @@ def checks(stage: str) -> tuple[SemanticCheck, ...]:
     return tuple(c for _o, _i, c in sorted(found, key=lambda x: (x[0], x[1])))
 
 
+def check_owner(name: str) -> str | None:
+    """Who registered the check ``name`` (``CORE_OWNER`` for the core's), or ``None``."""
+    return _CHECKS.owners.get(name)
+
+
 def check_names(*, owner: str | None = None) -> tuple[str, ...]:
     return _CHECKS.names(owner=owner)
 
