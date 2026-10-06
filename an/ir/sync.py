@@ -1262,8 +1262,43 @@ def sync(project_dir: str | Path) -> SyncResult:
 
             os.utime(json_path, (md_mtime, md_mtime))
             result.wrote_json = True
-        # else: within tolerance, no rewrite needed.
+        else:
+            # The same age: the pair the store writes always says the same
+            # thing (its merge is checked), so a disagreement here is an edit
+            # made OUTSIDE the store within the tolerance -- a `cp -r` then a
+            # `sed` in the same second (an#412). The JSON used to win silently,
+            # and the next store write then reverted the author's edit in
+            # scene.md (an#411). The Markdown is the human source of truth.
+            _settle_a_tie(md_path, json_path, md_mtime, result)
     return result
+
+
+class SyncTieWarning(UserWarning):
+    """``scene.md`` and ``ir/scene.json`` had the same age and disagreed."""
+
+
+def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> None:
+    md_text = _read_text(md_path)
+    try:
+        json_scene = scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path)
+        if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
+            return
+        scene = markdown_to_ir(md_text)
+    except Exception:  # noqa: BLE001 - an unreadable side: the read that follows says why
+        return
+    warnings.warn(
+        f"{md_path} and {json_path} have the same modification time but say "
+        "different things (an edit made outside `an` within half a second of "
+        "the other file's write); scene.md, the source of truth, was taken and "
+        "ir/scene.json regenerated from it.",
+        SyncTieWarning,
+        stacklevel=3,
+    )
+    _write_json(json_path, json.loads(scene.model_dump_json()))
+    import os
+
+    os.utime(json_path, (md_mtime, md_mtime))
+    result.wrote_json = True
 
 
 _attach_core_md_hooks()
