@@ -11,8 +11,12 @@ an.stage.compile
       RUNTIME_APPLIED_PROPERTIES
       DFLT_TARGET_SUGGESTIONS
       CAMERA_NODE
+      AFTER_BANDS_PRODUCT
       STAGE_COMPILE_PASSES
       RUNTIME_FIELD_KINDS
+      BAND_INFIX
+      AFTER_INFIX
+      SYNTHETIC_MARK
       STAGE_SCENE_BUILDERS
       ENVIRONMENT_ART_PREFIX
       PLANE_FILL_SPAN
@@ -24,9 +28,11 @@ an.stage.compile
 
    .. autosummary::
    
+      after_problems
       camera_keys
       compile_passes_for_stage
       compile_shot
+      duplicate_paths
       entity_spaces_of
       foreground_node_name
       node_path_suggestions
@@ -46,6 +52,7 @@ an.stage.compile
    .. autosummary::
    
       ActionLowering
+      AfterBand
       CompileState
       SceneBuild
    

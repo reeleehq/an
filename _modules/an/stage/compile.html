@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=fa3986e7"></script>
+    <script src="../../../_static/documentation_options.js?v=31b0162a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.183" />
+  <meta name="docsearch:version" content="0.1.184" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1606,6 +1606,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fonts</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fonts</span><span class="p">,</span>
         <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">bands</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">AFTER_BANDS_PRODUCT</span><span class="p">,</span> <span class="p">[]),</span>
     <span class="p">)</span>
     <span class="n">style_pack</span><span class="p">,</span> <span class="n">overlay_children</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">overlay_children</span>
     <span class="k">if</span> <span class="n">style_pack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">style_pack</span><span class="o">.</span><span class="n">grain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1625,6 +1626,44 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"overlay and scene both build a node named </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">clash</span><span class="p">)</span><span class="si">}</span><span class="s2">; the "</span>
             <span class="s2">"runtime indexes both layers by path, so one would shadow the other"</span>
+        <span class="p">)</span>
+    <span class="c1"># Over the finished tree, after the clearer overlay-vs-scene message above</span>
+    <span class="c1"># (an#344: `scope=""` children are top-level paths that check never sees).</span>
+    <span class="n">_check_unique_paths</span><span class="p">(</span><span class="n">scene_root</span><span class="p">,</span> <span class="n">overlay_children</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+
+<span class="c1">#: ``state.products`` key: the :class:`AfterBand` wrappers the scene pass built.</span>
+<span class="n">AFTER_BANDS_PRODUCT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"after_bands"</span>
+
+
+<div class="viewcode-block" id="duplicate_paths">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.duplicate_paths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">duplicate_paths</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">overlay</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Paths the runtime would index twice (its ``nodeIndex`` is later-wins,</span>
+<span class="sd">    so the first node would silently stop answering). Over the FINISHED tree,</span>
+<span class="sd">    scoped containers included (an#344).</span>
+
+<span class="sd">    &gt;&gt;&gt; duplicate_paths(NodeJSON(name="root", children=[NodeJSON(name="a"), NodeJSON(name="a")]))</span>
+<span class="sd">    ['a']</span>
+<span class="sd">    """</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk_children</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">overlay</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_unique_paths</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">overlay</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">dupes</span> <span class="o">=</span> <span class="n">duplicate_paths</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">overlay</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dupes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> builds </span><span class="si">{</span><span class="n">dupes</span><span class="si">}</span><span class="s2"> twice; the runtime indexes one node "</span>
+            <span class="s2">"per path (later wins), so a channel would move the wrong one. An "</span>
+            <span class="s2">"entity id must not repeat another's path, and `__` is reserved for "</span>
+            <span class="s2">"the stage's own containers."</span>
         <span class="p">)</span>
 
 
@@ -1691,6 +1730,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="p">,</span>
         <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">bands</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AFTER_BANDS_PRODUCT</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(),</span>
     <span class="p">)</span>
 
 
@@ -1951,6 +1991,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fonts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1920</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1080</span><span class="p">,</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"AfterBand"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Construct the cutout scene tree under a single root from shot.entities.</span>
 
@@ -1966,7 +2007,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    text block is built into ``overlay`` — the camera-immune container, not</span>
 <span class="sd">    this root — and every text block records the face that set it in</span>
 <span class="sd">    ``fonts`` (entity id -&gt; identity label). ``width``/``height`` are the frame</span>
-<span class="sd">    a text block is typeset for.</span>
+<span class="sd">    a text block is typeset for. ``bands`` (an#344) receives one</span>
+<span class="sd">    :class:`AfterBand` per wrapper that carries a plane's parallax for the</span>
+<span class="sd">    entities placed after it.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">textures</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">textures</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2003,11 +2046,252 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># render rather than appearing in it, and no builder claims them.</span>
     <span class="n">children</span><span class="p">,</span> <span class="n">in_front</span> <span class="o">=</span> <span class="n">build</span><span class="o">.</span><span class="n">children</span><span class="p">,</span> <span class="n">build</span><span class="o">.</span><span class="n">in_front</span>
     <span class="n">reached</span><span class="p">,</span> <span class="n">skipped</span><span class="p">,</span> <span class="n">raster</span> <span class="o">=</span> <span class="n">build</span><span class="o">.</span><span class="n">reached</span><span class="p">,</span> <span class="n">build</span><span class="o">.</span><span class="n">skipped</span><span class="p">,</span> <span class="n">build</span><span class="o">.</span><span class="n">raster</span>
-    <span class="c1"># …and last, the foreground planes, over everything.</span>
-    <span class="n">children</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">in_front</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="c1"># An entity drawn right after an anchor (an#344): the draw order is</span>
+        <span class="c1"># laid out again as bands. Without one, nothing below runs.</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">_place_after</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="n">bands</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># …and last, the foreground planes, over everything.</span>
+        <span class="n">children</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">in_front</span><span class="p">)</span>
     <span class="n">_warn_about_art_a_pack_cannot_reach</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">reached</span><span class="p">,</span> <span class="n">skipped</span><span class="p">)</span>
     <span class="n">_warn_raster_parts_not_recoloured</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">children</span><span class="p">)</span>
+
+
+<span class="c1">#: The infix of a container holding a later band of an environment's planes</span>
+<span class="c1">#: (an#344): ``&lt;env&gt;__band_&lt;k&gt;``, ``scope=&lt;env&gt;``.</span>
+<span class="n">BAND_INFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__band_"</span>
+
+<span class="c1">#: The infix of a wrapper carrying a plane's parallax for the entities placed</span>
+<span class="c1">#: right after it (an#344): ``&lt;env&gt;__after_&lt;k&gt;``, ``scope=""``.</span>
+<span class="n">AFTER_INFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__after_"</span>
+
+<span class="c1">#: What a synthetic node's name may contain and an entity id may not (an#344).</span>
+<span class="n">SYNTHETIC_MARK</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__"</span>
+
+
+<div class="viewcode-block" id="AfterBand">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.AfterBand">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AfterBand</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A wrapper the parallax pass gives ``plane``'s compensation (an#344)."""</span>
+
+    <span class="n">wrapper</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">environment</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">plane</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_after_anchors</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{anchor: what it is}`` an entity's ``stage.after`` may name: every</span>
+<span class="sd">    declared plane of the shot's environments (``&lt;env&gt;/&lt;plane&gt;``) and every</span>
+<span class="sd">    other entity of the shot."""</span>
+    <span class="n">env_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">:</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">_environment_descriptor</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">env_store</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span> <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">():</span>
+                <span class="n">anchors</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"plane"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">anchors</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"entity"</span>
+    <span class="k">return</span> <span class="n">anchors</span>
+
+
+<div class="viewcode-block" id="after_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.after_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">after_problems</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">planes_known</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``[(entity index, why)]`` for every ``stage.after`` the compiler would</span>
+<span class="sd">    refuse (an#344): an anchor the shot does not have, the entity itself, a</span>
+<span class="sd">    cycle. The one statement both ``compile_shot`` and ``an validate`` read.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef, StagePlacement</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", renderer="stage", duration=1.0, entities=[</span>
+<span class="sd">    ...     AssetRef(kind="prop", id="a", store="props", ref="a", stage=StagePlacement(after="b")),</span>
+<span class="sd">    ...     AssetRef(kind="prop", id="b", store="props", ref="b", stage=StagePlacement(after="a"))])</span>
+<span class="sd">    &gt;&gt;&gt; [why.split(":")[0] for _, why in after_problems(shot, {})]</span>
+<span class="sd">    ["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]</span>
+<span class="sd">    """</span>
+    <span class="n">anchors</span> <span class="o">=</span> <span class="n">_after_anchors</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="n">afters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="n">anchor</span> <span class="o">=</span> <span class="n">afters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">anchor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">anchor</span> <span class="o">==</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">j</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"entity </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is placed after itself"</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">anchor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="ow">and</span> <span class="p">(</span><span class="n">planes_known</span> <span class="ow">or</span> <span class="s2">"/"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">anchor</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">j</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"entity </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is placed after </span><span class="si">{</span><span class="n">anchor</span><span class="si">!r}</span><span class="s2">, which is "</span>
+                    <span class="s2">"neither a plane of the shot's environments nor another "</span>
+                    <span class="sa">f</span><span class="s2">"entity of the shot (anchors: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">anchors</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">seen</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="p">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">},</span> <span class="n">anchor</span>
+            <span class="k">while</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">afters</span> <span class="ow">and</span> <span class="n">at</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+                <span class="n">at</span> <span class="o">=</span> <span class="n">afters</span><span class="p">[</span><span class="n">at</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">j</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"entity </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is placed after </span><span class="si">{</span><span class="n">anchor</span><span class="si">!r}</span><span class="s2">: the "</span>
+                        <span class="sa">f</span><span class="s2">"`after` chain through </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">seen</span><span class="p">)</span><span class="si">}</span><span class="s2"> is a cycle, so no "</span>
+                        <span class="s2">"draw order satisfies it"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_place_after</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">build</span><span class="p">:</span> <span class="s2">"SceneBuild"</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AfterBand</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The scene root's children with every ``stage.after`` honoured (an#344).</span>
+
+<span class="sd">    The draw order is laid out as ATOMS: each environment plane and each</span>
+<span class="sd">    placed entity root, in today's order (backdrop planes, the cast in entity</span>
+<span class="sd">    order, the foreground planes). An entity placed after an anchor is taken</span>
+<span class="sd">    out and drawn right after it, followed by whatever is placed after IT;</span>
+<span class="sd">    several after one anchor keep ``shot.entities`` order. Then runs of one</span>
+<span class="sd">    environment's planes are packed into containers, the first named for the</span>
+<span class="sd">    environment, the next ``&lt;env&gt;__band_&lt;k&gt;`` with ``scope=&lt;env&gt;`` so every</span>
+<span class="sd">    plane stays ``&lt;env&gt;/&lt;plane&gt;``; and entities placed right after a plane</span>
+<span class="sd">    whose depth is not 1.0 ride a wrapper ``&lt;env&gt;__after_&lt;k&gt;`` (``scope=""``,</span>
+<span class="sd">    their paths unchanged) that the parallax pass gives that plane's</span>
+<span class="sd">    compensation.</span>
+<span class="sd">    """</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">after_problems</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">problems</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">env_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">]</span>
+    <span class="n">afters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span>
+    <span class="n">overlay_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">overlay</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">overlay_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: overlay text </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> declares `stage.after`; "</span>
+                <span class="s2">"the overlay is drawn over the scene, outside the camera, so it "</span>
+                <span class="s2">"has no place among the planes. Use `layer: world`, or drop `after`."</span>
+            <span class="p">)</span>
+    <span class="c1"># Atoms: ("plane", env, node) | ("entity", id, node).</span>
+    <span class="n">atoms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">:</span>
+            <span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="s2">"plane"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">atoms</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"entity"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">in_front</span><span class="p">:</span>
+        <span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="s2">"plane"</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">scope</span> <span class="ow">or</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+    <span class="n">placed</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">atoms</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2"> declares `stage.after` but draws "</span>
+                <span class="s2">"nothing in the scene to place"</span>
+            <span class="p">)</span>
+    <span class="n">followers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">:</span>
+            <span class="n">followers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">afters</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atoms</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"entity"</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">afters</span><span class="p">)]</span>
+
+    <span class="c1"># (atom, the plane it rides: "env/plane" | None)</span>
+    <span class="n">ordered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">rides</span><span class="p">):</span>
+        <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">atom</span><span class="p">,</span> <span class="n">rides</span><span class="p">))</span>
+        <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="o">=</span> <span class="n">atom</span>
+        <span class="c1"># A plane's anchor is its path, `&lt;env&gt;/&lt;plane&gt;`, in every band.</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">stage_tree</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"plane"</span> <span class="k">else</span> <span class="n">name</span>
+        <span class="k">for</span> <span class="n">follower</span> <span class="ow">in</span> <span class="n">followers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="n">emit</span><span class="p">(</span><span class="n">follower</span><span class="p">,</span> <span class="n">key</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"plane"</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">base</span><span class="p">:</span>
+        <span class="n">emit</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">compensated</span> <span class="o">=</span> <span class="n">_compensated_planes</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">containers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">wrappers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">open_plane_run</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># env whose container out[-1] is</span>
+    <span class="n">open_wrapper</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the plane out[-1]'s wrapper rides</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="p">),</span> <span class="n">rides</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"plane"</span><span class="p">:</span>
+            <span class="n">open_wrapper</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">open_plane_run</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">containers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">containers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">node</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="n">NodeJSON</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}{</span><span class="n">BAND_INFIX</span><span class="si">}{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span>
+                    <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">node</span><span class="p">],</span>
+                    <span class="n">scope</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">open_plane_run</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">continue</span>
+        <span class="n">open_plane_run</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">rides</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rides</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">compensated</span><span class="p">:</span>
+            <span class="n">open_wrapper</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">open_wrapper</span> <span class="o">==</span> <span class="n">rides</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">env</span><span class="p">,</span> <span class="n">plane</span> <span class="o">=</span> <span class="n">rides</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">wrappers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">wrappers</span><span class="p">[</span><span class="n">env</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">NodeJSON</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">env</span><span class="si">}{</span><span class="n">AFTER_INFIX</span><span class="si">}{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">node</span><span class="p">],</span>
+                <span class="n">scope</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">open_wrapper</span> <span class="o">=</span> <span class="n">rides</span>
+        <span class="k">if</span> <span class="n">bands</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AfterBand</span><span class="p">(</span><span class="n">wrapper</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="n">plane</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compensated_planes</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``&lt;env&gt;/&lt;plane&gt;`` of every plane whose parallax factor is not 1.0 on</span>
+<span class="sd">    some axis: what an entity placed after it must ride."""</span>
+    <span class="n">env_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"environment"</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">_environment_descriptor</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">env_store</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span> <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">():</span>
+            <span class="k">if</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span> <span class="o">!=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <div class="viewcode-block" id="SceneBuild">
@@ -2652,8 +2936,13 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AfterBand</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compensate each plane for the camera, one factor per plane.</span>
+
+<span class="sd">    ``bands`` (an#344): each wrapper carrying the entities placed right after</span>
+<span class="sd">    a plane gets that plane's compensation, around ``0`` (its own rest),</span>
+<span class="sd">    under its own clip id.</span>
 
 <span class="sd">    ``plane.x = x0 + (1 − f) · cam_x`` — so a plane at `f = 1` emits **nothing**</span>
 <span class="sd">    and rides the camera exactly as every node did before an#110, and a plane</span>
@@ -2702,6 +2991,33 @@ window.runMermaid = runMermaid;</script>
             <span class="n">tracks</span><span class="p">,</span>
             <span class="n">authored</span><span class="o">=</span><span class="n">authored</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">band</span><span class="o">.</span><span class="n">environment</span> <span class="o">!=</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="p">(</span><span class="n">plane</span><span class="p">,)</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">band</span><span class="o">.</span><span class="n">plane</span><span class="p">]</span>
+            <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">factors</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">((</span><span class="n">fx</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">),</span> <span class="p">(</span><span class="n">fy</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">factor</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">factor</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">authored</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="si">!r}</span><span class="s2"> carries plane "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">plane</span><span class="si">!r}</span><span class="s2">'s parallax and an action also targets "</span>
+                        <span class="sa">f</span><span class="s2">"its `</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">`; animate the entity inside it instead."</span>
+                    <span class="p">)</span>
+                <span class="n">_add_compensation_clip</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"__parallax__</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="n">band</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span>
+                    <span class="n">prop</span><span class="p">,</span>
+                    <span class="n">keys</span><span class="p">,</span>
+                    <span class="n">values</span><span class="p">,</span>
+                    <span class="n">duration</span><span class="p">,</span>
+                    <span class="n">animations</span><span class="p">,</span>
+                    <span class="n">tracks</span><span class="p">,</span>
+                <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_emit_plane_compensation</span><span class="p">(</span>
@@ -2741,31 +3057,56 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"silently. Give the plane depth 1.0 to animate it by hand, or "</span>
                     <span class="s2">"move the action to a child node."</span>
                 <span class="p">)</span>
-            <span class="n">anim_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"__parallax__</span><span class="si">{</span><span class="n">shot_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">animations</span><span class="p">[</span><span class="n">anim_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span>
-                <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
-                <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
-                    <span class="n">ChannelJSON</span><span class="p">(</span>
-                        <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
-                        <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
-                        <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
-                            <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-                        <span class="p">],</span>
-                    <span class="p">)</span>
+            <span class="n">_add_compensation_clip</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"__parallax__</span><span class="si">{</span><span class="n">shot_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">target</span><span class="p">,</span>
+                <span class="n">prop</span><span class="p">,</span>
+                <span class="n">keys</span><span class="p">,</span>
+                <span class="n">values</span><span class="p">,</span>
+                <span class="n">duration</span><span class="p">,</span>
+                <span class="n">animations</span><span class="p">,</span>
+                <span class="n">tracks</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_compensation_clip</span><span class="p">(</span>
+    <span class="n">anim_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">animations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnimationClipJSON</span><span class="p">],</span>
+    <span class="n">tracks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrackJSON</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One camera-keyed compensation channel, on its own track. A synthetic</span>
+<span class="sd">    clip id is asserted NEW: ``animations[id] = …`` would otherwise silently</span>
+<span class="sd">    replace another plane's clip (an#344 review S1)."""</span>
+    <span class="k">if</span> <span class="n">anim_id</span> <span class="ow">in</span> <span class="n">animations</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"compensation clip id </span><span class="si">{</span><span class="n">anim_id</span><span class="si">!r}</span><span class="s2"> is already taken; two parallax "</span>
+            <span class="s2">"clips would share it and one would silently replace the other"</span>
+        <span class="p">)</span>
+    <span class="n">animations</span><span class="p">[</span><span class="n">anim_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">ChannelJSON</span><span class="p">(</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+                <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
+                <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
                 <span class="p">],</span>
             <span class="p">)</span>
-            <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">TrackJSON</span><span class="p">(</span>
-                    <span class="n">target_root</span><span class="o">=</span><span class="s2">"__parallax__"</span><span class="p">,</span>
-                    <span class="n">clips</span><span class="o">=</span><span class="p">[</span>
-                        <span class="n">PlacedClipJSON</span><span class="p">(</span>
-                            <span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span>
-                        <span class="p">)</span>
-                    <span class="p">],</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">TrackJSON</span><span class="p">(</span>
+            <span class="n">target_root</span><span class="o">=</span><span class="s2">"__parallax__"</span><span class="p">,</span>
+            <span class="n">clips</span><span class="o">=</span><span class="p">[</span><span class="n">PlacedClipJSON</span><span class="p">(</span><span class="n">animation_id</span><span class="o">=</span><span class="n">anim_id</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_apply_stage_placement</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

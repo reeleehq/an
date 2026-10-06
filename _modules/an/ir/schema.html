@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=fa3986e7"></script>
+    <script src="../../../_static/documentation_options.js?v=31b0162a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.183" />
+  <meta name="docsearch:version" content="0.1.184" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -902,6 +902,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    compiler already places characters in — so an author reads it off the same</span>
 <span class="sd">    ruler as a camera pivot. `scale` multiplies the rig's own uniform scale.</span>
 
+<span class="sd">    **`after` landed in an#344** (a studio set's sky disc between a sky plane</span>
+<span class="sd">    and a holed wall plate): it names the anchor the entity is drawn right</span>
+<span class="sd">    after. `depth` is still not a field: an entity takes the depth of the plane</span>
+<span class="sd">    it is placed after. The paragraphs below are the record of why both were</span>
+<span class="sd">    deferred, kept because `depth`'s reason still holds.</span>
+
 <span class="sd">    **Deliberately only two fields, and the reason has been re-stated because</span>
 <span class="sd">    the first one expired.** #108 sketched `depth` and `after` as well, deferred</span>
 <span class="sd">    on the grounds that they belong to a stage vocabulary that had not arrived.</span>
@@ -946,7 +952,21 @@ window.runMermaid = runMermaid;</script>
         <span class="o">|</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: Uniform scale multiplier on the built rig. ``1.0`` = the rig's own size.</span>
-    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: What this entity is drawn immediately after (an#344): an environment</span>
+    <span class="c1">#: plane (``"set/skyline"``) or another placed entity (``"grid"``).</span>
+    <span class="c1">#: ``None`` = the default band, where the environment's</span>
+    <span class="c1">#: ``characters_after`` cuts. A plane's parallax carries an entity placed</span>
+    <span class="c1">#: after it; an entity placed after an entity rides the default depth.</span>
+    <span class="n">after</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_after</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``after: null`` is never written: every stored scene stays as it was."""</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"after"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
 

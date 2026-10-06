@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=fa3986e7"></script>
+    <script src="../_static/documentation_options.js?v=31b0162a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.183" />
+  <meta name="docsearch:version" content="0.1.184" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1558,6 +1558,11 @@ A music bed usually wants <code class="docutils literal notranslate"><span class
 <p><code class="code docutils literal notranslate"><span class="pre">at</span></code> is in SCENE pixels relative to the stage centre — the same space the
 compiler already places characters in — so an author reads it off the same
 ruler as a camera pivot. <code class="code docutils literal notranslate"><span class="pre">scale</span></code> multiplies the rig’s own uniform scale.</p>
+<p><strong>`after` landed in an#344</strong> (a studio set’s sky disc between a sky plane
+and a holed wall plate): it names the anchor the entity is drawn right
+after. <code class="code docutils literal notranslate"><span class="pre">depth</span></code> is still not a field: an entity takes the depth of the plane
+it is placed after. The paragraphs below are the record of why both were
+deferred, kept because <code class="code docutils literal notranslate"><span class="pre">depth</span></code>’s reason still holds.</p>
 <p>**Deliberately only two fields, and the reason has been re-stated because
 the first one expired.** #108 sketched <code class="code docutils literal notranslate"><span class="pre">depth</span></code> and <code class="code docutils literal notranslate"><span class="pre">after</span></code> as well, deferred
 on the grounds that they belong to a stage vocabulary that had not arrived.
@@ -1584,6 +1589,21 @@ builders interleaved before any ordering could be expressed at all.</p></li>
 versioned schema is a migration you owe later for a feature nobody used.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.StagePlacement.after">
+<span class="sig-name descname"><span class="pre">after</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.StagePlacement.after" title="Link to this definition">#</a></dt>
+<dd><p>an environment
+plane (<code class="docutils literal notranslate"><span class="pre">&quot;set/skyline&quot;</span></code>) or another placed entity (<code class="docutils literal notranslate"><span class="pre">&quot;grid&quot;</span></code>).
+<code class="docutils literal notranslate"><span class="pre">None</span></code> = the default band, where the environment’s
+<code class="docutils literal notranslate"><span class="pre">characters_after</span></code> cuts. A plane’s parallax carries an entity placed
+after it; an entity placed after an entity rides the default depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What this entity is drawn immediately after (an#344)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.StagePlacement.at">
 <span class="sig-name descname"><span class="pre">at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Annotated" title="(in Python v3.14)"><span class="pre">Annotated</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="p"><span class="pre">[</span></span><span class="pre">_PydanticGeneralMetadata</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">allow_inf_nan</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Annotated" title="(in Python v3.14)"><span class="pre">Annotated</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="p"><span class="pre">[</span></span><span class="pre">_PydanticGeneralMetadata</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">allow_inf_nan</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.StagePlacement.at" title="Link to this definition">#</a></dt>
@@ -2005,6 +2025,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement"><code class="docutils literal notranslate"><span class="pre">StagePlacement</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.after"><code class="docutils literal notranslate"><span class="pre">StagePlacement.after</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.at"><code class="docutils literal notranslate"><span class="pre">StagePlacement.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.model_config"><code class="docutils literal notranslate"><span class="pre">StagePlacement.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.scale"><code class="docutils literal notranslate"><span class="pre">StagePlacement.scale</span></code></a></li>

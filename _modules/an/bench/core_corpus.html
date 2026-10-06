@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=fa3986e7"></script>
+    <script src="../../../_static/documentation_options.js?v=31b0162a"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.183" />
+  <meta name="docsearch:version" content="0.1.184" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -728,6 +728,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">           right-aligned (an#341)</span>
 <span class="sd">text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)</span>
 <span class="sd">front_plane a foreground plane, animated and addressed `&lt;env&gt;/&lt;plane&gt;` (an#343)</span>
+<span class="sd">after_plane a prop placed between two planes under a pan (an#344)</span>
 <span class="sd">transitions a fade in from black and a DISSOLVE between two stage shots: the</span>
 <span class="sd">           film's composed frames, which is what is delivered, are the goldens</span>
 <span class="sd">rig_origin a multi-bone prop placed by its declared ``origin`` (an#338) and</span>
@@ -751,7 +752,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_origin', 'stage_pan', 'text_card', 'text_counter', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -917,6 +918,22 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"label: a regression in the runtime's scoped indexing (the channel "</span>
             <span class="s2">"would name nothing and the load throws), in the cut, or in the "</span>
             <span class="s2">"draw order moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"after_plane"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/after_plane"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a prop placed BETWEEN two planes under a pan (an#344): a far sky "</span>
+            <span class="s2">"(depth 0.25), a disc with `stage.after: set/sky`, then a wall in "</span>
+            <span class="s2">"two pieces with a window gap and a sill, all at depth 1.0, while "</span>
+            <span class="s2">"the camera pans 60 px. The disc is drawn behind the walls and "</span>
+            <span class="s2">"rides the sky's parallax through its band wrapper: between the "</span>
+            <span class="s2">"goldens the walls move 40 px and the sky and disc 10 px. A "</span>
+            <span class="s2">"regression in the draw order (the disc over the wall), in the "</span>
+            <span class="s2">"wrapper's compensation (the disc sliding against the sky), or "</span>
+            <span class="s2">"in the band containers' addressing moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"transitions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>

@@ -44,8 +44,12 @@ mall). It reads only.
 |-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_TARGET_SUGGESTIONS`](#an.stage.compile.DFLT_TARGET_SUGGESTIONS)      | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
 | [`CAMERA_NODE`](#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
+| [`AFTER_BANDS_PRODUCT`](#an.stage.compile.AFTER_BANDS_PRODUCT)          | the [`AfterBand`](#an.stage.compile.AfterBand) wrappers the scene pass built.                                                                                                                             |
 | [`STAGE_COMPILE_PASSES`](#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
 | [`RUNTIME_FIELD_KINDS`](#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
+| [`BAND_INFIX`](#an.stage.compile.BAND_INFIX)                   | The infix of a container holding a later band of an environment's planes (an#344): `<env>__band_<k>`, `scope=<env>`.                                                                                                      |
+| [`AFTER_INFIX`](#an.stage.compile.AFTER_INFIX)                  | The infix of a wrapper carrying a plane's parallax for the entities placed right after it (an#344): `<env>__after_<k>`, `scope=""`.                                                                                       |
+| [`SYNTHETIC_MARK`](#an.stage.compile.SYNTHETIC_MARK)               | What a synthetic node's name may contain and an entity id may not (an#344).                                                                                                                                               |
 | [`STAGE_SCENE_BUILDERS`](#an.stage.compile.STAGE_SCENE_BUILDERS)         | phase 0 the backdrop, phase 1 the cast.                                                                                                                                                                                   |
 | [`ENVIRONMENT_ART_PREFIX`](#an.stage.compile.ENVIRONMENT_ART_PREFIX)       | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                               |
 | [`PLANE_FILL_SPAN`](#an.stage.compile.PLANE_FILL_SPAN)              | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here. |
@@ -55,10 +59,12 @@ mall). It reads only.
 
 ### Functions
 
-| [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](an.ir.camera.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
+| [`after_problems`](#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                        |
 |---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](an.ir.camera.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
 | [`compile_passes_for_stage`](#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
 | [`compile_shot`](#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
+| [`duplicate_paths`](#an.stage.compile.duplicate_paths)(root[, overlay])                 | Paths the runtime would index twice (its `nodeIndex` is later-wins, so the first node would silently stop answering).                                                                                    |
 | [`entity_spaces_of`](#an.stage.compile.entity_spaces_of)(shot)                           | `{entity id: space}` for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245). |
 | [`foreground_node_name`](#an.stage.compile.foreground_node_name)(entity_id)                  | The node name an environment's foreground planes live under.                                                                                                                                             |
 | [`node_path_suggestions`](#an.stage.compile.node_path_suggestions)(target, paths, \*[, n])    | The built node paths a mistyped `target` most plausibly meant.                                                                                                                                           |
@@ -77,6 +83,7 @@ mall). It reads only.
 
 | [`ActionLowering`](#an.stage.compile.ActionLowering)(\*args, \*\*kwargs)           | How a genre's action kind becomes clips in the stage compiler (an#225).   |
 |-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`AfterBand`](#an.stage.compile.AfterBand)(wrapper, environment, plane)       | A wrapper the parallax pass gives `plane`'s compensation (an#344).        |
 | [`CompileState`](#an.stage.compile.CompileState)(shot, mall, fps, width, height) | What the stage compiler's passes read and write, for one shot (an#247).   |
 | [`SceneBuild`](#an.stage.compile.SceneBuild)(shot, mall, textures, ...[, ...]) | The scene being built, as an entity builder sees it (an#247).             |
 
@@ -86,6 +93,18 @@ mall). It reads only.
 |-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`CutoutCompileError`](#an.stage.compile.CutoutCompileError)     | A shot cannot be compiled to a cutout scene.                                              |
 | [`CutoutCompileWarning`](#an.stage.compile.CutoutCompileWarning)   | A shot compiles, but something in it will not reach the screen.                           |
+
+### an.stage.compile.AFTER_BANDS_PRODUCT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'after_bands'*
+
+the [`AfterBand`](#an.stage.compile.AfterBand) wrappers the scene pass built.
+
+* **Type:**
+  `state.products` key
+
+### an.stage.compile.AFTER_INFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_after_'*
+
+The infix of a wrapper carrying a plane’s parallax for the entities placed
+right after it (an#344): `<env>__after_<k>`, `scope=""`.
 
 ### *class* an.stage.compile.ActionLowering(\*args, \*\*kwargs)
 
@@ -113,6 +132,17 @@ And, per kind:
   (or `None`), for kinds whose clips depend on the view in force;
 - `clip(action, *, anim_id, vocab, fps, view)`: the animation clip of one
   leaf that survived `expand`.
+
+### *class* an.stage.compile.AfterBand(wrapper, environment, plane)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A wrapper the parallax pass gives `plane`’s compensation (an#344).
+
+### an.stage.compile.BAND_INFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_band_'*
+
+The infix of a container holding a later band of an environment’s planes
+(an#344): `<env>__band_<k>`, `scope=<env>`.
 
 ### an.stage.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
@@ -259,6 +289,10 @@ phase 0 the backdrop, phase 1 the cast.
 * **Type:**
   The stage’s own entity builders
 
+### an.stage.compile.SYNTHETIC_MARK *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_'*
+
+What a synthetic node’s name may contain and an entity id may not (an#344).
+
 ### *class* an.stage.compile.SceneBuild(shot, mall, textures, resolutions, style_pack, overlay, fonts, width, height, children=<factory>, in_front=<factory>, reached=<factory>, skipped=<factory>, raster=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -269,6 +303,24 @@ A builder ([`an.genres.CompilePass`](an.genres.md#an.genres.CompilePass) with `b
 entity’s subtree to `children` (or `overlay`, or `in_front`) and
 records its textures and resolutions here, exactly as the scene pass did
 by hand.
+
+### an.stage.compile.after_problems(shot, mall, , planes_known=True)
+
+`[(entity index, why)]` for every `stage.after` the compiler would
+refuse (an#344): an anchor the shot does not have, the entity itself, a
+cycle. The one statement both `compile_shot` and `an validate` read.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> from an.ir.schema import AssetRef, StagePlacement
+>>> shot = Shot(id="s", renderer="stage", duration=1.0, entities=[
+...     AssetRef(kind="prop", id="a", store="props", ref="a", stage=StagePlacement(after="b")),
+...     AssetRef(kind="prop", id="b", store="props", ref="b", stage=StagePlacement(after="a"))])
+>>> [why.split(":")[0] for _, why in after_problems(shot, {})]
+["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]
+```
 
 ### an.stage.compile.camera_keys(shot, , width, height)
 
@@ -331,6 +383,20 @@ clothes (an#33).
 
 * **Return type:**
   [`CutoutSceneJSON`](an.stage.serialize.md#an.stage.serialize.CutoutSceneJSON)
+
+### an.stage.compile.duplicate_paths(root, overlay=())
+
+Paths the runtime would index twice (its `nodeIndex` is later-wins,
+so the first node would silently stop answering). Over the FINISHED tree,
+scoped containers included (an#344).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> duplicate_paths(NodeJSON(name="root", children=[NodeJSON(name="a"), NodeJSON(name="a")]))
+['a']
+```
 
 ### an.stage.compile.entity_spaces_of(shot)
 

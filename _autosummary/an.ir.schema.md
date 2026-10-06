@@ -725,6 +725,12 @@ True
 compiler already places characters in — so an author reads it off the same
 ruler as a camera pivot. `scale` multiplies the rig’s own uniform scale.
 
+**\`after\` landed in an#344** (a studio set’s sky disc between a sky plane
+and a holed wall plate): it names the anchor the entity is drawn right
+after. `depth` is still not a field: an entity takes the depth of the plane
+it is placed after. The paragraphs below are the record of why both were
+deferred, kept because `depth`’s reason still holds.
+
 \*\*Deliberately only two fields, and the reason has been re-stated because
 the first one expired.\*\* #108 sketched `depth` and `after` as well, deferred
 on the grounds that they belong to a stage vocabulary that had not arrived.
@@ -751,6 +757,17 @@ What each would cost, so the next reader does not re-derive it:
 
 Neither is hard. Both are unmotivated, and an unmotivated knob in a
 versioned schema is a migration you owe later for a feature nobody used.
+
+#### after *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+an environment
+plane (`"set/skyline"`) or another placed entity (`"grid"`).
+`None` = the default band, where the environment’s
+`characters_after` cuts. A plane’s parallax carries an entity placed
+after it; an entity placed after an entity rides the default depth.
+
+* **Type:**
+  What this entity is drawn immediately after (an#344)
 
 #### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[\_PydanticGeneralMetadata(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=fa3986e7"></script>
+    <script src="../_static/documentation_options.js?v=31b0162a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.canvas_capture" href="an.stage.canvas_capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.183" />
+  <meta name="docsearch:version" content="0.1.184" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -641,11 +641,23 @@ mall). It reads only.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CAMERA_NODE" title="an.stage.compile.CAMERA_NODE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CAMERA_NODE</span></code></a></p></td>
 <td><p>indexed by the runtime, absent from the tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_COMPILE_PASSES" title="an.stage.compile.STAGE_COMPILE_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.AFTER_BANDS_PRODUCT" title="an.stage.compile.AFTER_BANDS_PRODUCT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFTER_BANDS_PRODUCT</span></code></a></p></td>
+<td><p>the <a class="reference internal" href="#an.stage.compile.AfterBand" title="an.stage.compile.AfterBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">AfterBand</span></code></a> wrappers the scene pass built.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_COMPILE_PASSES" title="an.stage.compile.STAGE_COMPILE_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></p></td>
 <td><p>The STAGE's own compile passes, in order.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.RUNTIME_FIELD_KINDS" title="an.stage.compile.RUNTIME_FIELD_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUNTIME_FIELD_KINDS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.RUNTIME_FIELD_KINDS" title="an.stage.compile.RUNTIME_FIELD_KINDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUNTIME_FIELD_KINDS</span></code></a></p></td>
 <td><p>The field kinds <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements (its <code class="docutils literal notranslate"><span class="pre">FIELD_KINDS</span></code> table; a test pins the two).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.BAND_INFIX" title="an.stage.compile.BAND_INFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BAND_INFIX</span></code></a></p></td>
+<td><p>The infix of a container holding a later band of an environment's planes (an#344): <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__band_&lt;k&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">scope=&lt;env&gt;</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.AFTER_INFIX" title="an.stage.compile.AFTER_INFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFTER_INFIX</span></code></a></p></td>
+<td><p>The infix of a wrapper carrying a plane's parallax for the entities placed right after it (an#344): <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__after_&lt;k&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">scope=&quot;&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.SYNTHETIC_MARK" title="an.stage.compile.SYNTHETIC_MARK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SYNTHETIC_MARK</span></code></a></p></td>
+<td><p>What a synthetic node's name may contain and an entity id may not (an#344).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.STAGE_SCENE_BUILDERS" title="an.stage.compile.STAGE_SCENE_BUILDERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_SCENE_BUILDERS</span></code></a></p></td>
 <td><p>phase 0 the backdrop, phase 1 the cast.</p></td>
@@ -671,14 +683,20 @@ mall). It reads only.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.camera_keys" title="an.stage.compile.camera_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_keys</span></code></a>(shot, *, width, height)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.after_problems" title="an.stage.compile.after_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">after_problems</span></code></a>(shot, mall, *[, planes_known])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[(entity</span> <span class="pre">index,</span> <span class="pre">why)]</span></code> for every <code class="docutils literal notranslate"><span class="pre">stage.after</span></code> the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.camera_keys" title="an.stage.compile.camera_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_keys</span></code></a>(shot, *, width, height)</p></td>
 <td><p><a class="reference internal" href="an.ir.camera.html#an.ir.camera.camera_keys" title="an.ir.camera.camera_keys"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.camera.camera_keys()</span></code></a>, with its refusal typed for this adapter.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.compile_passes_for_stage" title="an.stage.compile.compile_passes_for_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_passes_for_stage</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_passes_for_stage" title="an.stage.compile.compile_passes_for_stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_passes_for_stage</span></code></a>()</p></td>
 <td><p>The stage's passes and every registered one, in run order (stable by name).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.compile_shot" title="an.stage.compile.compile_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shot</span></code></a>(shot[, mall, fps, width, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.compile_shot" title="an.stage.compile.compile_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_shot</span></code></a>(shot[, mall, fps, width, ...])</p></td>
 <td><p>Compile a single cutout-style <code class="code docutils literal notranslate"><span class="pre">Shot</span></code> to its JS-runtime JSON form.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.duplicate_paths" title="an.stage.compile.duplicate_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duplicate_paths</span></code></a>(root[, overlay])</p></td>
+<td><p>Paths the runtime would index twice (its <code class="docutils literal notranslate"><span class="pre">nodeIndex</span></code> is later-wins, so the first node would silently stop answering).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.entity_spaces_of" title="an.stage.compile.entity_spaces_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entity_spaces_of</span></code></a>(shot)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">id:</span> <span class="pre">space}</span></code> for each entity whose kind declares a space other than the kernel default -- what the compiled document records so the default evaluator agrees with validate and compile (an#245).</p></td>
@@ -728,10 +746,13 @@ mall). It reads only.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.ActionLowering" title="an.stage.compile.ActionLowering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ActionLowering</span></code></a>(*args, **kwargs)</p></td>
 <td><p>How a genre's action kind becomes clips in the stage compiler (an#225).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.CompileState" title="an.stage.compile.CompileState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompileState</span></code></a>(shot, mall, fps, width, height)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.AfterBand" title="an.stage.compile.AfterBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AfterBand</span></code></a>(wrapper, environment, plane)</p></td>
+<td><p>A wrapper the parallax pass gives <code class="docutils literal notranslate"><span class="pre">plane</span></code>'s compensation (an#344).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.CompileState" title="an.stage.compile.CompileState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompileState</span></code></a>(shot, mall, fps, width, height)</p></td>
 <td><p>What the stage compiler's passes read and write, for one shot (an#247).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.compile.SceneBuild" title="an.stage.compile.SceneBuild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneBuild</span></code></a>(shot, mall, textures, ...[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.compile.SceneBuild" title="an.stage.compile.SceneBuild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneBuild</span></code></a>(shot, mall, textures, ...[, ...])</p></td>
 <td><p>The scene being built, as an entity builder sees it (an#247).</p></td>
 </tr>
 </tbody>
@@ -752,6 +773,24 @@ mall). It reads only.</p>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.AFTER_BANDS_PRODUCT">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">AFTER_BANDS_PRODUCT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'after_bands'</span></span><a class="headerlink" href="#an.stage.compile.AFTER_BANDS_PRODUCT" title="Link to this definition">#</a></dt>
+<dd><p>the <a class="reference internal" href="#an.stage.compile.AfterBand" title="an.stage.compile.AfterBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">AfterBand</span></code></a> wrappers the scene pass built.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">state.products</span></code> key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.AFTER_INFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">AFTER_INFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__after_'</span></span><a class="headerlink" href="#an.stage.compile.AFTER_INFIX" title="Link to this definition">#</a></dt>
+<dd><p>The infix of a wrapper carrying a plane’s parallax for the entities placed
+right after it (an#344): <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__after_&lt;k&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">scope=&quot;&quot;</span></code>.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.compile.ActionLowering">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">ActionLowering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#ActionLowering"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.ActionLowering" title="Link to this definition">#</a></dt>
@@ -777,6 +816,22 @@ lowering has no other view of the compile state.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">clip(action,</span> <span class="pre">*,</span> <span class="pre">anim_id,</span> <span class="pre">vocab,</span> <span class="pre">fps,</span> <span class="pre">view)</span></code>: the animation clip of one
 leaf that survived <code class="docutils literal notranslate"><span class="pre">expand</span></code>.</p></li>
 </ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stage.compile.AfterBand">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">AfterBand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plane</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#AfterBand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.AfterBand" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A wrapper the parallax pass gives <code class="docutils literal notranslate"><span class="pre">plane</span></code>’s compensation (an#344).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.BAND_INFIX">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">BAND_INFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__band_'</span></span><a class="headerlink" href="#an.stage.compile.BAND_INFIX" title="Link to this definition">#</a></dt>
+<dd><p>The infix of a container holding a later band of an environment’s planes
+(an#344): <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;__band_&lt;k&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">scope=&lt;env&gt;</span></code>.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -962,6 +1017,12 @@ no <code class="docutils literal notranslate"><span class="pre">without_genres()
 </dl>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.compile.SYNTHETIC_MARK">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">SYNTHETIC_MARK</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__'</span></span><a class="headerlink" href="#an.stage.compile.SYNTHETIC_MARK" title="Link to this definition">#</a></dt>
+<dd><p>What a synthetic node’s name may contain and an entity id may not (an#344).</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.stage.compile.SceneBuild">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">SceneBuild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">textures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_pack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fonts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_front</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#SceneBuild"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.SceneBuild" title="Link to this definition">#</a></dt>
@@ -973,6 +1034,27 @@ records its textures and resolutions here, exactly as the scene pass did
 by hand.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.after_problems">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">after_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">planes_known</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#after_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.after_problems" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">[(entity</span> <span class="pre">index,</span> <span class="pre">why)]</span></code> for every <code class="docutils literal notranslate"><span class="pre">stage.after</span></code> the compiler would
+refuse (an#344): an anchor the shot does not have, the entity itself, a
+cycle. The one statement both <code class="docutils literal notranslate"><span class="pre">compile_shot</span></code> and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">StagePlacement</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="s2">"stage"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">entities</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="n">StagePlacement</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="s2">"b"</span><span class="p">)),</span>
+<span class="gp">... </span>    <span class="n">AssetRef</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="n">StagePlacement</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="s2">"a"</span><span class="p">))])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">why</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">after_problems</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="p">{})]</span>
+<span class="go">["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1042,6 +1124,23 @@ clothes (an#33).</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.CutoutSceneJSON" title="an.stage.serialize.CutoutSceneJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.compile.duplicate_paths">
+<span class="sig-prename descclassname"><span class="pre">an.stage.compile.</span></span><span class="sig-name descname"><span class="pre">duplicate_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/compile.html#duplicate_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.compile.duplicate_paths" title="Link to this definition">#</a></dt>
+<dd><p>Paths the runtime would index twice (its <code class="docutils literal notranslate"><span class="pre">nodeIndex</span></code> is later-wins,
+so the first node would silently stop answering). Over the FINISHED tree,
+scoped containers included (an#344).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">duplicate_paths</span><span class="p">(</span><span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"a"</span><span class="p">),</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"a"</span><span class="p">)]))</span>
+<span class="go">['a']</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1338,7 +1437,11 @@ reports it), so the two say the same thing about the same path.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.AFTER_BANDS_PRODUCT"><code class="docutils literal notranslate"><span class="pre">AFTER_BANDS_PRODUCT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.AFTER_INFIX"><code class="docutils literal notranslate"><span class="pre">AFTER_INFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.ActionLowering"><code class="docutils literal notranslate"><span class="pre">ActionLowering</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.AfterBand"><code class="docutils literal notranslate"><span class="pre">AfterBand</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.BAND_INFIX"><code class="docutils literal notranslate"><span class="pre">BAND_INFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CAMERA_NODE"><code class="docutils literal notranslate"><span class="pre">CAMERA_NODE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompilePassCollision"><code class="docutils literal notranslate"><span class="pre">CompilePassCollision</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.CompileState"><code class="docutils literal notranslate"><span class="pre">CompileState</span></code></a><ul class="nav section-nav flex-column">
@@ -1359,10 +1462,13 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_COMPILE_PASSES"><code class="docutils literal notranslate"><span class="pre">STAGE_COMPILE_PASSES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.STAGE_SCENE_BUILDERS"><code class="docutils literal notranslate"><span class="pre">STAGE_SCENE_BUILDERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.SYNTHETIC_MARK"><code class="docutils literal notranslate"><span class="pre">SYNTHETIC_MARK</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.SceneBuild"><code class="docutils literal notranslate"><span class="pre">SceneBuild</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.after_problems"><code class="docutils literal notranslate"><span class="pre">after_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.camera_keys"><code class="docutils literal notranslate"><span class="pre">camera_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_passes_for_stage"><code class="docutils literal notranslate"><span class="pre">compile_passes_for_stage()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.compile_shot"><code class="docutils literal notranslate"><span class="pre">compile_shot()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.duplicate_paths"><code class="docutils literal notranslate"><span class="pre">duplicate_paths()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.entity_spaces_of"><code class="docutils literal notranslate"><span class="pre">entity_spaces_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.foreground_node_name"><code class="docutils literal notranslate"><span class="pre">foreground_node_name()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.compile.node_path_suggestions"><code class="docutils literal notranslate"><span class="pre">node_path_suggestions()</span></code></a></li>
