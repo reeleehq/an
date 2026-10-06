@@ -419,7 +419,15 @@ def _confirmed_factory_claim(
         and isinstance(drawing, str)
         and files.get(drawing) not in (None, sha)
     )
-    if sha is not None and not stale and factory_recorded(sha):
+    if (
+        sha is not None
+        and not stale
+        and factory_recorded(
+            sha,
+            descriptor=doc,
+            path=drawing if isinstance(drawing, str) else None,
+        )
+    ):
         return source
     why = (
         "a factory stamp about other bytes: the drawing it pins was changed since"
