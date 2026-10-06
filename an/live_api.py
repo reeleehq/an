@@ -49,6 +49,19 @@ TRUTHY_VALUES: frozenset[str] = frozenset({"1", "true", "yes", "on"})
 CI_ENV_VAR: str = "CI"
 
 
+def paid_provider_key_vars() -> tuple[str, ...]:
+    """Every environment variable a paid provider reads its API key from — the
+    ``env.key.*`` capabilities' (:data:`an.capabilities.subjects.ENV_KEYS`), so a
+    new paid provider is listed once.
+
+    >>> {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} <= set(paid_provider_key_vars())
+    True
+    """
+    from an.capabilities.subjects import ENV_KEYS
+
+    return tuple(dict.fromkeys(v for names, _ in ENV_KEYS.values() for v in names))
+
+
 def live_api_enabled(env: Mapping[str, str] | None = None) -> bool:
     """Whether this run has explicitly opted in to paid API calls.
 

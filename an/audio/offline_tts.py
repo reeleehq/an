@@ -66,6 +66,8 @@ class OfflineTTS:
     #: The same request gives the same audio, so best-of-N takes never apply
     #: (:func:`an.audio.takes.voice_takes`) and nothing is billed.
     repeatable: bool = True
+    #: Costs nothing per request (stated, never inferred: an#311).
+    billed: bool = False
     #: Its audio is silence: a line it speaks for a voice written for a real
     #: provider is a stand-in the render says so loudly (an#305).
     silent: bool = True

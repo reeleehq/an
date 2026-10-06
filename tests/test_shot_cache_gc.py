@@ -178,15 +178,19 @@ def test_an_md_edit_that_drops_the_audio_stamps_keeps_what_the_next_render_reuse
 
 
 @pytest.mark.genre("cutout_animation")
-def test_a_line_whose_audio_is_not_cached_makes_gc_refuse(tmp_path, fake_render):
+def test_a_line_whose_audio_is_not_cached_makes_gc_refuse(
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
+):
+    """A line in a BILLED voice (an#311 narrowed this from every provider:
+    free, repeatable speech is re-made in memory instead)."""
     root = _project(tmp_path, _shot("a", 10.0))
-    _speaking(root)
+    _voiced(root, "hello there", voice={"provider": "elevenlabs", "voice_id": "TX3"})
     _render(root, fake_render)
     _edit_md(root, "hello there", "hello again")
-    before = _ids(root)
-    with pytest.raises(CacheGcError, match="not in the audio store"):
+    before, billed = _ids(root), len(eleven.requests)
+    with pytest.raises(CacheGcError, match="not in the (audio|visemes) store"):
         _gc(root)
-    assert _ids(root) == before
+    assert _ids(root) == before and len(eleven.requests) == billed
 
 
 def test_max_age_never_drops_the_current_scene_under_a_recorded_knob_set(
@@ -1038,6 +1042,31 @@ def test_a_fresh_process_finds_the_renderers_through_the_lazy_registry(tmp_path,
 # -----------------------------------------------------------------------------
 
 
+class _UnfreeOfflineLipSync:
+    """The default ``offline`` lip-sync as these tests mean it: one that does
+    not declare itself free (cutan's, until thorwhalen/cutan#29), so a line
+    whose visemes are missing cannot be keyed in memory. Pinned, because which
+    provider ``offline`` is depends on whether the cut-out genre is installed
+    (without it, the core's ``NullLipSync``, which IS free)."""
+
+    name = "offline"
+    convention = "none"
+
+    def align(self, audio, transcript):
+        from an.audio.lipsync import NullLipSync
+
+        return NullLipSync().align(audio, transcript)
+
+
+@pytest.fixture
+def unfree_offline_lipsync(monkeypatch):
+    import an.audio.providers as providers
+
+    monkeypatch.setitem(
+        providers.LIPSYNC_FACTORIES, "offline", lambda **_: _UnfreeOfflineLipSync()
+    )
+
+
 def _voiced(root, *texts: str, voice: dict | None = None) -> None:
     """One shot per text, each with one line in voice `bob`."""
     from an.ir.schema import Dialogue
@@ -1053,7 +1082,7 @@ def _voiced(root, *texts: str, voice: dict | None = None) -> None:
         load(root).mall["voices"]["bob"] = voice
 
 
-def test_gc_and_info_work_right_after_an_elevenlabs_render(tmp_path, fake_render, eleven):
+def test_gc_and_info_work_right_after_an_elevenlabs_render(tmp_path, fake_render, eleven, unfree_offline_lipsync):
     """The end-user report: `--tts elevenlabs` for a voice that names no
     provider, then `an cache info/gc` failed keying the scene under offline."""
     root = _project(tmp_path, _shot("a", 10.0))
@@ -1081,7 +1110,7 @@ def test_a_voice_that_names_elevenlabs_is_kept_under_a_plain_render(
 
 
 def test_a_knob_set_missing_a_lines_audio_keeps_what_its_render_used(
-    tmp_path, fake_render, eleven
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
 ):
     """Rendered offline once, then ElevenLabs; a line edited and re-rendered
     with ElevenLabs only. The offline knob set cannot key the edited shot, so
@@ -1100,3 +1129,177 @@ def test_a_knob_set_missing_a_lines_audio_keeps_what_its_render_used(
     assert set(_keys(offline)) <= _ids(root)  # what the offline render used
     _, rendered = _render(root, fake_render, tts="offline")
     assert rendered == ["s0"]  # the edited shot only: its offline line is new
+
+
+# -----------------------------------------------------------------------------
+# an#311: free, repeatable audio is keyed in memory, never skipped
+# -----------------------------------------------------------------------------
+
+
+def _store_files(root, name: str) -> dict[str, float]:
+    folder = Path(root) / "artifacts" / name
+    return {str(p.relative_to(folder)): p.stat().st_mtime_ns for p in folder.rglob("*") if p.is_file()}
+
+
+def test_gc_keys_deleted_offline_audio_in_memory_and_keeps_what_an_offline_render_reuses(
+    tmp_path, fake_render, eleven
+):
+    """The an#311 review's case: the voice names ElevenLabs; a `--tts offline`
+    preview, then a plain render; the preview's (free) audio deleted, roots
+    dropped, `gc --force`. Offline speech is free and deterministic, so the
+    collector re-synthesises it IN MEMORY and keeps the preview's shots — and
+    writes nothing to the audio stores and bills nothing."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", "and again", voice={"provider": "elevenlabs", "voice_id": "TX3"})
+    audio = load(root).mall["audio"]
+    before_preview = set(audio)
+    preview, _ = _render(root, fake_render, tts="offline")
+    offline_audio = set(audio) - before_preview
+    assert offline_audio
+    _render(root, fake_render)  # plain: the voice's own provider, ElevenLabs
+    billed = len(eleven.requests)
+    for key in offline_audio:
+        del audio[key]
+    _drop_roots(root)
+    stores = {name: _store_files(root, name) for name in ("audio", "visemes")}
+    report = _gc(root, force=True)
+    assert report.reach.skipped == []
+    assert not set(_keys(preview)) & {e.id for e in report.deleted}
+    assert {name: _store_files(root, name) for name in ("audio", "visemes")} == stores
+    assert len(eleven.requests) == billed  # the collector called no billed provider
+    _, rendered = _render(root, fake_render, tts="offline")
+    assert rendered == []  # every preview shot reused
+
+
+def test_a_billed_provider_is_never_called_in_memory(
+    tmp_path, fake_render, eleven, unfree_offline_lipsync
+):
+    """Only a free, repeatable provider is synthesised in memory: a line in a
+    billed voice whose audio is not cached still skips its knob set."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", voice={"provider": "elevenlabs", "voice_id": "TX3"})
+    _render(root, fake_render)
+    _voiced(root, "hello again", voice={"provider": "elevenlabs", "voice_id": "TX3"})
+    billed = len(eleven.requests)
+    with pytest.raises(CacheGcError, match="not in the audio store"):
+        _gc(root, force=True)
+    assert len(eleven.requests) == billed
+
+
+def test_gc_makes_missing_audio_and_visemes_in_memory_when_both_providers_are_free(
+    tmp_path, fake_render
+):
+    """Free, repeatable lip-sync too: with the audio AND the visemes gone and
+    its root expired, gc keys the shots from what it re-makes in memory, and
+    the next render under the same knobs reuses every one of them."""
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there", "and again")
+    _render(root, fake_render, tts="offline", lipsync="none")
+    mall = load(root).mall
+    for name in ("audio", "visemes"):
+        for key in list(mall[name]):
+            del mall[name][key]
+    report = _gc(root, max_age=1.0)  # its root expired: only the scene keeps them
+    assert report.deleted == []
+    assert all(p["lipsync"] != "none" for p, _ in report.reach.skipped)
+    assert list(mall["audio"]) == [] and list(mall["visemes"]) == []  # nothing written
+    _, rendered = _render(root, fake_render, tts="offline", lipsync="none")
+    assert rendered == []
+
+
+def test_stamping_in_memory_refuses_a_mall_whose_stores_it_could_write():
+    from an.audio.lipsync import NullLipSync
+    from an.audio.pipeline import stamp_from_stores
+
+    with pytest.raises(ValueError, match="InMemoryOverlay"):
+        stamp_from_stores(
+            SceneIR(meta=Meta(title="t"), timeline=[]),
+            {"audio": {}, "visemes": {}},
+            lipsync=NullLipSync(),
+            free_in_memory=True,
+        )
+
+
+def test_free_speech_is_made_once_for_every_knob_set_of_a_collection(
+    tmp_path, fake_render, monkeypatch
+):
+    """an#311 review: the overlay is shared, so a line re-made in memory under
+    one knob set is not synthesised again under the next."""
+    from an.audio.offline_tts import OfflineTTS
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there")
+    _render(root, fake_render, tts="offline", lipsync="none")
+    _render(root, fake_render, tts="offline", lipsync="none", fps=12)  # a second knob set
+    audio = load(root).mall["audio"]
+    for key in list(audio):
+        del audio[key]
+    calls = []
+    real = OfflineTTS.synthesize
+    monkeypatch.setattr(
+        OfflineTTS, "synthesize", lambda self, *a, **k: calls.append(a) or real(self, *a, **k)
+    )
+    _gc(root)
+    assert len(calls) == 1
+
+
+def test_a_provider_must_declare_itself_free_to_run_in_memory():
+    from an.audio.pipeline import free_and_repeatable
+
+    class Repeatable:
+        repeatable = True  # but says nothing about billing
+
+    class Free(Repeatable):
+        billed = False
+
+    class Metered(Free):
+        def billed_characters(self, text):
+            return len(text)
+
+    assert [free_and_repeatable(p()) for p in (Repeatable, Free, Metered)] == [False, True, False]
+
+
+class _FreeTTS:
+    """A free, repeatable provider whose machine may not run it, or which has a bug."""
+
+    name = "freebie"
+    repeatable = True
+    billed = False
+
+    def __init__(self, *, available: bool = True, broken: bool = False) -> None:
+        self.available, self.broken = available, broken
+
+    def check_available(self) -> None:
+        if not self.available:
+            raise RuntimeError("not on this machine")
+
+    def synthesize(self, text, *args, **kwargs):
+        if self.broken:
+            raise TypeError("a bug in the provider")
+        from an.audio.offline_tts import OfflineTTS
+
+        return OfflineTTS().synthesize(text, *args, **kwargs)
+
+
+def test_a_free_provider_this_machine_cannot_run_skips_and_a_broken_one_refuses(
+    tmp_path, fake_render, monkeypatch, unfree_offline_lipsync
+):
+    """an#311 review: unavailable is unkeyable (skip, as a missing line), but a
+    failure after it said it can run is a bug — refuse rather than skip, which
+    under --force would drop what renders under that knob set used."""
+    import an.audio.providers as providers
+
+    root = _project(tmp_path, _shot("a", 10.0))
+    _voiced(root, "hello there")
+    monkeypatch.setitem(providers.TTS_FACTORIES, "freebie", lambda: _FreeTTS())
+    _render(root, fake_render, tts="freebie", lipsync="none")
+    audio = load(root).mall["audio"]
+    for key in list(audio):
+        del audio[key]
+    monkeypatch.setitem(providers.TTS_FACTORIES, "freebie", lambda: _FreeTTS(available=False))
+    # Skipped (here every knob set is, so the collection is refused, as before).
+    with pytest.raises(CacheGcError, match="under any setting.*this machine cannot make it"):
+        _gc(root, dry_run=True)
+    monkeypatch.setitem(providers.TTS_FACTORIES, "freebie", lambda: _FreeTTS(broken=True))
+    with pytest.raises(CacheGcError, match=r"reaches under \{.*TypeError: a bug in the provider"):
+        _gc(root, dry_run=True)

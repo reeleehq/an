@@ -625,6 +625,111 @@ class _CacheOnlyProvider:
         )
 
 
+def free_and_repeatable(provider: Any) -> bool:
+    """Whether ``provider`` may be run where nothing may be spent or written
+    (an#311): it DECLARES ``repeatable = True`` (the same request gives the
+    same bytes: ``offline``, ``mac_say``) and ``billed = False`` — stated, never
+    inferred from a missing method — and has no ``billed_characters`` hook.
+    Re-running it reproduces exactly what a render stored; anything else would
+    give new bytes, so new keys, or cost money.
+
+    >>> from an.audio.offline_tts import OfflineTTS
+    >>> free_and_repeatable(OfflineTTS()), free_and_repeatable(object())
+    (True, False)
+    """
+    return (
+        getattr(provider, "repeatable", False) is True
+        and getattr(provider, "billed", True) is False
+        and getattr(provider, "billed_characters", None) is None
+    )
+
+
+class _InMemoryProvider(_CacheOnlyProvider):
+    """A free, repeatable provider (:func:`free_and_repeatable`), run for real:
+    what it makes lands in the in-memory overlay, never in a store.
+
+    A provider this machine cannot run (its ``check_available`` fails:
+    ``say`` off macOS) makes its lines unkeyable — :class:`AudioNotCachedError`,
+    as for any provider whose audio is missing. A failure AFTER it said it can
+    run is a bug, and propagates: a collector refuses rather than skip a knob
+    set (and, forced, drop what renders under it used) on a bug's word.
+    """
+
+    def __init__(self, provider: Any) -> None:
+        super().__init__(provider)
+        self._unavailable: str | None = None
+
+    def check_available(self) -> None:
+        check = getattr(self._provider, "check_available", None)
+        if check is None:
+            return
+        try:
+            check()
+        except Exception as e:  # noqa: BLE001 — unavailable: unkeyable, not fatal
+            self._unavailable = f"{type(e).__name__}: {e}"
+
+    def _refuse_if_unavailable(self, what: str) -> None:
+        if self._unavailable is not None:
+            raise AudioNotCachedError(
+                f"{what} ({self._provider.name}) is not in the store, and this "
+                f"machine cannot make it ({self._unavailable})"
+            )
+
+    def synthesize(self, text: str, *args: Any, **kwargs: Any) -> Any:
+        self._refuse_if_unavailable(f"the audio of {text!r}")
+        return self._provider.synthesize(text, *args, **kwargs)
+
+    def align(self, audio: Any, transcript: str) -> Any:
+        self._refuse_if_unavailable(f"the visemes of {transcript!r}")
+        return self._provider.align(audio, transcript)
+
+
+class InMemoryOverlay(MutableMapping):
+    """A store view that reads through and keeps every write IN MEMORY: what a
+    reader of a render's cache keys stamps free audio into (an#311), so the
+    keys it computes next see that audio while the store itself is untouched.
+    Deleting is refused."""
+
+    def __init__(self, store: Any) -> None:
+        self._store = store
+        self.written: dict[str, Any] = {}
+
+    def __getitem__(self, key: str) -> Any:
+        if key in self.written:
+            return self.written[key]
+        return self._store[key]
+
+    def __contains__(self, key: object) -> bool:
+        return key in self.written or key in self._store
+
+    def __iter__(self):
+        yield from self.written
+        yield from (k for k in self._store if k not in self.written)
+
+    def __len__(self) -> int:
+        return len(set(self.written) | set(self._store))
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.written[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        raise AudioNotCachedError(f"{key!r} would have to be deleted from a store")
+
+
+#: The stores the audio pipeline writes what it makes to.
+AUDIO_OUTPUT_STORES: tuple[str, ...] = ("audio", "visemes")
+
+
+def in_memory_audio_mall(mall: Mapping[str, Any]) -> dict[str, Any]:
+    """``mall`` with its audio and visemes stores behind :class:`InMemoryOverlay`
+    s — hand it to :func:`stamp_from_stores` (``free_in_memory=True``) and then
+    to whatever keys the stamped scene (an#311)."""
+    return {
+        k: (InMemoryOverlay(v) if k in AUDIO_OUTPUT_STORES else v)
+        for k, v in dict(mall).items()
+    }
+
+
 class _ReadOnlyStore(MutableMapping):
     """A store view that reads through and refuses every write."""
 
@@ -657,6 +762,7 @@ def stamp_from_stores(
     tts: TTSProvider | str | None = None,
     lipsync: LipSyncProvider,
     tts_factory: TtsFactory | None = None,
+    free_in_memory: bool = False,
 ) -> SceneIR:
     """Stamp ``scene``'s dialogue exactly as :func:`produce_audio_for_scene`
     would with these providers — ``tts`` as it takes it: ``None`` for each
@@ -664,15 +770,45 @@ def stamp_from_stores(
     stores only. Synthesises, aligns, writes and announces nothing; a line the
     stores cannot answer raises :class:`AudioNotCachedError`.
 
+    ``free_in_memory`` (an#311): a line the stores cannot answer whose
+    provider is free and repeatable (:func:`free_and_repeatable`: offline
+    speech) is synthesised and aligned for real — it reproduces the bytes a
+    render stored — into the mall's :class:`InMemoryOverlay` s, which
+    :func:`in_memory_audio_mall` puts in front of the audio and visemes stores
+    (required: nothing is ever written to a store). Billed or non-repeatable
+    providers still raise. Still nothing is announced.
+
     What a reader of the render's cache keys needs (an#274): a ``scene.md``
     edit drops every stamp on re-sync, and the next render re-stamps the same
     audio from the stores, so the keys a render WILL use are these, not the
     unstamped IR's. Mutates ``scene`` in place and returns it.
     """
+    if free_in_memory:
+        bare = [
+            k for k in AUDIO_OUTPUT_STORES
+            if k in mall and not isinstance(mall[k], InMemoryOverlay)
+        ]  # fmt: skip
+        if bare:
+            raise ValueError(
+                f"free_in_memory needs the {bare} store(s) behind an InMemoryOverlay "
+                "(an.audio.pipeline.in_memory_audio_mall): nothing may be written"
+            )
     view = {
-        k: (_ReadOnlyStore(v) if k in ("audio", "visemes") else v)
+        k: (
+            v
+            if free_in_memory and k in AUDIO_OUTPUT_STORES
+            else _ReadOnlyStore(v)
+            if k in (*AUDIO_OUTPUT_STORES, "takes")
+            else v
+        )
         for k, v in dict(mall).items()
     }
+
+    def guard(provider: Any) -> Any:
+        if free_in_memory and free_and_repeatable(provider):
+            return _InMemoryProvider(provider)
+        return _CacheOnlyProvider(provider)
+
     if tts_factory is None:
         from an.audio.providers import make_tts as tts_factory
     make = tts_factory
@@ -682,10 +818,10 @@ def stamp_from_stores(
         tts=(
             tts
             if is_voice_tts(tts)
-            else _CacheOnlyProvider(make(tts) if isinstance(tts, str) else tts)
+            else guard(make(tts) if isinstance(tts, str) else tts)
         ),
-        lipsync=_CacheOnlyProvider(lipsync),
-        tts_factory=lambda name: _CacheOnlyProvider(make(name)),
+        lipsync=guard(lipsync),
+        tts_factory=lambda name: guard(make(name)),
         announce=None,
         overruns=False,
     )

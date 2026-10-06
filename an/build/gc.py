@@ -372,6 +372,13 @@ def reachable_entries(
         if all(known != profile for known, _ in candidates):
             candidates.append((profile, []))
     engine = engine or ShotCache(store)
+    # One in-memory overlay for every knob set: free speech re-made for one is
+    # not made again for the next (an#311 review: `mac_say` takes seconds a line).
+    from dataclasses import replace
+
+    from an.audio.pipeline import in_memory_audio_mall
+
+    project = replace(project, mall=in_memory_audio_mall(project.mall))
     for profile, roots in candidates:
         try:
             with warnings.catch_warnings():

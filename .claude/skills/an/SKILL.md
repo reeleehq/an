@@ -118,7 +118,7 @@ Every name a scene may use, with its version and the spectrum levels it accepts 
 | `point` | 1 | a, b-name | Swing an arm out to point, hold it, and lower it again. |
 | `waddle` | 1 | a, b-name | A walk cycle for a rig with no legs to animate: rock and bob per step. |
 | `turn` | 1 | a, b-name | Turn a character to the view `to` — the classic cut-out turn. |
-| `walk` | 2 | a, b-name | Walk: the body travels on `x` while the gait moves it — legs that alternate, a hop, a bounce, a glide (an#214, an#224). |
+| `walk` | 4 | a, b-name | Walk: the body travels on `x` while the gait moves it — legs that alternate, a hop, a bounce, a glide (an#214, an#224). |
 | `speech_pulse` | 1 | a, b-name | Pulse a part on each syllable: speech carried without a mouth. |
 
 ### Expression presets
@@ -156,15 +156,15 @@ Default chains: **locomotion** `loco.legged_cycle` → `loco.glide`; **speech** 
 
 | Aspect | Method | Spelled | Version | Requires | What it is |
 |---|---|---|---|---|---|
-| locomotion | `loco.legged_cycle` | `legs` | 1 | `limbs.legs` | a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs |
-| locomotion | `loco.glide` | `glide` | 1 | nothing | the figure slides, leaning into the move with a gentle bob; no limb moves (a robe figure, a ghost, a sack — the default for any figure without legs) |
-| locomotion | `loco.profile_cycle` | `profile` | 1 | `limbs.legs`, `swap.view:side` | the four poses of a walk seen in profile (contact, down, passing, up): the legs swing about the hip in opposition whatever the view in force, the body sinks after each contact and rises before the next (Reiniger's silhouettes, any figure drawn side-on) |
-| locomotion | `loco.shuffle` | `shuffle` | 1 | `limbs.legs` | the feet barely leave the ground: short, quick steps with little bob and arms close to the body (the old, the tired, the cautious) |
-| locomotion | `loco.hem_sway` | `hem` | 1 | `limbs.legs` | a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs |
-| locomotion | `loco.waddle` | `waddle` | 1 | nothing | the body rocks from foot to foot and bobs on each step; legs, if any, lift in turn (a penguin, a toddler, a squat figure) |
-| locomotion | `loco.hop` | `hop` | 1 | nothing | the whole figure jumps on every step while it travels (a bird, a kangaroo, a gleeful character, anything drawable) |
-| locomotion | `loco.bounce` | `bounce` | 1 | nothing | the body bobs on every step while it slides; legs, if any, only flick (the South Park walk) |
-| locomotion | `loco.rock` | `rock` | 1 | nothing | no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable) |
+| locomotion | `loco.legged_cycle` | `legs` | 2 | `limbs.legs` | a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs |
+| locomotion | `loco.glide` | `glide` | 2 | nothing | the figure slides, leaning into the move with a gentle bob; no limb moves (a robe figure, a ghost, a sack — the default for any figure without legs) |
+| locomotion | `loco.profile_cycle` | `profile` | 2 | `limbs.legs`, `swap.view:side` | the four poses of a walk seen in profile (contact, down, passing, up): with a side or three-quarter view showing the legs swing about the hip in opposition and the body sinks after each contact and rises before the next; asked while another view shows, it walks as legs (Reiniger's silhouettes, any figure drawn side-on) |
+| locomotion | `loco.shuffle` | `shuffle` | 2 | `limbs.legs` | the feet barely leave the ground: short, quick steps with little bob and arms close to the body (the old, the tired, the cautious) |
+| locomotion | `loco.hem_sway` | `hem` | 2 | `limbs.legs` | a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs |
+| locomotion | `loco.waddle` | `waddle` | 2 | nothing | the body rocks from foot to foot and bobs on each step; legs, if any, lift in turn (a penguin, a toddler, a squat figure) |
+| locomotion | `loco.hop` | `hop` | 2 | nothing | the whole figure jumps on every step while it travels (a bird, a kangaroo, a gleeful character, anything drawable) |
+| locomotion | `loco.bounce` | `bounce` | 2 | nothing | the body bobs on every step while it slides; legs, if any, only flick (the South Park walk) |
+| locomotion | `loco.rock` | `rock` | 2 | nothing | no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable) |
 | speech | `speech.mouth_chart` | `mouth_chart` | 1 | `face.mouth` | lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set) |
 | speech | `speech.pose_only` | `pulse` | 1 | nothing | no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking |
 | expression | `expr.full_face` | `full_face` | 1 | `face.brows` | the expression acts with the whole face: the brows rise, knit and tilt, the lids open and close, the pupils move and the mouth takes the preset's form |
