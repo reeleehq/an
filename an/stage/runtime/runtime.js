@@ -545,6 +545,8 @@
     }
 
     const PATH_HEAD_STROKE_INSET = 0.5;
+    // Mirror of an.stage.path_geometry.OUTLINE_MITER_LIMIT (an#161).
+    const PATH_OUTLINE_MITER_LIMIT = 4.0;
 
     // Dash k covers [offset + k*period, offset + k*period + dash], laid along
     // the WHOLE path and clipped to [a, b] afterwards — so the trim moving
@@ -600,8 +602,78 @@
         return [[tx, ty], [bx + nx, by + ny], [bx - nx, by - ny]];
     }
 
+    // A variable-width stroke (an#161): the width at fraction u of the WHOLE
+    // path. Mirror of an.stage.path_geometry.profile_width.
+    function pathProfileWidth(profile, width, u) {
+        if (u <= profile[0][0]) return width * profile[0][1];
+        for (let i = 1; i < profile.length; i++) {
+            const t1 = profile[i][0], f1 = profile[i][1];
+            if (u <= t1) {
+                const t0 = profile[i - 1][0], f0 = profile[i - 1][1];
+                return width * (f0 + (f1 - f0) * ((u - t0) / (t1 - t0)));
+            }
+        }
+        return width * profile[profile.length - 1][1];
+    }
+
+    // The filled polygon of a variable-width stroke along `line`, which starts
+    // at arc length `start` of a path `total` long. Mirror of
+    // an.stage.path_geometry.stroke_outline (same operations, same order).
+    function pathOutline(line, start, total, width, profile) {
+        const pts = [line[0]];
+        for (let i = 1; i < line.length; i++) {
+            const q = line[i], prev = pts[pts.length - 1];
+            if (q[0] !== prev[0] || q[1] !== prev[1]) pts.push(q);
+        }
+        if (pts.length < 2) return [];
+        const normals = [];
+        for (let i = 0; i < pts.length - 1; i++) {
+            const dx = pts[i + 1][0] - pts[i][0];
+            const dy = pts[i + 1][1] - pts[i][1];
+            const seg = Math.sqrt(dx * dx + dy * dy);
+            normals.push([-dy / seg, dx / seg]);
+        }
+        const left = [], right = [];
+        let s = start;
+        for (let i = 0; i < pts.length; i++) {
+            const x = pts[i][0], y = pts[i][1];
+            if (i > 0) {
+                const dx = x - pts[i - 1][0];
+                const dy = y - pts[i - 1][1];
+                s = s + Math.sqrt(dx * dx + dy * dy);
+            }
+            const half = pathProfileWidth(profile, width, s / total) / 2.0;
+            let nx, ny, reach;
+            if (i === 0) {
+                nx = normals[0][0]; ny = normals[0][1]; reach = half;
+            } else if (i === pts.length - 1) {
+                nx = normals[normals.length - 1][0]; ny = normals[normals.length - 1][1]; reach = half;
+            } else {
+                const ax = normals[i - 1][0], ay = normals[i - 1][1];
+                const bx = normals[i][0], by = normals[i][1];
+                const mx = ax + bx;
+                const my = ay + by;
+                const m = Math.sqrt(mx * mx + my * my);
+                if (!(m > 0)) {
+                    nx = ax; ny = ay; reach = half;
+                } else {
+                    nx = mx / m;
+                    ny = my / m;
+                    const cos = nx * bx + ny * by;
+                    reach = half / cos;
+                    const limit = half * PATH_OUTLINE_MITER_LIMIT;
+                    if (reach > limit) reach = limit;
+                }
+            }
+            left.push([x + nx * reach, y + ny * reach]);
+            right.push([x - nx * reach, y - ny * reach]);
+        }
+        return left.concat(right.reverse());
+    }
+
     function pathGeometry(pts, trimStart, trimEnd, headLength, headWidth,
-                          dash, gap, dashOffset, tailHeadLength, tailHeadWidth) {
+                          dash, gap, dashOffset, tailHeadLength, tailHeadWidth,
+                          width, widthProfile) {
         const cum = pathLengths(pts);
         const total = cum[cum.length - 1];
         const lo = clamp01(Math.min(trimStart, trimEnd));
@@ -635,9 +707,15 @@
                 ? pathDashSpans(strokeStart, strokeEnd, dash, gap, dashOffset || 0) : [];
             const dashes = spans.map(sp => pathTrim(pts, cum, sp[0], sp[1]));
             out = { stroke: [], head: head, dashes: dashes };
+            if (widthProfile) {
+                out.outlines = dashes.map((d, i) => pathOutline(d, spans[i][0], total, width, widthProfile));
+            }
         } else {
             const stroke = strokeEnd > strokeStart ? pathTrim(pts, cum, strokeStart, strokeEnd) : [];
             out = { stroke: stroke, head: head };
+            if (widthProfile) {
+                out.outlines = stroke.length ? [pathOutline(stroke, strokeStart, total, width, widthProfile)] : [];
+            }
         }
         if (tailOn) out.tail = tail;
         return out;
@@ -650,7 +728,8 @@
             spec.points, st.trim_start, st.trim_end,
             spec.head_length || 0, spec.head_width || 0,
             spec.dash || 0, spec.gap || 0, st.dash_offset,
-            spec.tail_head_length || 0, spec.tail_head_width || 0
+            spec.tail_head_length || 0, spec.tail_head_width || 0,
+            spec.stroke_width, spec.width_profile || null
         );
         const color = parseColor(spec.color);
         g.clear();
@@ -666,7 +745,16 @@
         const whole = spec.closed && !geo.dashes && !geo.head && !geo.tail
             && Math.min(st.trim_start, st.trim_end) <= 0
             && Math.max(st.trim_start, st.trim_end) >= 1;
-        const strokes = spec.stroke_width > 0 ? (geo.dashes || [geo.stroke]) : [];
+        const strokes = spec.stroke_width > 0 && !spec.width_profile
+            ? (geo.dashes || [geo.stroke]) : [];
+        for (const poly of (spec.width_profile ? geo.outlines || [] : [])) {
+            // A variable-width stroke is a filled shape (an#161).
+            if (poly.length < 3) continue;
+            g.lineStyle(0);
+            g.beginFill(color, 1.0);
+            g.drawPolygon(poly.flat());
+            g.endFill();
+        }
         for (const line of strokes) {
             if (line.length < 2) continue;
             g.lineStyle({

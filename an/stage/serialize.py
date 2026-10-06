@@ -115,6 +115,10 @@ class PathJSON(_JSONModel):
     closed: bool = False
     fill: str | None = None
     fill_alpha: float = 1.0
+    #: A variable-width stroke (an#161): ``[[t, factor], ...]`` over the whole
+    #: path's length; the runtime fills ``path_geometry``'s ``outlines``.
+    #: Omitted when unset.
+    width_profile: list[tuple[float, float]] | None = None
 
     @model_serializer(mode="wrap")
     def _omit_absent_tail(self, handler):
@@ -124,6 +128,8 @@ class PathJSON(_JSONModel):
             data.pop("tail_head_width", None)
         if isinstance(data, dict) and not self.closed:
             data.pop("closed", None)
+        if isinstance(data, dict) and self.width_profile is None:
+            data.pop("width_profile", None)
         if isinstance(data, dict) and self.fill is None:
             data.pop("fill", None)
             data.pop("fill_alpha", None)

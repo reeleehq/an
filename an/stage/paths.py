@@ -150,6 +150,12 @@ class PathDescriptor(BaseModel):
     #: Stroke width, scene px. ``0`` = no stroke, only for a ``fill``ed shape
     #: (a region without a border).
     width: float = Field(default=DFLT_STROKE_WIDTH, ge=0, allow_inf_nan=False)
+    #: A variable width (an#161): ``[[t, factor], ...]`` along the WHOLE path's
+    #: arc length (``t`` from 0 to 1, increasing; ``factor`` times ``width``,
+    #: linear between stops), so ``[[0, 1], [1, 0]]`` tapers to a point and a
+    #: trim never makes the width crawl. The stroke becomes a filled shape:
+    #: butt ends, mitred corners (no ``cap``/``join``).
+    width_profile: list[tuple[float, float]] | None = None
     cap: Literal["round", "butt", "square"] = "round"
     join: Literal["round", "miter", "bevel"] = "round"
     #: The visible span before anything animates it, as fractions of arc
@@ -299,12 +305,19 @@ class PathDescriptor(BaseModel):
                     "nothing; give it a width or a fill"
                 )
             inert = sorted(
-                given & {"dash", "gap", "dash_offset", "cap", "join", "color", "trim_start", "trim_end"}
+                given & {"dash", "gap", "dash_offset", "cap", "join", "color", "trim_start", "trim_end", "width_profile"}
             ) + [n for n in ("arrowhead", "tail_arrowhead") if getattr(self, n)]
             if inert:
                 raise ValueError(
                     f"{inert} draw on the stroke, and `width` is 0 (a fill with "
                     "no border); give it a width or drop them"
+                )
+        if self.width_profile is not None:
+            _check_width_profile(self.width_profile)
+            if given & {"cap", "join"}:
+                raise ValueError(
+                    "cap/join are set but the stroke has a `width_profile`, which "
+                    "draws it as a filled shape (butt ends, mitred corners); drop them"
                 )
         if not self.wobble and given & {"wobble_wavelength", "wobble_seed"}:
             raise ValueError(
@@ -359,6 +372,28 @@ class PathDescriptor(BaseModel):
         if self.head_width is not None:
             return float(self.head_width)
         return DFLT_HEAD_WIDTH_FACTOR * self.width
+
+
+def _check_width_profile(profile: list[tuple[float, float]]) -> None:
+    """A profile the stroke can be drawn with: stops from ``t=0`` to ``t=1``,
+    strictly increasing, finite non-negative factors, not all zero.
+
+    >>> _check_width_profile([(0.0, 1.0), (0.5, 0.0)])
+    Traceback (most recent call last):
+    ...
+    ValueError: a width_profile runs from t=0 to t=1; got stops at [0.0, 0.5]
+    """
+    ts = [t for t, _ in profile]
+    if len(profile) < 2 or ts[0] != 0.0 or ts[-1] != 1.0:
+        raise ValueError(f"a width_profile runs from t=0 to t=1; got stops at {ts}")
+    if any(not b > a for a, b in zip(ts, ts[1:])):
+        raise ValueError(f"a width_profile's stops must increase strictly; got {ts}")
+    factors = [f for _, f in profile]
+    if any(not (math.isfinite(f) and f >= 0) for f in factors) or not any(factors):
+        raise ValueError(
+            "a width_profile's factors are finite, non-negative and not all zero; "
+            f"got {factors}"
+        )
 
 
 def resolve_path(

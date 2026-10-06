@@ -2677,6 +2677,7 @@ def _build_path_subtree(
                 closed=desc.closed,
                 fill=desc.fill,
                 fill_alpha=desc.fill_alpha,
+                width_profile=desc.width_profile,
             ),
         ),
     )

@@ -163,6 +163,8 @@ def _battery() -> list[dict]:
     tails = [(0.0, 0.0), (14.0, 9.0), (1e6, 3.0)]
     # (dash, gap, offset): solid, plain, an irrational period with a negative
     # offset, a dash far longer than the path, and a hairline dash
+    # width profiles (an#161): none, a taper to nothing, an irregular brush
+    profiles = [None, [[0.0, 1.0], [1.0, 0.0]], [[0.0, 0.2], [0.37, 1.5], [1.0, 0.1]]]
     dashes = [
         (0.0, 0.0, 0.0),
         (10.0, 15.0, 0.0),
@@ -182,12 +184,15 @@ def _battery() -> list[dict]:
             "off": o,
             "thl": thl,
             "thw": thw,
+            "w": 7.3,
+            "prof": prof,
         }
         for pts in rng_pts
         for ts, te in trims
         for hl, hw in heads
         for d, g, o in dashes
         for thl, thw in tails
+        for prof in profiles
     ]
 
 
@@ -214,15 +219,19 @@ _GEOMETRY_FUNCS = (
     "function pathTrim",
     "function pathDashSpans",
     "function clamp01",
+    "function pathProfileWidth",
+    "function pathOutline",
     "function pathGeometry",
 )
 
 
 def _runtime_pieces(*markers: str) -> str:
     src = RUNTIME_JS.read_text(encoding="utf-8")
-    inset = src[src.index("const PATH_HEAD_STROKE_INSET") :]
-    inset = inset[: inset.index(";") + 1]
-    return "\n".join([inset, *(_extract_js_block(src, m) for m in markers)])
+    consts = []
+    for name in ("const PATH_HEAD_STROKE_INSET", "const PATH_OUTLINE_MITER_LIMIT"):
+        c = src[src.index(name) :]
+        consts.append(c[: c.index(";") + 1])
+    return "\n".join([*consts, *(_extract_js_block(src, m) for m in markers)])
 
 
 @requires_node
@@ -242,7 +251,7 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             "const cases = JSON.parse(require('fs').readFileSync("
             "process.argv[1], 'utf8'));",
             "console.log(JSON.stringify(cases.map(c => "
-            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off, c.thl, c.thw))));",
+            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off, c.thl, c.thw, c.w, c.prof))));",
         ]
     )
     js = node_json(script, str(cases_file))
@@ -258,6 +267,8 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             dash_offset=case["off"],
             tail_head_length=case["thl"],
             tail_head_width=case["thw"],
+            width=case["w"],
+            width_profile=case["prof"],
         )
         want_json = json.loads(json.dumps(want))
         assert got == want_json, case
@@ -983,3 +994,52 @@ def test_the_runtime_draws_no_stroke_for_a_fill_with_no_border():
             "color": "#ff0000", "closed": True, "fill": "#0000ff"}
     names = [c[0] for c in _draw(spec)]
     assert "drawPolygon" in names and "moveTo" not in names
+
+
+# --- variable width / taper (an#161) ------------------------------------------------
+
+TAPER = [(0.0, 1.0), (1.0, 0.0)]
+
+
+def test_a_taper_is_anchored_to_the_path_so_a_draw_on_does_not_crawl():
+    """The width at a point of the path is the same whatever the trim: the
+    outline's start (left, right) is identical at trim_end 0.5 and 1.0."""
+    pts = [(0.0, 0.0), (100.0, 0.0), (100.0, 100.0)]
+    half = path_geometry(pts, 0.0, 0.5, width=10.0, width_profile=TAPER)["outlines"][0]
+    whole = path_geometry(pts, 0.0, 1.0, width=10.0, width_profile=TAPER)["outlines"][0]
+    assert half[0] == whole[0] == (0.0, 5.0)
+    assert half[-1] == whole[-1] == (0.0, -5.0)
+    # at the half-way tip (the corner) the stroke is half as wide
+    assert half == [(0.0, 5.0), (100.0, 2.5), (100.0, -2.5), (0.0, -5.0)]
+    assert whole[len(whole) // 2 - 1] == (100.0, 100.0)  # factor 0 at the end
+
+
+def test_a_taper_reaches_the_wire_and_an_even_stroke_carries_no_profile():
+    p = _compile(_shot(), {"width_profile": [[0, 1], [1, 0.2]]}).scene.children[0].visual.path
+    assert p.width_profile == [(0.0, 1.0), (1.0, 0.2)]
+    assert '"width_profile"' not in json.dumps(to_dict(_compile(_shot())))
+
+
+def test_the_descriptor_refuses_a_profile_it_cannot_draw():
+    for bad, msg in [
+        ([[0, 1]], "t=0 to t=1"),
+        ([[0.1, 1], [1, 0]], "t=0 to t=1"),
+        ([[0, 1], [0.5, 1], [0.5, 0], [1, 0]], "increase strictly"),
+        ([[0, 0], [1, 0]], "not all zero"),
+        ([[0, -1], [1, 1]], "non-negative"),
+    ]:
+        with pytest.raises(ValueError, match=msg):
+            PathDescriptor(name="r", points=L_POINTS, width_profile=bad)
+    with pytest.raises(ValueError, match="cap/join"):
+        PathDescriptor(name="r", points=L_POINTS, width_profile=TAPER, cap="butt")
+
+
+@requires_node
+def test_the_runtime_fills_a_tapered_stroke_instead_of_stroking_it():
+    spec = {"points": [[0, 0], [100, 0]], "stroke_width": 8, "color": "#ff0000",
+            "width_profile": [[0, 1], [1, 0]]}
+    calls = _draw(spec)
+    names = [c[0] for c in calls]
+    assert "moveTo" not in names and "lineTo" not in names
+    (poly,) = [c for c in calls if c[0] == "drawPolygon"]
+    assert poly[1] == [0, 4, 100, 0, 100, 0, 0, -4]

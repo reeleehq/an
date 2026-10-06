@@ -36,9 +36,11 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 
 - **Closed and filled shapes**: `closed` / `fill` / `fill_alpha` on the document, and `PathJSON.closed/fill/fill_alpha` (omitted when off, so no path document moved). The compiler appends the first point when a closed path ends elsewhere, so arc length, trim and dashes include the closing leg and `pathGeometry` is untouched (no parity change). `drawPath` fills `spec.points` under the stroke (never trimmed) and, when a closed path is drawn WHOLE (full trim, no dashes, no heads), replaces the last `lineTo` with `closePath()` so the seam is a join, not two caps. `width: 0` is a fill with no border: the descriptor refuses stroke-only fields on it, and a trim/`dash_offset` on it raises at compile, validate and runtime (`path_trims` is empty for it). Answer to the issue's open question: trim draws the border; fading a region is a second entity's `alpha`. Corpus scene `path_shape`.
 
+- **Variable width** (`width_profile`): `path_geometry(..., width=, width_profile=)` adds an `outlines` key (absent otherwise, in both implementations), one polygon per stroke or dash, from `stroke_outline`, mirrored by `runtime.js::pathOutline`/`pathProfileWidth`. The width at a vertex is read at its arc length on the WHOLE path (the piece's start plus the distance along it), so trim never makes the width crawl. Each vertex is offset along the normalised bisector of its legs' normals by `half / cos`, capped at `OUTLINE_MITER_LIMIT` × half (a JS constant pinned by the parity harness). Butt ends; a hairpin can self-intersect (earcut fills it oddly), which smooth flattened curves do not show. `drawPath` fills the outlines and draws no `lineStyle` stroke. The parity battery crosses every case with three profiles. Corpus scene `path_taper`.
+
 ## Not built (still in #161)
 
-Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); per-point trim easing; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
+Round caps on a variable-width stroke; per-point trim easing; boil (a wobble that changes on twos, below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
 
 ## A style layer on top (hand-drawn wobble, stroke jitter)
 
