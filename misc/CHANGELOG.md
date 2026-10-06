@@ -5,6 +5,7 @@ day per chunk of work; keep entries terse.
 
 ## 2026-10-06
 - **The skill vocabulary section is the core's only** (an#354, an#349): `skill_vocabulary_section(owner=...)` / `--owner NAME` render one owner's rows; `an`'s skill lists the core names and points to the `cutan` skill for the genre's, which cutan generates and checks itself, so a cutan merge no longer reddens `an` PRs. Stale guidance fixed: a legless walk glides (an#335), style specs ship in `cutan.style_spec` (an#333).
+- **Text content as a replacement set** (an#341, T1 of an#331): `TextDescriptor.texts`/`rest` and a fourth unit `block` (one node `block_0`); the build stamps a `text` swap set with per-key geometry on the `align` edge; the core `prop` kind declares it through `swap_declaration`, which validate's swap check now consults; `set <id> text <key>` swaps at the keyed time (entity sugar or `block_0`). New core fixture `text_swap` with goldens; no runtime change.
 - **Tests follow cutan#32** (the style-policy compile pass `style_policy` and the check `cutout.shot_policy`): the pinned pass and check orders, and the genre's listed checks, name them; `main`'s genre lane was red from the moment cutan#32 merged.
 
 ## 2026-10-05

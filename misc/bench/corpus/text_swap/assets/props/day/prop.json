@@ -1,0 +1,15 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "day",
+  "unit": "block",
+  "texts": {
+    "d1": "Day 1",
+    "d12": "Day 12",
+    "d300": "Day 300"
+  },
+  "rest": "d1",
+  "align": "right",
+  "size": 0.12,
+  "color": "#1c1c1c"
+}

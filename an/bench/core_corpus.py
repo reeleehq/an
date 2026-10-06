@@ -12,6 +12,8 @@ path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role
 stage_pan  planes and the camera's TRANSLATION — parallax at three depths
 text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
+text_swap  text content over time — a `texts` replacement set swapped twice,
+           right-aligned (an#341)
 transitions a fade in from black and a DISSOLVE between two stage shots: the
            film's composed frames, which is what is delivered, are the goldens
 ========== ===================================================================
@@ -33,7 +35,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['path_draw', 'stage_pan', 'text_card', 'transitions']
+['path_draw', 'stage_pan', 'text_card', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -150,6 +152,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "world, broke per-word addressing or the camera's zoom/roll moves "
             "a golden. The face is Pillow's embedded Aileron, so the glyphs "
             "do not depend on the machine's fonts."
+        ),
+    ),
+    "text_swap": Fixture(
+        path=f"{CORPUS_DIRNAME}/text_swap",
+        expect_visual_kinds=frozenset({"rect", "svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a text block's CONTENT changing within one shot (an#341): one "
+            "right-aligned `unit: block` label whose `texts` set is swapped "
+            "twice, \"Day 1\" -> \"Day 12\" at 0.125 s (the entity-level `set "
+            "day text d12`) -> \"Day 300\" at 0.25 s (the `day/block_0` path). "
+            "What moves between the goldens is the string, growing LEFTWARDS "
+            "from a fixed right edge: a regression in the swap set, in the "
+            "per-key geometry anchored on the `align` edge, or in the "
+            "entity-level fan-out moves a golden."
         ),
     ),
     "transitions": Fixture(

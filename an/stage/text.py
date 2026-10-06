@@ -85,6 +85,10 @@ __all__ = [
     "RESERVED_TEXT_IDS",
     "layout_text",
     "unit_names",
+    "layout_text_set",
+    "text_set_keys",
+    "TEXT_SET",
+    "BLOCK_UNIT",
     "reveal_units",
     "DFLT_TEXT_COLOUR",
     "DFLT_TEXT_SIZE",
@@ -137,7 +141,15 @@ UNIT_BOX_PAD_PX: int = 1
 _HEX_COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
 
 Layer = Literal["world", "overlay"]
-Unit = Literal["word", "glyph", "line"]
+Unit = Literal["word", "glyph", "line", "block"]
+
+#: The unit that typesets the whole string as ONE node, ``block_0`` (an#341):
+#: what a replacement set swaps, since per-word units of different strings do
+#: not line up.
+BLOCK_UNIT: str = "block"
+
+#: The swap set a text block with ``texts`` declares (an#341).
+TEXT_SET: str = "text"
 
 
 class TextFontError(ValueError):
@@ -170,10 +182,19 @@ class TextDescriptor(BaseModel):
     kind: Literal["TextDescriptor"] = "TextDescriptor"
     schema_version: str = TEXT_SCHEMA_VERSION
     name: str
-    #: The words. Explicit newlines break lines; ``max_width`` wraps.
-    text: str = Field(min_length=1)
+    #: The words. Explicit newlines break lines; ``max_width`` wraps. Exactly
+    #: one of ``text`` and ``texts`` is given.
+    text: str | None = Field(default=None, min_length=1)
+    #: A replacement set (an#341): ``{key: string}``, every string one drawing
+    #: of the block, swapped by ``set <id> text <key>`` — replacement animation
+    #: applied to text. Keys obey the swap-key rules (no ``/``, no ``::``).
+    #: Requires ``unit="block"``.
+    texts: dict[str, str] | None = None
+    #: The key drawn when nothing has been set; default: the first key.
+    rest: str | None = None
     layer: Layer = "world"
-    #: What one addressable node is: a word, a glyph, or a whole line.
+    #: What one addressable node is: a word, a glyph, a whole line, or the
+    #: whole block (``block_0``, one node however many lines).
     unit: Unit = "word"
     #: Fraction of frame height.
     size: float = Field(default=DFLT_TEXT_SIZE, gt=0, le=1, allow_inf_nan=False)
@@ -213,12 +234,71 @@ class TextDescriptor(BaseModel):
     @field_validator("text")
     @classmethod
     def _something_to_draw(cls, text):
-        if not text.strip():
+        if text is not None and not text.strip():
             raise ValueError("`text` is only whitespace, so it would draw nothing")
         return text
 
+    @field_validator("texts")
+    @classmethod
+    def _a_set_of_drawings(cls, texts):
+        if texts is None:
+            return texts
+        if not texts:
+            raise ValueError("`texts` is empty, so the block would draw nothing")
+        from an.base import SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS
+
+        for key, string in texts.items():
+            bad = [b for b in SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS if b in key]
+            if not key or bad:
+                raise ValueError(
+                    f"`texts` key {key!r} cannot be a swap key"
+                    + (f" (it contains {bad[0]!r}, which is reserved)" if bad else "")
+                )
+            if not string.strip():
+                raise ValueError(
+                    f"`texts[{key!r}]` is only whitespace, so it would draw nothing"
+                )
+        return texts
+
+    @property
+    def rest_key(self) -> str | None:
+        """The key a block with ``texts`` shows at rest (``rest``, else the
+        first key); ``None`` for a single-string block."""
+        if self.texts is None:
+            return None
+        return self.rest if self.rest is not None else next(iter(self.texts))
+
+    @property
+    def content(self) -> str:
+        """The string the block draws at rest."""
+        return self.texts[self.rest_key] if self.texts is not None else self.text
+
     @model_validator(mode="after")
     def _nothing_set_is_ignored(self) -> "TextDescriptor":
+        if (self.text is None) == (self.texts is None):
+            raise ValueError(
+                "a text block draws `text` (one string) or `texts` (a "
+                "replacement set, an#341); "
+                + ("both were given" if self.text is not None else "neither was given")
+            )
+        if self.texts is not None and self.unit != BLOCK_UNIT:
+            raise ValueError(
+                f"`texts` swaps the WHOLE string, so it needs unit='block' (one "
+                f"node, `block_0`); got unit={self.unit!r}. Per-{self.unit} units "
+                "of different strings do not line up, and a tween on one could "
+                "not say which string it meant."
+            )
+        if self.rest is not None:
+            if self.texts is None:
+                raise ValueError(
+                    "`rest` names the key a replacement set shows at rest; it "
+                    "needs `texts`"
+                )
+            if self.rest not in self.texts:
+                raise ValueError(
+                    f"`rest` is {self.rest!r}, which is not a key of `texts` "
+                    f"(it has: {sorted(self.texts)})"
+                )
         if self.anchor is not None:
             if self.layer != "overlay":
                 raise ValueError(
@@ -342,6 +422,10 @@ class TextLayout:
     units: tuple[TextUnit, ...]
     origin: tuple[float, float]
     font: FontIdentity
+    #: The block's LAYOUT box ``(x0, y0, x1, y1)`` in frame pixels: advances
+    #: and line heights, not ink, so two strings of one face share a baseline
+    #: and their ``align`` edges can be lined up (an#341).
+    bounds: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
 
 def _font_request(desc: TextDescriptor, base_dir: Path | None) -> tuple[str, ...]:
@@ -378,7 +462,8 @@ def layout_text(
     """Set ``desc`` on a ``width`` x ``height`` frame and take each unit's contours.
 
     ``base_dir`` is what a relative ``font`` path resolves against — the text
-    document's own directory in the props store.
+    document's own directory in the props store. A block with ``texts`` is set
+    with its rest string (:func:`layout_text_set` sets every one).
 
     >>> lay = layout_text(TextDescriptor(name="t", text="Hello big world"), width=1920, height=1080)
     >>> [u.name for u in lay.units]
@@ -387,7 +472,56 @@ def layout_text(
     (960.0, 540.0)
     >>> lay.font.family, lay.font.embedded
     ('Aileron', True)
+    >>> [u.name for u in layout_text(TextDescriptor(name="t", text="two\\nlines", unit="block"), width=1920, height=1080).units]
+    ['block_0']
     """
+    return _layout_string(
+        desc, desc.content, width=width, height=height, base_dir=base_dir
+    )
+
+
+def text_set_keys(desc: TextDescriptor) -> dict[str, str]:
+    """``{key: key}`` for a block's replacement set — the ``text`` set as a
+    swap declaration states it (``{}`` for a single-string block).
+
+    >>> text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))
+    {'a': 'a', 'b': 'b'}
+    """
+    return {key: key for key in (desc.texts or {})}
+
+
+def layout_text_set(
+    desc: TextDescriptor,
+    *,
+    width: int,
+    height: int,
+    base_dir: Path | str | None = None,
+) -> dict[str, TextLayout]:
+    """Every string of a block's replacement set, set once: ``{key: layout}``.
+
+    Each is set exactly as a single-string block would be, so each is centred
+    (or anchored) on its own; lining their ``align`` edges up is the
+    builder's job (:func:`an.stage.text_layout.build_text_subtree`). A block
+    with no ``texts`` returns ``{}``.
+
+    >>> lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)
+    >>> sorted(lays), [lay.units[0].name for lay in lays.values()]
+    (['a', 'b'], ['block_0', 'block_0'])
+    """
+    return {
+        key: _layout_string(desc, string, width=width, height=height, base_dir=base_dir)
+        for key, string in (desc.texts or {}).items()
+    }
+
+
+def _layout_string(
+    desc: TextDescriptor,
+    text: str,
+    *,
+    width: int,
+    height: int,
+    base_dir: Path | str | None,
+) -> TextLayout:
     from tituli import (
         TextStyle,
         block,
@@ -407,10 +541,11 @@ def layout_text(
         align=desc.align,
     )
     max_w = desc.max_width * width if desc.max_width is not None else None
-    text = desc.text
     for old, new in _WHITESPACE_NORMALISATION:
         text = text.replace(old, new)
-    lay = block(text, style, float(height), max_width=max_w, unit=desc.unit)
+    # tituli sets lines; a block is its lines drawn as ONE unit (below).
+    typeset_unit = "line" if desc.unit == BLOCK_UNIT else desc.unit
+    lay = block(text, style, float(height), max_width=max_w, unit=typeset_unit)
     runs = [r for r in lay.runs if r.text.strip()]
     if not runs:
         raise TextLayoutError(f"text {desc.name!r} lays out to nothing drawable")
@@ -433,8 +568,8 @@ def layout_text(
     dx = origin[0] - (bb.x0 + bb.x1) / 2.0
     dy = origin[1] - (bb.y0 + bb.y1) / 2.0
 
-    units: list[TextUnit] = []
-    for k, run in enumerate(r.translated(dx, dy) for r in runs):
+    inked = []  # (run, outline) of every run with ink, in reading order
+    for run in (r.translated(dx, dy) for r in runs):
         try:
             outline = run_outline(run)
         except MissingGlyphError as err:
@@ -443,20 +578,30 @@ def layout_text(
                 "refuses a character the face cannot draw rather than drawing a "
                 "box; give a `font` file that has it, or change the words."
             ) from err
-        if outline.bbox is None:
-            continue
-        box = run.bbox().union(outline.bbox)
+        if outline.bbox is not None:
+            inked.append((run, outline))
+    if desc.unit == BLOCK_UNIT:
+        # One unit for the whole block: the lines' contours in one path, the
+        # union of their boxes (an#341).
+        groups = [inked] if inked else []
+    else:
+        groups = [[pair] for pair in inked]
+    units: list[TextUnit] = []
+    for group in groups:
+        box = group[0][0].bbox().union(group[0][1].bbox)
+        for run, outline in group[1:]:
+            box = box.union(run.bbox()).union(outline.bbox)
         units.append(
             TextUnit(
                 name=f"{desc.unit}_{len(units)}",
-                text=run.text,
+                text="\n".join(run.text for run, _ in group),
                 box=(
                     math.floor(box.x0) - UNIT_BOX_PAD_PX,
                     math.floor(box.y0) - UNIT_BOX_PAD_PX,
                     math.ceil(box.x1) + UNIT_BOX_PAD_PX,
                     math.ceil(box.y1) + UNIT_BOX_PAD_PX,
                 ),
-                d=outline.d,
+                d=" ".join(outline.d for _, outline in group),
             )
         )
     identity = FontIdentity(
@@ -466,7 +611,12 @@ def layout_text(
         embedded=face.path is None,
         layout_engine=_layout_engine_name(face),
     )
-    return TextLayout(units=tuple(units), origin=origin, font=identity)
+    return TextLayout(
+        units=tuple(units),
+        origin=origin,
+        font=identity,
+        bounds=(bb.x0 + dx, bb.y0 + dy, bb.x1 + dx, bb.y1 + dy),
+    )
 
 
 def _layout_engine_name(face) -> str:

@@ -632,7 +632,11 @@ def _swap_vocabulary(
         declared_maps[entity.id] = {
             channel: dict(keys) for channel, keys in decl.sets.items()
         }
-        descriptors[entity.id] = decl.descriptor
+        # Only a declaration that carries a descriptor puts one here: it is
+        # what a genre's lowering reads as a rig, and a text block's `text`
+        # set (an#341) has none.
+        if decl.descriptor is not None:
+            descriptors[entity.id] = decl.descriptor
         art_exists[entity.id] = decl.art_exists
         entity_scale[entity.id] = decl.scale
 
@@ -3038,8 +3042,9 @@ def _fan_out_entity_swaps(
     the descriptor's ``swap_poses``. Set-name-agnostic: ``view`` is a
     convention, and a ``hands`` set fans out to both hands the same way.
 
-    Only a character with a descriptor, and only when the entity node does not
-    carry the set itself; a tween of a swap on the entity is left to the
+    Only an entity whose kind declares the set (a character's descriptor, a
+    text block's ``texts``), and only when the entity node does not carry the
+    set itself; a tween of a swap on the entity is left to the
     ordinary check, which names the nodes that carry the set.
     """
     if vocab is None:
@@ -3054,7 +3059,7 @@ def _fan_out_entity_swaps(
             or prop in _PROPERTY_REST_VALUES
             or prop in TRANSFORM_PROPERTIES
             or prop == TINT_PROPERTY
-            or action.target not in vocab.descriptors
+            or action.target not in vocab.declared
             or prop in vocab.node_sets.get(action.target, {})
         ):
             out.append(flat)
@@ -3100,7 +3105,9 @@ def _fan_out_entity_swaps(
                     action=action.model_copy(update={"target": path}),
                 )
             )
-        if record is not None:
+        # The pose layer reads the descriptor's `swap_poses`; an entity that
+        # declares sets without one (a text block, an#341) poses nothing.
+        if record is not None and entity_id in vocab.descriptors:
             record.append(_EntitySwap(entity_id, prop, float(flat.start), action.value))
     return out
 

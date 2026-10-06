@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "EnvironmentDescriptor",
+  "name": "paper",
+  "planes": [
+    {
+      "name": "bg",
+      "art": {
+        "kind": "fill",
+        "color": "#f2ead8",
+        "src": null
+      },
+      "depth": 0.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": null,
+      "fit": "contain"
+    }
+  ]
+}

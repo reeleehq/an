@@ -291,6 +291,7 @@ def _check_text_blocks(
     from an.stage.text import (
         font_base_dir,
         layout_text,
+        layout_text_set,
         resolve_text,
         text_entity_problem,
     )
@@ -317,6 +318,14 @@ def _check_text_blocks(
         try:
             desc = resolve_text(doc, entity.overrides)
             lay = layout_text(
+                desc,
+                width=width,
+                height=height,
+                base_dir=font_base_dir(props, entity.ref),
+            )
+            # Every string of a replacement set is typeset, as the compiler
+            # does: a glyph only one key uses still raises (an#341).
+            layout_text_set(
                 desc,
                 width=width,
                 height=height,
@@ -437,6 +446,46 @@ def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str
     return rigs, unchecked
 
 
+def _declared_swap_sets(entity, stores: Mapping[str, Any], *, cache: dict) -> Any:
+    """``{set: {key: …}}`` that ``entity``'s kind declares through its
+    :attr:`~an.genres.EntityKind.swap_declaration` hook, or ``None`` — the
+    compiler's own source for its swap vocabulary, asked once per entity."""
+    if entity.id not in cache:
+        registered = entity_kind(entity.kind)
+        declare = registered.swap_declaration if registered is not None else None
+        decl = declare(entity, stores) if declare is not None else None
+        cache[entity.id] = decl.sets if decl is not None else None
+    return cache[entity.id]
+
+
+def _report_undeclared_swap(
+    action, prop: str, declared: Mapping, entity_id: str, where: str, report
+) -> None:
+    """The compiler's two refusals of a swap, as findings: a set the entity
+    does not declare, and a key its set does not have."""
+    if prop not in declared:
+        report.add(
+            "error",
+            where,
+            f"property {prop!r} names no declared asset set of {entity_id!r} "
+            f"(it has: {sorted(declared)}) — compiling this shot raises.",
+        )
+        return
+    keys = declared[prop]
+    for v in (
+        getattr(action, "value", None),
+        getattr(action, "from_value", None),
+        getattr(action, "to_value", None),
+    ):
+        if v is not None and (not isinstance(v, str) or v not in keys):
+            report.add(
+                "error",
+                where,
+                f"{v!r} is not a declared key of {entity_id!r}'s {prop!r} set "
+                f"(it has: {sorted(keys)}) — compiling this shot raises.",
+            )
+
+
 def _check_swap_references(
     shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
 ) -> None:
@@ -459,6 +508,7 @@ def _check_swap_references(
     if not stores:
         return
     rigs, unchecked = _rig_scope(shot, stores)
+    declarations: dict[str, Any] = {}
     # Flattened, like the compiler: the documented `start:` idiom wraps every
     # leaf in a `sequence`, so walking only top-level actions would miss the
     # common case (an#87 review) — an authoring-time gate that only sees the
@@ -480,6 +530,16 @@ def _check_swap_references(
         desc = _rig_document(entity, stores) if entity is not None else None
         registered = entity_kind(entity.kind) if entity is not None else None
         swap_checks = registered.swap_checks if registered is not None else None
+        if desc is None and entity is not None:
+            declared_sets = _declared_swap_sets(entity, stores, cache=declarations)
+            if declared_sets is not None:
+                # A kind that declares its sets through its hook and has no rig
+                # document (a text block's `text` set, an#341): the same
+                # set-and-key rule, with nothing to look up on disk.
+                _report_undeclared_swap(
+                    action, prop, declared_sets, entity_id, f"{path}/actions/{k}", report
+                )
+                continue
         if desc is None:
             # The procedural carve-out is a CHARACTER's drawn mouth; a prop
             # with no rig document (a stroked path, an#160) has no swap set at

@@ -14,6 +14,14 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) â€
 - Fonts: `font: None` = Pillow's embedded Aileron via `tituli.EMBEDDED`; `font:` = a FILE path (absolute, or relative to the text document's directory in an on-disk props store). The face's sha256 goes to `meta.fonts[<id>]`.
 - Reveals are ordinary actions: `an.stage.text.reveal_units(...)` returns a list of `set` holds + `sequence(delay, tween)` leaves.
 
+## Text content over time: the replacement set (an#341)
+
+- `texts: {key: string}` + `rest` + `unit: block` (required with `texts`). `block` typesets with tituli's `line` unit and joins the lines into ONE unit, `block_0` (contours concatenated, boxes unioned). Exactly one of `text`/`texts`.
+- The builder (`_text_set_visual`) emits `block_0` drawing the rest string, `asset_sets={"text": {key: alias}}`, and an `asset_geometry` box per alias drawn differently. Alignment is by LAYOUT box (`TextLayout.bounds`: advances and line height, not ink): the `align` edge horizontally, the box centre vertically, so one-line keys share a baseline. An anchored overlay is pinned to the rest string's edge, not re-anchored per key.
+- The set is declared by the core `prop` kind's `swap_declaration` (`text_swap_declaration`) with `descriptor=None`: `vocab.descriptors` is what a genre's lowering reads as a RIG (cutan iterates it for `swap_poses`/`rest_view`), so a text block must never land there. Entity-level sugar fans out on `vocab.declared`; the pose record only for entities with a descriptor.
+- validate's `_check_swap_references` asks the kind's hook when there is no rig document (`_declared_swap_sets`); `_check_text_blocks` typesets EVERY key, so a glyph only one key uses is reported.
+- Runtime: nothing new. A `text` value is a `discrete` string under `stage.node`'s `*`; `applySwap` + `applyKeyGeometry` draw it.
+
 ## Silent failures this prevents â€” keep each one refused
 
 1. **A fallback face.** `tituli.resolve_face` NEVER fails: a font path that is missing or unparseable silently becomes Aileron. So `_font_request` checks the file exists AND `layout_text` checks the face tituli used came from that file (`face.path == request`). Remove either and a scene renders in the wrong face with no signal. Tested: missing file, non-font bytes.
