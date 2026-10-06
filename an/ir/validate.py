@@ -2053,6 +2053,35 @@ def _core_library_checkouts(ctx: ValidationContext) -> None:
 # -----------------------------------------------------------------------------
 
 
+def _core_meta_duration(ctx: ValidationContext) -> None:
+    """``meta.duration``, when set, says what the shots lay out (an#396).
+
+    The film is as long as its shots (their durations, minus each dissolve's
+    overlap); a ``meta.duration`` that says otherwise is ignored, silently,
+    and usually means a shot was edited after the meta line was written.
+    """
+    from an.assemble import film_duration, transition_problems
+    from an.measurements import META_DURATION_TOLERANCE_S
+
+    scene = ctx.scene
+    declared = float(scene.meta.duration or 0.0)
+    if declared <= 0 or not scene.timeline:
+        return
+    if transition_problems(scene.timeline, scene.meta.fps):
+        return  # the film cannot be laid out: said by the assembly check
+    laid_out = film_duration(scene)
+    if abs(declared - laid_out) <= META_DURATION_TOLERANCE_S:
+        return
+    ctx.report.add(
+        "warning",
+        "meta/duration",
+        f"meta.duration says {declared:g} s, but the shots lay out {laid_out:g} s "
+        "(their durations, minus any dissolve overlap); the film is as long as "
+        f"its shots. Set `duration: {laid_out:g}` in the meta block, or fix the "
+        "shot whose length is not what you meant.",
+    )
+
+
 def _register_core_checks() -> None:
     """The core's checks. The gaps in ``order`` are where the cut-out genre's
     land (its `play` and `expression` checks at 40-41, turns at 60-61, view
@@ -2079,6 +2108,13 @@ def _register_core_checks() -> None:
         SemanticCheck("voices", _core_voices, order=110),
         SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
         SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),
+        SemanticCheck(
+            "meta_duration",
+            _core_meta_duration,
+            stage="finish",
+            order=19,
+            description="meta.duration, when set, matches what the shots lay out",
+        ),
         SemanticCheck("assembly", _core_assembly, stage="finish", order=20),
         SemanticCheck(
             "dialogue_in_dissolve",

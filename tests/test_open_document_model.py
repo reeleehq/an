@@ -697,6 +697,8 @@ def test_the_report_order_is_pinned():
         "dialogue_fits",
     ]
     assert core("finish") == [
+        # an#396: meta.duration, when set, says what the shots lay out
+        "meta_duration",
         "assembly",
         # an#254: its own check, so `an render` can run it after synthesis by name
         "dialogue_in_dissolve",
