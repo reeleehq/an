@@ -48,12 +48,21 @@ __all__ = [
     "dash_spans",
     "path_geometry",
     "HEAD_STROKE_INSET",
+    "OUTLINE_MITER_LIMIT",
+    "profile_width",
+    "stroke_outline",
 ]
 
 #: Where the stroke stops under an arrowhead, as a fraction of the head's
 #: length back from the tip. Half-way keeps a butt or round cap inside the
 #: head for the default proportions, so the stroke never pokes past the tip.
 HEAD_STROKE_INSET: float = 0.5
+
+
+#: The longest a variable-width stroke's corner may reach, as a multiple of
+#: its half-width there (an#161): past it the miter is cut to this length, so
+#: a hairpin turn does not throw a spike across the frame.
+OUTLINE_MITER_LIMIT: float = 4.0
 
 
 #: How many parameter steps per output sample the arc-length table of a
@@ -260,6 +269,90 @@ def dash_spans(
     return out
 
 
+def profile_width(profile: Sequence[Sequence[float]], width: float, u: float) -> float:
+    """The stroke width at fraction ``u`` of the WHOLE path's length (an#161):
+    ``width`` times the profile's factor, linear between its stops.
+    Mirror of ``runtime.js::pathProfileWidth``.
+
+    >>> profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)
+    6.0
+    """
+    if u <= profile[0][0]:
+        return width * profile[0][1]
+    for i in range(1, len(profile)):
+        t1, f1 = profile[i][0], profile[i][1]
+        if u <= t1:
+            t0, f0 = profile[i - 1][0], profile[i - 1][1]
+            return width * (f0 + (f1 - f0) * ((u - t0) / (t1 - t0)))
+    return width * profile[-1][1]
+
+
+def stroke_outline(
+    line: Sequence[Point],
+    start: float,
+    total: float,
+    width: float,
+    profile: Sequence[Sequence[float]],
+) -> list[Point]:
+    """The filled polygon of a variable-width stroke along ``line`` (an#161).
+
+    ``line`` is a trimmed piece of the path beginning at arc length ``start``
+    of a path ``total`` long, so a point's width is read at its place on the
+    WHOLE path: trimming never makes the width crawl. Each vertex is offset
+    both ways along the bisector of its legs' normals by half its width,
+    lengthened to keep the stroke's width through the corner (capped at
+    :data:`OUTLINE_MITER_LIMIT`). Butt ends. Left side forward, then the
+    right side back. Mirror of ``runtime.js::pathOutline``.
+
+    >>> stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])
+    [(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]
+    """
+    pts = [line[0]]
+    for q in line[1:]:
+        if q[0] != pts[-1][0] or q[1] != pts[-1][1]:
+            pts.append(q)
+    if len(pts) < 2:
+        return []
+    normals = []
+    for i in range(len(pts) - 1):
+        dx = pts[i + 1][0] - pts[i][0]
+        dy = pts[i + 1][1] - pts[i][1]
+        seg = math.sqrt(dx * dx + dy * dy)
+        normals.append((-dy / seg, dx / seg))
+    left: list[Point] = []
+    right: list[Point] = []
+    s = start
+    for i, (x, y) in enumerate(pts):
+        if i > 0:
+            dx = x - pts[i - 1][0]
+            dy = y - pts[i - 1][1]
+            s = s + math.sqrt(dx * dx + dy * dy)
+        half = profile_width(profile, width, s / total) / 2.0
+        if i == 0:
+            nx, ny, reach = normals[0][0], normals[0][1], half
+        elif i == len(pts) - 1:
+            nx, ny, reach = normals[-1][0], normals[-1][1], half
+        else:
+            ax, ay = normals[i - 1]
+            bx, by = normals[i]
+            mx = ax + bx
+            my = ay + by
+            m = math.sqrt(mx * mx + my * my)
+            if not m > 0:
+                nx, ny, reach = ax, ay, half
+            else:
+                nx = mx / m
+                ny = my / m
+                cos = nx * bx + ny * by
+                reach = half / cos
+                limit = half * OUTLINE_MITER_LIMIT
+                if reach > limit:
+                    reach = limit
+        left.append((x + nx * reach, y + ny * reach))
+        right.append((x - nx * reach, y - ny * reach))
+    return left + right[::-1]
+
+
 def _clamp01(v: float) -> float:
     return 0.0 if v < 0.0 else (1.0 if v > 1.0 else v)
 
@@ -276,6 +369,8 @@ def path_geometry(
     dash_offset: float = 0.0,
     tail_head_length: float = 0.0,
     tail_head_width: float = 0.0,
+    width: float = 0.0,
+    width_profile: Sequence[Sequence[float]] | None = None,
 ) -> dict:
     """What the runtime draws: ``{"stroke": [points], "head": [3 points] | None}``.
 
@@ -288,6 +383,10 @@ def path_geometry(
 
     ``dash > 0`` makes the stroke a dash pattern: ``stroke`` is then ``[]`` and
     a ``"dashes"`` key (absent otherwise) holds one polyline per visible dash.
+
+    ``width_profile`` (an#161) makes the stroke a variable-width SHAPE: an
+    ``"outlines"`` key (absent otherwise) holds one polygon per stroke or dash
+    (:func:`stroke_outline`), which the runtime fills instead of stroking.
 
     ``head_length > 0`` turns the arrowhead on. While the visible length is
     shorter than the head, the head is scaled by ``visible / head_length`` so
@@ -332,10 +431,21 @@ def path_geometry(
             else []
         )
         dashes = [trim_polyline(pts, cum, lo_s, hi_s) for lo_s, hi_s in spans]
+        if width_profile:
+            extra["outlines"] = [
+                stroke_outline(d, sp[0], total, width, width_profile)
+                for d, sp in zip(dashes, spans)
+            ]
         return {"stroke": [], "head": head, "dashes": dashes, **extra}
     stroke = (
         trim_polyline(pts, cum, stroke_start, stroke_end)
         if stroke_end > stroke_start
         else []
     )
+    if width_profile:
+        extra["outlines"] = (
+            [stroke_outline(stroke, stroke_start, total, width, width_profile)]
+            if stroke
+            else []
+        )
     return {"stroke": stroke, "head": head, **extra}

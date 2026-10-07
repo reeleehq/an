@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "region",
+  "points": [
+    [
+      -20,
+      60
+    ],
+    [
+      -90,
+      0
+    ],
+    [
+      0,
+      -100
+    ],
+    [
+      60,
+      -60
+    ],
+    [
+      120,
+      -20
+    ],
+    [
+      150,
+      70
+    ],
+    [
+      -20,
+      60
+    ]
+  ],
+  "curve": "cubic",
+  "closed": true,
+  "width": 0,
+  "fill": "#27ae60",
+  "fill_alpha": 0.6
+}

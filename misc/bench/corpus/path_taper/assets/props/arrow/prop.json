@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "arrow",
+  "points": [[-120, -80], [0, -80], [0, -20], [110, -20]],
+  "color": "#c0392b",
+  "width": 10,
+  "width_profile": [[0, 0.2], [1, 1]],
+  "arrowhead": true,
+  "trim_end": 0.0
+}

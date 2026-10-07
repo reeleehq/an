@@ -1,0 +1,14 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "brush",
+  "points": [[-130, 70], [-80, -60], [20, 110], [130, 40]],
+  "curve": "cubic",
+  "sampling": "arclength",
+  "samples_per_segment": 48,
+  "color": "#2c3e50",
+  "width": 14,
+  "width_profile": [[0, 0], [0.3, 1.2], [1, 0]],
+  "wobble": 2,
+  "wobble_wavelength": 70
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "frame",
+  "points": [[-140, -100], [140, -100], [140, 100], [-140, 100], [-140, -100]],
+  "color": "#2c3e50",
+  "width": 4,
+  "join": "round",
+  "wobble": 3,
+  "wobble_wavelength": 60
+}

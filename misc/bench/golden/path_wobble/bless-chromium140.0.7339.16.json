@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T15:06:10Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1114,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "a6103178d1935c28f17787271328c770258387b8ef5cf3423f9bc96742248c6a",
+      "shot_id": "draw",
+      "time": 0.0
+    },
+    {
+      "bytes": 1567,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "2f5d40470f7ee9ef803b95182ad9f36372ef2d0fcb45114cca11cce84ce9839e",
+      "shot_id": "draw",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "path-wobble-161",
+    "dirty": true,
+    "sha": "e51d60dfb550c50c2b4efc88f528703da40fc55a"
+  },
+  "reason": "new core fixture: hand-drawn wobble (an#161)",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "path_wobble",
+  "scene_contract_sha256": "e5d79d518d90766f28cbdef82839f51c602cbc49791153f4d501e8386f289d23",
+  "shot_ids": [
+    "draw"
+  ],
+  "source": "misc/bench/corpus/path_wobble",
+  "what_moves": "two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (`trim_end` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both."
+}

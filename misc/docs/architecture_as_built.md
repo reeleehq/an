@@ -385,6 +385,8 @@ an/
 │   ├── easing.py            the stage's easing subset (EASING_FUNCS: the names
 │   │                        runtime.js implements); curves live in an/timing/easing.py
 │   ├── path_geometry.py     stroked-path geometry: Bézier flattening + the exact spec
+│   ├── path_wobble.py       hand-drawn wobble: compile-time seeded noise on the
+│   │                        flattened polyline (an#161; no runtime change)
 │   │                        of runtime.js pathGeometry (trim, arrowhead)
 │   ├── text_layout.py       text units -> SVG-sprite nodes (inline data: srcs)
 │   ├── surface.py           surface treatments (outline, shadow, glow, grain) -> nodes

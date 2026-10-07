@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-06T15:16:29Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1227,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "a92e33c2b9b1004884e2df75c9aebad46ea47ff3c23f2b5050e7ecebe820213e",
+      "shot_id": "draw",
+      "time": 0.0
+    },
+    {
+      "bytes": 1517,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "85a9bcf26ff7fca57ad27e150f831c169610171815c86fb149dc97a53e5e7e4c",
+      "shot_id": "draw",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "path-taper-161",
+    "dirty": true,
+    "sha": "7b645a8f3f3b33c6fe1b598ab1e4f01ab99a903d"
+  },
+  "reason": "new core fixture: variable-width paths (an#161)",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "path_taper",
+  "scene_contract_sha256": "dc030483a7ba908003f96a5bc47f6c4a5c0f3c9333a963790267a9dcc34d672e",
+  "shot_ids": [
+    "draw"
+  ],
+  "source": "misc/bench/corpus/path_taper",
+  "what_moves": "variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."
+}

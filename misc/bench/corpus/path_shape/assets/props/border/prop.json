@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "border",
+  "points": [
+    [
+      -20,
+      60
+    ],
+    [
+      -90,
+      0
+    ],
+    [
+      0,
+      -100
+    ],
+    [
+      60,
+      -60
+    ],
+    [
+      120,
+      -20
+    ],
+    [
+      150,
+      70
+    ],
+    [
+      -20,
+      60
+    ]
+  ],
+  "curve": "cubic",
+  "closed": true,
+  "color": "#145a32",
+  "width": 4,
+  "trim_end": 0.0
+}

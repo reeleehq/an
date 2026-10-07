@@ -31,6 +31,7 @@ from an.adapters.cutout.serialize import VisualJSON, to_dict
 from an.ir.schema import (
     AssetRef,
     Meta,
+    Resolution,
     SceneIR,
     SequenceAction,
     DelayAction,
@@ -162,6 +163,8 @@ def _battery() -> list[dict]:
     tails = [(0.0, 0.0), (14.0, 9.0), (1e6, 3.0)]
     # (dash, gap, offset): solid, plain, an irrational period with a negative
     # offset, a dash far longer than the path, and a hairline dash
+    # width profiles (an#161): none, a taper to nothing, an irregular brush
+    profiles = [None, [[0.0, 1.0], [1.0, 0.0]], [[0.0, 0.2], [0.37, 1.5], [1.0, 0.1]]]
     dashes = [
         (0.0, 0.0, 0.0),
         (10.0, 15.0, 0.0),
@@ -181,12 +184,15 @@ def _battery() -> list[dict]:
             "off": o,
             "thl": thl,
             "thw": thw,
+            "w": 7.3,
+            "prof": prof,
         }
         for pts in rng_pts
         for ts, te in trims
         for hl, hw in heads
         for d, g, o in dashes
         for thl, thw in tails
+        for prof in profiles
     ]
 
 
@@ -213,15 +219,19 @@ _GEOMETRY_FUNCS = (
     "function pathTrim",
     "function pathDashSpans",
     "function clamp01",
+    "function pathProfileWidth",
+    "function pathOutline",
     "function pathGeometry",
 )
 
 
 def _runtime_pieces(*markers: str) -> str:
     src = RUNTIME_JS.read_text(encoding="utf-8")
-    inset = src[src.index("const PATH_HEAD_STROKE_INSET") :]
-    inset = inset[: inset.index(";") + 1]
-    return "\n".join([inset, *(_extract_js_block(src, m) for m in markers)])
+    consts = []
+    for name in ("const PATH_HEAD_STROKE_INSET", "const PATH_OUTLINE_MITER_LIMIT"):
+        c = src[src.index(name) :]
+        consts.append(c[: c.index(";") + 1])
+    return "\n".join([*consts, *(_extract_js_block(src, m) for m in markers)])
 
 
 @requires_node
@@ -241,7 +251,7 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             "const cases = JSON.parse(require('fs').readFileSync("
             "process.argv[1], 'utf8'));",
             "console.log(JSON.stringify(cases.map(c => "
-            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off, c.thl, c.thw))));",
+            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off, c.thl, c.thw, c.w, c.prof))));",
         ]
     )
     js = node_json(script, str(cases_file))
@@ -257,6 +267,8 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             dash_offset=case["off"],
             tail_head_length=case["thl"],
             tail_head_width=case["thw"],
+            width=case["w"],
+            width_profile=case["prof"],
         )
         want_json = json.loads(json.dumps(want))
         assert got == want_json, case
@@ -326,7 +338,7 @@ _FAKE_GRAPHICS = """
 function FakeGraphics() {
   this.calls = [];
   const self = this;
-  ['clear','lineStyle','moveTo','lineTo','beginFill','endFill','drawPolygon']
+  ['clear','lineStyle','moveTo','lineTo','beginFill','endFill','drawPolygon','closePath']
     .forEach(m => { self[m] = function() { self.calls.push([m].concat([].slice.call(arguments))); }; });
 }
 function parseColor(s) { return parseInt(s.slice(1), 16); }
@@ -838,3 +850,236 @@ def test_a_double_headed_arrow_draws_both_heads(tmp_path):
     near_tail_base = [y for x, y in m if x == cx - 120 + int(head_len) - 3]
     assert max(near_tail_base) - min(near_tail_base) >= head_w * 0.7, near_tail_base
     assert abs(max(y for _, y in m) - (cy + 60)) <= 2  # the end head's tip
+
+
+# --- the hand-drawn wobble (an#161) ------------------------------------------------
+
+
+def _distance_to_polyline(p, poly):
+    best = math.inf
+    for (ax, ay), (bx, by) in zip(poly, poly[1:]):
+        dx, dy = bx - ax, by - ay
+        u = max(0.0, min(1.0, ((p[0] - ax) * dx + (p[1] - ay) * dy) / (dx * dx + dy * dy)))
+        best = min(best, math.dist(p, (ax + u * dx, ay + u * dy)))
+    return best
+
+
+def test_a_wobble_wanders_within_its_amplitude_and_keeps_the_ends():
+    """Every point stays within `wobble` px of the ruled line, the ends and
+    the corner are kept as samples, and the line does wander."""
+    scene = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    pts = scene.scene.children[0].visual.path.points
+    assert pts[0] == L_POINTS[0] and pts[-1] == L_POINTS[-1]
+    assert len(pts) > len(L_POINTS)
+    off = [_distance_to_polyline(p, L_POINTS) for p in pts]
+    assert max(off) <= 3.0 + 1e-9 and max(off) > 1.0
+
+
+def test_a_wobble_is_seeded_by_the_entity_and_its_seed():
+    """Two arrows sharing one document wobble differently; the same arrow
+    wobbles the same way every compile."""
+    from an.stage.path_wobble import wobble_polyline
+
+    def wobbled(seed):
+        return wobble_polyline(L_POINTS, amplitude=3.0, wavelength=40.0, seed=seed)
+
+    first = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    again = _compile(_shot(), {"wobble": 3.0, "wobble_wavelength": 40.0})
+    assert first.scene.children[0].visual.path.points == again.scene.children[0].visual.path.points
+    assert first.scene.children[0].visual.path.points == wobbled("route:0")
+    assert wobbled("route:0") != wobbled("other:0") != wobbled("route:1")
+
+
+def test_the_wobble_is_the_same_bytes_on_every_machine():
+    """No trigonometry: value noise from sha256 knots, joined by a cubic, so
+    the floats are pinned (CI runs on another OS than the goldens' machine)."""
+    import hashlib
+
+    from an.stage.path_wobble import wobble_polyline
+
+    pts = wobble_polyline(L_POINTS, amplitude=3.0, wavelength=40.0, seed="route:0")
+    digest = hashlib.sha256(repr(pts).encode()).hexdigest()[:16]
+    assert digest == WOBBLE_DIGEST, digest
+
+
+WOBBLE_DIGEST = "341ba348bb4d9ffa"
+
+
+def test_the_descriptor_refuses_an_inert_or_runaway_wobble():
+    with pytest.raises(ValueError, match="wobble` is 0"):
+        PathDescriptor(name="r", points=L_POINTS, wobble_seed=2)
+    with pytest.raises(ValueError, match="lengthen `wobble_wavelength`"):
+        PathDescriptor(name="r", points=[(0, 0), (100_000, 0)], wobble=2.0, wobble_wavelength=1.0)
+    assert PathDescriptor(name="r", points=L_POINTS, wobble=2.0).wobble_wavelength_px == 80.0
+
+
+# --- closed and filled shapes (an#161) ----------------------------------------------
+
+SQUARE = [(0.0, 0.0), (100.0, 0.0), (100.0, 100.0), (0.0, 100.0)]
+
+
+def test_a_closed_path_returns_to_its_first_point_on_the_wire():
+    p = _compile(_shot(), {"points": SQUARE, "closed": True, "fill": "#3498db", "fill_alpha": 0.5})
+    path = p.scene.children[0].visual.path
+    assert path.points == [*SQUARE, SQUARE[0]]
+    assert (path.closed, path.fill, path.fill_alpha) == (True, "#3498db", 0.5)
+
+
+def test_an_open_unfilled_path_carries_no_new_wire_fields():
+    """Byte identity: every pre-existing path document serializes as before."""
+    d = json.dumps(to_dict(_compile(_shot(), {"arrowhead": True})))
+    assert '"closed"' not in d and '"fill' not in d
+
+
+def test_the_descriptor_refuses_a_fill_it_cannot_draw():
+    with pytest.raises(ValueError, match="closed: true"):
+        PathDescriptor(name="r", points=SQUARE, fill="#000000")
+    with pytest.raises(ValueError, match="fill_alpha is set"):
+        PathDescriptor(name="r", points=SQUARE, closed=True, fill_alpha=0.5)
+    with pytest.raises(ValueError, match="three distinct points"):
+        PathDescriptor(name="r", points=[(0, 0), (10, 0)], closed=True, fill="#000000")
+    with pytest.raises(ValueError, match="draw nothing"):
+        PathDescriptor(name="r", points=SQUARE, width=0)
+    with pytest.raises(ValueError, match="arrowhead"):
+        PathDescriptor(name="r", points=SQUARE, width=0, closed=True, fill="#000000", arrowhead=True)
+    assert PathDescriptor(name="r", points=SQUARE, width=0, closed=True, fill="#000000").width == 0
+
+
+def test_a_trim_on_a_fill_with_no_border_is_refused_and_validate_agrees():
+    region = {"points": SQUARE, "closed": True, "fill": "#3498db", "width": 0}
+    with pytest.raises(CutoutCompileError, match="no stroke"):
+        _compile(_shot(actions=[_draw_on()]), region)
+    scene = SceneIR(
+        meta=Meta(duration=1.0, resolution=Resolution(width=320, height=240)),
+        timeline=[_shot(actions=[_draw_on()])],
+    )
+    report = validate_semantic(scene, available_props={"route": _doc(**region)})
+    assert any("no stroke" in f.description for f in report.findings if f.severity == "error")
+
+
+def _draw(spec: dict, **state) -> list:
+    script = "\n".join(
+        [
+            _FAKE_GRAPHICS,
+            _apply_property_source(),
+            f"const g = new FakeGraphics(); g._anPath = Object.assign({{spec: {json.dumps(spec)},"
+            " trim_start: 0, trim_end: 1, dash_offset: 0}, " + json.dumps(state) + ");",
+            "drawPath(g); console.log(JSON.stringify(g.calls));",
+        ]
+    )
+    return node_json(script)
+
+
+@requires_node
+def test_the_runtime_fills_under_the_stroke_and_joins_a_whole_closed_path():
+    closed = [list(p) for p in [*SQUARE, SQUARE[0]]]
+    spec = {"points": closed, "stroke_width": 4, "color": "#ff0000", "closed": True,
+            "fill": "#0000ff", "fill_alpha": 0.25}
+    calls = _draw(spec)
+    names = [c[0] for c in calls]
+    assert names.index("beginFill") < names.index("moveTo")  # the fill is under the stroke
+    assert ["beginFill", 0x0000FF, 0.25] in calls and "closePath" in names
+    lines = [c for c in calls if c[0] == "lineTo"]
+    assert len(lines) == 3  # the closing leg is closePath, not a lineTo onto the start
+    # trimmed, it is an open stroke again; the fill stays whole
+    calls = _draw(spec, trim_end=0.5)
+    assert "closePath" not in [c[0] for c in calls]
+    (poly,) = [c for c in calls if c[0] == "drawPolygon"]
+    assert len(poly[1]) == 2 * len(closed)
+
+
+@requires_node
+def test_the_runtime_draws_no_stroke_for_a_fill_with_no_border():
+    spec = {"points": [list(p) for p in [*SQUARE, SQUARE[0]]], "stroke_width": 0,
+            "color": "#ff0000", "closed": True, "fill": "#0000ff"}
+    names = [c[0] for c in _draw(spec)]
+    assert "drawPolygon" in names and "moveTo" not in names
+
+
+# --- variable width / taper (an#161) ------------------------------------------------
+
+TAPER = [(0.0, 1.0), (1.0, 0.0)]
+
+
+def test_a_taper_is_anchored_to_the_path_so_a_draw_on_does_not_crawl():
+    """The width at a point of the path is the same whatever the trim: the
+    outline's start (left, right) is identical at trim_end 0.5 and 1.0."""
+    pts = [(0.0, 0.0), (100.0, 0.0), (100.0, 100.0)]
+    half = path_geometry(pts, 0.0, 0.5, width=10.0, width_profile=TAPER)["outlines"][0]
+    whole = path_geometry(pts, 0.0, 1.0, width=10.0, width_profile=TAPER)["outlines"][0]
+    assert half[0] == whole[0] == (0.0, 5.0)
+    assert half[-1] == whole[-1] == (0.0, -5.0)
+    # at the half-way tip (the corner) the stroke is half as wide
+    assert half == [(0.0, 5.0), (100.0, 2.5), (100.0, -2.5), (0.0, -5.0)]
+    assert whole[len(whole) // 2 - 1] == (100.0, 100.0)  # factor 0 at the end
+
+
+def test_a_taper_reaches_the_wire_and_an_even_stroke_carries_no_profile():
+    p = _compile(_shot(), {"width_profile": [[0, 1], [1, 0.2]]}).scene.children[0].visual.path
+    assert p.width_profile == [(0.0, 1.0), (1.0, 0.2)]
+    assert '"width_profile"' not in json.dumps(to_dict(_compile(_shot())))
+
+
+def test_the_descriptor_refuses_a_profile_it_cannot_draw():
+    for bad, msg in [
+        ([[0, 1]], "t=0 to t=1"),
+        ([[0.1, 1], [1, 0]], "t=0 to t=1"),
+        ([[0, 1], [0.5, 1], [0.5, 0], [1, 0]], "increase strictly"),
+        ([[0, 0], [1, 0]], "not all zero"),
+        ([[0, -1], [1, 1]], "non-negative"),
+    ]:
+        with pytest.raises(ValueError, match=msg):
+            PathDescriptor(name="r", points=L_POINTS, width_profile=bad)
+    with pytest.raises(ValueError, match="cap/join"):
+        PathDescriptor(name="r", points=L_POINTS, width_profile=TAPER, cap="butt")
+
+
+@requires_node
+def test_the_runtime_fills_a_tapered_stroke_instead_of_stroking_it():
+    spec = {"points": [[0, 0], [100, 0]], "stroke_width": 8, "color": "#ff0000",
+            "width_profile": [[0, 1], [1, 0]]}
+    calls = _draw(spec)
+    names = [c[0] for c in calls]
+    assert "moveTo" not in names and "lineTo" not in names
+    (poly,) = [c for c in calls if c[0] == "drawPolygon"]
+    assert poly[1] == [0, 4, 100, 0, 100, 0, 0, -4]
+
+
+# --- arrivals: a draw-on timed per point (an#161) -----------------------------------
+
+
+def _tip_at(scene_doc, entity, t):
+    from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
+
+    return evaluate_timeline(timeline_from_scene(scene_doc), t)[(entity, "trim_end")]
+
+
+@pytest.mark.parametrize("extra", [{}, {"wobble": 3.0, "wobble_wavelength": 30.0}, {"closed": True}])
+def test_the_tip_reaches_each_authored_point_on_its_beat(extra):
+    """`draw_on_through` times each leg; at each arrival the trim is exactly
+    the arc fraction of that point on the polyline the compiler drew (wobble
+    and the closing leg included)."""
+    from an.stage.path_geometry import cumulative_lengths
+    from an.stage.paths import draw_on_through, drawn_polyline, resolve_path
+
+    doc = _doc(trim_end=0.0, **extra)
+    desc = resolve_path(doc)
+    pts, anchors = drawn_polyline(desc, "route")
+    arrivals = [0.25, 0.4, 0.9][: len(anchors) - 1]
+    shot = _shot(actions=draw_on_through("route", doc, arrivals))
+    scene = compile_shot(shot, mall={"props": {"route": doc}}, fps=12, width=320, height=240)
+    drawn = scene.scene.children[0].visual.path.points
+    assert drawn == pts  # the helper measured what the compiler drew
+    cum = cumulative_lengths(pts)
+    for t, i in zip(arrivals, anchors[1:]):
+        assert _tip_at(scene, "route", t) == pytest.approx(cum[i] / cum[-1], abs=1e-12)
+    assert _tip_at(scene, "route", 0.0) == 0.0
+
+
+def test_draw_on_through_refuses_a_wrong_count_or_order():
+    from an.stage.paths import draw_on_through
+
+    with pytest.raises(ValueError, match="takes 2 arrival times"):
+        draw_on_through("route", _doc(), [1.0])
+    with pytest.raises(ValueError, match="must increase"):
+        draw_on_through("route", _doc(), [1.0, 0.5])

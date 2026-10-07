@@ -626,4 +626,7 @@ def test_the_arrowhead_is_filled_in_the_strokes_colour():
     with `path.color`, the one colour the role decides."""
     src = RUNTIME_JS.read_text(encoding="utf-8")
     body = src[src.index("function drawPath") : src.index("function makePath")]
-    assert body.count("parseColor(") == 1 and "beginFill(color" in body
+    # The stroke's colour is parsed once and fills the heads; the only other
+    # colour drawPath reads is a closed shape's own `fill` (an#161).
+    assert body.count("parseColor(spec.color)") == 1 and "beginFill(color" in body
+    assert body.count("parseColor(") == 2 and "parseColor(spec.fill)" in body

@@ -62,6 +62,8 @@ __all__ = [
     "PATH_DOCUMENT_KIND",
     "PathDescriptor",
     "resolve_path",
+    "drawn_polyline",
+    "draw_on_through",
     "DFLT_STROKE_COLOUR",
     "MIN_DASH_PERIOD",
 ]
@@ -97,6 +99,11 @@ DFLT_STROKE_WIDTH: float = 8.0
 #: document does not give them in pixels.
 DFLT_HEAD_LENGTH_FACTOR: float = 3.5
 DFLT_HEAD_WIDTH_FACTOR: float = 3.0
+
+#: The wobble's wavelength as a multiple of the stroke width, when the
+#: document does not give it in pixels: a few stroke-widths of travel per
+#: swing reads as a steady hand, not a shaky one.
+DFLT_WOBBLE_WAVELENGTH_FACTOR: float = 10.0
 
 #: Straight segments each cubic Bézier is flattened into, uniformly in its
 #: parameter. The wire carries only the flattened polyline, so this is the one
@@ -142,7 +149,15 @@ class PathDescriptor(BaseModel):
     sampling: Literal["parameter", "arclength"] = "parameter"
     #: ``#rrggbb``.
     color: str = DFLT_STROKE_COLOUR
-    width: float = Field(default=DFLT_STROKE_WIDTH, gt=0, allow_inf_nan=False)
+    #: Stroke width, scene px. ``0`` = no stroke, only for a ``fill``ed shape
+    #: (a region without a border).
+    width: float = Field(default=DFLT_STROKE_WIDTH, ge=0, allow_inf_nan=False)
+    #: A variable width (an#161): ``[[t, factor], ...]`` along the WHOLE path's
+    #: arc length (``t`` from 0 to 1, increasing; ``factor`` times ``width``,
+    #: linear between stops), so ``[[0, 1], [1, 0]]`` tapers to a point and a
+    #: trim never makes the width crawl. The stroke becomes a filled shape:
+    #: butt ends, mitred corners (no ``cap``/``join``).
+    width_profile: list[tuple[float, float]] | None = None
     cap: Literal["round", "butt", "square"] = "round"
     join: Literal["round", "miter", "bevel"] = "round"
     #: The visible span before anything animates it, as fractions of arc
@@ -167,6 +182,28 @@ class PathDescriptor(BaseModel):
     #: Scene pixels; ``None`` = a multiple of ``width``.
     head_length: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     head_width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: A closed shape (an#161): the path returns to its first point (a straight
+    #: closing leg is added when the last point is elsewhere) and the stroke
+    #: joins there instead of ending in two caps. Trim still runs from the
+    #: first point round to it again.
+    closed: bool = False
+    #: The region a closed path encloses, ``#rrggbb``; ``None`` = unfilled.
+    #: Drawn under the stroke and NOT trimmed: a draw-on draws the border and
+    #: the fill is there throughout. To fade a region in separately, make it
+    #: its own entity (``width: 0``, filled) and tween that node's ``alpha``.
+    fill: str | None = None
+    #: The fill's opacity, ``0..1``.
+    fill_alpha: float = Field(default=1.0, ge=0.0, le=1.0)
+    #: A hand-drawn wobble (an#161): the stroke wanders up to this many scene
+    #: px either side of its line, by seeded smooth noise applied at compile
+    #: (:mod:`an.stage.path_wobble`), its ends left where they are. ``0`` = a
+    #: ruled line.
+    wobble: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    #: The wobble's wavelength, scene px; ``None`` = a multiple of ``width``.
+    wobble_wavelength: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: Another wobble of the same path: the noise is seeded by the entity's id
+    #: and this number.
+    wobble_seed: int = 0
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -185,6 +222,13 @@ class PathDescriptor(BaseModel):
             if not (math.isfinite(x) and math.isfinite(y)):
                 raise ValueError(f"path points must be finite; got {(x, y)!r}")
         return points
+
+    @field_validator("fill")
+    @classmethod
+    def _hex_fill(cls, fill):
+        if fill is not None and not _HEX_COLOUR.fullmatch(fill):
+            raise ValueError(f"`fill` takes a #rrggbb string; got {fill!r}")
+        return fill
 
     @field_validator("color")
     @classmethod
@@ -241,6 +285,61 @@ class PathDescriptor(BaseModel):
                 "samples_per_segment (and sampling) only applies to curve='cubic'; "
                 "a polyline is drawn through its points as given"
             )
+        if self.fill is not None and not self.closed:
+            raise ValueError(
+                "`fill` is set on an open path; a fill needs a region: set "
+                "`closed: true`"
+            )
+        if self.fill is None and given & {"fill_alpha"}:
+            raise ValueError(
+                "fill_alpha is set but `fill` is not, so it would draw nothing; "
+                "set `fill` or drop it"
+            )
+        if self.fill is not None and len(set(self.points)) < 3:
+            raise ValueError(
+                "a filled shape needs at least three distinct points; fewer "
+                "enclose no area"
+            )
+        if not self.width:
+            if self.fill is None:
+                raise ValueError(
+                    "`width` is 0 and there is no `fill`, so the path would draw "
+                    "nothing; give it a width or a fill"
+                )
+            inert = sorted(
+                given & {"dash", "gap", "dash_offset", "cap", "join", "color", "trim_start", "trim_end", "width_profile"}
+            ) + [n for n in ("arrowhead", "tail_arrowhead") if getattr(self, n)]
+            if inert:
+                raise ValueError(
+                    f"{inert} draw on the stroke, and `width` is 0 (a fill with "
+                    "no border); give it a width or drop them"
+                )
+        if self.width_profile is not None:
+            _check_width_profile(self.width_profile)
+            if given & {"cap", "join"}:
+                raise ValueError(
+                    "cap/join are set but the stroke has a `width_profile`, which "
+                    "draws it as a filled shape (butt ends, mitred corners); drop them"
+                )
+        if not self.wobble and given & {"wobble_wavelength", "wobble_seed"}:
+            raise ValueError(
+                "wobble_wavelength/wobble_seed are set but `wobble` is 0, so the "
+                "line is ruled and they would draw nothing; set `wobble` or drop them"
+            )
+        if self.wobble:
+            from an.stage.path_wobble import MAX_WOBBLE_POINTS, wobble_point_count
+
+            # The control polygon is at least as long as the curve it draws.
+            reach = sum(
+                math.dist(a, b) for a, b in zip(self.points, self.points[1:])
+            )
+            if wobble_point_count(reach, self.wobble_wavelength_px) > MAX_WOBBLE_POINTS:
+                raise ValueError(
+                    f"a wobble of wavelength {self.wobble_wavelength_px:g} px along "
+                    f"a path up to {reach:.0f} px long is more than "
+                    f"{MAX_WOBBLE_POINTS} points redrawn every frame: lengthen "
+                    "`wobble_wavelength`"
+                )
         if all(p == self.points[0] for p in self.points):
             raise ValueError(
                 "every point of the path is the same point, so it has zero "
@@ -256,6 +355,13 @@ class PathDescriptor(BaseModel):
         return float(self.dash) if self.dash is not None else 0.0
 
     @property
+    def wobble_wavelength_px(self) -> float:
+        """The wobble's wavelength in scene pixels."""
+        if self.wobble_wavelength is not None:
+            return float(self.wobble_wavelength)
+        return DFLT_WOBBLE_WAVELENGTH_FACTOR * self.width
+
+    @property
     def head_length_px(self) -> float:
         """The arrowhead's length in scene pixels."""
         if self.head_length is not None:
@@ -268,6 +374,28 @@ class PathDescriptor(BaseModel):
         if self.head_width is not None:
             return float(self.head_width)
         return DFLT_HEAD_WIDTH_FACTOR * self.width
+
+
+def _check_width_profile(profile: list[tuple[float, float]]) -> None:
+    """A profile the stroke can be drawn with: stops from ``t=0`` to ``t=1``,
+    strictly increasing, finite non-negative factors, not all zero.
+
+    >>> _check_width_profile([(0.0, 1.0), (0.5, 0.0)])
+    Traceback (most recent call last):
+    ...
+    ValueError: a width_profile runs from t=0 to t=1; got stops at [0.0, 0.5]
+    """
+    ts = [t for t, _ in profile]
+    if len(profile) < 2 or ts[0] != 0.0 or ts[-1] != 1.0:
+        raise ValueError(f"a width_profile runs from t=0 to t=1; got stops at {ts}")
+    if any(not b > a for a, b in zip(ts, ts[1:])):
+        raise ValueError(f"a width_profile's stops must increase strictly; got {ts}")
+    factors = [f for _, f in profile]
+    if any(not (math.isfinite(f) and f >= 0) for f in factors) or not any(factors):
+        raise ValueError(
+            "a width_profile's factors are finite, non-negative and not all zero; "
+            f"got {factors}"
+        )
 
 
 def resolve_path(
@@ -293,3 +421,99 @@ def resolve_path(
     stored = migrate(dict(document), kind=PATH_DOCUMENT_KIND.name)
     merged = {**stored, **dict(overrides or {})}
     return PathDescriptor.model_validate(merged)
+
+
+def drawn_polyline(
+    desc: PathDescriptor, entity_id: str
+) -> tuple[list[tuple[float, float]], list[int]]:
+    """The polyline the compiler puts on the wire for entity ``entity_id``
+    drawing ``desc`` — flattened, closed, wobbled (the wobble is seeded by
+    the entity) — and the index in it of each AUTHORED on-path point: every
+    point of a polyline, ``p0 p1 p2 ...`` of a cubic chain (not its controls),
+    and the closing return to the first point when ``closed`` added one.
+
+    >>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
+    >>> pts[anchors[-1]], anchors
+    ((0.0, 0.0), [0, 1, 2, 3])
+    """
+    from an.stage.path_geometry import flatten_curve
+    from an.stage.path_wobble import wobble_with_vertices
+
+    points = flatten_curve(
+        desc.points,
+        curve=desc.curve,
+        samples=desc.samples_per_segment,
+        sampling=desc.sampling,
+    )
+    step = desc.samples_per_segment if desc.curve == "cubic" else 1
+    anchors = list(range(0, len(points), step))
+    if desc.closed and points[-1] != points[0]:
+        points.append(points[0])
+        anchors.append(len(points) - 1)
+    if desc.wobble:
+        points, landed = wobble_with_vertices(
+            points,
+            amplitude=desc.wobble,
+            wavelength=desc.wobble_wavelength_px,
+            seed=f"{entity_id}:{desc.wobble_seed}",
+        )
+        anchors = [landed[i] for i in anchors]
+    return points, anchors
+
+
+def draw_on_through(
+    entity_id: str,
+    path: "PathDescriptor | Mapping[str, Any]",
+    arrivals: "list[float]",
+    *,
+    start: float = 0.0,
+    easing: Any = "ease_in_out",
+) -> list:
+    """A draw-on whose tip reaches each authored point at its own time (an#161).
+
+    ``arrivals[k]`` is when the tip reaches authored point ``k + 1`` (the tip
+    is at point 0, hidden, at ``start``): a route that reaches each city on a
+    beat, or slows into the last turn. One ``tween`` of ``trim_end`` per leg,
+    from the arc fraction of one point to the next on the polyline the
+    compiler draws (:func:`drawn_polyline`, wobble included, so the tip is ON
+    the point), each eased by ``easing``, preceded by a ``set`` of
+    ``trim_end`` to 0 at 0. ``arrivals`` are absolute shot times, increasing.
+
+    Returns a list of top-level actions for ``shot.actions.extend(...)``, as
+    :func:`an.stage.text.reveal_units` does.
+
+    >>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
+    ...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
+    >>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
+    [('set', 0.0), ('tween', 0.75), ('sequence', None)]
+    """
+    from an.ir import compose as c
+    from an.stage.path_geometry import cumulative_lengths
+
+    desc = path if isinstance(path, PathDescriptor) else resolve_path(path)
+    points, anchors = drawn_polyline(desc, entity_id)
+    if len(arrivals) != len(anchors) - 1:
+        raise ValueError(
+            f"the path has {len(anchors)} authored points, so it takes "
+            f"{len(anchors) - 1} arrival times (one per point after the first); "
+            f"got {len(arrivals)}"
+        )
+    times = [start, *arrivals]
+    if any(not b > a for a, b in zip(times, times[1:])):
+        raise ValueError(
+            f"arrival times must increase from start={start}; got {list(arrivals)}"
+        )
+    cum = cumulative_lengths(points)
+    fractions = [cum[i] / cum[-1] for i in anchors]
+    out: list = [c.set_(entity_id, "trim_end", 0.0)]
+    for k in range(1, len(times)):
+        tween = c.tween(
+            entity_id,
+            "trim_end",
+            to=fractions[k],
+            from_=fractions[k - 1],
+            duration=times[k] - times[k - 1],
+            easing=easing,
+        )
+        out.append(c.sequence(c.delay(times[k - 1]), tween) if times[k - 1] else tween)
+    return out

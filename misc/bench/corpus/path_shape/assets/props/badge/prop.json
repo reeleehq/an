@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "badge",
+  "points": [[-130, -70], [-70, -70], [-70, -20], [-130, -20]],
+  "closed": true,
+  "color": "#2c3e50",
+  "width": 6,
+  "join": "miter",
+  "fill": "#f1c40f"
+}

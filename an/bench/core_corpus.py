@@ -9,6 +9,9 @@ of their own. These scenes are :data:`CORE_FIXTURES`:
 scene      what it is the gate for
 ========== ===================================================================
 path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role
+path_wobble hand-drawn paths — a wobbled frame and a wobbled arrow drawing on (an#161)
+path_taper variable-width paths — a brush stroke, a tapered arrow drawing on (an#161)
+path_shape closed and filled paths — a whole filled badge, a region fading in under its border drawing on (an#161)
 stage_pan  planes and the camera's TRANSLATION — parallax at three depths
 text_card  text — overlay words revealed one by one, a world label — under
            the camera's ZOOM and ROLL (the overlay holds still, the world does not)
@@ -48,7 +51,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -128,6 +131,47 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "as the tip advances, or in the pack reaching a path, moves a "
             "golden. Butt caps, so a dash's ends are exact rather than "
             "rounded past their length."
+        ),
+    ),
+    "path_wobble": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_wobble",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "two hand-drawn paths (an#161): a solid frame wobbling 3 px at a "
+            "60 px wavelength, and an arrow wobbling 4 px that draws itself on "
+            "(`trim_end` 0 -> 1). The wobble is compile-time (seeded by the "
+            "entity id, no trigonometry), so the frame is the same in both "
+            "goldens and only the route grows; a change to the noise, the "
+            "seed, the end envelope or the resampling moves both."
+        ),
+    ),
+    "path_shape": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_shape",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "closed and filled paths (an#161): a badge drawn whole (fill under a "
+            "mitred border joined at its first corner, no caps there), and a "
+            "region as two entities, a border-less fill whose node `alpha` "
+            "fades 0 -> 1 under a closed border that draws itself on "
+            "(`trim_end` 0 -> 1). Frame 0 shows only the badge; a regression in "
+            "the fill, the closing join, the fill staying untrimmed or a "
+            "`width: 0` path drawing a stroke moves a golden."
+        ),
+    ),
+    "path_taper": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_taper",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "variable-width paths (an#161), drawn as filled outlines: a "
+            "wobbled brush stroke swelling from nothing to 1.2x and back to a "
+            "point, and an arrow widening 0.2x -> 1x along a mitred polyline "
+            "that draws itself on with its head on the tip. The width is "
+            "anchored to the WHOLE path, so the arrow's base does not thin as "
+            "it grows; a regression in the profile, the miter, the anchoring "
+            "or the fill-instead-of-stroke rule moves a golden."
         ),
     ),
     "stage_pan": Fixture(
