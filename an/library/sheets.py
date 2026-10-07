@@ -172,7 +172,9 @@ def sheet(
             # Each file as the library states it (an#345: a carved head can
             # be private while the drawn collar beside it is free).
             part_classes = [_part_class(library, version, d) for _, d in art]
-            labels += [(f"{pinned} {p}", f" [{c}]") for (p, _), c in zip(art, part_classes)]
+            labels += [
+                (f"{pinned} {p}", f" [{c}]") for (p, _), c in zip(art, part_classes)
+            ]
             classes += part_classes
             continue
         kind = entity_kind(pinned.kind)
