@@ -58,8 +58,16 @@ def test_a_fresh_factory_character_is_an_s_own_work(tmp_path):
 
 def test_an_unconfirmed_stamp_is_unverified_as_the_library_says(tmp_path, monkeypatch):
     """Bob's case: the factory stamps are there, but THIS machine's record does
-    not know the bytes (drawn elsewhere). Credits and the library agree."""
+    not know the bytes (drawn elsewhere) and the descriptor records no recipe to
+    re-draw them from (a character drawn before an#292). Credits and the
+    library agree."""
+    import json
+
     char = _amy(tmp_path)
+    descriptor = char / "character.json"
+    desc = json.loads(descriptor.read_text(encoding="utf-8"))
+    desc.get("metadata", {}).pop("factory", None)
+    descriptor.write_text(json.dumps(desc, indent=2), encoding="utf-8")
     # A machine whose factory record is empty: the record lives under the
     # account's home as the OS records it, not under an environment variable.
     from an.library import registry
