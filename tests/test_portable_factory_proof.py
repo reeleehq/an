@@ -20,10 +20,13 @@ from an.library import api as library_api
 from an.library import registry
 from an.stores import build_project_mall
 
-pytestmark = pytest.mark.genre("cutout_animation")
-
-if service("credits.factory_redraw") is None:  # cutan before thorwhalen/cutan#49
-    pytest.skip("the installed genre records no factory recipe", allow_module_level=True)
+pytestmark = [
+    pytest.mark.genre("cutout_animation"),
+    pytest.mark.skipif(  # cutan before thorwhalen/cutan#49
+        service("credits.factory_redraw") is None,
+        reason="the installed genre records no factory recipe",
+    ),
+]
 
 
 @pytest.fixture(autouse=True)
