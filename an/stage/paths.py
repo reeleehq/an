@@ -307,7 +307,18 @@ class PathDescriptor(BaseModel):
                     "nothing; give it a width or a fill"
                 )
             inert = sorted(
-                given & {"dash", "gap", "dash_offset", "cap", "join", "color", "trim_start", "trim_end", "width_profile"}
+                given
+                & {
+                    "dash",
+                    "gap",
+                    "dash_offset",
+                    "cap",
+                    "join",
+                    "color",
+                    "trim_start",
+                    "trim_end",
+                    "width_profile",
+                }
             ) + [n for n in ("arrowhead", "tail_arrowhead") if getattr(self, n)]
             if inert:
                 raise ValueError(
@@ -330,9 +341,7 @@ class PathDescriptor(BaseModel):
             from an.stage.path_wobble import MAX_WOBBLE_POINTS, wobble_point_count
 
             # The control polygon is at least as long as the curve it draws.
-            reach = sum(
-                math.dist(a, b) for a, b in zip(self.points, self.points[1:])
-            )
+            reach = sum(math.dist(a, b) for a, b in zip(self.points, self.points[1:]))
             if wobble_point_count(reach, self.wobble_wavelength_px) > MAX_WOBBLE_POINTS:
                 raise ValueError(
                     f"a wobble of wavelength {self.wobble_wavelength_px:g} px along "
