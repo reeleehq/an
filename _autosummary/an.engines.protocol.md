@@ -139,7 +139,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](an.stage.rig.md#an.stage.rig.Attachment.width), height)
+  The DECLARED ([*width*](an.stage.paths.md#an.stage.paths.PathDescriptor.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 

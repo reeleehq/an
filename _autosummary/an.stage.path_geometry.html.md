@@ -38,24 +38,33 @@ True
 
 ### Module Attributes
 
-| [`HEAD_STROKE_INSET`](#an.stage.path_geometry.HEAD_STROKE_INSET)   | Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.   |
-|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| [`HEAD_STROKE_INSET`](#an.stage.path_geometry.HEAD_STROKE_INSET)   | Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.                                                                                                            |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`OUTLINE_MITER_LIMIT`](#an.stage.path_geometry.OUTLINE_MITER_LIMIT) | The longest a variable-width stroke's corner may reach, as a multiple of its half-width there (an#161): past it the miter is cut to this length, so a hairpin turn does not throw a spike across the frame. |
 
 ### Functions
 
-| [`flatten_curve`](#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples, ...])   | The polyline the runtime draws for `points`.                                                             |
-|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| [`cumulative_lengths`](#an.stage.path_geometry.cumulative_lengths)(points)                         | Arc length at each vertex.                                                                               |
-| [`point_at`](#an.stage.path_geometry.point_at)(points, cum, s)                           | The point at arc length `s`.                                                                             |
-| [`trim_polyline`](#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                   | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
-| [`dash_spans`](#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)                | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
-| [`path_geometry`](#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*)    | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
+| [`flatten_curve`](#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples, ...])   | The polyline the runtime draws for `points`.                                                                                        |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`cumulative_lengths`](#an.stage.path_geometry.cumulative_lengths)(points)                         | Arc length at each vertex.                                                                                                          |
+| [`point_at`](#an.stage.path_geometry.point_at)(points, cum, s)                           | The point at arc length `s`.                                                                                                        |
+| [`trim_polyline`](#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                   | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them.                            |
+| [`dash_spans`](#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)                | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                                                 |
+| [`path_geometry`](#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*)    | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                                                          |
+| [`profile_width`](#an.stage.path_geometry.profile_width)(profile, width, u)                   | The stroke width at fraction `u` of the WHOLE path's length (an#161): `width` times the profile's factor, linear between its stops. |
+| [`stroke_outline`](#an.stage.path_geometry.stroke_outline)(line, start, total, width, ...)     | The filled polygon of a variable-width stroke along `line` (an#161).                                                                |
 
 ### an.stage.path_geometry.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Where the stroke stops under an arrowhead, as a fraction of the head’s
 length back from the tip. Half-way keeps a butt or round cap inside the
 head for the default proportions, so the stroke never pokes past the tip.
+
+### an.stage.path_geometry.OUTLINE_MITER_LIMIT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4.0*
+
+The longest a variable-width stroke’s corner may reach, as a multiple of
+its half-width there (an#161): past it the miter is cut to this length, so
+a hairpin turn does not throw a spike across the frame.
 
 ### an.stage.path_geometry.cumulative_lengths(points)
 
@@ -112,7 +121,7 @@ points are evenly spaced (a smoother bend for the same count).
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
 
-### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0)
+### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, width=0.0, width_profile=None)
 
 What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
 
@@ -125,6 +134,10 @@ factor, so a draw-on grows them in.
 
 `dash > 0` makes the stroke a dash pattern: `stroke` is then `[]` and
 a `"dashes"` key (absent otherwise) holds one polyline per visible dash.
+
+`width_profile` (an#161) makes the stroke a variable-width SHAPE: an
+`"outlines"` key (absent otherwise) holds one polygon per stroke or dash
+([`stroke_outline()`](#an.stage.path_geometry.stroke_outline)), which the runtime fills instead of stroking.
 
 `head_length > 0` turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by `visible / head_length` so
@@ -146,6 +159,40 @@ The point at arc length `s`. Mirror of `runtime.js::pathPointAt`.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.stage.path_geometry.profile_width(profile, width, u)
+
+The stroke width at fraction `u` of the WHOLE path’s length (an#161):
+`width` times the profile’s factor, linear between its stops.
+Mirror of `runtime.js::pathProfileWidth`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)
+6.0
+```
+
+### an.stage.path_geometry.stroke_outline(line, start, total, width, profile)
+
+The filled polygon of a variable-width stroke along `line` (an#161).
+
+`line` is a trimmed piece of the path beginning at arc length `start`
+of a path `total` long, so a point’s width is read at its place on the
+WHOLE path: trimming never makes the width crawl. Each vertex is offset
+both ways along the bisector of its legs’ normals by half its width,
+lengthened to keep the stroke’s width through the corner (capped at
+[`OUTLINE_MITER_LIMIT`](#an.stage.path_geometry.OUTLINE_MITER_LIMIT)). Butt ends. Left side forward, then the
+right side back. Mirror of `runtime.js::pathOutline`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])
+[(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]
+```
 
 ### an.stage.path_geometry.trim_polyline(points, cum, a, b)
 

@@ -1,0 +1,21 @@
+an.stage.path\_wobble
+=====================
+
+.. automodule:: an.stage.path_wobble
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WOBBLE_SAMPLES_PER_WAVELENGTH
+      MAX_WOBBLE_POINTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      wobble_polyline
+      wobble_with_vertices
+      wobble_point_count
+   

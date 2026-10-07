@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cd346c81"></script>
+    <script src="../../../_static/documentation_options.js?v=252ecf43"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.227" />
+  <meta name="docsearch:version" content="0.1.228" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -794,7 +794,6 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">action_kind</span><span class="p">,</span> <span class="n">action_kind_names</span><span class="p">,</span> <span class="n">entity_kind</span><span class="p">,</span> <span class="n">entity_space_resolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompilePass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.path_geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten_curve</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatAction</span><span class="p">,</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CameraKey</span><span class="p">,</span>
@@ -834,7 +833,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">Plane</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.props</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROP_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">PropDescriptor</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">PathDescriptor</span><span class="p">,</span> <span class="n">resolve_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.paths</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PATH_DOCUMENT_KIND</span><span class="p">,</span>
+    <span class="n">PathDescriptor</span><span class="p">,</span>
+    <span class="n">drawn_polyline</span><span class="p">,</span>
+    <span class="n">resolve_path</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">tree</span> <span class="k">as</span> <span class="n">stage_tree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text_layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_text_subtree</span><span class="p">,</span> <span class="n">svg_data_uri</span><span class="p">,</span> <span class="n">text_document</span>  <span class="c1"># noqa: F401  (re-exported)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_base_dir</span><span class="p">,</span> <span class="n">text_entity_problem</span>
@@ -1339,10 +1343,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"path"</span><span class="p">:</span>
             <span class="n">path_nodes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s2">"trim_start"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_start</span><span class="p">,</span>
-                    <span class="s2">"trim_end"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_end</span><span class="p">,</span>
-                <span class="p">}</span>
+                <span class="c1"># A fill with no border (an#161) has no stroke to trim.</span>
+                <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">{</span><span class="s2">"trim_start"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_start</span><span class="p">,</span> <span class="s2">"trim_end"</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">trim_end</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">stroke_width</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="k">else</span> <span class="p">{}</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only a dashed path has an offset</span>
                     <span class="n">path_trims</span><span class="p">[</span><span class="n">path</span><span class="p">][</span><span class="s2">"dash_offset"</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dash_offset</span>
         <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">:</span>
@@ -3413,12 +3419,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">resolved</span><span class="o">=</span><span class="s2">"path"</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">flatten_curve</span><span class="p">(</span>
-        <span class="n">desc</span><span class="o">.</span><span class="n">points</span><span class="p">,</span>
-        <span class="n">curve</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">curve</span><span class="p">,</span>
-        <span class="n">samples</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">samples_per_segment</span><span class="p">,</span>
-        <span class="n">sampling</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">sampling</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">drawn_polyline</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="n">colour</span> <span class="o">=</span> <span class="n">_path_colour</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">style_pack</span><span class="p">,</span> <span class="n">reached</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -3440,6 +3441,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">dash_offset</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">dash_offset</span><span class="p">,</span>
                 <span class="n">tail_head_length</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">head_length_px</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">tail_arrowhead</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
                 <span class="n">tail_head_width</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">head_width_px</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">tail_arrowhead</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">closed</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">closed</span><span class="p">,</span>
+                <span class="n">fill</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">fill</span><span class="p">,</span>
+                <span class="n">fill_alpha</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">fill_alpha</span><span class="p">,</span>
+                <span class="n">width_profile</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">width_profile</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>
@@ -4729,11 +4734,13 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">TRIM_PROPERTIES</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span>
-    <span class="k">if</span> <span class="p">(</span>
-        <span class="n">prop</span> <span class="o">==</span> <span class="s2">"dash_offset"</span>
-        <span class="ow">and</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_nodes</span>
-        <span class="ow">and</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_trims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="p">):</span>
+    <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_nodes</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_trims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{}):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_trims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"action targets </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2">:</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2">, but the path </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2"> has "</span>
+                <span class="s2">"no stroke (`width: 0`, a fill with no border), and trim and "</span>
+                <span class="s2">"dashes draw only on a stroke; fade a region with `alpha`."</span>
+            <span class="p">)</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"action targets </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2">:'dash_offset', but the path </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2"> "</span>
             <span class="s2">"has no dash pattern, so an offset would draw nothing. Give the "</span>

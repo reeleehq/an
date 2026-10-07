@@ -1,4 +1,4 @@
-> built 2026-10-07 01:19 UTC from 95db831 (main) · an 0.1.227. Details: build_info.json
+> built 2026-10-07 01:35 UTC from b48f902 (main) · an 0.1.228. Details: build_info.json
 
 # index.html.md
 
@@ -5778,7 +5778,7 @@ them. Nothing here imports the stage at module level.
 
 ```pycon
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'front_plane', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']
 ```
 
 ### Module Attributes
@@ -5826,7 +5826,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -6045,7 +6045,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -13253,7 +13253,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -13648,7 +13648,7 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 what every resolved frame must be.
 
 * **Type:**
-  The DECLARED ([*width*](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment.width), height)
+  The DECLARED ([*width*](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor.width), height)
 
 #### supersample *: [int](https://docs.python.org/3/builtins/functions.html#int)*
 
@@ -29060,6 +29060,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                       |
 | [`gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)           | Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.  |
 | [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                  |
+| [`path_wobble`](_autosummary/an.stage.path_wobble.html.md#module-an.stage.path_wobble)       | A hand-drawn wobble for stroked paths, applied at compile time (an#161).                                                                    |
 | [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                     |
 | [`preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview)               | Live preview server: render a project's current scene in a browser, reloading on edit.                                                      |
 | [`prop_validate`](_autosummary/an.stage.prop_validate.html.md#module-an.stage.prop_validate)   | Check a prop's asset folder offline, and say what a prop must be (an#340).                                                                  |
@@ -29120,24 +29121,33 @@ True
 
 ### Module Attributes
 
-| [`HEAD_STROKE_INSET`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.HEAD_STROKE_INSET)   | Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.   |
-|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| [`HEAD_STROKE_INSET`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.HEAD_STROKE_INSET)   | Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.                                                                                                            |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`OUTLINE_MITER_LIMIT`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.OUTLINE_MITER_LIMIT) | The longest a variable-width stroke's corner may reach, as a multiple of its half-width there (an#161): past it the miter is cut to this length, so a hairpin turn does not throw a spike across the frame. |
 
 ### Functions
 
-| [`flatten_curve`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples, ...])   | The polyline the runtime draws for `points`.                                                             |
-|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| [`cumulative_lengths`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.cumulative_lengths)(points)                         | Arc length at each vertex.                                                                               |
-| [`point_at`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.point_at)(points, cum, s)                           | The point at arc length `s`.                                                                             |
-| [`trim_polyline`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                   | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
-| [`dash_spans`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)                | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
-| [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*)    | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
+| [`flatten_curve`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.flatten_curve)(points, \*[, curve, samples, ...])   | The polyline the runtime draws for `points`.                                                                                        |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`cumulative_lengths`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.cumulative_lengths)(points)                         | Arc length at each vertex.                                                                                                          |
+| [`point_at`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.point_at)(points, cum, s)                           | The point at arc length `s`.                                                                                                        |
+| [`trim_polyline`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.trim_polyline)(points, cum, a, b)                   | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them.                            |
+| [`dash_spans`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.dash_spans)(a, b, dash, gap, offset)                | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                                                 |
+| [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.path_geometry)(points, trim_start, trim_end, \*)    | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                                                          |
+| [`profile_width`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.profile_width)(profile, width, u)                   | The stroke width at fraction `u` of the WHOLE path's length (an#161): `width` times the profile's factor, linear between its stops. |
+| [`stroke_outline`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.stroke_outline)(line, start, total, width, ...)     | The filled polygon of a variable-width stroke along `line` (an#161).                                                                |
 
 ### an.stage.path_geometry.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
 Where the stroke stops under an arrowhead, as a fraction of the head’s
 length back from the tip. Half-way keeps a butt or round cap inside the
 head for the default proportions, so the stroke never pokes past the tip.
+
+### an.stage.path_geometry.OUTLINE_MITER_LIMIT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4.0*
+
+The longest a variable-width stroke’s corner may reach, as a multiple of
+its half-width there (an#161): past it the miter is cut to this length, so
+a hairpin turn does not throw a spike across the frame.
 
 ### an.stage.path_geometry.cumulative_lengths(points)
 
@@ -29194,7 +29204,7 @@ points are evenly spaced (a smoother bend for the same count).
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
 
-### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0)
+### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, width=0.0, width_profile=None)
 
 What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
 
@@ -29207,6 +29217,10 @@ factor, so a draw-on grows them in.
 
 `dash > 0` makes the stroke a dash pattern: `stroke` is then `[]` and
 a `"dashes"` key (absent otherwise) holds one polyline per visible dash.
+
+`width_profile` (an#161) makes the stroke a variable-width SHAPE: an
+`"outlines"` key (absent otherwise) holds one polygon per stroke or dash
+([`stroke_outline()`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.stroke_outline)), which the runtime fills instead of stroking.
 
 `head_length > 0` turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by `visible / head_length` so
@@ -29229,6 +29243,40 @@ The point at arc length `s`. Mirror of `runtime.js::pathPointAt`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
+### an.stage.path_geometry.profile_width(profile, width, u)
+
+The stroke width at fraction `u` of the WHOLE path’s length (an#161):
+`width` times the profile’s factor, linear between its stops.
+Mirror of `runtime.js::pathProfileWidth`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)
+6.0
+```
+
+### an.stage.path_geometry.stroke_outline(line, start, total, width, profile)
+
+The filled polygon of a variable-width stroke along `line` (an#161).
+
+`line` is a trimmed piece of the path beginning at arc length `start`
+of a path `total` long, so a point’s width is read at its place on the
+WHOLE path: trimming never makes the width crawl. Each vertex is offset
+both ways along the bisector of its legs’ normals by half its width,
+lengthened to keep the stroke’s width through the corner (capped at
+[`OUTLINE_MITER_LIMIT`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.OUTLINE_MITER_LIMIT)). Butt ends. Left side forward, then the
+right side back. Mirror of `runtime.js::pathOutline`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])
+[(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]
+```
+
 ### an.stage.path_geometry.trim_polyline(points, cum, a, b)
 
 The sub-polyline between arc lengths `a < b`: the two cut points and
@@ -29236,6 +29284,100 @@ every vertex strictly between them. Mirror of `runtime.js::pathTrim`.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+
+# _autosummary/an.stage.path_wobble.html.md
+
+# an.stage.path_wobble
+
+A hand-drawn wobble for stroked paths, applied at compile time (an#161).
+
+A ruled line reads as a diagram; a line that wanders a little reads as drawn
+by hand. The wobble displaces the FLATTENED polyline sideways (along its
+normal) by a smooth seeded noise, before it reaches the wire, so the runtime
+and its parity spec ([`an.stage.path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)) never learn about it:
+trim, dashes and arrowheads work on the wobbly polyline exactly as on any
+other.
+
+- **Deterministic everywhere.** The noise is value noise over knots one
+  wavelength apart, each knot’s value read from `sha256(seed:k)`, joined by
+  a cubic smoothstep: only `+ - * /`, `floor` and `sqrt`, no
+  trigonometry, so the compiled points are the same bytes on every machine.
+- **Seeded by the entity** (`"<entity id>:<wobble_seed>"`), like a
+  character’s blink phase: two arrows sharing one document wobble
+  differently, and the same arrow wobbles the same way every render.
+- **The ends stay put.** The amplitude ramps up over the first and down over
+  the last wavelength, so a route still starts and ends where it was drawn
+  to, and an arrowhead’s tip lands on its target.
+- **Static.** One displacement per path. A *boil* (a wobble that changes on
+  twos) is several displaced polylines on a step channel; not built.
+
+```pycon
+>>> pts = wobble_polyline([(0.0, 0.0), (200.0, 0.0)], amplitude=4.0, wavelength=50.0, seed="route:0")
+>>> pts[0], pts[-1]  # the ends are where they were
+((0.0, 0.0), (200.0, 0.0))
+>>> 0.0 < max(abs(y) for _, y in pts) <= 4.0
+True
+>>> pts == wobble_polyline([(0.0, 0.0), (200.0, 0.0)], amplitude=4.0, wavelength=50.0, seed="route:0")
+True
+```
+
+### Module Attributes
+
+| [`WOBBLE_SAMPLES_PER_WAVELENGTH`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH)   | enough that the wobble reads as a curve, not a zig-zag, at any amplitude a stroke should take.   |
+|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [`MAX_WOBBLE_POINTS`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.MAX_WOBBLE_POINTS)               | The most points a wobbled path may carry.                                                        |
+
+### Functions
+
+| [`wobble_polyline`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.wobble_polyline)(points, \*, amplitude, ...)      | `points` resampled and wobbled; see [`wobble_with_vertices()`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.wobble_with_vertices).                            |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`wobble_with_vertices`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.wobble_with_vertices)(points, \*, amplitude, ...) | `points` resampled every `wavelength / 8` px and each sample moved up to `amplitude` px along the path's normal by seeded smooth noise. |
+| [`wobble_point_count`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.wobble_point_count)(length, wavelength)           | How many samples a wobble of `wavelength` puts along `length` px.                                                                       |
+
+### an.stage.path_wobble.MAX_WOBBLE_POINTS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 20000*
+
+The most points a wobbled path may carry. Every point is redrawn each
+frame a trim or dash moves; past this the wavelength is too short for the
+path’s length (a hair-fine wobble over a long route).
+
+### an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+
+enough that the wobble reads as a
+curve, not a zig-zag, at any amplitude a stroke should take.
+
+* **Type:**
+  Samples per wavelength of the noise
+
+### an.stage.path_wobble.wobble_point_count(length, wavelength)
+
+How many samples a wobble of `wavelength` puts along `length` px.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.stage.path_wobble.wobble_polyline(points, , amplitude, wavelength, seed)
+
+`points` resampled and wobbled; see [`wobble_with_vertices()`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.wobble_with_vertices).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.stage.path_wobble.wobble_with_vertices(points, , amplitude, wavelength, seed)
+
+`points` resampled every `wavelength / 8` px and each sample moved
+up to `amplitude` px along the path’s normal by seeded smooth noise.
+
+The original vertices are kept as samples (a corner stays a corner) and
+move along the bisector of their two legs. Raises `ValueError` when the
+result would carry more than [`MAX_WOBBLE_POINTS`](_autosummary/an.stage.path_wobble.html.md#an.stage.path_wobble.MAX_WOBBLE_POINTS) points.
+
+Also returns, for each input point, its index in the output (where a
+vertex landed), so a caller can find the authored points on the wobbled
+line ([`an.stage.paths.drawn_polyline()`](_autosummary/an.stage.paths.html.md#an.stage.paths.drawn_polyline)).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 
 # _autosummary/an.stage.paths.html.md
@@ -29293,8 +29435,10 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### Functions
 
-| [`resolve_path`](_autosummary/an.stage.paths.html.md#an.stage.paths.resolve_path)(document[, overrides])   | The path an entity draws: its stored document with `overrides` on top.   |
-|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`resolve_path`](_autosummary/an.stage.paths.html.md#an.stage.paths.resolve_path)(document[, overrides])            | The path an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                                                                                                     |
+|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`drawn_polyline`](_autosummary/an.stage.paths.html.md#an.stage.paths.drawn_polyline)(desc, entity_id)                | The polyline the compiler puts on the wire for entity `entity_id` drawing `desc` — flattened, closed, wobbled (the wobble is seeded by the entity) — and the index in it of each AUTHORED on-path point: every point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls), and the closing return to the first point when `closed` added one. |
+| [`draw_on_through`](_autosummary/an.stage.paths.html.md#an.stage.paths.draw_on_through)(entity_id, path, arrivals, \*) | A draw-on whose tip reaches each authored point at its own time (an#161).                                                                                                                                                                                                                                                                                  |
 
 ### Classes
 
@@ -29346,6 +29490,16 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 ...
 ```
 
+#### closed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+the path returns to its first point (a straight
+closing leg is added when the last point is elsewhere) and the stroke
+joins there instead of ending in two caps. Trim still runs from the
+first point round to it again.
+
+* **Type:**
+  A closed shape (an#161)
+
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
@@ -29365,6 +29519,17 @@ so a draw-on reveals dashes in place instead of making them crawl.
 Shifts the pattern along the path (positive = forward). An ordinary
 numeric node property like `trim_end`, so `tween route dash_offset`
 is the “marching ants” route; only a dashed path has one.
+
+#### fill *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The region a closed path encloses, `#rrggbb`; `None` = unfilled.
+Drawn under the stroke and NOT trimmed: a draw-on draws the border and
+the fill is there throughout. To fade a region in separately, make it
+its own entity (`width: 0`, filled) and tween that node’s `alpha`.
+
+#### fill_alpha *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The fill’s opacity, `0..1`.
 
 #### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -29408,6 +29573,96 @@ with `arrowhead`, a double-headed arrow. Same size as the end’s.
 The visible span before anything animates it, as fractions of arc
 length. `trim_end=0` starts a draw-on hidden, and a trim tween
 with no `from_value` starts from these values (not the global rest).
+
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Stroke width, scene px. `0` = no stroke, only for a 
+
+```
+``
+```
+
+fill\`\`ed shape
+(a region without a border).
+
+#### width_profile *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`[[t, factor], ...]` along the WHOLE path’s
+arc length (`t` from 0 to 1, increasing; `factor` times `width`,
+linear between stops), so `[[0, 1], [1, 0]]` tapers to a point and a
+trim never makes the width crawl. The stroke becomes a filled shape:
+butt ends, mitred corners (no `cap`/`join`).
+
+* **Type:**
+  A variable width (an#161)
+
+#### wobble *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+the stroke wanders up to this many scene
+px either side of its line, by seeded smooth noise applied at compile
+([`an.stage.path_wobble`](_autosummary/an.stage.path_wobble.html.md#module-an.stage.path_wobble)), its ends left where they are. `0` = a
+ruled line.
+
+* **Type:**
+  A hand-drawn wobble (an#161)
+
+#### wobble_seed *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+the noise is seeded by the entity’s id
+and this number.
+
+* **Type:**
+  Another wobble of the same path
+
+#### wobble_wavelength *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The wobble’s wavelength, scene px; `None` = a multiple of `width`.
+
+#### *property* wobble_wavelength_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The wobble’s wavelength in scene pixels.
+
+### an.stage.paths.draw_on_through(entity_id, path, arrivals, , start=0.0, easing='ease_in_out')
+
+A draw-on whose tip reaches each authored point at its own time (an#161).
+
+`arrivals[k]` is when the tip reaches authored point `k + 1` (the tip
+is at point 0, hidden, at `start`): a route that reaches each city on a
+beat, or slows into the last turn. One `tween` of `trim_end` per leg,
+from the arc fraction of one point to the next on the polyline the
+compiler draws ([`drawn_polyline()`](_autosummary/an.stage.paths.html.md#an.stage.paths.drawn_polyline), wobble included, so the tip is ON
+the point), each eased by `easing`, preceded by a `set` of
+`trim_end` to 0 at 0. `arrivals` are absolute shot times, increasing.
+
+Returns a list of top-level actions for `shot.actions.extend(...)`, as
+[`an.stage.text.reveal_units()`](_autosummary/an.stage.text.html.md#an.stage.text.reveal_units) does.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+
+```pycon
+>>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
+...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
+>>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
+[('set', 0.0), ('tween', 0.75), ('sequence', None)]
+```
+
+### an.stage.paths.drawn_polyline(desc, entity_id)
+
+The polyline the compiler puts on the wire for entity `entity_id`
+drawing `desc` — flattened, closed, wobbled (the wobble is seeded by
+the entity) — and the index in it of each AUTHORED on-path point: every
+point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls),
+and the closing return to the first point when `closed` added one.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+```pycon
+>>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
+>>> pts[anchors[-1]], anchors
+((0.0, 0.0), [0, 1, 2, 3])
+```
 
 ### an.stage.paths.resolve_path(document, overrides=None)
 
@@ -31654,6 +31909,16 @@ touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.stage.path_geometry.path_geometry`.
 
+#### closed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+`closed` joins the stroke at the
+first point (the polyline already returns there); `fill` (`#rrggbb`)
+is drawn under the stroke at `fill_alpha` and is not trimmed. Omitted
+from the wire when off, so no existing path document’s hash moves.
+
+* **Type:**
+  A closed shape and its fill (an#161)
+
 #### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 `dash > 0` is on. `dash_offset` is the value
@@ -31671,6 +31936,15 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 A tail arrowhead at the trimmed start (an#161), `0` = none. Omitted
 from the wire when off, so no existing path document’s hash moves.
+
+#### width_profile *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`[[t, factor], ...]` over the whole
+path’s length; the runtime fills `path_geometry`’s `outlines`.
+Omitted when unset.
+
+* **Type:**
+  A variable-width stroke (an#161)
 
 ### *class* an.stage.serialize.PlacedClipJSON(\*\*data)
 
@@ -38205,20 +38479,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-07 01:19 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/95db8319c870d1aa4011de950da070fb7c2e66dc"><code>95db831</code></a> on branch <code>main</code>, for **an 0.1.227** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-07 01:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b48f902d55a057a4c4ec90d1f4f2972ecc607af2"><code>b48f902</code></a> on branch <code>main</code>, for **an 0.1.228** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.227) is ahead of the latest release on PyPI (0.1.226): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/95db8319c870d1aa4011de950da070fb7c2e66dc"><code>95db8319c870d1aa4011de950da070fb7c2e66dc</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b48f902d55a057a4c4ec90d1f4f2972ecc607af2"><code>b48f902d55a057a4c4ec90d1f4f2972ecc607af2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.227</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.228</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -38227,9 +38499,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37555946058">37555946058</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37557246466">37557246466</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>1afa4c911b176e14df403a8856b297e6627362ae</code> (in the history of the built commit) |
+| Event commit | <code>f62c7749b2eded177acd17280ef7c6c947cd89d9</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -38238,7 +38510,7 @@ The documentation and the package may be misaligned:
 | epythet  | 0.2.12  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
-| Python   | 3.12.14 |
+| Python   | 3.12.15 |
 
 ## Configuration as resolved
 
@@ -38254,13 +38526,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.226/">0.1.226</a>, older than the documented version (0.1.227).
+Latest release: <a href="https://pypi.org/project/an/0.1.228/">0.1.228</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 95db8319c870d1aa4011de950da070fb7c2e66dc
+git checkout b48f902d55a057a4c4ec90d1f4f2972ecc607af2
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

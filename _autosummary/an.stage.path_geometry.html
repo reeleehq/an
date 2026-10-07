@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cd346c81"></script>
+    <script src="../_static/documentation_options.js?v=252ecf43"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.stage.paths" href="an.stage.paths.html" />
+    <link rel="next" title="an.stage.path_wobble" href="an.stage.path_wobble.html" />
     <link rel="prev" title="an.stage.gradients" href="an.stage.gradients.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.227" />
+  <meta name="docsearch:version" content="0.1.228" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -479,6 +479,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.gradients.html">an.stage.gradients</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_wobble.html">an.stage.path_wobble</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
@@ -644,6 +645,9 @@ polyline at compile time, so the wire carries one geometry kind.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.path_geometry.HEAD_STROKE_INSET" title="an.stage.path_geometry.HEAD_STROKE_INSET"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HEAD_STROKE_INSET</span></code></a></p></td>
 <td><p>Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.path_geometry.OUTLINE_MITER_LIMIT" title="an.stage.path_geometry.OUTLINE_MITER_LIMIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OUTLINE_MITER_LIMIT</span></code></a></p></td>
+<td><p>The longest a variable-width stroke's corner may reach, as a multiple of its half-width there (an#161): past it the miter is cut to this length, so a hairpin turn does not throw a spike across the frame.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -668,6 +672,12 @@ polyline at compile time, so the wire carries one geometry kind.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.path_geometry.path_geometry" title="an.stage.path_geometry.path_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path_geometry</span></code></a>(points, trim_start, trim_end, *)</p></td>
 <td><p>What the runtime draws: <code class="docutils literal notranslate"><span class="pre">{&quot;stroke&quot;:</span> <span class="pre">[points],</span> <span class="pre">&quot;head&quot;:</span> <span class="pre">[3</span> <span class="pre">points]</span> <span class="pre">|</span> <span class="pre">None}</span></code>.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.path_geometry.profile_width" title="an.stage.path_geometry.profile_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">profile_width</span></code></a>(profile, width, u)</p></td>
+<td><p>The stroke width at fraction <code class="docutils literal notranslate"><span class="pre">u</span></code> of the WHOLE path's length (an#161): <code class="docutils literal notranslate"><span class="pre">width</span></code> times the profile's factor, linear between its stops.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.path_geometry.stroke_outline" title="an.stage.path_geometry.stroke_outline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stroke_outline</span></code></a>(line, start, total, width, ...)</p></td>
+<td><p>The filled polygon of a variable-width stroke along <code class="docutils literal notranslate"><span class="pre">line</span></code> (an#161).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -677,6 +687,14 @@ polyline at compile time, so the wire carries one geometry kind.</p>
 <dd><p>Where the stroke stops under an arrowhead, as a fraction of the head’s
 length back from the tip. Half-way keeps a butt or round cap inside the
 head for the default proportions, so the stroke never pokes past the tip.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.path_geometry.OUTLINE_MITER_LIMIT">
+<span class="sig-prename descclassname"><span class="pre">an.stage.path_geometry.</span></span><span class="sig-name descname"><span class="pre">OUTLINE_MITER_LIMIT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4.0</span></span><a class="headerlink" href="#an.stage.path_geometry.OUTLINE_MITER_LIMIT" title="Link to this definition">#</a></dt>
+<dd><p>The longest a variable-width stroke’s corner may reach, as a multiple of
+its half-width there (an#161): past it the miter is cut to this length, so
+a hairpin turn does not throw a spike across the frame.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -743,7 +761,7 @@ points are evenly spaced (a smoother bend for the same count).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.path_geometry.path_geometry">
-<span class="sig-prename descclassname"><span class="pre">an.stage.path_geometry.</span></span><span class="sig-name descname"><span class="pre">path_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_end</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/path_geometry.html#path_geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.path_geometry.path_geometry" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.path_geometry.</span></span><span class="sig-name descname"><span class="pre">path_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_end</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/path_geometry.html#path_geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.path_geometry.path_geometry" title="Link to this definition">#</a></dt>
 <dd><p>What the runtime draws: <code class="docutils literal notranslate"><span class="pre">{&quot;stroke&quot;:</span> <span class="pre">[points],</span> <span class="pre">&quot;head&quot;:</span> <span class="pre">[3</span> <span class="pre">points]</span> <span class="pre">|</span> <span class="pre">None}</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tail_head_length</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> adds a TAIL arrowhead at the trimmed start,
 pointing back along the path (an#161: a double-headed arrow with both); it
@@ -753,6 +771,9 @@ length is shorter than the heads together, both are scaled by the same
 factor, so a draw-on grows them in.</p>
 <p><code class="docutils literal notranslate"><span class="pre">dash</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> makes the stroke a dash pattern: <code class="docutils literal notranslate"><span class="pre">stroke</span></code> is then <code class="docutils literal notranslate"><span class="pre">[]</span></code> and
 a <code class="docutils literal notranslate"><span class="pre">&quot;dashes&quot;</span></code> key (absent otherwise) holds one polyline per visible dash.</p>
+<p><code class="docutils literal notranslate"><span class="pre">width_profile</span></code> (an#161) makes the stroke a variable-width SHAPE: an
+<code class="docutils literal notranslate"><span class="pre">&quot;outlines&quot;</span></code> key (absent otherwise) holds one polygon per stroke or dash
+(<a class="reference internal" href="#an.stage.path_geometry.stroke_outline" title="an.stage.path_geometry.stroke_outline"><code class="xref py py-func docutils literal notranslate"><span class="pre">stroke_outline()</span></code></a>), which the runtime fills instead of stroking.</p>
 <p><code class="docutils literal notranslate"><span class="pre">head_length</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by <code class="docutils literal notranslate"><span class="pre">visible</span> <span class="pre">/</span> <span class="pre">head_length</span></code> so
 a draw-on grows it in rather than popping a full-size triangle at frame
@@ -778,6 +799,45 @@ from the tip, inside the head. Mirror of <code class="docutils literal notransla
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.path_geometry.profile_width">
+<span class="sig-prename descclassname"><span class="pre">an.stage.path_geometry.</span></span><span class="sig-name descname"><span class="pre">profile_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/path_geometry.html#profile_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.path_geometry.profile_width" title="Link to this definition">#</a></dt>
+<dd><p>The stroke width at fraction <code class="docutils literal notranslate"><span class="pre">u</span></code> of the WHOLE path’s length (an#161):
+<code class="docutils literal notranslate"><span class="pre">width</span></code> times the profile’s factor, linear between its stops.
+Mirror of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathProfileWidth</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">profile_width</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)],</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+<span class="go">6.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.path_geometry.stroke_outline">
+<span class="sig-prename descclassname"><span class="pre">an.stage.path_geometry.</span></span><span class="sig-name descname"><span class="pre">stroke_outline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/path_geometry.html#stroke_outline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.path_geometry.stroke_outline" title="Link to this definition">#</a></dt>
+<dd><p>The filled polygon of a variable-width stroke along <code class="docutils literal notranslate"><span class="pre">line</span></code> (an#161).</p>
+<p><code class="docutils literal notranslate"><span class="pre">line</span></code> is a trimmed piece of the path beginning at arc length <code class="docutils literal notranslate"><span class="pre">start</span></code>
+of a path <code class="docutils literal notranslate"><span class="pre">total</span></code> long, so a point’s width is read at its place on the
+WHOLE path: trimming never makes the width crawl. Each vertex is offset
+both ways along the bisector of its legs’ normals by half its width,
+lengthened to keep the stroke’s width through the corner (capped at
+<a class="reference internal" href="#an.stage.path_geometry.OUTLINE_MITER_LIMIT" title="an.stage.path_geometry.OUTLINE_MITER_LIMIT"><code class="xref py py-data docutils literal notranslate"><span class="pre">OUTLINE_MITER_LIMIT</span></code></a>). Butt ends. Left side forward, then the
+right side back. Mirror of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathOutline</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stroke_outline</span><span class="p">([(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)])</span>
+<span class="go">[(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -814,11 +874,11 @@ every vertex strictly between them. Mirror of <code class="docutils literal notr
       </div>
     </a>
     <a class="right-next"
-       href="an.stage.paths.html"
+       href="an.stage.path_wobble.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.stage.paths</p>
+        <p class="prev-next-title">an.stage.path_wobble</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -842,11 +902,14 @@ every vertex strictly between them. Mirror of <code class="docutils literal notr
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.HEAD_STROKE_INSET"><code class="docutils literal notranslate"><span class="pre">HEAD_STROKE_INSET</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.OUTLINE_MITER_LIMIT"><code class="docutils literal notranslate"><span class="pre">OUTLINE_MITER_LIMIT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.cumulative_lengths"><code class="docutils literal notranslate"><span class="pre">cumulative_lengths()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.dash_spans"><code class="docutils literal notranslate"><span class="pre">dash_spans()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.flatten_curve"><code class="docutils literal notranslate"><span class="pre">flatten_curve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.path_geometry"><code class="docutils literal notranslate"><span class="pre">path_geometry()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.point_at"><code class="docutils literal notranslate"><span class="pre">point_at()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.profile_width"><code class="docutils literal notranslate"><span class="pre">profile_width()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.stroke_outline"><code class="docutils literal notranslate"><span class="pre">stroke_outline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.path_geometry.trim_polyline"><code class="docutils literal notranslate"><span class="pre">trim_polyline()</span></code></a></li>
 </ul>
   </nav></div>

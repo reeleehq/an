@@ -9,6 +9,7 @@ an.stage.path\_geometry
    .. autosummary::
    
       HEAD_STROKE_INSET
+      OUTLINE_MITER_LIMIT
    
    .. rubric:: Functions
 
@@ -20,4 +21,6 @@ an.stage.path\_geometry
       trim_polyline
       dash_spans
       path_geometry
+      profile_width
+      stroke_outline
    

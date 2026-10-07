@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cd346c81"></script>
+    <script src="../_static/documentation_options.js?v=252ecf43"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,10 +53,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="an.stage.preview" href="an.stage.preview.html" />
-    <link rel="prev" title="an.stage.path_geometry" href="an.stage.path_geometry.html" />
+    <link rel="prev" title="an.stage.path_wobble" href="an.stage.path_wobble.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.227" />
+  <meta name="docsearch:version" content="0.1.228" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -479,6 +479,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.gradients.html">an.stage.gradients</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_wobble.html">an.stage.path_wobble</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stage.paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
@@ -662,6 +663,12 @@ SVG; a path has none of those, and its colour is decided by the compiler
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.paths.resolve_path" title="an.stage.paths.resolve_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_path</span></code></a>(document[, overrides])</p></td>
 <td><p>The path an entity draws: its stored document with <code class="docutils literal notranslate"><span class="pre">overrides</span></code> on top.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.paths.drawn_polyline" title="an.stage.paths.drawn_polyline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_polyline</span></code></a>(desc, entity_id)</p></td>
+<td><p>The polyline the compiler puts on the wire for entity <code class="docutils literal notranslate"><span class="pre">entity_id</span></code> drawing <code class="docutils literal notranslate"><span class="pre">desc</span></code> — flattened, closed, wobbled (the wobble is seeded by the entity) — and the index in it of each AUTHORED on-path point: every point of a polyline, <code class="docutils literal notranslate"><span class="pre">p0</span> <span class="pre">p1</span> <span class="pre">p2</span> <span class="pre">...</span></code> of a cubic chain (not its controls), and the closing return to the first point when <code class="docutils literal notranslate"><span class="pre">closed</span></code> added one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.paths.draw_on_through" title="an.stage.paths.draw_on_through"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw_on_through</span></code></a>(entity_id, path, arrivals, *)</p></td>
+<td><p>A draw-on whose tip reaches each authored point at its own time (an#161).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -724,6 +731,20 @@ chained:</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.closed">
+<span class="sig-name descname"><span class="pre">closed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.closed" title="Link to this definition">#</a></dt>
+<dd><p>the path returns to its first point (a straight
+closing leg is added when the last point is elsewhere) and the stroke
+joins there instead of ending in two caps. Trim still runs from the
+first point round to it again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A closed shape (an#161)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.color">
 <span class="sig-name descname"><span class="pre">color</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.color" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>.</p>
@@ -749,6 +770,21 @@ so a draw-on reveals dashes in place instead of making them crawl.
 <dd><p>Shifts the pattern along the path (positive = forward). An ordinary
 numeric node property like <code class="docutils literal notranslate"><span class="pre">trim_end</span></code>, so <code class="docutils literal notranslate"><span class="pre">tween</span> <span class="pre">route</span> <span class="pre">dash_offset</span></code>
 is the “marching ants” route; only a dashed path has one.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.fill">
+<span class="sig-name descname"><span class="pre">fill</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.fill" title="Link to this definition">#</a></dt>
+<dd><p>The region a closed path encloses, <code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> = unfilled.
+Drawn under the stroke and NOT trimmed: a draw-on draws the border and
+the fill is there throughout. To fade a region in separately, make it
+its own entity (<code class="docutils literal notranslate"><span class="pre">width:</span> <span class="pre">0</span></code>, filled) and tween that node’s <code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.fill_alpha">
+<span class="sig-name descname"><span class="pre">fill_alpha</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.fill_alpha" title="Link to this definition">#</a></dt>
+<dd><p>The fill’s opacity, <code class="docutils literal notranslate"><span class="pre">0..1</span></code>.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -814,6 +850,112 @@ length. <code class="docutils literal notranslate"><span class="pre">trim_end=0<
 with no <code class="docutils literal notranslate"><span class="pre">from_value</span></code> starts from these values (not the global rest).</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.width">
+<span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.width" title="Link to this definition">#</a></dt>
+<dd><p>Stroke width, scene px. <code class="docutils literal notranslate"><span class="pre">0</span></code> = no stroke, only for a <a href="#id1"><span class="problematic" id="id2">``</span></a>fill``ed shape
+(a region without a border).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.width_profile">
+<span class="sig-name descname"><span class="pre">width_profile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.width_profile" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">[[t,</span> <span class="pre">factor],</span> <span class="pre">...]</span></code> along the WHOLE path’s
+arc length (<code class="docutils literal notranslate"><span class="pre">t</span></code> from 0 to 1, increasing; <code class="docutils literal notranslate"><span class="pre">factor</span></code> times <code class="docutils literal notranslate"><span class="pre">width</span></code>,
+linear between stops), so <code class="docutils literal notranslate"><span class="pre">[[0,</span> <span class="pre">1],</span> <span class="pre">[1,</span> <span class="pre">0]]</span></code> tapers to a point and a
+trim never makes the width crawl. The stroke becomes a filled shape:
+butt ends, mitred corners (no <code class="docutils literal notranslate"><span class="pre">cap</span></code>/<code class="docutils literal notranslate"><span class="pre">join</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A variable width (an#161)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.wobble">
+<span class="sig-name descname"><span class="pre">wobble</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.wobble" title="Link to this definition">#</a></dt>
+<dd><p>the stroke wanders up to this many scene
+px either side of its line, by seeded smooth noise applied at compile
+(<a class="reference internal" href="an.stage.path_wobble.html#module-an.stage.path_wobble" title="an.stage.path_wobble"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.path_wobble</span></code></a>), its ends left where they are. <code class="docutils literal notranslate"><span class="pre">0</span></code> = a
+ruled line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A hand-drawn wobble (an#161)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.wobble_seed">
+<span class="sig-name descname"><span class="pre">wobble_seed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.wobble_seed" title="Link to this definition">#</a></dt>
+<dd><p>the noise is seeded by the entity’s id
+and this number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Another wobble of the same path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.wobble_wavelength">
+<span class="sig-name descname"><span class="pre">wobble_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.wobble_wavelength" title="Link to this definition">#</a></dt>
+<dd><p>The wobble’s wavelength, scene px; <code class="docutils literal notranslate"><span class="pre">None</span></code> = a multiple of <code class="docutils literal notranslate"><span class="pre">width</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.stage.paths.PathDescriptor.wobble_wavelength_px">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">wobble_wavelength_px</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.stage.paths.PathDescriptor.wobble_wavelength_px" title="Link to this definition">#</a></dt>
+<dd><p>The wobble’s wavelength in scene pixels.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.paths.draw_on_through">
+<span class="sig-prename descclassname"><span class="pre">an.stage.paths.</span></span><span class="sig-name descname"><span class="pre">draw_on_through</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrivals</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ease_in_out'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/paths.html#draw_on_through"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.paths.draw_on_through" title="Link to this definition">#</a></dt>
+<dd><p>A draw-on whose tip reaches each authored point at its own time (an#161).</p>
+<p><code class="docutils literal notranslate"><span class="pre">arrivals[k]</span></code> is when the tip reaches authored point <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">1</span></code> (the tip
+is at point 0, hidden, at <code class="docutils literal notranslate"><span class="pre">start</span></code>): a route that reaches each city on a
+beat, or slows into the last turn. One <code class="docutils literal notranslate"><span class="pre">tween</span></code> of <code class="docutils literal notranslate"><span class="pre">trim_end</span></code> per leg,
+from the arc fraction of one point to the next on the polyline the
+compiler draws (<a class="reference internal" href="#an.stage.paths.drawn_polyline" title="an.stage.paths.drawn_polyline"><code class="xref py py-func docutils literal notranslate"><span class="pre">drawn_polyline()</span></code></a>, wobble included, so the tip is ON
+the point), each eased by <code class="docutils literal notranslate"><span class="pre">easing</span></code>, preceded by a <code class="docutils literal notranslate"><span class="pre">set</span></code> of
+<code class="docutils literal notranslate"><span class="pre">trim_end</span></code> to 0 at 0. <code class="docutils literal notranslate"><span class="pre">arrivals</span></code> are absolute shot times, increasing.</p>
+<p>Returns a list of top-level actions for <code class="docutils literal notranslate"><span class="pre">shot.actions.extend(...)</span></code>, as
+<a class="reference internal" href="an.stage.text.html#an.stage.text.reveal_units" title="an.stage.text.reveal_units"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.text.reveal_units()</span></code></a> does.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">acts</span> <span class="o">=</span> <span class="n">draw_on_through</span><span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"PathDescriptor"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"r"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">"points"</span><span class="p">:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">10</span><span class="p">]]},</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"to_value"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">acts</span><span class="p">]</span>
+<span class="go">[('set', 0.0), ('tween', 0.75), ('sequence', None)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.paths.drawn_polyline">
+<span class="sig-prename descclassname"><span class="pre">an.stage.paths.</span></span><span class="sig-name descname"><span class="pre">drawn_polyline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/paths.html#drawn_polyline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.paths.drawn_polyline" title="Link to this definition">#</a></dt>
+<dd><p>The polyline the compiler puts on the wire for entity <code class="docutils literal notranslate"><span class="pre">entity_id</span></code>
+drawing <code class="docutils literal notranslate"><span class="pre">desc</span></code> — flattened, closed, wobbled (the wobble is seeded by
+the entity) — and the index in it of each AUTHORED on-path point: every
+point of a polyline, <code class="docutils literal notranslate"><span class="pre">p0</span> <span class="pre">p1</span> <span class="pre">p2</span> <span class="pre">...</span></code> of a cubic chain (not its controls),
+and the closing return to the first point when <code class="docutils literal notranslate"><span class="pre">closed</span></code> added one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span><span class="p">,</span> <span class="n">anchors</span> <span class="o">=</span> <span class="n">drawn_polyline</span><span class="p">(</span><span class="n">PathDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)],</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="s2">"r"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span><span class="p">[</span><span class="n">anchors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">anchors</span>
+<span class="go">((0.0, 0.0), [0, 1, 2, 3])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -855,12 +997,12 @@ unknown keys; a path’s does not).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="an.stage.path_geometry.html"
+       href="an.stage.path_wobble.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">an.stage.path_geometry</p>
+        <p class="prev-next-title">an.stage.path_wobble</p>
       </div>
     </a>
     <a class="right-next"
@@ -895,9 +1037,12 @@ unknown keys; a path’s does not).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.MIN_DASH_PERIOD"><code class="docutils literal notranslate"><span class="pre">MIN_DASH_PERIOD</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PATH_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">PATH_DOCUMENT_KIND</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor"><code class="docutils literal notranslate"><span class="pre">PathDescriptor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.closed"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.closed</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.color"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.color</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.dash"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.dash</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.dash_offset"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.dash_offset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.fill"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.fill</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.fill_alpha"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.fill_alpha</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.gap_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.gap_px</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.head_length"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_length</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.head_length_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_length_px</span></code></a></li>
@@ -907,8 +1052,16 @@ unknown keys; a path’s does not).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.sampling"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.sampling</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.tail_arrowhead"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.tail_arrowhead</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.trim_start"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.trim_start</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.width"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.width</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.width_profile"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.width_profile</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.wobble"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.wobble</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.wobble_seed"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.wobble_seed</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.wobble_wavelength"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.wobble_wavelength</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.PathDescriptor.wobble_wavelength_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.wobble_wavelength_px</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.draw_on_through"><code class="docutils literal notranslate"><span class="pre">draw_on_through()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.drawn_polyline"><code class="docutils literal notranslate"><span class="pre">drawn_polyline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.paths.resolve_path"><code class="docutils literal notranslate"><span class="pre">resolve_path()</span></code></a></li>
 </ul>
   </nav></div>

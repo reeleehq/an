@@ -323,6 +323,16 @@ touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.stage.path_geometry.path_geometry`.
 
+#### closed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+`closed` joins the stroke at the
+first point (the polyline already returns there); `fill` (`#rrggbb`)
+is drawn under the stroke at `fill_alpha` and is not trimmed. Omitted
+from the wire when off, so no existing path document’s hash moves.
+
+* **Type:**
+  A closed shape and its fill (an#161)
+
 #### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 `dash > 0` is on. `dash_offset` is the value
@@ -340,6 +350,15 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 A tail arrowhead at the trimmed start (an#161), `0` = none. Omitted
 from the wire when off, so no existing path document’s hash moves.
+
+#### width_profile *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`[[t, factor], ...]` over the whole
+path’s length; the runtime fills `path_geometry`’s `outlines`.
+Omitted when unset.
+
+* **Type:**
+  A variable-width stroke (an#161)
 
 ### *class* an.stage.serialize.PlacedClipJSON(\*\*data)
 

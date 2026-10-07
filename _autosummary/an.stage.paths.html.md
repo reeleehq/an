@@ -51,8 +51,10 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### Functions
 
-| [`resolve_path`](#an.stage.paths.resolve_path)(document[, overrides])   | The path an entity draws: its stored document with `overrides` on top.   |
-|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`resolve_path`](#an.stage.paths.resolve_path)(document[, overrides])            | The path an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                                                                                                     |
+|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`drawn_polyline`](#an.stage.paths.drawn_polyline)(desc, entity_id)                | The polyline the compiler puts on the wire for entity `entity_id` drawing `desc` — flattened, closed, wobbled (the wobble is seeded by the entity) — and the index in it of each AUTHORED on-path point: every point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls), and the closing return to the first point when `closed` added one. |
+| [`draw_on_through`](#an.stage.paths.draw_on_through)(entity_id, path, arrivals, \*) | A draw-on whose tip reaches each authored point at its own time (an#161).                                                                                                                                                                                                                                                                                  |
 
 ### Classes
 
@@ -104,6 +106,16 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 ...
 ```
 
+#### closed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+the path returns to its first point (a straight
+closing leg is added when the last point is elsewhere) and the stroke
+joins there instead of ending in two caps. Trim still runs from the
+first point round to it again.
+
+* **Type:**
+  A closed shape (an#161)
+
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
@@ -123,6 +135,17 @@ so a draw-on reveals dashes in place instead of making them crawl.
 Shifts the pattern along the path (positive = forward). An ordinary
 numeric node property like `trim_end`, so `tween route dash_offset`
 is the “marching ants” route; only a dashed path has one.
+
+#### fill *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The region a closed path encloses, `#rrggbb`; `None` = unfilled.
+Drawn under the stroke and NOT trimmed: a draw-on draws the border and
+the fill is there throughout. To fade a region in separately, make it
+its own entity (`width: 0`, filled) and tween that node’s `alpha`.
+
+#### fill_alpha *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The fill’s opacity, `0..1`.
 
 #### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -166,6 +189,96 @@ with `arrowhead`, a double-headed arrow. Same size as the end’s.
 The visible span before anything animates it, as fractions of arc
 length. `trim_end=0` starts a draw-on hidden, and a trim tween
 with no `from_value` starts from these values (not the global rest).
+
+#### width *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Stroke width, scene px. `0` = no stroke, only for a 
+
+```
+``
+```
+
+fill\`\`ed shape
+(a region without a border).
+
+#### width_profile *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`[[t, factor], ...]` along the WHOLE path’s
+arc length (`t` from 0 to 1, increasing; `factor` times `width`,
+linear between stops), so `[[0, 1], [1, 0]]` tapers to a point and a
+trim never makes the width crawl. The stroke becomes a filled shape:
+butt ends, mitred corners (no `cap`/`join`).
+
+* **Type:**
+  A variable width (an#161)
+
+#### wobble *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+the stroke wanders up to this many scene
+px either side of its line, by seeded smooth noise applied at compile
+([`an.stage.path_wobble`](an.stage.path_wobble.html.md#module-an.stage.path_wobble)), its ends left where they are. `0` = a
+ruled line.
+
+* **Type:**
+  A hand-drawn wobble (an#161)
+
+#### wobble_seed *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+the noise is seeded by the entity’s id
+and this number.
+
+* **Type:**
+  Another wobble of the same path
+
+#### wobble_wavelength *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The wobble’s wavelength, scene px; `None` = a multiple of `width`.
+
+#### *property* wobble_wavelength_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The wobble’s wavelength in scene pixels.
+
+### an.stage.paths.draw_on_through(entity_id, path, arrivals, , start=0.0, easing='ease_in_out')
+
+A draw-on whose tip reaches each authored point at its own time (an#161).
+
+`arrivals[k]` is when the tip reaches authored point `k + 1` (the tip
+is at point 0, hidden, at `start`): a route that reaches each city on a
+beat, or slows into the last turn. One `tween` of `trim_end` per leg,
+from the arc fraction of one point to the next on the polyline the
+compiler draws ([`drawn_polyline()`](#an.stage.paths.drawn_polyline), wobble included, so the tip is ON
+the point), each eased by `easing`, preceded by a `set` of
+`trim_end` to 0 at 0. `arrivals` are absolute shot times, increasing.
+
+Returns a list of top-level actions for `shot.actions.extend(...)`, as
+[`an.stage.text.reveal_units()`](an.stage.text.html.md#an.stage.text.reveal_units) does.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+
+```pycon
+>>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
+...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
+>>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
+[('set', 0.0), ('tween', 0.75), ('sequence', None)]
+```
+
+### an.stage.paths.drawn_polyline(desc, entity_id)
+
+The polyline the compiler puts on the wire for entity `entity_id`
+drawing `desc` — flattened, closed, wobbled (the wobble is seeded by
+the entity) — and the index in it of each AUTHORED on-path point: every
+point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls),
+and the closing return to the first point when `closed` added one.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+```pycon
+>>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
+>>> pts[anchors[-1]], anchors
+((0.0, 0.0), [0, 1, 2, 3])
+```
 
 ### an.stage.paths.resolve_path(document, overrides=None)
 

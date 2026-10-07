@@ -157,6 +157,7 @@
 - [an.stage.fidelity](an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.stage.gradients](an.stage.gradients.html.md): Gradient fills on the stage: a &#96;Gradient&#96; drawn as an inline SVG texture.
 - [an.stage.path_geometry](an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
+- [an.stage.path_wobble](an.stage.path_wobble.html.md): A hand-drawn wobble for stroked paths, applied at compile time (an#161).
 - [an.stage.paths](an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.stage.preview](an.stage.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
 - [an.stage.prop_validate](an.stage.prop_validate.html.md): Check a prop’s asset folder offline, and say what a prop must be (an#340).

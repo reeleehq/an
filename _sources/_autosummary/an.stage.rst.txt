@@ -25,6 +25,7 @@ an.stage
    fidelity
    gradients
    path_geometry
+   path_wobble
    paths
    preview
    prop_validate

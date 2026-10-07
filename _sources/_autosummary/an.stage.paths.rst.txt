@@ -17,6 +17,8 @@ an.stage.paths
    .. autosummary::
    
       resolve_path
+      drawn_polyline
+      draw_on_through
    
    .. rubric:: Classes
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cd346c81"></script>
+    <script src="../../../_static/documentation_options.js?v=252ecf43"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.227" />
+  <meta name="docsearch:version" content="0.1.228" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -760,12 +760,21 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"dash_spans"</span><span class="p">,</span>
     <span class="s2">"path_geometry"</span><span class="p">,</span>
     <span class="s2">"HEAD_STROKE_INSET"</span><span class="p">,</span>
+    <span class="s2">"OUTLINE_MITER_LIMIT"</span><span class="p">,</span>
+    <span class="s2">"profile_width"</span><span class="p">,</span>
+    <span class="s2">"stroke_outline"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: Where the stroke stops under an arrowhead, as a fraction of the head's</span>
 <span class="c1">#: length back from the tip. Half-way keeps a butt or round cap inside the</span>
 <span class="c1">#: head for the default proportions, so the stroke never pokes past the tip.</span>
 <span class="n">HEAD_STROKE_INSET</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+
+<span class="c1">#: The longest a variable-width stroke's corner may reach, as a multiple of</span>
+<span class="c1">#: its half-width there (an#161): past it the miter is cut to this length, so</span>
+<span class="c1">#: a hairpin turn does not throw a spike across the frame.</span>
+<span class="n">OUTLINE_MITER_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span>
 
 
 <span class="c1">#: How many parameter steps per output sample the arc-length table of a</span>
@@ -987,6 +996,96 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="profile_width">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.path_geometry.html#an.stage.path_geometry.profile_width">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_width</span><span class="p">(</span><span class="n">profile</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The stroke width at fraction ``u`` of the WHOLE path's length (an#161):</span>
+<span class="sd">    ``width`` times the profile's factor, linear between its stops.</span>
+<span class="sd">    Mirror of ``runtime.js::pathProfileWidth``.</span>
+
+<span class="sd">    &gt;&gt;&gt; profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)</span>
+<span class="sd">    6.0</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">profile</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">width</span> <span class="o">*</span> <span class="n">profile</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">profile</span><span class="p">)):</span>
+        <span class="n">t1</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">profile</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">t1</span><span class="p">:</span>
+            <span class="n">t0</span><span class="p">,</span> <span class="n">f0</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">profile</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">f0</span> <span class="o">+</span> <span class="p">(</span><span class="n">f1</span> <span class="o">-</span> <span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">u</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">width</span> <span class="o">*</span> <span class="n">profile</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="stroke_outline">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.path_geometry.html#an.stage.path_geometry.stroke_outline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stroke_outline</span><span class="p">(</span>
+    <span class="n">line</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">profile</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The filled polygon of a variable-width stroke along ``line`` (an#161).</span>
+
+<span class="sd">    ``line`` is a trimmed piece of the path beginning at arc length ``start``</span>
+<span class="sd">    of a path ``total`` long, so a point's width is read at its place on the</span>
+<span class="sd">    WHOLE path: trimming never makes the width crawl. Each vertex is offset</span>
+<span class="sd">    both ways along the bisector of its legs' normals by half its width,</span>
+<span class="sd">    lengthened to keep the stroke's width through the corner (capped at</span>
+<span class="sd">    :data:`OUTLINE_MITER_LIMIT`). Butt ends. Left side forward, then the</span>
+<span class="sd">    right side back. Mirror of ``runtime.js::pathOutline``.</span>
+
+<span class="sd">    &gt;&gt;&gt; stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])</span>
+<span class="sd">    [(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">seg</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">normals</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="o">-</span><span class="n">dy</span> <span class="o">/</span> <span class="n">seg</span><span class="p">,</span> <span class="n">dx</span> <span class="o">/</span> <span class="n">seg</span><span class="p">))</span>
+    <span class="n">left</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">right</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">start</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pts</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">half</span> <span class="o">=</span> <span class="n">profile_width</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">s</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">reach</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">half</span>
+        <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">reach</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">half</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">bx</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">mx</span> <span class="o">=</span> <span class="n">ax</span> <span class="o">+</span> <span class="n">bx</span>
+            <span class="n">my</span> <span class="o">=</span> <span class="n">ay</span> <span class="o">+</span> <span class="n">by</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mx</span> <span class="o">*</span> <span class="n">mx</span> <span class="o">+</span> <span class="n">my</span> <span class="o">*</span> <span class="n">my</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">reach</span> <span class="o">=</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">half</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nx</span> <span class="o">=</span> <span class="n">mx</span> <span class="o">/</span> <span class="n">m</span>
+                <span class="n">ny</span> <span class="o">=</span> <span class="n">my</span> <span class="o">/</span> <span class="n">m</span>
+                <span class="n">cos</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">bx</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">by</span>
+                <span class="n">reach</span> <span class="o">=</span> <span class="n">half</span> <span class="o">/</span> <span class="n">cos</span>
+                <span class="n">limit</span> <span class="o">=</span> <span class="n">half</span> <span class="o">*</span> <span class="n">OUTLINE_MITER_LIMIT</span>
+                <span class="k">if</span> <span class="n">reach</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
+                    <span class="n">reach</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="n">left</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span> <span class="o">+</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">reach</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">reach</span><span class="p">))</span>
+        <span class="n">right</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">reach</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">reach</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_clamp01</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="k">return</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="p">(</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
 
@@ -1005,6 +1104,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">dash_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">tail_head_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">tail_head_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">width_profile</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the runtime draws: ``{"stroke": [points], "head": [3 points] | None}``.</span>
 
@@ -1017,6 +1118,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    ``dash &gt; 0`` makes the stroke a dash pattern: ``stroke`` is then ``[]`` and</span>
 <span class="sd">    a ``"dashes"`` key (absent otherwise) holds one polyline per visible dash.</span>
+
+<span class="sd">    ``width_profile`` (an#161) makes the stroke a variable-width SHAPE: an</span>
+<span class="sd">    ``"outlines"`` key (absent otherwise) holds one polygon per stroke or dash</span>
+<span class="sd">    (:func:`stroke_outline`), which the runtime fills instead of stroking.</span>
 
 <span class="sd">    ``head_length &gt; 0`` turns the arrowhead on. While the visible length is</span>
 <span class="sd">    shorter than the head, the head is scaled by ``visible / head_length`` so</span>
@@ -1061,12 +1166,23 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span> <span class="p">[]</span>
         <span class="p">)</span>
         <span class="n">dashes</span> <span class="o">=</span> <span class="p">[</span><span class="n">trim_polyline</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">cum</span><span class="p">,</span> <span class="n">lo_s</span><span class="p">,</span> <span class="n">hi_s</span><span class="p">)</span> <span class="k">for</span> <span class="n">lo_s</span><span class="p">,</span> <span class="n">hi_s</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">width_profile</span><span class="p">:</span>
+            <span class="n">extra</span><span class="p">[</span><span class="s2">"outlines"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">stroke_outline</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">sp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">total</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">width_profile</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dashes</span><span class="p">,</span> <span class="n">spans</span><span class="p">)</span>
+            <span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">"stroke"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"head"</span><span class="p">:</span> <span class="n">head</span><span class="p">,</span> <span class="s2">"dashes"</span><span class="p">:</span> <span class="n">dashes</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">}</span>
     <span class="n">stroke</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">trim_polyline</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">cum</span><span class="p">,</span> <span class="n">stroke_start</span><span class="p">,</span> <span class="n">stroke_end</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">stroke_end</span> <span class="o">&gt;</span> <span class="n">stroke_start</span>
         <span class="k">else</span> <span class="p">[]</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">width_profile</span><span class="p">:</span>
+        <span class="n">extra</span><span class="p">[</span><span class="s2">"outlines"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">stroke_outline</span><span class="p">(</span><span class="n">stroke</span><span class="p">,</span> <span class="n">stroke_start</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">width_profile</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">stroke</span>
+            <span class="k">else</span> <span class="p">[]</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">"stroke"</span><span class="p">:</span> <span class="n">stroke</span><span class="p">,</span> <span class="s2">"head"</span><span class="p">:</span> <span class="n">head</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">}</span></div>
 
 </pre></div>

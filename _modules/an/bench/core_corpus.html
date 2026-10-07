@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=cd346c81"></script>
+    <script src="../../../_static/documentation_options.js?v=252ecf43"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.227" />
+  <meta name="docsearch:version" content="0.1.228" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,6 +721,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">scene      what it is the gate for</span>
 <span class="sd">========== ===================================================================</span>
 <span class="sd">path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role</span>
+<span class="sd">path_wobble hand-drawn paths — a wobbled frame and a wobbled arrow drawing on (an#161)</span>
+<span class="sd">path_taper variable-width paths — a brush stroke, a tapered arrow drawing on (an#161)</span>
+<span class="sd">path_shape closed and filled paths — a whole filled badge, a region fading in under its border drawing on (an#161)</span>
 <span class="sd">stage_pan  planes and the camera's TRANSLATION — parallax at three depths</span>
 <span class="sd">text_card  text — overlay words revealed one by one, a world label — under</span>
 <span class="sd">           the camera's ZOOM and ROLL (the overlay holds still, the world does not)</span>
@@ -760,7 +763,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_draw', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -843,6 +846,47 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"as the tip advances, or in the pack reaching a path, moves a "</span>
             <span class="s2">"golden. Butt caps, so a dash's ends are exact rather than "</span>
             <span class="s2">"rounded past their length."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"path_wobble"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_wobble"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"two hand-drawn paths (an#161): a solid frame wobbling 3 px at a "</span>
+            <span class="s2">"60 px wavelength, and an arrow wobbling 4 px that draws itself on "</span>
+            <span class="s2">"(`trim_end` 0 -&gt; 1). The wobble is compile-time (seeded by the "</span>
+            <span class="s2">"entity id, no trigonometry), so the frame is the same in both "</span>
+            <span class="s2">"goldens and only the route grows; a change to the noise, the "</span>
+            <span class="s2">"seed, the end envelope or the resampling moves both."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"path_shape"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_shape"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"closed and filled paths (an#161): a badge drawn whole (fill under a "</span>
+            <span class="s2">"mitred border joined at its first corner, no caps there), and a "</span>
+            <span class="s2">"region as two entities, a border-less fill whose node `alpha` "</span>
+            <span class="s2">"fades 0 -&gt; 1 under a closed border that draws itself on "</span>
+            <span class="s2">"(`trim_end` 0 -&gt; 1). Frame 0 shows only the badge; a regression in "</span>
+            <span class="s2">"the fill, the closing join, the fill staying untrimmed or a "</span>
+            <span class="s2">"`width: 0` path drawing a stroke moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"path_taper"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_taper"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"variable-width paths (an#161), drawn as filled outlines: a "</span>
+            <span class="s2">"wobbled brush stroke swelling from nothing to 1.2x and back to a "</span>
+            <span class="s2">"point, and an arrow widening 0.2x -&gt; 1x along a mitred polyline "</span>
+            <span class="s2">"that draws itself on with its head on the tip. The width is "</span>
+            <span class="s2">"anchored to the WHOLE path, so the arrow's base does not thin as "</span>
+            <span class="s2">"it grows; a regression in the profile, the miter, the anchoring "</span>
+            <span class="s2">"or the fill-instead-of-stroke rule moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"stage_pan"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
