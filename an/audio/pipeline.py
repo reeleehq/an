@@ -642,7 +642,11 @@ def _spoken_of(audio: Any) -> float | None:
     """Where ``audio``'s speech ends (:func:`an.audio.effects.speech_end`); ``None`` if unknown."""
     from an.audio.effects import speech_end
 
-    data = getattr(audio, "bytes_", None) if not isinstance(audio, (bytes, bytearray)) else audio
+    data = (
+        getattr(audio, "bytes_", None)
+        if not isinstance(audio, (bytes, bytearray))
+        else audio
+    )
     if data is None and getattr(audio, "path", None) is not None:
         data = Path(audio.path).read_bytes()
     if not data:
@@ -669,7 +673,9 @@ def _backfill_spoken(scene: SceneIR, audio_store: Any) -> None:
                 data = audio_store[line.audio_ref]
             except (KeyError, OSError):
                 continue
-            line.spoken = _spoken_of(bytes(data) if not hasattr(data, "bytes_") else data)
+            line.spoken = _spoken_of(
+                bytes(data) if not hasattr(data, "bytes_") else data
+            )
 
 
 class AudioNotCachedError(AudioPipelineError):
