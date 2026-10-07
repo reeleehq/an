@@ -57,6 +57,7 @@ __all__ = [
     "Transform2D",
     "transform_of",
     "screen_position",
+    "node_box",
 ]
 
 
@@ -309,6 +310,93 @@ def screen_position(
     root, root_path = chain[0]
     at = transform_of(_ROOT_AT_REST, _pose_for(pose, root_path)).apply(at)
     return at[0] + scene.meta.width / 2.0, at[1] + scene.meta.height / 2.0
+
+
+def node_box(
+    scene: CutoutSceneJSON,
+    path: str,
+    *,
+    pose: Pose | None = None,
+) -> tuple[float, float, float, float] | None:
+    """The canvas rectangle ``(x0, y0, x1, y1)`` the visual at ``path`` occupies (an#445).
+
+    The visual's box, the one the runtime fits its art into (``width`` ×
+    ``height`` about its anchor, plus a swap key's own box, anchor and offset
+    when the key in force has one, an#211), with its four corners composed up
+    the chain by :func:`screen_position`. So it rotates, scales and pans with
+    the node, its parents and the camera, exactly as a point does. ``None``
+    when the node draws nothing.
+
+    Under ``fit: contain`` the art keeps its aspect inside the box, so the
+    rectangle is an upper bound on what is painted: exact on the fitted axis,
+    with the slack the art's aspect leaves on the other. A stroked path's box
+    is its polyline's, grown by half the stroke.
+
+    >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON, VisualJSON
+    >>> scene = CutoutSceneJSON(
+    ...     scene=NodeJSON(name="root", children=[NodeJSON(
+    ...         name="card", transform=TransformJSON(x=40.0),
+    ...         visual=VisualJSON(kind="rect", width=20.0, height=10.0))]),
+    ...     timeline=TimelineJSON(duration=1.0),
+    ... )
+    >>> scene.meta.width, scene.meta.height = 320, 240
+    >>> node_box(scene, "card")
+    (190.0, 115.0, 210.0, 125.0)
+    >>> node_box(scene, "card", pose={("card", "scale_x"): 2.0})
+    (180.0, 115.0, 220.0, 125.0)
+    """
+    root = (
+        scene.overlay
+        if (
+            getattr(scene, "overlay", None) is not None
+            and path.split("/", 1)[0] in {c.name for c in scene.overlay.children}
+        )
+        else scene.scene
+    )
+    node = _node_chain(root, path)[-1][0]
+    visual = node.visual
+    if visual is None:
+        return None
+    if visual.path is not None:
+        xs = [x for x, _ in visual.path.points]
+        ys = [y for _, y in visual.path.points]
+        half = float(visual.path.stroke_width) / 2.0
+        corners = [
+            (min(xs) - half, min(ys) - half),
+            (max(xs) + half, min(ys) - half),
+            (max(xs) + half, max(ys) + half),
+            (min(xs) - half, max(ys) + half),
+        ]
+    else:
+        geometry = {
+            "width": visual.width,
+            "height": visual.height,
+            "anchor_x": visual.anchor_x,
+            "anchor_y": visual.anchor_y,
+            "x": 0.0,
+            "y": 0.0,
+        }
+        geometry.update(_key_geometry(visual, path, pose) or {})
+        w, h = float(geometry["width"]), float(geometry["height"])
+        ax, ay = float(geometry["anchor_x"]), float(geometry["anchor_y"])
+        gx, gy = float(geometry.get("x") or 0.0), float(geometry.get("y") or 0.0)
+        left, top = gx - ax * w, gy - ay * h
+        corners = [(left, top), (left + w, top), (left + w, top + h), (left, top + h)]
+    on_canvas = [screen_position(scene, path, pose=pose, point=c) for c in corners]
+    xs = [x for x, _ in on_canvas]
+    ys = [y for _, y in on_canvas]
+    return (min(xs), min(ys), max(xs), max(ys))
+
+
+def _key_geometry(visual: Any, path: str, pose: Pose | None) -> dict[str, float] | None:
+    """The box of the swap key in force on ``path``, if it is drawn differently (an#211)."""
+    if not (visual.asset_geometry and visual.asset_sets and pose):
+        return None
+    for set_name, keys in visual.asset_sets.items():
+        key = pose.get((path, set_name))
+        if key is not None and str(key) in keys:
+            return visual.asset_geometry.get(keys[str(key)])
+    return None
 
 
 #: A stand-in for the runtime's own root container: identity, because that is

@@ -198,3 +198,82 @@ def test_the_transform_has_no_field_the_runtime_does_not_apply():
         assert f"t.{name}" in src, name
     for spelled in plane.values():
         assert spelled in src, spelled
+
+
+# --- a node's rectangle (an#445) ------------------------------------------------
+
+
+def test_node_box_agrees_with_pixi_get_bounds():
+    """The visual's box through the same awkward chain, against PixiJS's own
+    `getBounds` of a sprite sized and anchored the way the runtime fits a
+    visual: `width` x `height` about its anchor, in the node's local space.
+    PixiJS composes in float32, hence the tolerance."""
+    from an.adapters.cutout.serialize import VisualJSON
+    from an.stage.timeline import node_box
+
+    if shutil.which("node") is None:
+        pytest.skip("node not installed")
+    bundle = RUNTIME_DIR / "vendor" / "pixi.min.js"
+    if not bundle.is_file():
+        pytest.skip(f"vendored pixi not present at {bundle}")
+    src = (RUNTIME_DIR / "runtime.js").read_text(encoding="utf-8")
+    start = src.index("function applyTransform(")
+    apply_transform = src[start : src.index("\n    }", start) + len("\n    }")]
+    w, h, ax, ay = 30.0, 12.0, 0.25, 0.8
+    script = f"""
+    global.self = global; global.window = global;
+    global.document = {{ createElement: () => ({{ getContext: () => null, style: {{}} }}),
+                        addEventListener: () => {{}} }};
+    (0, eval)(require('fs').readFileSync({json.dumps(str(bundle))}, 'utf8'));
+    {apply_transform}
+    const chain = {json.dumps(CHAIN)};
+    const rootPose = {json.dumps(ROOT_POSE)};
+    let parent = null, leaf = null, top = null;
+    for (let i = 0; i < chain.length; i++) {{
+        const c = new PIXI.Container();
+        applyTransform(c, i === 0 ? rootPose : chain[i]);
+        if (parent) parent.addChild(c); else top = c;
+        parent = c; leaf = c;
+    }}
+    // A sprite sized and anchored the way the runtime fits a visual's art.
+    const g = new PIXI.Sprite(PIXI.Texture.EMPTY);
+    g.anchor.set({ax}, {ay});
+    g.width = {w}; g.height = {h};
+    leaf.addChild(g);
+    const b = g.getBounds();
+    console.log(JSON.stringify([b.x, b.y, b.x + b.width, b.y + b.height]));
+    """
+    proc = run_node(script, timeout=NODE_BUNDLE_TIMEOUT_S)
+    if proc.returncode != 0:
+        pytest.skip(f"the vendored bundle would not load under node: {proc.stderr[:200]}")
+    engine = json.loads(proc.stdout.strip().splitlines()[-1])
+    scene = _scene()
+    leaf = scene.scene.children[0].children[0]
+    leaf.visual = VisualJSON(kind="rect", width=w, height=h, anchor_x=ax, anchor_y=ay)
+    ours = node_box(scene, "street/hills", pose={("root", k): v for k, v in ROOT_POSE.items()})
+    expected = [engine[0] + WIDTH / 2, engine[1] + HEIGHT / 2, engine[2] + WIDTH / 2, engine[3] + HEIGHT / 2]
+    assert list(ours) == pytest.approx(expected, abs=1e-3)
+
+
+def test_node_box_takes_the_swap_key_in_force_and_none_for_an_empty_node():
+    from an.adapters.cutout.serialize import VisualJSON
+    from an.stage.timeline import node_box
+
+    scene = CutoutSceneJSON(
+        scene=NodeJSON(name="root", children=[NodeJSON(
+            name="mouth",
+            visual=VisualJSON(
+                kind="svg_sprite", width=20.0, height=4.0,
+                asset_sets={"viseme": {"X": "m.x", "A": "m.a"}},
+                asset_geometry={"m.a": {"width": 20.0, "height": 16.0, "anchor_x": 0.5, "anchor_y": 0.5, "x": 0.0, "y": 6.0}},
+            ),
+        ), NodeJSON(name="empty")]),
+        timeline=TimelineJSON(duration=1.0),
+    )
+    scene.meta.width, scene.meta.height = 100, 100
+    assert node_box(scene, "mouth") == (40.0, 48.0, 60.0, 52.0)
+    assert node_box(scene, "mouth", pose={("mouth", "viseme"): "X"}) == (40.0, 48.0, 60.0, 52.0)
+    assert node_box(scene, "mouth", pose={("mouth", "viseme"): "A"}) == (40.0, 48.0, 60.0, 64.0)
+    assert node_box(scene, "empty") is None
+    with pytest.raises(Exception):
+        node_box(scene, "nowhere")
