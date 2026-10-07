@@ -63,6 +63,7 @@ True
 | [`AssetRef`](#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
 |----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Camera`](#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraFollow`](#an.ir.schema.CameraFollow)(\*\*data)    | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
 | [`CameraShake`](#an.ir.schema.CameraShake)(\*\*data)     | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
 | [`Captions`](#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
@@ -207,6 +208,27 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.stage.compile.CAMERA_MOVES`; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
+
+### *class* an.ir.schema.CameraFollow(\*\*data)
+
+Bases: `_IRModel`
+
+A camera that follows an entity (an#445): the frame keeps `target`
+where it stood at the shot’s start.
+
+```pycon
+>>> CameraFollow(target="bob").axes
+'x'
+```
+
+`target` is an entity id or one of its nodes (`bob/head`); `axes` is
+which way the camera tracks it (`x`: a side-scrolling walk, `xy`: both).
+Resolved at compile time from the compiled motion (the target’s position at
+every frame), so planes parallax with it like any camera move.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.CameraKey(\*\*data)
 

@@ -32,6 +32,7 @@ an.ir.schema
    
       AssetRef
       Camera
+      CameraFollow
       CameraKey
       CameraShake
       Captions

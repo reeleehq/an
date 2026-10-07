@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=31457626"></script>
+    <script src="../../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -728,6 +728,14 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_dir</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The prop folder ``name`` means: a path to the folder (or to its</span>
+<span class="sd">    ``prop.json``) when it is one, else a KEY under ``out_dir`` (an#459: an</span>
+<span class="sd">    end user passed the path and was told the prop had no ``prop.json``)."""</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">given</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"prop.json"</span> <span class="ow">and</span> <span class="n">given</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">given</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">given</span> <span class="o">/</span> <span class="s2">"prop.json"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">given</span>
     <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span> <span class="ow">or</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"props"</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
 
 
@@ -736,13 +744,22 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Check a prop's folder (prop.json + parts/) against the rig contract, offline.</span>
 
-<span class="sd">    name: the prop's key (its folder name)</span>
-<span class="sd">    out_dir: parent directory; defaults to ./assets/props</span>
+<span class="sd">    name: the prop's key (its folder name under out_dir), or a path to its</span>
+<span class="sd">        folder or to its prop.json</span>
+<span class="sd">    out_dir: parent directory of the keys; defaults to ./assets/props</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.prop_validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_prop</span>
 
-    <span class="n">report</span> <span class="o">=</span> <span class="n">validate_prop</span><span class="p">(</span><span class="n">_resolve_dir</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">'PASSED'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">report</span><span class="o">.</span><span class="n">passed</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'FAILED'</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">_resolve_dir</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">directory</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span> <span class="ow">or</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"props"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: FAILED</span><span class="se">\n</span><span class="s2">  no prop folder at </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">: pass a prop's KEY "</span>
+            <span class="sa">f</span><span class="s2">"(a folder name under </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">, set by --out-dir), or a path to a "</span>
+            <span class="s2">"folder that holds a prop.json"</span>
+        <span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">validate_prop</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">directory</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">directory</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">'PASSED'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">report</span><span class="o">.</span><span class="n">passed</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'FAILED'</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
     <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
         <span class="sa">f</span><span class="s2">"  [</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span>
         <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">      fix: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>

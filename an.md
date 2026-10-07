@@ -1,4 +1,4 @@
-> built 2026-10-07 00:55 UTC from c926bdd (main) · an 0.1.223. Details: build_info.json
+> built 2026-10-07 01:02 UTC from 0fe0872 (main) · an 0.1.224. Details: build_info.json
 
 # index.html.md
 
@@ -17655,6 +17655,7 @@ True
 | [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
 |----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraFollow`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraFollow)(\*\*data)    | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
 | [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
 | [`CameraShake`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraShake)(\*\*data)     | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
 | [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
@@ -17799,6 +17800,27 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 `an.stage.compile.CAMERA_MOVES`; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
+
+### *class* an.ir.schema.CameraFollow(\*\*data)
+
+Bases: `_IRModel`
+
+A camera that follows an entity (an#445): the frame keeps `target`
+where it stood at the shot’s start.
+
+```pycon
+>>> CameraFollow(target="bob").axes
+'x'
+```
+
+`target` is an entity id or one of its nodes (`bob/head`); `axes` is
+which way the camera tracks it (`x`: a side-scrolling walk, `xy`: both).
+Resolved at compile time from the compiled motion (the target’s position at
+every frame), so planes parallax with it like any camera move.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.CameraKey(\*\*data)
 
@@ -18744,6 +18766,8 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`RETIRED_KEYS`](_autosummary/an.ir.validate.html.md#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
 |-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_CAMERA_KEYS`](_autosummary/an.ir.validate.html.md#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
+| [`CUT_CONTINUITY_PROPS`](_autosummary/an.ir.validate.html.md#an.ir.validate.CUT_CONTINUITY_PROPS)         | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
+| [`CUT_CONTINUITY_TOLERANCE`](_autosummary/an.ir.validate.html.md#an.ir.validate.CUT_CONTINUITY_TOLERANCE)     | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](_autosummary/an.ir.validate.html.md#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](_autosummary/an.ir.validate.html.md#an.ir.validate.POST_SYNTHESIS_CHECKS)        | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
 
@@ -18770,6 +18794,23 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 | [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError)(findings, \*[, where])   | A scene names kinds or renderers nothing registered: refused at load.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### an.ir.validate.CUT_CONTINUITY_PROPS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y', 'scale_x', 'scale_y')*
+
+position in
+scene px, and the size of its scale (its SIGN is facing, which the genre’s
+view continuity check says, an#203).
+
+* **Type:**
+  What an entity’s placement across a cut is compared on (an#394)
+
+### an.ir.validate.CUT_CONTINUITY_TOLERANCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'scale_x': 0.01, 'scale_y': 0.01, 'x': 1.0, 'y': 1.0}*
+
+a pixel, or
+a hundredth of the scale.
+
+* **Type:**
+  How far a value may move across a cut and still be “the same”
 
 ### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -25148,11 +25189,13 @@ Print what a prop folder must hold, generated from the schema and the rig rules.
 
 Check a prop’s folder (prop.json + parts/) against the rig contract, offline.
 
-name: the prop’s key (its folder name)
-out_dir: parent directory; defaults to ./assets/props
-
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+name: the prop’s key (its folder name under out_dir), or a path to its
+: folder or to its prop.json
+
+out_dir: parent directory of the keys; defaults to ./assets/props
 
 
 # _autosummary/an.raster.html.md
@@ -26577,7 +26620,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -27593,6 +27636,7 @@ mall). It reads only.
 | [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.stage.compile.html.md#an.stage.compile.DFLT_TARGET_SUGGESTIONS)      | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                           |
 | [`CAMERA_NODE`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_NODE)                  | indexed by the runtime, absent from the tree.                                                                                                                                                                             |
 | [`AFTER_BANDS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.AFTER_BANDS_PRODUCT)          | the [`AfterBand`](_autosummary/an.stage.compile.html.md#an.stage.compile.AfterBand) wrappers the scene pass built.                                                                                                                             |
+| [`CAMERA_KEYS_PRODUCT`](_autosummary/an.stage.compile.html.md#an.stage.compile.CAMERA_KEYS_PRODUCT)          | The product key under which the follow pass (an#445) leaves the camera keys it resolved from the compiled motion; the camera and parallax passes read them there instead of `camera_keys(shot)`.                          |
 | [`STAGE_COMPILE_PASSES`](_autosummary/an.stage.compile.html.md#an.stage.compile.STAGE_COMPILE_PASSES)         | The STAGE's own compile passes, in order.                                                                                                                                                                                 |
 | [`RUNTIME_FIELD_KINDS`](_autosummary/an.stage.compile.html.md#an.stage.compile.RUNTIME_FIELD_KINDS)          | The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test pins the two).                                                                                                                                   |
 | [`BAND_INFIX`](_autosummary/an.stage.compile.html.md#an.stage.compile.BAND_INFIX)                   | The infix of a container holding a later band of an environment's planes (an#344): `<env>__band_<k>`, `scope=<env>`.                                                                                                      |
@@ -27609,6 +27653,7 @@ mall). It reads only.
 
 | [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])   | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                        |
 |---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                        | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                        |
 | [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)             | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                           |
 | [`compile_passes_for_stage`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_passes_for_stage)()                       | The stage's passes and every registered one, in run order (stable by name).                                                                                                                              |
 | [`compile_shot`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)(shot[, mall, fps, width, ...])      | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                                                                                        |
@@ -27691,6 +27736,12 @@ A wrapper the parallax pass gives `plane`’s compensation (an#344).
 
 The infix of a container holding a later band of an environment’s planes
 (an#344): `<env>__band_<k>`, `scope=<env>`.
+
+### an.stage.compile.CAMERA_KEYS_PRODUCT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'camera_keys'*
+
+The product key under which the follow pass (an#445) leaves the camera keys
+it resolved from the compiled motion; the camera and parallax passes read
+them there instead of `camera_keys(shot)`.
 
 ### an.stage.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
 
@@ -27817,7 +27868,7 @@ The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
 
-### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
+### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
 The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
@@ -27869,6 +27920,13 @@ cycle. The one statement both `compile_shot` and `an validate` read.
 >>> [why.split(":")[0] for _, why in after_problems(shot, {})]
 ["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]
 ```
+
+### an.stage.compile.camera_follow_keys(state)
+
+The keys of `state.shot`’s follow camera, one per frame (an#445).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ### an.stage.compile.camera_keys(shot, , width, height)
 
@@ -38128,7 +38186,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-07 00:55 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/c926bddac89d3570b6660279a1eb060b9a54dbde"><code>c926bdd</code></a> on branch <code>main</code>, for **an 0.1.223** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-07 01:02 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/0fe08727a200198af042521657d104d6498bee50"><code>0fe0872</code></a> on branch <code>main</code>, for **an 0.1.224** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -38137,9 +38195,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/c926bddac89d3570b6660279a1eb060b9a54dbde"><code>c926bddac89d3570b6660279a1eb060b9a54dbde</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/0fe08727a200198af042521657d104d6498bee50"><code>0fe08727a200198af042521657d104d6498bee50</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.223</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.224</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -38148,9 +38206,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37553986760">37553986760</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37554538795">37554538795</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>bfb4cd0bb34bfae2defacd5786d85a45bd6f4d85</code> (in the history of the built commit) |
+| Event commit | <code>7e1921b30c49224f445e7faff7012bc05b41fc09</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -38175,13 +38233,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.223/">0.1.223</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.224/">0.1.224</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout c926bddac89d3570b6660279a1eb060b9a54dbde
+git checkout 0fe08727a200198af042521657d104d6498bee50
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

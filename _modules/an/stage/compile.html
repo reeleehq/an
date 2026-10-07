@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=31457626"></script>
+    <script src="../../../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1721,6 +1721,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="p">,</span>
         <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">keys</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">_add_camera_shake_clips</span><span class="p">(</span>
         <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
@@ -1729,6 +1730,74 @@ window.runMermaid = runMermaid;</script>
         <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: The product key under which the follow pass (an#445) leaves the camera keys</span>
+<span class="c1">#: it resolved from the compiled motion; the camera and parallax passes read</span>
+<span class="c1">#: them there instead of `camera_keys(shot)`.</span>
+<span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"camera_keys"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_camera_follow_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A following camera (an#445): its keys, from where the target IS.</span>
+
+<span class="sd">    After every pass that moves an entity (the actions, a genre's poses and</span>
+<span class="sd">    faces), before the camera: the document so far is evaluated at every</span>
+<span class="sd">    frame by the runtime's executable spec (`evaluate_timeline`), and the</span>
+<span class="sd">    target's position composed up its chain (`screen_position`, with no camera</span>
+<span class="sd">    yet, so it is the scene position). The camera keeps the target where it</span>
+<span class="sd">    stood at the shot's start: one linear key per frame, which is exact at</span>
+<span class="sd">    every frame the render draws."""</span>
+    <span class="n">camera</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span>
+    <span class="k">if</span> <span class="n">camera</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">camera</span><span class="o">.</span><span class="n">follow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="c1"># The one resolver refuses a follow beside a move or keys, here as in validate.</span>
+    <span class="n">camera_keys</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">]</span> <span class="o">=</span> <span class="n">camera_follow_keys</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="camera_follow_keys">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.camera_follow_keys">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">camera_follow_keys</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The keys of ``state.shot``'s follow camera, one per frame (an#445)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">screen_position</span><span class="p">,</span>
+        <span class="n">timeline_from_scene</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">follow</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">follow</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">_assemble_document</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s2">"#000000"</span><span class="p">)</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">))</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">screen_position</span><span class="p">(</span>
+                <span class="n">doc</span><span class="p">,</span>
+                <span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+                <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">k</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the camera follows </span><span class="si">{</span><span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">, which "</span>
+            <span class="sa">f</span><span class="s2">"is not a node of this shot (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). Follow an entity id or one of its "</span>
+            <span class="s2">"nodes."</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">CameraKey</span><span class="p">(</span>
+            <span class="n">at</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">k</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parallax_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1743,6 +1812,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
         <span class="n">bands</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AFTER_BANDS_PRODUCT</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(),</span>
+        <span class="n">keys</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">),</span>
     <span class="p">)</span>
 
 
@@ -1829,6 +1899,12 @@ window.runMermaid = runMermaid;</script>
     <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"actions"</span><span class="p">,</span> <span class="n">_actions_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"authored actions -&gt; clips"</span>
+    <span class="p">),</span>
+    <span class="n">CompilePass</span><span class="p">(</span>
+        <span class="s2">"camera_follow"</span><span class="p">,</span>
+        <span class="n">_camera_follow_pass</span><span class="p">,</span>
+        <span class="n">order</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a following camera's keys, from the compiled motion (an#445)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">CompilePass</span><span class="p">(</span>
         <span class="s2">"camera"</span><span class="p">,</span> <span class="n">_camera_pass</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"the camera onto the scene root"</span>
@@ -2984,6 +3060,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">bands</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AfterBand</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compensate each plane for the camera, one factor per plane.</span>
 
@@ -3012,7 +3089,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    the other's, so swapping them is picture-equivalent and merely reorders the</span>
 <span class="sd">    serialized track list (an#110 review, L1).</span>
 <span class="sd">    """</span>
-    <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
@@ -4835,8 +4913,12 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Emit the shot's camera as channels on the synthetic scene root.</span>
+
+<span class="sd">    ``keys``: the camera resolved by an earlier pass (a follow, an#445);</span>
+<span class="sd">    default, :func:`camera_keys` of the shot.</span>
 
 <span class="sd">    The root container sits at canvas centre; PixiJS composes</span>
 <span class="sd">    ``world = position + M·(local − pivot)``, so `root.pivot` IS a 2D camera</span>
@@ -4849,7 +4931,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    five zoom moves byte-identical to the documents they produced before this</span>
 <span class="sd">    existed, and it is asserted rather than assumed.</span>
 <span class="sd">    """</span>
-    <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span>  <span class="c1"># `hold`, an empty list, or a single pose: nothing to animate</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>

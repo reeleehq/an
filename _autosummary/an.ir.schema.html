@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=31457626"></script>
+    <script src="../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -698,79 +698,82 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Camera" title="an.ir.schema.Camera"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Camera</span></code></a>(**data)</p></td>
 <td><p>Camera state for a shot: a named move, or explicit keys.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraKey</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraFollow" title="an.ir.schema.CameraFollow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraFollow</span></code></a>(**data)</p></td>
+<td><p>A camera that follows an entity (an#445): the frame keeps <code class="docutils literal notranslate"><span class="pre">target</span></code> where it stood at the shot's start.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraKey</span></code></a>(**data)</p></td>
 <td><p>One camera pose at one time — the explicit door behind the named moves.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CameraShake" title="an.ir.schema.CameraShake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraShake</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CameraShake" title="an.ir.schema.CameraShake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CameraShake</span></code></a>(**data)</p></td>
 <td><p>A jolt of the frame inside a shot (an#429): seeded screen-space jitter.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(**data)</p></td>
 <td><p>Captions for the whole film, built from the dialogue's word timings.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(**data)</p></td>
 <td><p>A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(**data)</p></td>
 <td><p>Where a sound cue ends: at another cue's start, plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (an#317).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.DelayAction" title="an.ir.schema.DelayAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DelayAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DelayAction" title="an.ir.schema.DelayAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DelayAction</span></code></a>(**data)</p></td>
 <td><p>Composition: an empty span that consumes time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Dialogue" title="an.ir.schema.Dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dialogue</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Dialogue" title="an.ir.schema.Dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Dialogue</span></code></a>(**data)</p></td>
 <td><p>One line of spoken dialogue.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.ExtensionAction" title="an.ir.schema.ExtensionAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionAction</span></code></a>(**data)</p></td>
 <td><p>An action of a kind the core does not define: the IR's one open member.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.LoopAction" title="an.ir.schema.LoopAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoopAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.LoopAction" title="an.ir.schema.LoopAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoopAction</span></code></a>(**data)</p></td>
 <td><p>Composition: repeat <code class="docutils literal notranslate"><span class="pre">child</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Meta" title="an.ir.schema.Meta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Meta</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Meta" title="an.ir.schema.Meta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Meta</span></code></a>(**data)</p></td>
 <td><p>Scene metadata.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Narration" title="an.ir.schema.Narration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Narration</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Narration" title="an.ir.schema.Narration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Narration</span></code></a>(**data)</p></td>
 <td><p>Off-screen narration.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParallelAction</span></code></a>(**data)</p></td>
 <td><p>Composition: run all children simultaneously starting at the same time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Resolution" title="an.ir.schema.Resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolution</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Resolution" title="an.ir.schema.Resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolution</span></code></a>(**data)</p></td>
 <td><p>Pixel dimensions of the rendered output.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneIR</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SceneIR</span></code></a>(**data)</p></td>
 <td><p>Top-level Scene IR document.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SequenceAction" title="an.ir.schema.SequenceAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceAction</span></code></a>(**data)</p></td>
 <td><p>Composition: run children one after the other.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SetAction</span></code></a>(**data)</p></td>
 <td><p>Set a property to a value at a specific time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(**data)</p></td>
 <td><p>A single rendered unit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(**data)</p></td>
 <td><p>One sound placed on the timeline: an SFX hit, an ambience, a music bed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
 <td><p>Where an entity stands on the stage, and how big it is.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(**data)</p></td>
 <td><p>How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(**data)</p></td>
 <td><p>Animate a property from a start value to an end value over a duration.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>(**data)</p></td>
 <td><p>A single mouth-shape keyframe in a viseme track.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VisemeTrack" title="an.ir.schema.VisemeTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>(**data)</p></td>
 <td><p>Aligned viseme track produced by the lip-sync stage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.VoiceLoudness" title="an.ir.schema.VoiceLoudness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceLoudness</span></code></a>(**data)</p></td>
 <td><p>One loudness for every voice of the film (an#315).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.WordTimingIR" title="an.ir.schema.WordTimingIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WordTimingIR</span></code></a>(**data)</p></td>
 <td><p>One word of a line and when it was spoken, in seconds from the line's start (like <a class="reference internal" href="#an.ir.schema.VisemeKeyframe" title="an.ir.schema.VisemeKeyframe"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeKeyframe</span></code></a>, never absolute).</p></td>
 </tr>
 </tbody>
@@ -909,6 +912,30 @@ nothing; a registered migration drops them.</p>
 <code class="code docutils literal notranslate"><span class="pre">an.stage.compile.CAMERA_MOVES</span></code>; validate and the compiler are
 pinned to the same table by test, because a move that validates and then
 raises is the failure <code class="code docutils literal notranslate"><span class="pre">_check_renderable</span></code> exists to prevent.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.CameraFollow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CameraFollow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CameraFollow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CameraFollow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>A camera that follows an entity (an#445): the frame keeps <code class="docutils literal notranslate"><span class="pre">target</span></code>
+where it stood at the shot’s start.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CameraFollow</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">)</span><span class="o">.</span><span class="n">axes</span>
+<span class="go">'x'</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">target</span></code> is an entity id or one of its nodes (<code class="docutils literal notranslate"><span class="pre">bob/head</span></code>); <code class="docutils literal notranslate"><span class="pre">axes</span></code> is
+which way the camera tracks it (<code class="docutils literal notranslate"><span class="pre">x</span></code>: a side-scrolling walk, <code class="docutils literal notranslate"><span class="pre">xy</span></code>: both).
+Resolved at compile time from the compiled motion (the target’s position at
+every frame), so planes parallax with it like any camera move.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CameraFollow.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CameraFollow.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 </dd></dl>
@@ -2113,6 +2140,10 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Camera.keys"><code class="docutils literal notranslate"><span class="pre">Camera.keys</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Camera.model_config"><code class="docutils literal notranslate"><span class="pre">Camera.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Camera.move"><code class="docutils literal notranslate"><span class="pre">Camera.move</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraFollow"><code class="docutils literal notranslate"><span class="pre">CameraFollow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraFollow.model_config"><code class="docutils literal notranslate"><span class="pre">CameraFollow.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CameraKey"><code class="docutils literal notranslate"><span class="pre">CameraKey</span></code></a><ul class="nav section-nav flex-column">

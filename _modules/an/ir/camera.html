@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=31457626"></script>
+    <script src="../../../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -843,6 +843,18 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"same camera and there is no reading that is not a guess. Keep the "</span>
             <span class="s2">"one you meant."</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">camera</span><span class="o">.</span><span class="n">follow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">camera</span><span class="o">.</span><span class="n">move</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"hold"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">camera</span><span class="o">.</span><span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CameraError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> sets camera.follow (on "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">camera</span><span class="o">.</span><span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">) and also "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'camera.keys'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">camera</span><span class="o">.</span><span class="n">keys</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="sa">f</span><span class="s1">'camera.move=</span><span class="si">{</span><span class="n">camera</span><span class="o">.</span><span class="n">move</span><span class="si">!r}</span><span class="s1">'</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="s2">"A follow IS the camera's path, so the two cannot both drive it. "</span>
+                <span class="s2">"Keep the follow, or the move."</span>
+            <span class="p">)</span>
+        <span class="c1"># A follow's keys come from the COMPILED motion (an#445): the compiler</span>
+        <span class="c1"># resolves them (`camera_follow_keys`); at the IR level there are none.</span>
+        <span class="k">return</span> <span class="p">[]</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">camera</span><span class="o">.</span><span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">camera</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=31457626"></script>
+    <script src="../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.schema" href="an.ir.schema.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -625,6 +625,12 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.RETIRED_CAMERA_KEYS" title="an.ir.validate.RETIRED_CAMERA_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></p></td>
 <td><p>an#109's removed camera fields.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_PROPS" title="an.ir.validate.CUT_CONTINUITY_PROPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_PROPS</span></code></a></p></td>
+<td><p>position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE" title="an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></p></td>
+<td><p>a pixel, or a hundredth of the scale.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
 <td><p>a frame at 60 fps.</p></td>
 </tr>
@@ -688,6 +694,31 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.validate.CUT_CONTINUITY_PROPS">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">CUT_CONTINUITY_PROPS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('x',</span> <span class="pre">'y',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y')</span></span><a class="headerlink" href="#an.ir.validate.CUT_CONTINUITY_PROPS" title="Link to this definition">#</a></dt>
+<dd><p>position in
+scene px, and the size of its scale (its SIGN is facing, which the genre’s
+view continuity check says, an#203).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What an entity’s placement across a cut is compared on (an#394)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.validate.CUT_CONTINUITY_TOLERANCE">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'scale_x':</span> <span class="pre">0.01,</span> <span class="pre">'scale_y':</span> <span class="pre">0.01,</span> <span class="pre">'x':</span> <span class="pre">1.0,</span> <span class="pre">'y':</span> <span class="pre">1.0}</span></span><a class="headerlink" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE" title="Link to this definition">#</a></dt>
+<dd><p>a pixel, or
+a hundredth of the scale.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How far a value may move across a cut and still be “the same”</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S">
 <span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.016666666666666666</span></span><a class="headerlink" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="Link to this definition">#</a></dt>
@@ -1035,6 +1066,8 @@ which decides how long a dissolve’s overlap is.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.CUT_CONTINUITY_PROPS"><code class="docutils literal notranslate"><span class="pre">CUT_CONTINUITY_PROPS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.CUT_CONTINUITY_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">CUT_CONTINUITY_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.POST_SYNTHESIS_CHECKS"><code class="docutils literal notranslate"><span class="pre">POST_SYNTHESIS_CHECKS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_CAMERA_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></li>

@@ -28,8 +28,10 @@ Print what a prop folder must hold, generated from the schema and the rig rules.
 
 Check a prop’s folder (prop.json + parts/) against the rig contract, offline.
 
-name: the prop’s key (its folder name)
-out_dir: parent directory; defaults to ./assets/props
-
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+name: the prop’s key (its folder name under out_dir), or a path to its
+: folder or to its prop.json
+
+out_dir: parent directory of the keys; defaults to ./assets/props

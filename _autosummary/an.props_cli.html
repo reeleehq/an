@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=31457626"></script>
+    <script src="../_static/documentation_options.js?v=facce6eb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.props" href="an.props.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.223" />
+  <meta name="docsearch:version" content="0.1.224" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -638,13 +638,16 @@ functions taking strings and returning the text to print; the business logic is
 <dt class="sig sig-object py" id="an.props_cli.validate">
 <span class="sig-prename descclassname"><span class="pre">an.props_cli.</span></span><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/props_cli.html#validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.props_cli.validate" title="Link to this definition">#</a></dt>
 <dd><p>Check a prop’s folder (prop.json + parts/) against the rig contract, offline.</p>
-<p>name: the prop’s key (its folder name)
-out_dir: parent directory; defaults to ./assets/props</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
+<dl class="simple">
+<dt>name: the prop’s key (its folder name under out_dir), or a path to its</dt><dd><p>folder or to its prop.json</p>
+</dd>
+</dl>
+<p>out_dir: parent directory of the keys; defaults to ./assets/props</p>
 </dd></dl>
 
 </section>

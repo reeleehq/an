@@ -17,6 +17,8 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
 |-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
+| [`CUT_CONTINUITY_PROPS`](#an.ir.validate.CUT_CONTINUITY_PROPS)         | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
+| [`CUT_CONTINUITY_TOLERANCE`](#an.ir.validate.CUT_CONTINUITY_TOLERANCE)     | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)        | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
 
@@ -43,6 +45,23 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 | [`UnregisteredInSceneError`](#an.ir.validate.UnregisteredInSceneError)(findings, \*[, where])   | A scene names kinds or renderers nothing registered: refused at load.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### an.ir.validate.CUT_CONTINUITY_PROPS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y', 'scale_x', 'scale_y')*
+
+position in
+scene px, and the size of its scale (its SIGN is facing, which the genre’s
+view continuity check says, an#203).
+
+* **Type:**
+  What an entity’s placement across a cut is compared on (an#394)
+
+### an.ir.validate.CUT_CONTINUITY_TOLERANCE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'scale_x': 0.01, 'scale_y': 0.01, 'x': 1.0, 'y': 1.0}*
+
+a pixel, or
+a hundredth of the scale.
+
+* **Type:**
+  How far a value may move across a cut and still be “the same”
 
 ### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
