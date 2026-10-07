@@ -1083,3 +1083,12 @@ def test_draw_on_through_refuses_a_wrong_count_or_order():
         draw_on_through("route", _doc(), [1.0])
     with pytest.raises(ValueError, match="must increase"):
         draw_on_through("route", _doc(), [1.0, 0.5])
+
+
+def test_an_unknown_field_names_the_closest_ones_and_lists_them_all():
+    """an#457: an end user guessed `arrowhead_start` for a double-headed arrow."""
+    with pytest.raises(ValueError) as err:
+        PathDescriptor(name="r", points=L_POINTS, arrowhead_start=True)
+    msg = str(err.value)
+    assert "'arrowhead_start' (did you mean" in msg and "'tail_arrowhead'" in msg
+    assert "The fields are: arrowhead, cap, closed" in msg
