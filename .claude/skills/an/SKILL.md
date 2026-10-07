@@ -100,7 +100,7 @@ Read the file that matches the task; each is self-contained.
 |---|---|
 | [Motion presets](references/motion-presets.md) | The preset moves (`pop_in`, `hop`, `shake`, `slide_in/out`, `squash_stretch`, `crawl`, and the rig presets in `cutan.motion`), how they compose, and how `step_hz` treats them. |
 | [The scene.md surface](references/markdown-surface.md) | Every fenced block `scene.md` supports: shots, actions, crowds (`crowd`), counters (`counter`), staggers and transitions. |
-| [A project from nothing: units, staging and parts](references/project-setup.md) | Creating a project, its units and staging, and addressing a character's parts. |
+| [A project from nothing: units, staging and parts](references/project-setup.md) | Creating a project, its units and staging, what is in front of what (entity order, `stage.after` to put a prop BETWEEN two others, `characters_after`), and addressing a character's parts. |
 | [Voices and dialogue](references/voices-and-dialogue.md) | Voices, takes, lip-sync providers, dialogue timing and loudness. |
 | [The assets: one recipe](references/assets-recipe.md) | The runnable recipe that creates every asset document: planes and backdrops, gradients, maps, text, stroked paths, route arrows, counters, style packs, sounds. |
 | [A complete scene.md and the shot types](references/scene-and-shots.md) | A minimal complete `scene.md`, then the card, map, talk and chart shot types, and a Manim explainer beat. |
