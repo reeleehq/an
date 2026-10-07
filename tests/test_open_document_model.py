@@ -698,6 +698,8 @@ def test_the_report_order_is_pinned():
         "dialogue_fits",
     ]
     assert core("finish") == [
+        # an#394: an entity does not jump across a cut unless a set says so
+        "cut_continuity",
         # an#396: meta.duration, when set, says what the shots lay out
         "meta_duration",
         "assembly",
