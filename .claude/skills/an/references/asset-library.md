@@ -20,16 +20,24 @@ Assets outlive their videos in a **library** (ADR 0005): one per package, at `~/
   import hashlib, json
   from pathlib import Path
   from an.ir.assets import AssetSource
+
+
   def mine(file: Path) -> dict:  # your own work, pinned to these bytes
       sha = hashlib.sha256(file.read_bytes()).hexdigest()
-      return AssetSource(provider="<you>", author="<you>", license="cc0-1.0", sha256=sha).model_dump(mode="json", exclude_none=True)
-  d = Path("assets/characters/ned"); doc = json.loads((d / "character.json").read_text())
-  for slot in ("arm_r", "fore_r"):                    # a part: the attachment's `source`
+      return AssetSource(
+          provider="<you>", author="<you>", license="cc0-1.0", sha256=sha
+      ).model_dump(mode="json", exclude_none=True)
+
+
+  d = Path("assets/characters/ned")
+  doc = json.loads((d / "character.json").read_text())
+  for slot in ("arm_r", "fore_r"):  # a part: the attachment's `source`
       for att in doc["skins"]["default"]["slots"][slot].values():
           att["source"] = mine(d / att["path"])
   (d / "character.json").write_text(json.dumps(doc, indent=2))
-  e = Path("assets/environments/studio"); env = json.loads((e / "meta.json").read_text())
-  for plane in env["planes"]:                          # a plane: the plane's `source`
+  e = Path("assets/environments/studio")
+  env = json.loads((e / "meta.json").read_text())
+  for plane in env["planes"]:  # a plane: the plane's `source`
       if plane["name"] in ("wall", "skyline"):
           plane["source"] = mine(e / plane["art"]["src"])
   (e / "meta.json").write_text(json.dumps(env, indent=2))
