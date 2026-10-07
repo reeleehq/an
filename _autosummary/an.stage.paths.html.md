@@ -295,11 +295,9 @@ unknown keys; a path’s does not).
 >>> doc = {"kind": "PathDescriptor", "name": "a", "points": [[0, 0], [10, 0]]}
 >>> resolve_path(doc, {"points": [[0, 0], [0, 50]]}).points
 [(0.0, 0.0), (0.0, 50.0)]
->>> resolve_path(doc, {"colour": "#000000"})
-Traceback (most recent call last):
-...
-pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescriptor
-colour
-  Extra inputs are not permitted [type=extra_forbidden, input_value='#000000', input_type=str]
-...
+>>> try:
+...     resolve_path(doc, {"colour": "#000000"})
+... except ValueError as e:
+...     print(str(e).split("Value error, ")[1].split(". The fields")[0])
+unknown PathDescriptor field(s): 'colour' (did you mean 'color', 'curve', 'source'?)
 ```
