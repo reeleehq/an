@@ -22,19 +22,38 @@ before it existed (design of an#331, §5.3).
 
 ### Functions
 
-| [`tile`](#an.media.grid.tile)(images, \*[, cell, columns, labels, ...])   | One PNG holding every image of `images` (PNG bytes), each in a `cell` square.      |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`trim`](#an.media.grid.trim)(image, \*[, tolerance, margin])             | `image` (PNG bytes) cropped to what differs from its corner colour, plus a margin. |
+| [`tile`](#an.media.grid.tile)(images, \*[, cell, columns, labels, ...])   | One PNG holding every image of `images` (PNG bytes), each in a `cell` square.                                                                                                                         |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`trim`](#an.media.grid.trim)(image, \*[, tolerance, margin])             | `image` (PNG bytes) cropped to what differs from its corner colour, plus a margin.                                                                                                                    |
+| [`fit_caption`](#an.media.grid.fit_caption)(text, room, measure)                 | The caption that fits `room` (in `measure`'s units): a long one is shortened with `…`; a `(head, tail)` pair keeps its tail whole and shortens only the head (an#460), unless not even the tail fits. |
+
+### an.media.grid.fit_caption(text, room, measure)
+
+The caption that fits `room` (in `measure`’s units): a long one is
+shortened with `…`; a `(head, tail)` pair keeps its tail whole and
+shortens only the head (an#460), unless not even the tail fits.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> fit_caption(("cutan:prop.desk-oversimplified", " [free]"), 20, len)
+'cutan:prop.d… [free]'
+>>> fit_caption("cutan:prop.desk-oversimplified [free]", 20, len)
+'cutan:prop.desk-ove…'
+```
 
 ### an.media.grid.tile(images, , cell=256, columns=None, labels=None, gap=4, background=(255, 255, 255))
 
 One PNG holding every image of `images` (PNG bytes), each in a `cell` square.
 
-columns: cells per row (default: the smallest square grid that holds them)
-labels: one caption per image, drawn under its cell
-
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+columns: cells per row (default: the smallest square grid that holds them)
+labels: one caption per image, drawn under its cell; a `(head, tail)`
+
+> pair is shortened in its head only, so the tail always shows
 
 ### an.media.grid.trim(image, , tolerance=8, margin=0.06)
 

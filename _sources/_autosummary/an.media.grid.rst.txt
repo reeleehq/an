@@ -10,4 +10,5 @@ an.media.grid
    
       tile
       trim
+      fit_caption
    
