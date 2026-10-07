@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=f1f2227b"></script>
+    <script src="../../../_static/documentation_options.js?v=558aa662"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.232" />
+  <meta name="docsearch:version" content="0.1.233" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1437,7 +1437,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">claim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span>
-            <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="ow">or</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">))</span>
+            <span class="ow">and</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">own</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="n">claim</span>
     <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -1457,7 +1460,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">factory_recorded</span><span class="p">(</span>
+                        <span class="n">digest</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span>
+                    <span class="p">):</span>
                         <span class="c1"># A factory stamp the factory's record does not</span>
                         <span class="c1"># confirm labels nothing (review-288 B1).</span>
                         <span class="k">continue</span>
@@ -1486,9 +1491,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">stamp</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">stamp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">stamp</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)):</span>
         <span class="k">return</span> <span class="kc">False</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">FACTORY_PROVIDER</span>
-
-    <span class="k">return</span> <span class="n">FACTORY_PROVIDER</span> <span class="ow">in</span> <span class="n">generated_by</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">),</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
 
 
 <span class="c1">#: ``version_sources(floor=…)`` default: read the floor from every library on the machine.</span>

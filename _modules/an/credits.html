@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=f1f2227b"></script>
+    <script src="../../_static/documentation_options.js?v=558aa662"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.232" />
+  <meta name="docsearch:version" content="0.1.233" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1143,7 +1143,15 @@ window.runMermaid = runMermaid;</script>
         <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">drawing</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
         <span class="ow">and</span> <span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">drawing</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">sha</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">sha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">stale</span> <span class="ow">and</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">sha</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">sha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">stale</span>
+        <span class="ow">and</span> <span class="n">factory_recorded</span><span class="p">(</span>
+            <span class="n">sha</span><span class="p">,</span>
+            <span class="n">descriptor</span><span class="o">=</span><span class="n">doc</span><span class="p">,</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">drawing</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">drawing</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">):</span>
         <span class="k">return</span> <span class="n">source</span>
     <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">"a factory stamp about other bytes: the drawing it pins was changed since"</span>
@@ -1516,7 +1524,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span><span class="p">:</span>
                         <span class="k">continue</span>  <span class="c1"># a stamp about other bytes: unverified below, as stale</span>
-                    <span class="k">if</span> <span class="n">sha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">sha</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">sha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">factory_recorded</span><span class="p">(</span>
+                        <span class="n">sha</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">raw</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span>
+                    <span class="p">):</span>
                         <span class="k">continue</span>  <span class="c1"># this package drew it: nothing owed, not third-party</span>
                     <span class="c1"># A stamp in a descriptor proves nothing: unconfirmed by the</span>
                     <span class="c1"># factory's own record, it labels nothing (review-288 B1).</span>
@@ -1559,7 +1569,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
                     <span class="n">path</span> <span class="o">==</span> <span class="n">svg</span>
                     <span class="ow">and</span> <span class="n">digest</span> <span class="o">==</span> <span class="n">_stamp_digest</span><span class="p">(</span><span class="n">own</span><span class="p">)</span>
-                    <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="ow">or</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">))</span>
+                    <span class="ow">and</span> <span class="p">(</span>
+                        <span class="ow">not</span> <span class="n">is_factory_stamp</span><span class="p">(</span><span class="n">own</span><span class="p">)</span>
+                        <span class="ow">or</span> <span class="n">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">raw</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">}</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpinned</span><span class="p">):</span>
@@ -1646,17 +1659,49 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">False</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">factory_recorded</span><span class="p">(</span><span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Whether this machine's record says the character factory drew the bytes ``digest``.</span>
+<span class="c1">#: The genre service that re-derives a factory character's bytes from the</span>
+<span class="c1">#: recipe its descriptor records: ``(descriptor) -&gt; {path: sha256}`` (an#292).</span>
+<span class="n">FACTORY_REDRAW_SERVICE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"credits.factory_redraw"</span>
 
-<span class="sd">    The record (``an.library.registry.generated_by``) is written only by the</span>
-<span class="sd">    factory's own drawing code, from the bytes it wrote; a factory stamp in a</span>
-<span class="sd">    descriptor counts as the factory's only when the record confirms it</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">factory_recorded</span><span class="p">(</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the character factory provably drew the bytes ``digest``.</span>
+
+<span class="sd">    Proved by this machine's record (``an.library.registry.generated_by``),</span>
+<span class="sd">    written only by the factory's own drawing code from the bytes it wrote; a</span>
+<span class="sd">    factory stamp in a descriptor counts as the factory's only when proved</span>
 <span class="sd">    (review-288 B1). Read fail-safe: unreadable is unconfirmed.</span>
+
+<span class="sd">    descriptor, path: the character holding the bytes, and where (an#292).</span>
+<span class="sd">        When the record is silent — the character was drawn on another</span>
+<span class="sd">        machine, or before the record existed — the factory re-derives its</span>
+<span class="sd">        bytes from the recipe the descriptor records (the genre's</span>
+<span class="sd">        :data:`FACTORY_REDRAW_SERVICE`). The bytes the replay draws at</span>
+<span class="sd">        ``path`` equal ``digest`` only if the factory draws exactly them, so</span>
+<span class="sd">        a recipe cannot vouch for carved or hand-drawn bytes. The replay is</span>
+<span class="sd">        the factory's own drawing code (memoised per recipe by the genre), and</span>
+<span class="sd">        records what it draws on this machine as any drawing does.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">generated_by</span>
 
-    <span class="k">return</span> <span class="n">FACTORY_PROVIDER</span> <span class="ow">in</span> <span class="n">generated_by</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">))</span>
+    <span class="n">digest</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">digest</span><span class="p">)</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">FACTORY_PROVIDER</span> <span class="ow">in</span> <span class="n">generated_by</span><span class="p">(</span><span class="n">digest</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">descriptor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">service</span>
+
+    <span class="n">redraw</span> <span class="o">=</span> <span class="n">service</span><span class="p">(</span><span class="n">FACTORY_REDRAW_SERVICE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">redraw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">):</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="c1"># The replay is the factory's own drawing code: it records what it draws</span>
+    <span class="c1"># on this machine as any drawing does, so the next check reads the record.</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">redraw</span><span class="p">(</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span>
 
 
 <div class="viewcode-block" id="is_generated_source">
