@@ -1,4 +1,4 @@
-> built 2026-10-07 01:35 UTC from b48f902 (main) · an 0.1.228. Details: build_info.json
+> built 2026-10-07 01:45 UTC from bccc916 (main) · an 0.1.229. Details: build_info.json
 
 # index.html.md
 
@@ -24721,7 +24721,7 @@ True
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#an.orchestrate.orchestrate)(project_dir, \*[, output_name, ...]) | Run the full pipeline.                                                                                                                                                                                                  |
 | [`render_project`](_autosummary/an.orchestrate.html.md#an.orchestrate.render_project)(project_dir, \*\*kwargs)          | Render the project's scene to a single mp4 under `output/` — the orchestrator's name for [`an.render.render_project()`](_autosummary/an.render.html.md#an.render.render_project), every keyword forwarded. |
-| [`validate_project`](_autosummary/an.orchestrate.html.md#an.orchestrate.validate_project)(project_dir, \*[, fps])         | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
+| [`validate_project`](_autosummary/an.orchestrate.html.md#an.orchestrate.validate_project)(project_dir, \*[, fps, ...])    | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
 
 ### Classes
 
@@ -24802,7 +24802,7 @@ rather than the leaf (an#98 review). A pass-through cannot drift.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.orchestrate.validate_project(project_dir, , fps=None)
+### an.orchestrate.validate_project(project_dir, , fps=None, strict_assets=False)
 
 Schema + semantic validation of the scene at `project_dir`.
 
@@ -24814,6 +24814,15 @@ stack-dumped on the error it should report.
 `fps` is the frame rate the render will use when it is not the scene’s
 (`an render --fps`): the checks that depend on it (`step_hz`, a line
 heard during a dissolve) use it, as the render will (an#435).
+
+What loading the scene WARNED about (a retired camera field dropped on
+read, a migration’s notice) is a warning finding too (an#454): a Python
+warning is invisible to an agent reading `an validate`’s findings.
+
+`strict_assets` (an#456) judges the scene as `an render
+--strict-assets` will: each stage shot is compiled the way the render
+compiles it, refusing stand-ins, and what it refuses is an error on that
+shot; the library pins are checked strictly too.
 
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
@@ -37356,7 +37365,7 @@ without touching these functions, so they stay plain Python.
 | [`registered_namespaces`](_autosummary/an.tools.html.md#an.tools.registered_namespaces)()                           | The sub-namespaces installed genres added (`cli.<namespace>` services).               |
 | [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])      | Render the project at `project_dir` to a single mp4.                                  |
 | [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir[, accept_measured])              | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
-| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir[, fps])                      | Validate the scene at `project_dir`.                                                  |
+| [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir[, fps, strict_assets])       | Validate the scene at `project_dir`.                                                  |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -37631,12 +37640,13 @@ says what its author wrote.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.validate(project_dir, fps=0.0)
+### an.tools.validate(project_dir, fps=0.0, strict_assets=False)
 
 Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)
+strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -38479,18 +38489,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-07 01:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b48f902d55a057a4c4ec90d1f4f2972ecc607af2"><code>b48f902</code></a> on branch <code>main</code>, for **an 0.1.228** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-07 01:45 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/bccc9166baafdc61fe33ee22fd2bf4e46d7c92f9"><code>bccc916</code></a> on branch <code>main</code>, for **an 0.1.229** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.229) is ahead of the latest release on PyPI (0.1.228): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/b48f902d55a057a4c4ec90d1f4f2972ecc607af2"><code>b48f902d55a057a4c4ec90d1f4f2972ecc607af2</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/bccc9166baafdc61fe33ee22fd2bf4e46d7c92f9"><code>bccc9166baafdc61fe33ee22fd2bf4e46d7c92f9</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.228</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.229</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -38499,9 +38511,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37557246466">37557246466</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37558125640">37558125640</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f62c7749b2eded177acd17280ef7c6c947cd89d9</code> (in the history of the built commit) |
+| Event commit | <code>fa7606aaa5be798780d71988e77e69244c38bfaa</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -38510,7 +38522,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | epythet  | 0.2.12  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
-| Python   | 3.12.15 |
+| Python   | 3.12.14 |
 
 ## Configuration as resolved
 
@@ -38526,13 +38538,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.228/">0.1.228</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.228/">0.1.228</a>, older than the documented version (0.1.229).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout b48f902d55a057a4c4ec90d1f4f2972ecc607af2
+git checkout bccc9166baafdc61fe33ee22fd2bf4e46d7c92f9
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

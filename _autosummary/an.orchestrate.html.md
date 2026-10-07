@@ -21,7 +21,7 @@ True
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`orchestrate`](#an.orchestrate.orchestrate)(project_dir, \*[, output_name, ...]) | Run the full pipeline.                                                                                                                                                                                                  |
 | [`render_project`](#an.orchestrate.render_project)(project_dir, \*\*kwargs)          | Render the project's scene to a single mp4 under `output/` — the orchestrator's name for [`an.render.render_project()`](an.render.html.md#an.render.render_project), every keyword forwarded. |
-| [`validate_project`](#an.orchestrate.validate_project)(project_dir, \*[, fps])         | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
+| [`validate_project`](#an.orchestrate.validate_project)(project_dir, \*[, fps, ...])    | Schema + semantic validation of the scene at `project_dir`.                                                                                                                                                             |
 
 ### Classes
 
@@ -102,7 +102,7 @@ rather than the leaf (an#98 review). A pass-through cannot drift.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.orchestrate.validate_project(project_dir, , fps=None)
+### an.orchestrate.validate_project(project_dir, , fps=None, strict_assets=False)
 
 Schema + semantic validation of the scene at `project_dir`.
 
@@ -114,6 +114,15 @@ stack-dumped on the error it should report.
 `fps` is the frame rate the render will use when it is not the scene’s
 (`an render --fps`): the checks that depend on it (`step_hz`, a line
 heard during a dissolve) use it, as the render will (an#435).
+
+What loading the scene WARNED about (a retired camera field dropped on
+read, a migration’s notice) is a warning finding too (an#454): a Python
+warning is invisible to an agent reading `an validate`’s findings.
+
+`strict_assets` (an#456) judges the scene as `an render
+--strict-assets` will: each stage shot is compiled the way the render
+compiles it, refusing stand-ins, and what it refuses is an error on that
+shot; the library pins are checked strictly too.
 
 * **Return type:**
   [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)

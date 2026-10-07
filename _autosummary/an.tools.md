@@ -23,7 +23,7 @@ without touching these functions, so they stay plain Python.
 | [`registered_namespaces`](#an.tools.registered_namespaces)()                           | The sub-namespaces installed genres added (`cli.<namespace>` services).               |
 | [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])      | Render the project at `project_dir` to a single mp4.                                  |
 | [`sync`](#an.tools.sync)(project_dir[, accept_measured])              | Reconcile scene.md and ir/scene.json inside `project_dir`.                            |
-| [`validate`](#an.tools.validate)(project_dir[, fps])                      | Validate the scene at `project_dir`.                                                  |
+| [`validate`](#an.tools.validate)(project_dir[, fps, strict_assets])       | Validate the scene at `project_dir`.                                                  |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
 
@@ -298,12 +298,13 @@ says what its author wrote.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.validate(project_dir, fps=0.0)
+### an.tools.validate(project_dir, fps=0.0, strict_assets=False)
 
 Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)
+strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
