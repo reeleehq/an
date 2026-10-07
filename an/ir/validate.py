@@ -2162,7 +2162,9 @@ _DELIBERATE: dict[str, frozenset[str]] = {
 }
 
 
-def _placements(shot: Any, ctx: ValidationContext) -> dict[str, tuple[dict, dict]] | None:
+def _placements(
+    shot: Any, ctx: ValidationContext
+) -> dict[str, tuple[dict, dict]] | None:
     """``{entity id: (state at the start, state at the end)}`` of a stage shot's
     entities, each state ``{prop: value}`` read off the document the stage
     compiles; ``None`` when the shot is not a stage shot or does not compile
@@ -2189,7 +2191,10 @@ def _placements(shot: Any, ctx: ValidationContext) -> dict[str, tuple[dict, dict
                 width=res.width, height=res.height,
             )  # fmt: skip
         timeline = timeline_from_scene(doc)
-        poses = (evaluate_timeline(timeline, 0.0), evaluate_timeline(timeline, shot.duration))
+        poses = (
+            evaluate_timeline(timeline, 0.0),
+            evaluate_timeline(timeline, shot.duration),
+        )
     except Exception:  # noqa: BLE001 — a shot that cannot compile is reported elsewhere
         return None
     out: dict[str, tuple[dict, dict]] = {}
@@ -2202,7 +2207,12 @@ def _placements(shot: Any, ctx: ValidationContext) -> dict[str, tuple[dict, dict
         for pose in poses:
             t = transform_of(node, _pose_for(pose, path), frame_height=res.height)
             states.append(
-                {"x": t.x, "y": t.y, "scale_x": abs(t.scale_x), "scale_y": abs(t.scale_y)}
+                {
+                    "x": t.x,
+                    "y": t.y,
+                    "scale_x": abs(t.scale_x),
+                    "scale_y": abs(t.scale_y),
+                }
             )
         out[entity.id] = (states[0], states[1])
     return out
@@ -2215,12 +2225,16 @@ def _opened(shot: Any, entity_id: str, *, fps: float) -> set[str]:
     first_frame = 1.0 / float(fps or 30)
     out: set[str] = set()
     for action in shot.actions:
-        if not isinstance(action, (SetAction, TweenAction)) or action.target != entity_id:
+        if (
+            not isinstance(action, (SetAction, TweenAction))
+            or action.target != entity_id
+        ):
             continue
         when = (
             action.at
             if isinstance(action, SetAction)
-            else getattr(action, "start", None) or (action.model_extra or {}).get("start")
+            else getattr(action, "start", None)
+            or (action.model_extra or {}).get("start")
         )
         if float(when or 0.0) < first_frame:
             out.add(action.property)
@@ -2264,6 +2278,8 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
                 "`stage.at`/`scale`); to jump on purpose, open the shot with a "
                 f"`set` of that property on {entity_id!r} at 0.",
             )
+
+
 def _core_meta_duration(ctx: ValidationContext) -> None:
     """``meta.duration``, when set, says what the shots lay out (an#396).
 
