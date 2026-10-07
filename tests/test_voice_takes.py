@@ -825,3 +825,16 @@ def test_a_lost_take_with_no_heard_digest_names_none(tmp_path):
     with pytest.raises(TakeLostError) as e:
         _run(_scene(), mall, tts)
     assert "None" not in str(e.value) and "sha256" not in str(e.value)
+
+
+def test_a_takes_record_says_what_its_scores_mean(monkeypatch):
+    """an#397: the record carries what the scorer says its score pair means,
+    and the prosody scorer says it and lists the targets a take cannot measure."""
+    from an.audio.takes import ProsodyTakeScorer
+
+    assert "lower is better" in ProsodyTakeScorer.SCORE_MEANS
+    monkeypatch.setattr(pipeline, "apply_voice_effects", _fake_effects)
+    monkeypatch.setattr(_DurationScorer, "SCORE_MEANS", "lower is better: |duration - target|", raising=False)
+    mall = _mall({"takes": _takes(2, target_s=1.0)})
+    _run(_scene(), mall, _TakesTTS((2.0, 1.0)))
+    assert _record(mall)[1]["score_means"] == "lower is better: |duration - target|"

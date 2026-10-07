@@ -295,3 +295,19 @@ def test_a_trim_after_a_tempo_keeps_its_padding_in_heard_seconds():
     # 0.5 s of tone at double speed is 0.25 s; the padding is NOT halved.
     assert _seconds(out) == pytest.approx(0.1 + 0.25 + 0.2, abs=0.03)
     assert shutil.which("ffmpeg")
+
+
+def test_a_pause_is_the_silence_heard_after_the_speech():
+    """an#397: `(pause 1.0)` after a take with 0.65 s of its own trailing
+    silence is 1.0 s of silence, not 1.65 s; a line without a pause still
+    follows the whole take."""
+    scene = _scene()
+    scene.timeline[0].dialogue[1].pause = 1.0
+    out = produce_audio_for_scene(scene, _mall(), tts=_PaddedTTS(), lipsync=_RecordingLipSync(), announce=None)
+    a, b = out.timeline[0].dialogue
+    assert a.duration == pytest.approx(1.55, abs=0.01)
+    assert a.spoken == pytest.approx(0.9, abs=0.021)  # 0.4 s lead + the 0.5 s word
+    assert b.start == pytest.approx(a.start + a.spoken + 1.0)
+    unpaused = produce_audio_for_scene(_scene(), _mall(), tts=_PaddedTTS(), lipsync=_RecordingLipSync(), announce=None)
+    a, b = unpaused.timeline[0].dialogue
+    assert b.start == pytest.approx(a.duration)

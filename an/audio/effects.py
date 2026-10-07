@@ -476,6 +476,62 @@ class SilenceTrim:
         }
 
 
+def speech_end(
+    audio: bytes,
+    *,
+    threshold_db: float = DFLT_TRIM_THRESHOLD_DB,
+    window_s: float = TRIM_WINDOW_S,
+) -> float | None:
+    """Seconds into ``audio`` at which its audible speech ends (an#397); ``None`` when silent or unreadable.
+
+    The end of the last ``window_s`` window whose RMS level is within
+    ``threshold_db`` of the loudest window's — :func:`trim_silence`'s rule, so
+    a take's own trailing silence (a provider pads ~0.3 s) is not counted. A
+    16-bit PCM WAV is read directly; any other container is decoded with ffmpeg
+    when it is installed.
+
+    >>> import array, io, wave
+    >>> rate = 8000
+    >>> samples = array.array("h", [9000, -9000] * (rate // 4) + [0] * rate)  # 0.5 s, then 1 s silent
+    >>> buf = io.BytesIO()
+    >>> with wave.open(buf, "wb") as w:
+    ...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(samples.tobytes())
+    >>> round(speech_end(buf.getvalue()), 2)
+    0.5
+    """
+    import numpy as np
+
+    wav = audio
+    if not _pcm16_wav(wav):
+        if shutil.which("ffmpeg") is None:
+            return None
+        try:
+            wav = _ffmpeg_wav(audio, decode_chain(), {})
+        except VoiceEffectError:
+            return None
+    try:
+        with wave.open(io.BytesIO(wav), "rb") as r:
+            channels, rate = r.getnchannels(), r.getframerate()
+            frames = r.readframes(r.getnframes())
+    except (wave.Error, EOFError):
+        return None
+    samples = np.frombuffer(frames, dtype="<i2").reshape(-1, channels)
+    n = len(samples)
+    if not n or not rate:
+        return None
+    mono = samples.astype(np.float64).mean(axis=1)
+    win = max(1, int(round(window_s * rate)))
+    n_win = -(-n // win)
+    padded = np.zeros(n_win * win)
+    padded[:n] = mono
+    power = (padded.reshape(n_win, win) ** 2).mean(axis=1)
+    peak = float(power.max())
+    if peak <= 0.0:
+        return None
+    loud = np.nonzero(power >= peak * 10.0 ** (threshold_db / 10.0))[0]
+    return min(n, (int(loud[-1]) + 1) * win) / rate
+
+
 def trim_silence(
     wav: bytes,
     *,

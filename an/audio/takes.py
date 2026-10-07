@@ -448,6 +448,17 @@ class ProsodyTakeScorer:
         if reference_hz is not None:
             self.config["reference_hz"] = float(reference_hz)
 
+    #: What a take's ``score`` pair means, written into each takes record (an#397).
+    SCORE_MEANS: str = (
+        "score = [outside, off_centre], lower is better; the take with the "
+        "smallest pair is kept. outside: for each target in scorer.config.targets, "
+        "how far the measured value sits outside its [low, high] range, in widths "
+        "of that range (0 inside; a value this take cannot measure, listed in "
+        "`unmeasured`, counts 1). off_centre: each value's distance from its "
+        "range's middle, in the same units (the tie-break). `measured` holds the "
+        "values, `misses` the targets missed."
+    )
+
     def check_available(self) -> None:
         """Raise before any request when this scorer could not score (no ffmpeg)."""
         require_ffmpeg()
@@ -475,7 +486,14 @@ class ProsodyTakeScorer:
         ]
         return TakeScore(
             value=(round(outside, 6), round(off_centre, 6)),
-            detail={"measured": measured, "misses": misses},
+            detail={
+                "measured": measured,
+                "misses": misses,
+                # What a short line cannot show (an#397): a one-word line has
+                # no pauses and no rate to measure, and each such target costs
+                # a whole range-width in `outside`.
+                "unmeasured": [k for k in self.targets if measured[k] is None],
+            },
         )
 
 

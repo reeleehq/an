@@ -29,6 +29,7 @@ import sys
 import warnings
 from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 from an.audio.effects import EFFECT_SAMPLE_RATE, apply_voice_effects, voice_effects
@@ -499,6 +500,7 @@ def produce_audio_for_scene(
         # content-keyed stores make a mere re-stamp free).
         audio, track = _produce_line(req, mall, lipsync)
         line.duration = audio.duration
+        line.spoken = _spoken_of(audio)
         line.viseme_track = _to_ir_viseme_track(track)
         line.word_timings = _to_ir_word_timings(track)
         line.audio_ref = req.cache_key
@@ -507,6 +509,7 @@ def produce_audio_for_scene(
     # The spread is measured only when lines were (re)made: a warm render pays
     # no ffmpeg pass for it, and says it once rather than on every render.
     _voice_loudness(scene, mall, report=overruns and bool(pending))
+    _backfill_spoken(scene, audio_store)
     retime_dialogue(scene)
     for message in dialogue_overruns(scene, mall=mall) if overruns else ():
         if announce is not None:
@@ -618,13 +621,55 @@ def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneI
             line.pause is None and line.at is None for line in shot.dialogue
         ):
             continue
-        cursor = 0.0
+        cursor = spoken_end = 0.0
         for line in shot.dialogue:
             if line.duration is None:
                 break
-            line.start = line.planned_start(cursor)
+            # A `pause` is the silence HEARD (an#397): it counts from the end of
+            # the previous line's speech, not of its take, whose own trailing
+            # silence would lengthen it. Without one, a line follows the whole
+            # take, as it always has.
+            line.start = line.planned_start(
+                spoken_end if line.pause is not None else cursor
+            )
             cursor = line.start + float(line.duration)
+            heard = line.spoken if line.spoken is not None else line.duration
+            spoken_end = line.start + float(min(heard, line.duration))
     return scene
+
+
+def _spoken_of(audio: Any) -> float | None:
+    """Where ``audio``'s speech ends (:func:`an.audio.effects.speech_end`); ``None`` if unknown."""
+    from an.audio.effects import speech_end
+
+    data = getattr(audio, "bytes_", None) if not isinstance(audio, (bytes, bytearray)) else audio
+    if data is None and getattr(audio, "path", None) is not None:
+        data = Path(audio.path).read_bytes()
+    if not data:
+        return None
+    from an.audio.effects import trim_record
+
+    if trim_record(bytes(data)) is not None:
+        # A trimmed line's length is the author's choice (an#254: the tail it
+        # keeps, `keep_tail_s`): the next line counts from its end.
+        return None
+    end = speech_end(bytes(data))
+    return round(end, 6) if end is not None else None
+
+
+def _backfill_spoken(scene: SceneIR, audio_store: Any) -> None:
+    """Stamp ``spoken`` on lines stamped before an#397, from their stored audio."""
+    if audio_store is None:
+        return
+    for shot in scene.timeline:
+        for line in shot.dialogue:
+            if line.spoken is not None or not line.audio_ref:
+                continue
+            try:
+                data = audio_store[line.audio_ref]
+            except (KeyError, OSError):
+                continue
+            line.spoken = _spoken_of(bytes(data) if not hasattr(data, "bytes_") else data)
 
 
 class AudioNotCachedError(AudioPipelineError):
@@ -1369,6 +1414,11 @@ def _load_or_choose_take(
         "tts": req.tts.name,
         "roll": req.roll,
         "scorer": scorer_identity(req.scorer),
+        **(
+            {"score_means": req.scorer.SCORE_MEANS}
+            if getattr(req.scorer, "SCORE_MEANS", None)
+            else {}
+        ),
         "chosen": best,
         "digest": audio_digest(kept),
         "audio_key": req.cache_key,
@@ -1918,6 +1968,8 @@ def _stamps_match_store(
     if line.viseme_track != stamped_track or line.word_timings != stamped_words:
         line.viseme_track, line.word_timings = stamped_track, stamped_words
         line.duration = _wav_duration(audio)
+    if line.spoken is None:
+        line.spoken = _spoken_of(audio)
     return True
 
 

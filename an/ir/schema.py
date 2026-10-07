@@ -712,8 +712,18 @@ class Dialogue(_IRModel):
     #: line's audio_ref>, "gain_db": <its voice's gain>}`` when ``audio_ref``
     #: is the leveled audio. ``None`` — unleveled — is omitted from JSON.
     leveled: dict | None = None
-    #: Seconds of silence before this line, after the previous line ends (the
-    #: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.
+    #: DERIVED (an#397): seconds from the line's start to the end of its
+    #: AUDIBLE speech — its take's own trailing silence left out — stamped
+    #: with ``duration`` from the line's audio. The next line's ``pause`` counts
+    #: from here (a line with no pause still follows the whole take).
+    #: ``None`` (silent audio, a line its voice's ``trim_silence`` already cut to
+    #: the tail the author keeps, a line stamped before an#397) counts from the
+    #: end of ``duration``, as before. Never written to JSON: it is read off
+    #: the line's stored audio on every pass (the audio pipeline, and a render
+    #: that skips synthesis), so ``scene.json`` and its fixtures do not change.
+    spoken: Seconds | None = Field(default=None, exclude=True)
+    #: Seconds of silence before this line, after the previous line's speech
+    #: ends (the shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.
     pause: Seconds | None = Field(default=None, ge=0, allow_inf_nan=False)
     #: Where this line starts, in SHOT seconds, whatever came before it —
     #: ``(at 3.0)`` in ``scene.md``. ``start`` is what the audio pipeline

@@ -450,8 +450,11 @@ def _render_film(
     else:
         # No synthesis, but a pause edited since the last one must still play
         # where it now says, not at the stale stamp (an#187). In memory only.
-        from an.audio.pipeline import retime_dialogue
+        from an.audio.pipeline import _backfill_spoken, retime_dialogue
 
+        # Where each line's speech ends is read off its stored audio (an#397),
+        # so a pause times the same with or without synthesis.
+        _backfill_spoken(scene, project.mall.get("audio"))
         retime_dialogue(scene, timed_shots_only=True)
 
     engine = resolve_incremental(incremental)
