@@ -710,7 +710,10 @@ def itemising_source(
         if (
             claim is not None
             and _digest_of(claim) == digest
-            and (not is_factory_stamp(own) or factory_recorded(digest))
+            and (
+                not is_factory_stamp(own)
+                or factory_recorded(digest, descriptor=doc, path=path)
+            )
         ):
             return claim
     for skin in (doc.get("skins") or {}).values():
@@ -730,7 +733,9 @@ def itemising_source(
                 except ValueError:
                     continue
                 if _digest_of(source) == digest:
-                    if is_factory_stamp(raw) and not factory_recorded(digest):
+                    if is_factory_stamp(raw) and not factory_recorded(
+                        digest, descriptor=doc, path=path
+                    ):
                         # A factory stamp the factory's record does not
                         # confirm labels nothing (review-288 B1).
                         continue
@@ -759,9 +764,7 @@ def factory_drew(version: Mapping[str, Any], path: str, digest: str) -> bool:
     stamp = itemising_source(version, path, digest)
     if stamp is None or not is_factory_stamp(stamp.model_dump(mode="json")):
         return False
-    from an.credits import FACTORY_PROVIDER
-
-    return FACTORY_PROVIDER in generated_by(digest)
+    return factory_recorded(digest, descriptor=version.get("doc"), path=path)
 
 
 #: ``version_sources(floor=…)`` default: read the floor from every library on the machine.

@@ -419,7 +419,15 @@ def _confirmed_factory_claim(
         and isinstance(drawing, str)
         and files.get(drawing) not in (None, sha)
     )
-    if sha is not None and not stale and factory_recorded(sha):
+    if (
+        sha is not None
+        and not stale
+        and factory_recorded(
+            sha,
+            descriptor=doc,
+            path=drawing if isinstance(drawing, str) else None,
+        )
+    ):
         return source
     why = (
         "a factory stamp about other bytes: the drawing it pins was changed since"
@@ -792,7 +800,9 @@ def _part_credits(
                 if is_factory_stamp(source):
                     if path in stale:
                         continue  # a stamp about other bytes: unverified below, as stale
-                    if sha is not None and factory_recorded(sha):
+                    if sha is not None and factory_recorded(
+                        sha, descriptor=raw, path=path
+                    ):
                         continue  # this package drew it: nothing owed, not third-party
                     # A stamp in a descriptor proves nothing: unconfirmed by the
                     # factory's own record, it labels nothing (review-288 B1).
@@ -835,7 +845,10 @@ def _part_credits(
                 and not (
                     path == svg
                     and digest == _stamp_digest(own)
-                    and (not is_factory_stamp(own) or factory_recorded(digest))
+                    and (
+                        not is_factory_stamp(own)
+                        or factory_recorded(digest, descriptor=raw, path=path)
+                    )
                 )
             }
         for path in sorted(unpinned):
@@ -922,17 +935,49 @@ def gives_way_to_a_label(raw: Any) -> bool:
         return False
 
 
-def factory_recorded(digest: str) -> bool:
-    """Whether this machine's record says the character factory drew the bytes ``digest``.
+#: The genre service that re-derives a factory character's bytes from the
+#: recipe its descriptor records: ``(descriptor) -> {path: sha256}`` (an#292).
+FACTORY_REDRAW_SERVICE: str = "credits.factory_redraw"
 
-    The record (``an.library.registry.generated_by``) is written only by the
-    factory's own drawing code, from the bytes it wrote; a factory stamp in a
-    descriptor counts as the factory's only when the record confirms it
+
+def factory_recorded(
+    digest: str, *, descriptor: Any = None, path: str | None = None
+) -> bool:
+    """Whether the character factory provably drew the bytes ``digest``.
+
+    Proved by this machine's record (``an.library.registry.generated_by``),
+    written only by the factory's own drawing code from the bytes it wrote; a
+    factory stamp in a descriptor counts as the factory's only when proved
     (review-288 B1). Read fail-safe: unreadable is unconfirmed.
+
+    descriptor, path: the character holding the bytes, and where (an#292).
+        When the record is silent — the character was drawn on another
+        machine, or before the record existed — the factory re-derives its
+        bytes from the recipe the descriptor records (the genre's
+        :data:`FACTORY_REDRAW_SERVICE`). The bytes the replay draws at
+        ``path`` equal ``digest`` only if the factory draws exactly them, so
+        a recipe cannot vouch for carved or hand-drawn bytes. The replay is
+        the factory's own drawing code (memoised per recipe by the genre), and
+        records what it draws on this machine as any drawing does.
     """
     from an.library.registry import generated_by
 
-    return FACTORY_PROVIDER in generated_by(str(digest).removeprefix("sha256:"))
+    digest = str(digest).removeprefix("sha256:")
+    if FACTORY_PROVIDER in generated_by(digest):
+        return True
+    if descriptor is None or path is None:
+        return False
+    from an.genres import service
+
+    redraw = service(FACTORY_REDRAW_SERVICE)
+    if redraw is None:
+        return False
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    # The replay is the factory's own drawing code: it records what it draws
+    # on this machine as any drawing does, so the next check reads the record.
+    return (redraw(raw or {}) or {}).get(path) == digest
 
 
 def is_generated_source(raw: Any) -> bool:
