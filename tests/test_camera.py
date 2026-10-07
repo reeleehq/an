@@ -597,3 +597,115 @@ def test_a_shake_moves_the_rendered_frame_and_returns_it_to_rest(hermetic_browse
     before, during, after = frame("0.1"), frame("0.5"), frame("0.9")
     assert np.abs(before - after).mean() < 1.0, "the frame did not return to rest"
     assert np.abs(before - during).mean() > 2.0, "the shake did not move the frame"
+
+
+# --- a following camera (an#445) ---------------------------------------------------
+
+
+def _follow_shot(*, follow, actions=None, move=None, entities=None, duration=2.0):
+    from an.ir.schema import CameraFollow, StagePlacement, TweenAction
+
+    return Shot(
+        id="f",
+        renderer="cutout",
+        duration=duration,
+        camera=Camera(move=move, follow=CameraFollow(**follow)),
+        entities=entities
+        if entities is not None
+        else [AssetRef(kind="prop", id="dot", store="props", ref="dot", stage=StagePlacement(at=(-100.0, 50.0)))],
+        actions=actions
+        if actions is not None
+        else [
+            TweenAction(target="dot", property="x", to_value=200.0, duration=2.0, easing="ease_in_out"),
+            TweenAction(target="dot", property="y", to_value=-40.0, duration=2.0, easing="linear"),
+        ],
+    )
+
+
+def _dot_mall(tmp_path):
+    from an.paths import PathDescriptor
+    from an.stores import build_project_mall
+
+    mall = build_project_mall(tmp_path, ensure=True)
+    mall["props"]["dot"] = PathDescriptor(name="dot", points=[(0, 0), (0, -40)]).model_dump(mode="json")
+    return mall
+
+
+def _screen_track(doc, path, fps, frames):
+    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+
+    tl = timeline_from_scene(doc)
+    return [screen_position(doc, path, pose=evaluate_timeline(tl, k / fps)) for k in range(frames + 1)]
+
+
+@pytest.mark.parametrize("axes,still", [("x", (True, False)), ("y", (False, True)), ("xy", (True, True))])
+def test_a_follow_keeps_its_target_where_it_stood_on_the_followed_axes(tmp_path, axes, still):
+    doc = compile_shot(
+        _follow_shot(follow={"target": "dot", "axes": axes}),
+        mall=_dot_mall(tmp_path), fps=12, width=640, height=360, strict_assets=True,
+    )
+    track = _screen_track(doc, "dot", 12, 24)
+    x0, y0 = track[0]
+    for axis, held in zip((0, 1), still):
+        drift = max(abs(p[axis] - track[0][axis]) for p in track)
+        assert (drift < 1e-6) == held, (axes, axis, drift)
+    # one linear key per frame on the pivot, starting at rest
+    channels = _channels(doc)
+    for prop, followed in (("pivot_x", "x" in axes), ("pivot_y", "y" in axes)):
+        assert (prop in channels) == followed
+        if followed:
+            keys = channels[prop]
+            assert len(keys) == 25 and keys[0][:2] == (0.0, 0.0)
+            assert {e for *_, e in keys[:-1]} == {"linear"}
+
+
+def test_planes_parallax_with_a_follow(tmp_path):
+    """The point of following: the far plate drifts slower than the near one."""
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.ir.schema import StagePlacement
+
+    mall = _dot_mall(tmp_path)
+    mall["environments"]["depths"] = EnvironmentDescriptor(
+        name="depths",
+        planes=[
+            Plane(name=n, art=PlaneArt(kind="fill", color="#336699"), depth=d, size=(40.0, 40.0))
+            for n, d in (("far", 0.25), ("near", 2.0))
+        ],
+    ).model_dump(mode="json")
+    entities = [
+        AssetRef(kind="environment", id="depths", store="environments", ref="depths"),
+        AssetRef(kind="prop", id="dot", store="props", ref="dot", stage=StagePlacement(at=(-100.0, 50.0))),
+    ]
+    doc = compile_shot(
+        _follow_shot(follow={"target": "dot"}, entities=entities),
+        mall=mall, fps=12, width=640, height=360, strict_assets=True,
+    )
+    far, near = (_screen_track(doc, f"depths/{n}", 12, 24) for n in ("far", "near"))
+    far_shift, near_shift = far[-1][0] - far[0][0], near[-1][0] - near[0][0]
+    assert near_shift < far_shift < 0, (far_shift, near_shift)  # both slide back; the near one faster
+
+
+def test_a_follow_with_a_move_or_an_unknown_target_is_refused(tmp_path):
+    both = _follow_shot(follow={"target": "dot"}, move="push_in")
+    with pytest.raises(CutoutCompileError, match="cannot both drive it"):
+        compile_shot(both, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
+    assert not _validate(both).passed
+    ghost = _follow_shot(follow={"target": "ghost"})
+    report = _validate(ghost)
+    assert any(f.ir_path.endswith("/follow/target") and f.severity == "error" for f in report.findings)
+    with pytest.raises(CutoutCompileError, match="not a node of this shot"):
+        compile_shot(ghost, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
+    # `hold` is no move: it may stand beside a follow
+    assert _validate(_follow_shot(follow={"target": "dot"}, move="hold")).passed
+
+
+def test_a_follow_round_trips_through_scene_md_and_shakes_on_top(tmp_path):
+    from an.ir.schema import CameraFollow, CameraShake
+    from an.ir.sync import ir_to_markdown, markdown_to_ir
+
+    shot = _follow_shot(follow={"target": "dot", "axes": "xy"})
+    shot.camera.shake = [CameraShake(at=0.5, duration=0.5)]
+    back = markdown_to_ir(ir_to_markdown(SceneIR(meta=Meta(title="X", duration=2.0), timeline=[shot])))
+    assert back.timeline[0].camera.follow == CameraFollow(target="dot", axes="xy")
+    doc = compile_shot(shot, mall=_dot_mall(tmp_path), fps=12, width=640, height=360)
+    assert {"pivot_x", "pivot_y", "x", "y"} <= set(_channels(doc))

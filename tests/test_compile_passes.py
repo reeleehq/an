@@ -53,7 +53,7 @@ def test_the_cutout_passes_are_the_genres_not_the_stages():
     assert set(CUTOUT.provides()["compile passes"]) >= {p.name for p in CUTOUT.compile_passes}
     with without_genres():
         assert [p.name for p in compile_passes_for_stage()] == [
-            "scene", "counters", "actions", "camera", "parallax", "checks",
+            "scene", "counters", "actions", "camera_follow", "camera", "parallax", "checks",
         ]
 
 

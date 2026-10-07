@@ -366,6 +366,14 @@ def _core_fields() -> tuple[Entry, ...]:
             description="the shot's camera",
         ),
         _field(
+            "shot.camera.follow",
+            "camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} "
+            "— the camera tracks the target, keeping it where it stood at the shot's "
+            "start (a walk across a long set); planes parallax with it. Instead of a "
+            "move or keys (hold is fine); a shake layers on top.",
+            description="a camera that follows an entity",
+        ),
+        _field(
             "shot.camera.shake",
             "camera.shake (optional): jolts of the frame layered on the move or keys "
             "— [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, "

@@ -2169,6 +2169,18 @@
    "usage": "camera: {move: <a camera move>, ...} or explicit {keys: [...]}"
   },
   {
+   "id": "field.shot.camera.follow",
+   "kind": "field",
+   "name": "shot.camera.follow",
+   "version": "1",
+   "title": "",
+   "description": "a camera that follows an entity",
+   "levels": [
+    "a"
+   ],
+   "usage": "camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top."
+  },
+  {
    "id": "field.shot.camera.shake",
    "kind": "field",
    "name": "shot.camera.shake",

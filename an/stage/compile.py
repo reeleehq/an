@@ -982,6 +982,7 @@ def _camera_pass(state: CompileState) -> None:
         state.tracks,
         width=state.width,
         height=state.height,
+        keys=state.products.get(CAMERA_KEYS_PRODUCT),
     )
     _add_camera_shake_clips(
         state.shot,
@@ -990,6 +991,71 @@ def _camera_pass(state: CompileState) -> None:
         width=state.width,
         height=state.height,
     )
+
+
+#: The product key under which the follow pass (an#445) leaves the camera keys
+#: it resolved from the compiled motion; the camera and parallax passes read
+#: them there instead of `camera_keys(shot)`.
+CAMERA_KEYS_PRODUCT: str = "camera_keys"
+
+
+def _camera_follow_pass(state: CompileState) -> None:
+    """A following camera (an#445): its keys, from where the target IS.
+
+    After every pass that moves an entity (the actions, a genre's poses and
+    faces), before the camera: the document so far is evaluated at every
+    frame by the runtime's executable spec (`evaluate_timeline`), and the
+    target's position composed up its chain (`screen_position`, with no camera
+    yet, so it is the scene position). The camera keeps the target where it
+    stood at the shot's start: one linear key per frame, which is exact at
+    every frame the render draws."""
+    camera = state.shot.camera
+    if camera is None or camera.follow is None:
+        return
+    # The one resolver refuses a follow beside a move or keys, here as in validate.
+    camera_keys(state.shot, width=state.width, height=state.height)
+    state.products[CAMERA_KEYS_PRODUCT] = camera_follow_keys(state)
+
+
+def camera_follow_keys(state: CompileState) -> list[CameraKey]:
+    """The keys of ``state.shot``'s follow camera, one per frame (an#445)."""
+    from an.stage.timeline import (
+        evaluate_timeline,
+        screen_position,
+        timeline_from_scene,
+    )
+
+    follow = state.shot.camera.follow
+    doc = _assemble_document(state, background="#000000")
+    timeline = timeline_from_scene(doc)
+    duration = max(0.001, float(state.shot.duration))
+    frames = max(1, round(duration * state.fps))
+    centre = (state.width / 2.0, state.height / 2.0)
+    try:
+        positions = [
+            screen_position(
+                doc,
+                follow.target,
+                pose=evaluate_timeline(timeline, min(duration, k / state.fps)),
+            )
+            for k in range(frames + 1)
+        ]
+    except (KeyError, ValueError) as e:
+        raise CutoutCompileError(
+            f"shot {state.shot.id!r}: the camera follows {follow.target!r}, which "
+            f"is not a node of this shot ({e}). Follow an entity id or one of its "
+            "nodes."
+        ) from e
+    x0, y0 = positions[0]
+    return [
+        CameraKey(
+            at=min(duration, k / state.fps),
+            x=(x - x0) if "x" in follow.axes else 0.0,
+            y=(y - y0) if "y" in follow.axes else 0.0,
+            easing="linear",
+        )
+        for k, (x, y) in enumerate(positions)
+    ]
 
 
 def _parallax_pass(state: CompileState) -> None:
@@ -1004,6 +1070,7 @@ def _parallax_pass(state: CompileState) -> None:
         width=state.width,
         height=state.height,
         bands=state.products.get(AFTER_BANDS_PRODUCT) or (),
+        keys=state.products.get(CAMERA_KEYS_PRODUCT),
     )
 
 
@@ -1090,6 +1157,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     ),
     CompilePass(
         "actions", _actions_pass, order=200, description="authored actions -> clips"
+    ),
+    CompilePass(
+        "camera_follow",
+        _camera_follow_pass,
+        order=550,
+        description="a following camera's keys, from the compiled motion (an#445)",
     ),
     CompilePass(
         "camera", _camera_pass, order=600, description="the camera onto the scene root"
@@ -2209,6 +2282,7 @@ def _add_parallax_clips(
     width: int,
     height: int,
     bands: Iterable[AfterBand] = (),
+    keys: list[CameraKey] | None = None,
 ) -> None:
     """Compensate each plane for the camera, one factor per plane.
 
@@ -2237,7 +2311,8 @@ def _add_parallax_clips(
     the other's, so swapping them is picture-equivalent and merely reorders the
     serialized track list (an#110 review, L1).
     """
-    keys = camera_keys(shot, width=width, height=height)
+    if keys is None:
+        keys = camera_keys(shot, width=width, height=height)
     if len(keys) < 2:
         return
     duration = max(0.001, float(shot.duration))
@@ -4048,8 +4123,12 @@ def _add_camera_clips(
     *,
     width: int,
     height: int,
+    keys: list[CameraKey] | None = None,
 ) -> None:
     """Emit the shot's camera as channels on the synthetic scene root.
+
+    ``keys``: the camera resolved by an earlier pass (a follow, an#445);
+    default, :func:`camera_keys` of the shot.
 
     The root container sits at canvas centre; PixiJS composes
     ``world = position + M·(local − pivot)``, so `root.pivot` IS a 2D camera
@@ -4062,7 +4141,8 @@ def _add_camera_clips(
     five zoom moves byte-identical to the documents they produced before this
     existed, and it is asserted rather than assumed.
     """
-    keys = camera_keys(shot, width=width, height=height)
+    if keys is None:
+        keys = camera_keys(shot, width=width, height=height)
     if len(keys) < 2:
         return  # `hold`, an empty list, or a single pose: nothing to animate
     duration = max(0.001, float(shot.duration))
