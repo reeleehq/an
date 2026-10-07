@@ -77,7 +77,10 @@ class OrchestratorReport:
 
 
 def validate_project(
-    project_dir: str | Path, *, fps: float | None = None
+    project_dir: str | Path,
+    *,
+    fps: float | None = None,
+    strict_assets: bool = False,
 ) -> ValidationReport:
     """Schema + semantic validation of the scene at ``project_dir``.
 
@@ -89,10 +92,23 @@ def validate_project(
     ``fps`` is the frame rate the render will use when it is not the scene's
     (``an render --fps``): the checks that depend on it (``step_hz``, a line
     heard during a dissolve) use it, as the render will (an#435).
+
+    What loading the scene WARNED about (a retired camera field dropped on
+    read, a migration's notice) is a warning finding too (an#454): a Python
+    warning is invisible to an agent reading `an validate`'s findings.
+
+    ``strict_assets`` (an#456) judges the scene as ``an render
+    --strict-assets`` will: each stage shot is compiled the way the render
+    compiles it, refusing stand-ins, and what it refuses is an error on that
+    shot; the library pins are checked strictly too.
     """
+    import warnings
+
     try:
         # Kinds are REPORTED here, as findings, not refused at load.
-        project: Project = load(project_dir, check_kinds=False)
+        with warnings.catch_warnings(record=True) as load_warnings:
+            warnings.simplefilter("always")
+            project: Project = load(project_dir, check_kinds=False)
     except (DocumentMigrationError, SceneValidationError) as e:
         # NOT "scene.md does not parse": the md may be perfect and the stored
         # JSON from another build. Routing an agent to edit the file that is
@@ -105,6 +121,9 @@ def validate_project(
         report.add("error", "scene.md", f"scene.md does not parse: {e}")
         return report
     schema_report = validate_schema(project.scene)
+    for w in load_warnings:
+        if issubclass(w.category, (UserWarning, DeprecationWarning)):
+            schema_report.add("warning", "scene.md", f"reading the scene: {w.message}")
     # Clock-owned shots (Manim) are judged at their MEASURED length, from the
     # derived store only — validate never renders (an#279).
     from an.measurements import render_context_for, settle_durations
@@ -131,7 +150,80 @@ def validate_project(
         available_library_lock=project.mall.get("library_lock"),
         fps=fps,
     )
-    return schema_report.merge(semantic_report)
+    report = schema_report.merge(semantic_report)
+    if strict_assets:
+        _strict_asset_findings(project, scene, report, fps=fps)
+    return report
+
+
+def _strict_asset_findings(
+    project: Project, scene, report: ValidationReport, *, fps
+) -> None:
+    """What ``an render --strict-assets`` refuses, as errors (an#456).
+
+    The SAME compile the stage renderer runs, minus the browser: a stand-in
+    (the placeholder rig, the default backdrop) or a recorded substitution
+    raises there under ``strict_assets``, so it raises here, and the verdicts
+    agree by construction. A shot that already has an error is skipped (its
+    error says why it cannot render), and so is a shot no stage renders.
+    """
+    import warnings
+
+    from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
+    from an.library.checkout import check_pins_before_render
+    from an.stage import STAGE_RENDERER_NAMES
+    from an.ir.schema import resolve_step_hz
+    from an.stage.compile import CutoutCompileError, compile_shot, style_pack_for
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter(
+                "ignore"
+            )  # the non-strict pin findings are validate's own
+            check_pins_before_render(
+                scene, project.mall.get("library_lock"), strict=True
+            )
+    except Exception as e:  # noqa: BLE001 — a finding, never a traceback
+        report.add(
+            "error",
+            "library",
+            f"`an render --strict-assets` refuses the library pins: {e}",
+        )
+    failing = {
+        f.ir_path.split("/")[1]
+        for f in report.findings
+        if f.severity == "error" and f.ir_path.startswith("timeline/")
+    }
+    rate = int(round(fps or scene.meta.fps or DEFAULT_FPS))
+    width = scene.meta.resolution.width or DEFAULT_RESOLUTION[0]
+    height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
+    for i, shot in enumerate(scene.timeline):
+        if shot.renderer not in STAGE_RENDERER_NAMES or str(i) in failing:
+            continue
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter(
+                    "ignore"
+                )  # non-strict findings are validate's own
+                compile_shot(
+                    shot,
+                    mall=project.mall,
+                    fps=rate,
+                    width=width,
+                    height=height,
+                    strict_assets=True,
+                    step_hz=resolve_step_hz(shot, scene.meta.step_hz),
+                    style_pack=style_pack_for(
+                        scene.meta, project.mall.get("styles") or {}
+                    ),
+                    default_easing=scene.meta.default_easing,
+                )
+        except CutoutCompileError as e:
+            report.add(
+                "error",
+                f"timeline/{i}",
+                f"`an render --strict-assets` refuses shot {shot.id!r}: {e}",
+            )
 
 
 def render_project(project_dir: str | Path, **kwargs: Any) -> Path:
