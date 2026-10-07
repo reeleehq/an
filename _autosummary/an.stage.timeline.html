@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../_static/documentation_options.js?v=62722c08"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stage.text_layout" href="an.stage.text_layout.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -646,6 +646,9 @@ composing node transforms into canvas positions (<a class="reference internal" h
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.timeline.screen_position" title="an.stage.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, point])</p></td>
 <td><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>'s local space lands on the canvas.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.timeline.node_box" title="an.stage.timeline.node_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_box</span></code></a>(scene, path, *[, pose])</p></td>
+<td><p>The canvas rectangle <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> the visual at <code class="docutils literal notranslate"><span class="pre">path</span></code> occupies (an#445).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -963,6 +966,41 @@ while both played).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.timeline.node_box">
+<span class="sig-prename descclassname"><span class="pre">an.stage.timeline.</span></span><span class="sig-name descname"><span class="pre">node_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/timeline.html#node_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.timeline.node_box" title="Link to this definition">#</a></dt>
+<dd><p>The canvas rectangle <code class="docutils literal notranslate"><span class="pre">(x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1)</span></code> the visual at <code class="docutils literal notranslate"><span class="pre">path</span></code> occupies (an#445).</p>
+<p>The visual’s box, the one the runtime fits its art into (<code class="docutils literal notranslate"><span class="pre">width</span></code> ×
+<code class="docutils literal notranslate"><span class="pre">height</span></code> about its anchor, plus a swap key’s own box, anchor and offset
+when the key in force has one, an#211), with its four corners composed up
+the chain by <a class="reference internal" href="#an.stage.timeline.screen_position" title="an.stage.timeline.screen_position"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_position()</span></code></a>. So it rotates, scales and pans with
+the node, its parents and the camera, exactly as a point does. <code class="docutils literal notranslate"><span class="pre">None</span></code>
+when the node draws nothing.</p>
+<p>Under <code class="docutils literal notranslate"><span class="pre">fit:</span> <span class="pre">contain</span></code> the art keeps its aspect inside the box, so the
+rectangle is an upper bound on what is painted: exact on the fitted axis,
+with the slack the art’s aspect leaves on the other. A stroked path’s box
+is its polyline’s, grown by half the stroke.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutSceneJSON</span><span class="p">,</span> <span class="n">NodeJSON</span><span class="p">,</span> <span class="n">TimelineJSON</span><span class="p">,</span> <span class="n">TransformJSON</span><span class="p">,</span> <span class="n">VisualJSON</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">CutoutSceneJSON</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">scene</span><span class="o">=</span><span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s2">"card"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">40.0</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"rect"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))]),</span>
+<span class="gp">... </span>    <span class="n">timeline</span><span class="o">=</span><span class="n">TimelineJSON</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">240</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_box</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"card"</span><span class="p">)</span>
+<span class="go">(190.0, 115.0, 210.0, 125.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_box</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"card"</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="p">{(</span><span class="s2">"card"</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">):</span> <span class="mf">2.0</span><span class="p">})</span>
+<span class="go">(180.0, 115.0, 220.0, 125.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.timeline.screen_position">
 <span class="sig-prename descclassname"><span class="pre">an.stage.timeline.</span></span><span class="sig-name descname"><span class="pre">screen_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/timeline.html#screen_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.timeline.screen_position" title="Link to this definition">#</a></dt>
 <dd><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>’s local space lands on the canvas.</p>
@@ -1130,6 +1168,7 @@ itself.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.clip_from_json"><code class="docutils literal notranslate"><span class="pre">clip_from_json()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.evaluate_timeline"><code class="docutils literal notranslate"><span class="pre">evaluate_timeline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.merge_poses"><code class="docutils literal notranslate"><span class="pre">merge_poses()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.node_box"><code class="docutils literal notranslate"><span class="pre">node_box()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.screen_position"><code class="docutils literal notranslate"><span class="pre">screen_position()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.timeline_from_scene"><code class="docutils literal notranslate"><span class="pre">timeline_from_scene()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.timeline.transform_of"><code class="docutils literal notranslate"><span class="pre">transform_of()</span></code></a></li>

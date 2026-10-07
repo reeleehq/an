@@ -28,6 +28,7 @@ composing node transforms into canvas positions ([`screen_position()`](#an.stage
 | [`timeline_from_scene`](#an.stage.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.                                                  |
 | [`transform_of`](#an.stage.timeline.transform_of)(node[, pose, frame_height])        | A node's transform, with `pose` overriding what the document declares.                                                    |
 | [`screen_position`](#an.stage.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                                                |
+| [`node_box`](#an.stage.timeline.node_box)(scene, path, \*[, pose])               | The canvas rectangle `(x0, y0, x1, y1)` the visual at `path` occupies (an#445).                                           |
 
 ### Classes
 
@@ -289,6 +290,40 @@ Used by the timeline to combine concurrent clips on the same target.
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
+```
+
+### an.stage.timeline.node_box(scene, path, , pose=None)
+
+The canvas rectangle `(x0, y0, x1, y1)` the visual at `path` occupies (an#445).
+
+The visual’s box, the one the runtime fits its art into (`width` ×
+`height` about its anchor, plus a swap key’s own box, anchor and offset
+when the key in force has one, an#211), with its four corners composed up
+the chain by [`screen_position()`](#an.stage.timeline.screen_position). So it rotates, scales and pans with
+the node, its parents and the camera, exactly as a point does. `None`
+when the node draws nothing.
+
+Under `fit: contain` the art keeps its aspect inside the box, so the
+rectangle is an upper bound on what is painted: exact on the fitted axis,
+with the slack the art’s aspect leaves on the other. A stroked path’s box
+is its polyline’s, grown by half the stroke.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON, VisualJSON
+>>> scene = CutoutSceneJSON(
+...     scene=NodeJSON(name="root", children=[NodeJSON(
+...         name="card", transform=TransformJSON(x=40.0),
+...         visual=VisualJSON(kind="rect", width=20.0, height=10.0))]),
+...     timeline=TimelineJSON(duration=1.0),
+... )
+>>> scene.meta.width, scene.meta.height = 320, 240
+>>> node_box(scene, "card")
+(190.0, 115.0, 210.0, 125.0)
+>>> node_box(scene, "card", pose={("card", "scale_x"): 2.0})
+(180.0, 115.0, 220.0, 125.0)
 ```
 
 ### an.stage.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))

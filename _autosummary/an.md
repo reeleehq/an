@@ -206,8 +206,8 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 #### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-Seconds of silence before this line, after the previous line ends (the
-shot start, for the first line) — `(pause 1.5)` in `scene.md`.
+Seconds of silence before this line, after the previous line’s speech
+ends (the shot start, for the first line) — `(pause 1.5)` in `scene.md`.
 
 #### planned_start(cursor)
 
@@ -230,6 +230,21 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+#### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+seconds from the line’s start to the end of its
+AUDIBLE speech — its take’s own trailing silence left out — stamped
+with `duration` from the line’s audio. The next line’s `pause` counts
+from here (a line with no pause still follows the whole take).
+`None` (silent audio, a line its voice’s `trim_silence` already cut to
+the tail the author keeps, a line stamped before an#397) counts from the
+end of `duration`, as before. Never written to JSON: it is read off
+the line’s stored audio on every pass (the audio pipeline, and a render
+that skips synthesis), so `scene.json` and its fixtures do not change.
+
+* **Type:**
+  DERIVED (an#397)
 
 #### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](an.ir.schema.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

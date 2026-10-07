@@ -107,6 +107,7 @@ Design, in the order the pipeline uses it:
 | [`ffmpeg_argv`](#an.audio.effects.ffmpeg_argv)(chain, out_path, \*[, source_path]) | The argv that runs `chain` over audio on stdin into a bit-exact 16-bit PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)). |
 | [`filter_chain`](#an.audio.effects.filter_chain)(effects)                           | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                                                       |
 | [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                          | The canonical effects dict for a voice's `effects` value.                                                                                                              |
+| [`speech_end`](#an.audio.effects.speech_end)(audio, \*[, threshold_db, window_s]) | Seconds into `audio` at which its audible speech ends (an#397); `None` when silent or unreadable.                                                                      |
 | [`trim_record`](#an.audio.effects.trim_record)(wav)                                | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.                                |
 | [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...])      | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns.                             |
 | [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)                   | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                                                |
@@ -314,6 +315,30 @@ Unknown keys raise — an effect that silently does nothing is worse than none.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.audio.effects.speech_end(audio, , threshold_db=-20.0, window_s=0.02)
+
+Seconds into `audio` at which its audible speech ends (an#397); `None` when silent or unreadable.
+
+The end of the last `window_s` window whose RMS level is within
+`threshold_db` of the loudest window’s — [`trim_silence()`](#an.audio.effects.trim_silence)’s rule, so
+a take’s own trailing silence (a provider pads ~0.3 s) is not counted. A
+16-bit PCM WAV is read directly; any other container is decoded with ffmpeg
+when it is installed.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> import array, io, wave
+>>> rate = 8000
+>>> samples = array.array("h", [9000, -9000] * (rate // 4) + [0] * rate)  # 0.5 s, then 1 s silent
+>>> buf = io.BytesIO()
+>>> with wave.open(buf, "wb") as w:
+...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(samples.tobytes())
+>>> round(speech_end(buf.getvalue()), 2)
+0.5
+```
 
 ### an.audio.effects.trim_record(wav)
 

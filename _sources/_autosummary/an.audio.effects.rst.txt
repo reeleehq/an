@@ -34,6 +34,7 @@ an.audio.effects
       ffmpeg_argv
       filter_chain
       normalize_effects
+      speech_end
       trim_record
       trim_silence
       voice_effects

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../../../_static/documentation_options.js?v=62722c08"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1486,8 +1486,18 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: line's audio_ref&gt;, "gain_db": &lt;its voice's gain&gt;}`` when ``audio_ref``</span>
     <span class="c1">#: is the leveled audio. ``None`` — unleveled — is omitted from JSON.</span>
     <span class="n">leveled</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="c1">#: Seconds of silence before this line, after the previous line ends (the</span>
-    <span class="c1">#: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.</span>
+    <span class="c1">#: DERIVED (an#397): seconds from the line's start to the end of its</span>
+    <span class="c1">#: AUDIBLE speech — its take's own trailing silence left out — stamped</span>
+    <span class="c1">#: with ``duration`` from the line's audio. The next line's ``pause`` counts</span>
+    <span class="c1">#: from here (a line with no pause still follows the whole take).</span>
+    <span class="c1">#: ``None`` (silent audio, a line its voice's ``trim_silence`` already cut to</span>
+    <span class="c1">#: the tail the author keeps, a line stamped before an#397) counts from the</span>
+    <span class="c1">#: end of ``duration``, as before. Never written to JSON: it is read off</span>
+    <span class="c1">#: the line's stored audio on every pass (the audio pipeline, and a render</span>
+    <span class="c1">#: that skips synthesis), so ``scene.json`` and its fixtures do not change.</span>
+    <span class="n">spoken</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">#: Seconds of silence before this line, after the previous line's speech</span>
+    <span class="c1">#: ends (the shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.</span>
     <span class="n">pause</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="c1">#: Where this line starts, in SHOT seconds, whatever came before it —</span>
     <span class="c1">#: ``(at 3.0)`` in ``scene.md``. ``start`` is what the audio pipeline</span>

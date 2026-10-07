@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../../../_static/documentation_options.js?v=62722c08"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1215,6 +1215,65 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"source_s"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_s</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
         <span class="p">}</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="speech_end">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.speech_end">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">speech_end</span><span class="p">(</span>
+    <span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">threshold_db</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TRIM_THRESHOLD_DB</span><span class="p">,</span>
+    <span class="n">window_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">TRIM_WINDOW_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds into ``audio`` at which its audible speech ends (an#397); ``None`` when silent or unreadable.</span>
+
+<span class="sd">    The end of the last ``window_s`` window whose RMS level is within</span>
+<span class="sd">    ``threshold_db`` of the loudest window's — :func:`trim_silence`'s rule, so</span>
+<span class="sd">    a take's own trailing silence (a provider pads ~0.3 s) is not counted. A</span>
+<span class="sd">    16-bit PCM WAV is read directly; any other container is decoded with ffmpeg</span>
+<span class="sd">    when it is installed.</span>
+
+<span class="sd">    &gt;&gt;&gt; import array, io, wave</span>
+<span class="sd">    &gt;&gt;&gt; rate = 8000</span>
+<span class="sd">    &gt;&gt;&gt; samples = array.array("h", [9000, -9000] * (rate // 4) + [0] * rate)  # 0.5 s, then 1 s silent</span>
+<span class="sd">    &gt;&gt;&gt; buf = io.BytesIO()</span>
+<span class="sd">    &gt;&gt;&gt; with wave.open(buf, "wb") as w:</span>
+<span class="sd">    ...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(samples.tobytes())</span>
+<span class="sd">    &gt;&gt;&gt; round(speech_end(buf.getvalue()), 2)</span>
+<span class="sd">    0.5</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">wav</span> <span class="o">=</span> <span class="n">audio</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_pcm16_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffmpeg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">decode_chain</span><span class="p">(),</span> <span class="p">{})</span>
+        <span class="k">except</span> <span class="n">VoiceEffectError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">wav</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">channels</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">getnchannels</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">getframerate</span><span class="p">()</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">readframes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">getnframes</span><span class="p">())</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"&lt;i2"</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">rate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">mono</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">win</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">window_s</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)))</span>
+    <span class="n">n_win</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">n</span> <span class="o">//</span> <span class="n">win</span><span class="p">)</span>
+    <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_win</span> <span class="o">*</span> <span class="n">win</span><span class="p">)</span>
+    <span class="n">padded</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">mono</span>
+    <span class="n">power</span> <span class="o">=</span> <span class="p">(</span><span class="n">padded</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_win</span><span class="p">,</span> <span class="n">win</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">power</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">loud</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">power</span> <span class="o">&gt;=</span> <span class="n">peak</span> <span class="o">*</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">threshold_db</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">loud</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">win</span><span class="p">)</span> <span class="o">/</span> <span class="n">rate</span></div>
 
 
 

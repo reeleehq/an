@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../../../_static/documentation_options.js?v=62722c08"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1210,6 +1210,17 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">reference_hz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"reference_hz"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reference_hz</span><span class="p">)</span>
 
+    <span class="c1">#: What a take's ``score`` pair means, written into each takes record (an#397).</span>
+    <span class="n">SCORE_MEANS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"score = [outside, off_centre], lower is better; the take with the "</span>
+        <span class="s2">"smallest pair is kept. outside: for each target in scorer.config.targets, "</span>
+        <span class="s2">"how far the measured value sits outside its [low, high] range, in widths "</span>
+        <span class="s2">"of that range (0 inside; a value this take cannot measure, listed in "</span>
+        <span class="s2">"`unmeasured`, counts 1). off_centre: each value's distance from its "</span>
+        <span class="s2">"range's middle, in the same units (the tie-break). `measured` holds the "</span>
+        <span class="s2">"values, `misses` the targets missed."</span>
+    <span class="p">)</span>
+
 <div class="viewcode-block" id="ProsodyTakeScorer.check_available">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.takes.html#an.audio.takes.ProsodyTakeScorer.check_available">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1240,7 +1251,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">TakeScore</span><span class="p">(</span>
             <span class="n">value</span><span class="o">=</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">outside</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">off_centre</span><span class="p">,</span> <span class="mi">6</span><span class="p">)),</span>
-            <span class="n">detail</span><span class="o">=</span><span class="p">{</span><span class="s2">"measured"</span><span class="p">:</span> <span class="n">measured</span><span class="p">,</span> <span class="s2">"misses"</span><span class="p">:</span> <span class="n">misses</span><span class="p">},</span>
+            <span class="n">detail</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">"measured"</span><span class="p">:</span> <span class="n">measured</span><span class="p">,</span>
+                <span class="s2">"misses"</span><span class="p">:</span> <span class="n">misses</span><span class="p">,</span>
+                <span class="c1"># What a short line cannot show (an#397): a one-word line has</span>
+                <span class="c1"># no pauses and no rate to measure, and each such target costs</span>
+                <span class="c1"># a whole range-width in `outside`.</span>
+                <span class="s2">"unmeasured"</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="k">if</span> <span class="n">measured</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">],</span>
+            <span class="p">},</span>
         <span class="p">)</span></div>
 
 

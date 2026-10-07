@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../_static/documentation_options.js?v=62722c08"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.providers" href="an.audio.providers.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -829,6 +829,12 @@ outside the ranges, then the summed distance from their midpoints (the
 tie-break between takes all on target), in units of each range’s width.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.SCORE_MEANS">
+<span class="sig-name descname"><span class="pre">SCORE_MEANS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;score</span> <span class="pre">=</span> <span class="pre">[outside,</span> <span class="pre">off_centre],</span> <span class="pre">lower</span> <span class="pre">is</span> <span class="pre">better;</span> <span class="pre">the</span> <span class="pre">take</span> <span class="pre">with</span> <span class="pre">the</span> <span class="pre">smallest</span> <span class="pre">pair</span> <span class="pre">is</span> <span class="pre">kept.</span> <span class="pre">outside:</span> <span class="pre">for</span> <span class="pre">each</span> <span class="pre">target</span> <span class="pre">in</span> <span class="pre">scorer.config.targets,</span> <span class="pre">how</span> <span class="pre">far</span> <span class="pre">the</span> <span class="pre">measured</span> <span class="pre">value</span> <span class="pre">sits</span> <span class="pre">outside</span> <span class="pre">its</span> <span class="pre">[low,</span> <span class="pre">high]</span> <span class="pre">range,</span> <span class="pre">in</span> <span class="pre">widths</span> <span class="pre">of</span> <span class="pre">that</span> <span class="pre">range</span> <span class="pre">(0</span> <span class="pre">inside;</span> <span class="pre">a</span> <span class="pre">value</span> <span class="pre">this</span> <span class="pre">take</span> <span class="pre">cannot</span> <span class="pre">measure,</span> <span class="pre">listed</span> <span class="pre">in</span> <span class="pre">`unmeasured`,</span> <span class="pre">counts</span> <span class="pre">1).</span> <span class="pre">off_centre:</span> <span class="pre">each</span> <span class="pre">value's</span> <span class="pre">distance</span> <span class="pre">from</span> <span class="pre">its</span> <span class="pre">range's</span> <span class="pre">middle,</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">units</span> <span class="pre">(the</span> <span class="pre">tie-break).</span> <span class="pre">`measured`</span> <span class="pre">holds</span> <span class="pre">the</span> <span class="pre">values,</span> <span class="pre">`misses`</span> <span class="pre">the</span> <span class="pre">targets</span> <span class="pre">missed.&quot;</span></span><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.SCORE_MEANS" title="Link to this definition">#</a></dt>
+<dd><p>What a take’s <code class="docutils literal notranslate"><span class="pre">score</span></code> pair means, written into each takes record (an#397).</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.check_available">
 <span class="sig-name descname"><span class="pre">check_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#ProsodyTakeScorer.check_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.check_available" title="Link to this definition">#</a></dt>
@@ -1178,6 +1184,7 @@ declaration raises <a class="reference internal" href="#an.audio.takes.VoiceTake
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.MAX_TAKES"><code class="docutils literal notranslate"><span class="pre">MAX_TAKES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.PROSODY_SCORER_VERSION"><code class="docutils literal notranslate"><span class="pre">PROSODY_SCORER_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.SCORE_MEANS"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.SCORE_MEANS</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.check_available"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.check_available()</span></code></a></li>
 </ul>
 </li>

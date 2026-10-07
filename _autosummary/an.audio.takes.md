@@ -150,6 +150,10 @@ The score is [`an.verify.prosody.target_distance()`](an.verify.prosody.md#an.ver
 outside the ranges, then the summed distance from their midpoints (the
 tie-break between takes all on target), in units of each range’s width.
 
+#### SCORE_MEANS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "score = [outside, off_centre], lower is better; the take with the smallest pair is kept. outside: for each target in scorer.config.targets, how far the measured value sits outside its [low, high] range, in widths of that range (0 inside; a value this take cannot measure, listed in \`unmeasured\`, counts 1). off_centre: each value's distance from its range's middle, in the same units (the tie-break). \`measured\` holds the values, \`misses\` the targets missed."*
+
+What a take’s `score` pair means, written into each takes record (an#397).
+
 #### check_available()
 
 Raise before any request when this scorer could not score (no ffmpeg).

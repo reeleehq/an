@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../../../_static/documentation_options.js?v=62722c08"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -741,6 +741,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">,</span> <span class="n">apply_voice_effects</span><span class="p">,</span> <span class="n">voice_effects</span>
@@ -1243,6 +1244,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># content-keyed stores make a mere re-stamp free).</span>
         <span class="n">audio</span><span class="p">,</span> <span class="n">track</span> <span class="o">=</span> <span class="n">_produce_line</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">lipsync</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">audio</span><span class="o">.</span><span class="n">duration</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="o">=</span> <span class="n">_spoken_of</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="o">=</span> <span class="n">_to_ir_viseme_track</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">_to_ir_word_timings</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
@@ -1251,6 +1253,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># The spread is measured only when lines were (re)made: a warm render pays</span>
     <span class="c1"># no ffmpeg pass for it, and says it once rather than on every render.</span>
     <span class="n">_voice_loudness</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">overruns</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">pending</span><span class="p">))</span>
+    <span class="n">_backfill_spoken</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">audio_store</span><span class="p">)</span>
     <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">dialogue_overruns</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span> <span class="k">if</span> <span class="n">overruns</span> <span class="k">else</span> <span class="p">():</span>
         <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1371,14 +1374,62 @@ window.runMermaid = runMermaid;</script>
             <span class="n">line</span><span class="o">.</span><span class="n">pause</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span>
         <span class="p">):</span>
             <span class="k">continue</span>
-        <span class="n">cursor</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">spoken_end</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">break</span>
-            <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="c1"># A `pause` is the silence HEARD (an#397): it counts from the end of</span>
+            <span class="c1"># the previous line's speech, not of its take, whose own trailing</span>
+            <span class="c1"># silence would lengthen it. Without one, a line follows the whole</span>
+            <span class="c1"># take, as it always has.</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span>
+                <span class="n">spoken_end</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">pause</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cursor</span>
+            <span class="p">)</span>
             <span class="n">cursor</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+            <span class="n">heard</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span>
+            <span class="n">spoken_end</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">heard</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">scene</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_spoken_of</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where ``audio``'s speech ends (:func:`an.audio.effects.speech_end`); ``None`` if unknown."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">speech_end</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="s2">"bytes_"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">))</span>
+        <span class="k">else</span> <span class="n">audio</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">audio</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">trim_record</span>
+
+    <span class="k">if</span> <span class="n">trim_record</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A trimmed line's length is the author's choice (an#254: the tail it</span>
+        <span class="c1"># keeps, `keep_tail_s`): the next line counts from its end.</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">speech_end</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_backfill_spoken</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">audio_store</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Stamp ``spoken`` on lines stamped before an#397, from their stored audio."""</span>
+    <span class="k">if</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">audio_store</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">]</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="o">=</span> <span class="n">_spoken_of</span><span class="p">(</span>
+                <span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"bytes_"</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span>
+            <span class="p">)</span>
 
 
 <div class="viewcode-block" id="AudioNotCachedError">
@@ -2150,6 +2201,11 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"tts"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="s2">"roll"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">roll</span><span class="p">,</span>
         <span class="s2">"scorer"</span><span class="p">:</span> <span class="n">scorer_identity</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="p">),</span>
+        <span class="o">**</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">"score_means"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="o">.</span><span class="n">SCORE_MEANS</span><span class="p">}</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="p">,</span> <span class="s2">"SCORE_MEANS"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">),</span>
         <span class="s2">"chosen"</span><span class="p">:</span> <span class="n">best</span><span class="p">,</span>
         <span class="s2">"digest"</span><span class="p">:</span> <span class="n">audio_digest</span><span class="p">(</span><span class="n">kept</span><span class="p">),</span>
         <span class="s2">"audio_key"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span>
@@ -2702,6 +2758,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="o">!=</span> <span class="n">stamped_track</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">!=</span> <span class="n">stamped_words</span><span class="p">:</span>
         <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">stamped_track</span><span class="p">,</span> <span class="n">stamped_words</span>
         <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">_wav_duration</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">spoken</span> <span class="o">=</span> <span class="n">_spoken_of</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span>
 
 

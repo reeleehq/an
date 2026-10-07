@@ -15,6 +15,7 @@ an.stage.timeline
       timeline_from_scene
       transform_of
       screen_position
+      node_box
    
    .. rubric:: Classes
 

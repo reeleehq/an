@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../_static/documentation_options.js?v=62722c08"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.cli" href="an.audio.cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -755,13 +755,16 @@ silence) is left whole.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.normalize_effects" title="an.audio.effects.normalize_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_effects</span></code></a>(raw)</p></td>
 <td><p>The canonical effects dict for a voice's <code class="docutils literal notranslate"><span class="pre">effects</span></code> value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.trim_record" title="an.audio.effects.trim_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_record</span></code></a>(wav)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.speech_end" title="an.audio.effects.speech_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">speech_end</span></code></a>(audio, *[, threshold_db, window_s])</p></td>
+<td><p>Seconds into <code class="docutils literal notranslate"><span class="pre">audio</span></code> at which its audible speech ends (an#397); <code class="docutils literal notranslate"><span class="pre">None</span></code> when silent or unreadable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.trim_record" title="an.audio.effects.trim_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_record</span></code></a>(wav)</p></td>
 <td><p>What <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code> cut from <code class="docutils literal notranslate"><span class="pre">wav</span></code> (<code class="docutils literal notranslate"><span class="pre">lead_s</span></code>, <code class="docutils literal notranslate"><span class="pre">tail_s</span></code>, <code class="docutils literal notranslate"><span class="pre">source_s</span></code>), read from the comment it wrote; <code class="docutils literal notranslate"><span class="pre">None</span></code> for audio it did not write.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_silence</span></code></a>(wav, *[, threshold_db, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_silence</span></code></a>(wav, *[, threshold_db, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">wav</span></code> (16-bit PCM) cut to its speech, plus <code class="docutils literal notranslate"><span class="pre">keep_lead_s</span></code> before it and <code class="docutils literal notranslate"><span class="pre">keep_tail_s</span></code> after it, and the cut recorded in the WAV it returns.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
 <td><p>The normalised effects declared by <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code>, or <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -1049,6 +1052,32 @@ Unknown keys raise — an effect that silently does nothing is worse than none.<
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.effects.speech_end">
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">speech_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#speech_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.speech_end" title="Link to this definition">#</a></dt>
+<dd><p>Seconds into <code class="docutils literal notranslate"><span class="pre">audio</span></code> at which its audible speech ends (an#397); <code class="docutils literal notranslate"><span class="pre">None</span></code> when silent or unreadable.</p>
+<p>The end of the last <code class="docutils literal notranslate"><span class="pre">window_s</span></code> window whose RMS level is within
+<code class="docutils literal notranslate"><span class="pre">threshold_db</span></code> of the loudest window’s — <a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim_silence()</span></code></a>’s rule, so
+a take’s own trailing silence (a provider pads ~0.3 s) is not counted. A
+16-bit PCM WAV is read directly; any other container is decoded with ffmpeg
+when it is installed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">array</span><span class="o">,</span><span class="w"> </span><span class="nn">io</span><span class="o">,</span><span class="w"> </span><span class="nn">wave</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rate</span> <span class="o">=</span> <span class="mi">8000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">samples</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s2">"h"</span><span class="p">,</span> <span class="p">[</span><span class="mi">9000</span><span class="p">,</span> <span class="o">-</span><span class="mi">9000</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">rate</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)</span>  <span class="c1"># 0.5 s, then 1 s silent</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">w</span><span class="o">.</span><span class="n">setnchannels</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">w</span><span class="o">.</span><span class="n">setsampwidth</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span> <span class="n">w</span><span class="o">.</span><span class="n">setframerate</span><span class="p">(</span><span class="n">rate</span><span class="p">);</span> <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">speech_end</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()),</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.effects.trim_record">
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">trim_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wav</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#trim_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.trim_record" title="Link to this definition">#</a></dt>
 <dd><p>What <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code> cut from <code class="docutils literal notranslate"><span class="pre">wav</span></code> (<code class="docutils literal notranslate"><span class="pre">lead_s</span></code>, <code class="docutils literal notranslate"><span class="pre">tail_s</span></code>, <code class="docutils literal notranslate"><span class="pre">source_s</span></code>),
@@ -1184,6 +1213,7 @@ id) has no effects; so does a store that does not exist.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.ffmpeg_argv"><code class="docutils literal notranslate"><span class="pre">ffmpeg_argv()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.filter_chain"><code class="docutils literal notranslate"><span class="pre">filter_chain()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.normalize_effects"><code class="docutils literal notranslate"><span class="pre">normalize_effects()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.speech_end"><code class="docutils literal notranslate"><span class="pre">speech_end()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.trim_record"><code class="docutils literal notranslate"><span class="pre">trim_record()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.trim_silence"><code class="docutils literal notranslate"><span class="pre">trim_silence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.voice_effects"><code class="docutils literal notranslate"><span class="pre">voice_effects()</span></code></a></li>

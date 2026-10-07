@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=81564b5a"></script>
+    <script src="../_static/documentation_options.js?v=62722c08"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.229" />
+  <meta name="docsearch:version" content="0.1.230" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -889,8 +889,8 @@ is the leveled audio. <code class="docutils literal notranslate"><span class="pr
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.Dialogue.pause">
 <span class="sig-name descname"><span class="pre">pause</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.pause" title="Link to this definition">#</a></dt>
-<dd><p>Seconds of silence before this line, after the previous line ends (the
-shot start, for the first line) — <code class="docutils literal notranslate"><span class="pre">(pause</span> <span class="pre">1.5)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>.</p>
+<dd><p>Seconds of silence before this line, after the previous line’s speech
+ends (the shot start, for the first line) — <code class="docutils literal notranslate"><span class="pre">(pause</span> <span class="pre">1.5)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -915,6 +915,25 @@ line’s <code class="docutils literal notranslate"><span class="pre">start</spa
 <span class="go">0.8</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.Dialogue.spoken">
+<span class="sig-name descname"><span class="pre">spoken</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.spoken" title="Link to this definition">#</a></dt>
+<dd><p>seconds from the line’s start to the end of its
+AUDIBLE speech — its take’s own trailing silence left out — stamped
+with <code class="docutils literal notranslate"><span class="pre">duration</span></code> from the line’s audio. The next line’s <code class="docutils literal notranslate"><span class="pre">pause</span></code> counts
+from here (a line with no pause still follows the whole take).
+<code class="docutils literal notranslate"><span class="pre">None</span></code> (silent audio, a line its voice’s <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code> already cut to
+the tail the author keeps, a line stamped before an#397) counts from the
+end of <code class="docutils literal notranslate"><span class="pre">duration</span></code>, as before. Never written to JSON: it is read off
+the line’s stored audio on every pass (the audio pipeline, and a render
+that skips synthesis), so <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> and its fixtures do not change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DERIVED (an#397)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1765,6 +1784,7 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.planned_start"><code class="docutils literal notranslate"><span class="pre">Dialogue.planned_start()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.spoken"><code class="docutils literal notranslate"><span class="pre">Dialogue.spoken</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.word_timings"><code class="docutils literal notranslate"><span class="pre">Dialogue.word_timings</span></code></a></li>
 </ul>
 </li>
