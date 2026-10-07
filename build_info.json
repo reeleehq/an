@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-07T01:57:41Z",
+  "built_at": "2026-10-07T02:01:16Z",
   "package": {
     "name": "an",
-    "version": "0.1.230",
+    "version": "0.1.231",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "6baef50b51645b248c6ed09c558cf6a78ee72da2",
-    "short_commit": "6baef50",
+    "commit": "ee66c9d433a241b9a34fcd4c20bf9750eafa5ec2",
+    "short_commit": "ee66c9d",
     "branch": "main",
     "tags": [
-      "0.1.230"
+      "0.1.231"
     ],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/an",
-    "commit_url": "https://github.com/thorwhalen/an/commit/6baef50b51645b248c6ed09c558cf6a78ee72da2",
+    "commit_url": "https://github.com/thorwhalen/an/commit/ee66c9d433a241b9a34fcd4c20bf9750eafa5ec2",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/an",
-    "sha": "95299312cb3c9557b77c92f51253ef823d52db49",
+    "sha": "f78f91b736b5ad005d111d6215747e24b04bd5ed",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "37559089758",
-    "run_url": "https://github.com/thorwhalen/an/actions/runs/37559089758",
+    "run_id": "37559410781",
+    "run_url": "https://github.com/thorwhalen/an/actions/runs/37559410781",
     "server_url": "https://github.com"
   },
   "tools": {
     "epythet": "0.2.12",
     "sphinx": "9.1.0",
     "docutils": "0.22.4",
-    "python": "3.12.14"
+    "python": "3.12.15"
   },
   "config": {
     "theme": "auto",
@@ -66,12 +66,12 @@
     "relation": "ahead",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout 6baef50b51645b248c6ed09c558cf6a78ee72da2\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout ee66c9d433a241b9a34fcd4c20bf9750eafa5ec2\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": false,
     "notes": [
-      "The documented version (0.1.230) is ahead of the latest release on PyPI (0.1.229): these docs describe unreleased code."
+      "The documented version (0.1.231) is ahead of the latest release on PyPI (0.1.229): these docs describe unreleased code."
     ]
   }
 }
