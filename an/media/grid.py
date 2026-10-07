@@ -25,7 +25,7 @@ import numpy as np
 
 from an.bench.png import decode_png, encode_png
 
-__all__ = ["tile", "trim"]
+__all__ = ["tile", "trim", "fit_caption"]
 
 #: The side of a square cell, in pixels.
 DFLT_CELL: int = 256
@@ -65,8 +65,34 @@ def _fit(image: np.ndarray, side: int) -> np.ndarray:
     return image[rows][:, cols]
 
 
-def _caption(text: str, width: int, height: int, background) -> np.ndarray:
-    """``text`` drawn into a ``width`` x ``height`` strip; blank if Pillow is absent."""
+def fit_caption(text: str | tuple[str, str], room: float, measure) -> str:
+    """The caption that fits ``room`` (in ``measure``'s units): a long one is
+    shortened with ``…``; a ``(head, tail)`` pair keeps its tail whole and
+    shortens only the head (an#460), unless not even the tail fits.
+
+    >>> fit_caption(("cutan:prop.desk-oversimplified", " [free]"), 20, len)
+    'cutan:prop.d… [free]'
+    >>> fit_caption("cutan:prop.desk-oversimplified [free]", 20, len)
+    'cutan:prop.desk-ove…'
+    """
+    head, tail = text if isinstance(text, tuple) else (text, "")
+    if measure(head + tail) <= room:
+        return head + tail
+    if measure(tail) >= room:  # not even the tail fits: shorten the whole line
+        head, tail = head + tail, ""
+    budget = room - measure(tail)
+    while head and measure(head) > budget:
+        head = head[:-2] + "…" if len(head) > 2 else ""
+    return head + tail
+
+
+def _caption(
+    text: str | tuple[str, str], width: int, height: int, background
+) -> np.ndarray:
+    """``text`` drawn into a ``width`` x ``height`` strip; blank if Pillow is absent.
+
+    A ``(head, tail)`` pair keeps its tail whole and shortens only the head
+    (an#460: a sheet's licence class must survive a long reference)."""
     strip = np.empty((height, width, 3), np.uint8)
     strip[:] = background
     try:
@@ -79,9 +105,7 @@ def _caption(text: str, width: int, height: int, background) -> np.ndarray:
         font = ImageFont.load_default(size=max(8, int(height * 0.7)))
     except TypeError:  # Pillow < 10.1 has one fixed size
         font = ImageFont.load_default()
-    shown = text
-    while shown and draw.textlength(shown, font=font) > width - 2:
-        shown = shown[:-2] + "…" if len(shown) > 2 else ""
+    shown = fit_caption(text, width - 2, lambda t: draw.textlength(t, font=font))
     draw.text((1, 0), shown, fill=CAPTION_INK, font=font)
     return np.asarray(img)
 
@@ -91,14 +115,15 @@ def tile(
     *,
     cell: int = DFLT_CELL,
     columns: int | None = None,
-    labels: Sequence[str] | None = None,
+    labels: Sequence[str | tuple[str, str]] | None = None,
     gap: int = DFLT_GAP,
     background: tuple[int, int, int] = DFLT_BACKGROUND,
 ) -> bytes:
     """One PNG holding every image of ``images`` (PNG bytes), each in a ``cell`` square.
 
     columns: cells per row (default: the smallest square grid that holds them)
-    labels: one caption per image, drawn under its cell
+    labels: one caption per image, drawn under its cell; a ``(head, tail)``
+        pair is shortened in its head only, so the tail always shows
     """
     if not images:
         raise ValueError("tile() needs at least one image")
