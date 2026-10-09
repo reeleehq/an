@@ -155,9 +155,16 @@ code must keep, enforced in `an.library.api._PerFileRule`:
   `PublishResult.conflicts`, in a check-out's origin block), shown by `an
   credits`, `an library show`, `an library sheet` and `an validate` as a
   warning (the maintainer's decision on an#357, 2026-10-09: inform, don't
-  block). `publish(strict_assets=True)` / `--strict-assets` refuses instead.
-  One exemption: a per-part stamp the character factory's record confirms
-  (`factory_drew`) speaks for its bytes alone (an#281). A relicence resolves
+  block). `--strict-assets` is the opt-in that refuses: `publish`/`promote`
+  (`strict_assets=True`, only when a version is written), `an validate`
+  (an error) and `an render` (refused). Three refinements from the review
+  round: an explicit claim answers SILENCE (a lineage `unknown` does not bind
+  it, as a pinned per-part source always labelled an unlabelled file); through
+  `previous` only statements about these very bytes bind (a hat added in v002
+  is nobody's earlier bytes), while through `derived_from` a parent's own
+  label binds new bytes too (probe T4, a re-carve); and a per-part stamp the
+  character factory's record confirms (`factory_drew`) speaks for its bytes
+  alone (an#281). A relicence resolves
   a conflict deliberately — and it lists the digests it `covers`; a
   per-file statement stricter than it keeps binding, and bytes the lineage
   labelled stricter per file and not labelled again by the relicensing publish
@@ -165,8 +172,11 @@ code must keep, enforced in `an.library.api._PerFileRule`:
   relicence never frees a private part it did not name; nor a per-part source
   of its own version stricter than it.
 - **A version's rights include what the rule states about its own bytes**
-  (`_rule_contributions`): the rights walk stops at a relicence, the rule does
-  not for bytes it did not cover, and the two must never disagree.
+  (`_rule_contributions`), and so do the rights of anything derived from a
+  relicensed version: the rights walk stops at a relicence, the rule does not
+  for bytes it did not cover, and the two must never disagree (an#357 review
+  finding 1: otherwise a derivative of a relicence that left a private head
+  uncovered read free).
 - **Per-file statements count toward a version's rights, never toward the label
   of the files nothing itemises** (`version_sources(per_file=False)`, at every
   depth): otherwise one private head re-spreads "private" over every file of

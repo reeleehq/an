@@ -292,3 +292,117 @@ def test_a_check_out_carries_the_conflict_into_credits_and_validate(tmp_path):
     findings = ValidationReport()
     _rights_conflict_findings(load(project), unused, findings)
     assert not findings.findings
+
+
+# --------------------------------------------------------------------------- review round (an#357)
+
+
+def test_a_relicence_does_not_launder_what_it_left_uncovered_to_a_derivative():
+    """Finding 1 (critical): a relicence that moved a per-file private head
+    leaves it uncovered and private; a version DERIVED from it inherits that,
+    whether it holds the head or a re-carve of it."""
+    lib = _memory()
+    publish(lib, "prop.lamp", {"name": "lamp"}, {"a.png": CARVED, "b.svg": DRAWN},
+            source=CC0, license_parts={"a.png": PRIVATE})
+    with pytest.warns(RightsConflictWarning):
+        v2 = publish(lib, "prop.lamp", {"name": "lamp"},
+                     {"moved/a.png": CARVED, "b.svg": DRAWN}, source=CC0, relicense=RELICENSE)
+    assert v2.rights.license_class == "private"
+    child = publish(lib, "prop.child", {"name": "child"}, {"n.svg": b"<svg>new</svg>"},
+                    source=CC0, derived_from=["cutan:prop.lamp@v002"])
+    assert child.rights.license_class == "private"
+    for parent in ("cutan:prop.lamp@v001", "cutan:prop.lamp@v002"):
+        re = publish(lib, f"prop.re{parent[-1]}", {"name": "re"}, {"lamp.png": RECARVED},
+                     source=CC0, derived_from=[parent])
+        assert re.rights.license_class == "private", parent
+    from an.library.api import find
+
+    assert "prop.child" not in {h.asset_id for h in find(lib, rights="publishable")}
+
+
+@pytest.mark.parametrize("relabel", [True, False], ids=["relabel", "plain"])
+def test_a_per_part_label_answers_silence_as_before(relabel):
+    """Finding 2: an earlier version that recorded no source is silence, not a
+    statement. A per-part source pinned to the bytes labels them, as it did
+    before an#357 (an#281's rule); being explicit never makes it stricter."""
+    lib = _memory()
+    publish(lib, "prop.lamp", {"name": "lamp"}, {"a.png": CARVED})
+    kw = {"relabel": {"by": "me", "reason": "I drew it"}} if relabel else {}
+    r = publish(lib, "prop.lamp", {"name": "lamp", **_att("a.png", CC0, CARVED)},
+                {"a.png": CARVED}, source=CC0, **kw)
+    assert not r.conflicts
+    assert _floor(lib, CARVED) == {"cutan:prop.lamp": "free"}
+    if relabel:
+        assert r.rights.license_class == "free"
+
+
+def test_new_bytes_in_a_later_version_are_bound_by_nothing_said_about_other_bytes():
+    """Finding 3: a hat added in v002 of a private body is no earlier
+    statement's bytes, so its own cc0 label stands, as it does in v001; and
+    another asset holding the hat is not made private by it."""
+    hat = b"<svg>a cc0 hat</svg>"
+    for added_later in (False, True):
+        lib = _memory()
+        if added_later:
+            publish(lib, "prop.b", {"name": "b"}, {"body.png": CARVED}, source=PRIVATE)
+        r = publish(lib, "prop.b", {"name": "b", **_att("hat.svg", CC0, hat)},
+                    {"body.png": CARVED, "hat.svg": hat}, source=PRIVATE)
+        assert not r.conflicts and r.rights.license_class == "private"
+        assert _floor(lib, hat) == {"cutan:prop.b": "free"}, added_later
+        other = publish(lib, "prop.other", {"name": "o"}, {"h.svg": hat}, source=CC0)
+        assert other.rights.license_class == "free"
+
+
+def test_strict_assets_refuses_only_a_new_version_and_reaches_promote():
+    """Finding 5: republishing what the head already is records nothing, so
+    `--strict-assets` does not refuse it; `promote` takes it too."""
+    from an.library.api import promote
+
+    lib = _memory()
+    result, _ = _t1(lib)
+    again = publish(lib, "prop.lamp", {"name": "lamp", **_att("parts/lamp.png", CC0, CARVED)},
+                    {"parts/lamp.png": CARVED}, strict_assets=True)
+    assert not again.created
+    core = _memory("an")
+    with pytest.raises(RightsRefusal, match="strict-assets"):
+        promote([lib], str(result.ref), to=core, allow_restricted=True, strict_assets=True)
+
+
+def test_validate_and_render_under_strict_assets_refuse_a_conflict(tmp_path):
+    from an.render import RenderError, _refuse_rights_conflicts
+
+    lib = _memory()
+    result, _ = _t1(lib)
+    project = tmp_path / "proj"
+    init_project(project)
+    checkout(lib, project, str(result.ref))
+    scene = SimpleNamespace(
+        timeline=[SimpleNamespace(entities=[SimpleNamespace(store="props", ref="lamp")], sounds=[])],
+        meta=SimpleNamespace(sounds=[]),
+    )
+    findings = ValidationReport()
+    _rights_conflict_findings(load(project), scene, findings, strict=True)
+    assert [f.severity for f in findings.findings] == ["error"]
+    loaded = load(project)
+    loaded.scene = scene
+    with pytest.raises(RenderError, match="strict-assets"):
+        _refuse_rights_conflicts(loaded)
+
+
+def test_a_long_chain_publishes_in_linear_time():
+    """Finding 4: one rule per publish, and a chain's own labels are not
+    re-walked for every digest. 40 versions of a 30-part asset, every part
+    itemised: each publish stays cheap (it was over 3 s at v040)."""
+    import time
+
+    lib = _memory()
+    slowest = 0.0
+    for v in range(40):
+        files = {f"parts/p{i}.svg": f"<svg>{i}-{v if i == 0 else 0}</svg>".encode() for i in range(30)}
+        slots = {f"s{i}": {"a": {"path": p, "source": {**CC0, "sha256": _sha(b)}}}
+                 for i, (p, b) in enumerate(files.items())}
+        t = time.perf_counter()
+        publish(lib, "prop.x", {"name": "x", "skins": {"default": {"slots": slots}}}, files,
+                source=PRIVATE if v == 0 else None)
+        slowest = max(slowest, time.perf_counter() - t)
+    assert slowest < 1.5, slowest

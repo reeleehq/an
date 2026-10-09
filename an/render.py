@@ -112,6 +112,27 @@ class RenderError(RuntimeError):
     """Raised on render-pipeline failures with actionable detail."""
 
 
+def _refuse_rights_conflicts(project: Project) -> None:
+    """Under ``--strict-assets``, refuse a scene using an asset that records a
+    rights conflict (an#357): the user's opt-in; without it the conflict is a
+    finding and the stricter statement binds."""
+    import warnings
+
+    from an.credits import conflict_line, credits_for_scene
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # the credits walk's own, reported at the end
+        conflicts = credits_for_scene(project.mall, project.scene).conflicts
+    if conflicts:
+        listed = "; ".join(f"{a}: {conflict_line(c)}" for a, c in conflicts)
+        raise RenderError(
+            f"{len(conflicts)} rights conflict(s) in the assets this scene uses, "
+            f"refused under --strict-assets: {listed}. Without it the stricter "
+            "statement binds (`an credits` counts it); a relicence in the library "
+            "resolves a conflict deliberately"
+        )
+
+
 def _scene_has_pending_dialogue(scene) -> bool:
     """Return True if any dialogue line lacks a viseme_track or timing."""
     for shot in scene.timeline:
@@ -233,6 +254,8 @@ def render_project(
         # The render's report holds them too (`_pin_findings`): `an render`
         # lists them in its summary instead of as they happen.
         _echo(caught, all_of_them=echo_warnings)
+    if strict_assets:
+        _refuse_rights_conflicts(project)
     return render(
         project,
         output_name=output_name,

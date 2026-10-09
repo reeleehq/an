@@ -449,7 +449,9 @@ def test_r3_a_relicensed_derivative_of_per_file_parts_is_under_the_rule():
 
 def test_m1_what_is_said_about_two_identical_versions_is_kept_apart():
     """Two assets' identical versions share a manifest: the answer must not
-    depend on the order of derived_from."""
+    depend on the order of derived_from. (prop.b's silence about the bytes
+    does not bind an explicit per-file label: an#357, a claim answers a gap.)"""
+    answers = []
     for parents in (["cutan:prop.a@v001", "cutan:prop.b@v001"],
                     ["cutan:prop.b@v001", "cutan:prop.a@v001"]):
         lib = _memory()
@@ -457,9 +459,11 @@ def test_m1_what_is_said_about_two_identical_versions_is_kept_apart():
         publish(lib, "prop.b", {"name": "same"}, {"n.png": HEAD})
         publish(lib, "prop.a", {"name": "same"}, {"n.png": HEAD}, source=CC0,
                 relabel={"by": "t", "reason": "drawn by me"})
-        r = _conflicted(lib, "prop.c", {"name": "c"}, {"n.png": HEAD}, source=CC0,
-                        derived_from=parents, license_parts={"n.png": CC0})
-        assert "prop.b@v001" in r.conflicts[0].binding
+        r = publish(lib, "prop.c", {"name": "c"}, {"n.png": HEAD}, source=CC0,
+                    derived_from=parents, license_parts={"n.png": CC0})
+        answers.append((r.rights.license_class, _floor(lib, HEAD)["cutan:prop.c"],
+                        [c.binding_class for c in r.conflicts]))
+    assert answers[0] == answers[1]
 
 
 def test_s2_an_unreadable_parent_stands_in_as_recorded():

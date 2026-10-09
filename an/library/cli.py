@@ -641,6 +641,7 @@ def promote(
     core_root: str = "",
     as_id: str = "",
     allow_restricted: bool = False,
+    strict_assets: bool = False,
 ) -> str:
     """Copy a version into the core an library, so other genres can reuse it.
 
@@ -650,6 +651,7 @@ def promote(
     core_root: the core an library's root (default: its data folder)
     as_id: promote under another id (when the core library has an unrelated asset with this one)
     allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)
+    strict_assets: refuse a copy that would record a rights conflict, instead of recording it
     """
     package = package or (_namespaces([ref]) or [""])[0]
     if not package or package == CORE_PACKAGE:
@@ -666,6 +668,7 @@ def promote(
             to=target,
             as_id=as_id or None,
             allow_restricted=allow_restricted,
+            strict_assets=strict_assets,
         )
     )
 
