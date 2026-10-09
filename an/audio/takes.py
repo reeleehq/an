@@ -99,7 +99,28 @@ MAX_TAKES: int = 10
 TAKES_RECORD_VERSION: int = 1
 #: The prosody scorer's own version (its distance and tie-break); the
 #: estimator's version (:data:`an.verify.prosody.ESTIMATOR_VERSION`) is joined to it.
-PROSODY_SCORER_VERSION: str = "1"
+#: 2 (an#404): a short line is scored only on the targets it can show.
+PROSODY_SCORER_VERSION: str = "2"
+#: The prosody scorer versions whose choice the current one agrees with on a
+#: line that is NOT short (:meth:`ProsodyTakeScorer.agrees_with`): version 2
+#: changed short lines only, so a longer line's recorded pick is no "older
+#: scorer" to report.
+PROSODY_SCORER_AGREES_OFF_SHORT: frozenset[str] = frozenset({"1"})
+#: A line with fewer syllables than this (:func:`an.verify.prosody.count_syllables`)
+#: is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).
+SHORT_LINE_SYLLABLES: int = 4
+#: The targets a short line cannot show — they need several words — and is not
+#: scored on (recorded as ``not_applicable`` in the take's detail).
+SHORT_LINE_INAPPLICABLE: frozenset[str] = frozenset(
+    {
+        "pause_share",
+        "pauses_per_min",
+        "pause_median_s",
+        "pause_p90_s",
+        "speech_rate_sps",
+        "articulation_rate_sps",
+    }
+)
 #: The sample rate takes are decoded at for scoring — the one the targets were measured at.
 SCORING_SAMPLE_RATE: int = 16000
 
@@ -427,6 +448,16 @@ class ProsodyTakeScorer:
     The score is :func:`an.verify.prosody.target_distance`: the summed distance
     outside the ranges, then the summed distance from their midpoints (the
     tie-break between takes all on target), in units of each range's width.
+
+    A SHORT line (fewer than :data:`SHORT_LINE_SYLLABLES` syllables) is scored
+    only on the targets it can show: the pause and rate targets
+    (:data:`SHORT_LINE_INAPPLICABLE`) are left out and recorded as
+    ``not_applicable`` (an#404). Otherwise a one-word line's choice measured
+    its shortness, every target it cannot measure costing a range-width.
+    That changed version 1's choices for short lines only; a pick already
+    recorded keeps its take and its keys (the choice key never holds the
+    version), and a longer line's pick is not reported as made by an older
+    scorer (:meth:`agrees_with`).
     """
 
     name: str = DEFAULT_SCORER
@@ -444,6 +475,9 @@ class ProsodyTakeScorer:
         self.reference_hz = reference_hz
         self.sr = sr
         self.version = f"{PROSODY_SCORER_VERSION}+estimator{ESTIMATOR_VERSION}"
+        self._agrees_off_short = frozenset(
+            f"{v}+estimator{ESTIMATOR_VERSION}" for v in PROSODY_SCORER_AGREES_OFF_SHORT
+        )
         self.config: dict[str, Any] = {"targets": self.targets}
         if reference_hz is not None:
             self.config["reference_hz"] = float(reference_hz)
@@ -456,8 +490,36 @@ class ProsodyTakeScorer:
         "of that range (0 inside; a value this take cannot measure, listed in "
         "`unmeasured`, counts 1). off_centre: each value's distance from its "
         "range's middle, in the same units (the tie-break). `measured` holds the "
-        "values, `misses` the targets missed."
+        "values, `misses` the targets missed. A line under "
+        f"{SHORT_LINE_SYLLABLES} syllables is not scored on the targets it cannot "
+        "show (pauses and rates), listed in `not_applicable`."
     )
+
+    def applicable(self, text: str) -> dict[str, Sequence[float]]:
+        """The targets ``text`` is scored on: all of them, or for a short line
+        those it can show (an#404).
+
+        >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4], "pause_share": [0.1, 0.2]})
+        >>> sorted(s.applicable("Hi!")), sorted(s.applicable("He did not do the job."))
+        (['f0_sd_st'], ['f0_sd_st', 'pause_share'])
+        """
+        if not is_short_line(text):
+            return dict(self.targets)
+        return {k: v for k, v in self.targets.items() if k not in SHORT_LINE_INAPPLICABLE}
+
+    def agrees_with(self, version: str, text: str) -> bool:
+        """Whether a choice recorded by scorer ``version`` is the one this scorer
+        would make for ``text``: the same version, or an older one that scored
+        a line like this one the same way (version 1, on a line that is not short).
+
+        >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4]})
+        >>> old = s.version.replace("2+", "1+", 1)
+        >>> s.agrees_with(old, "He did not do the job."), s.agrees_with(old, "Hi!")
+        (True, False)
+        """
+        return version == self.version or (
+            version in self._agrees_off_short and not is_short_line(text)
+        )
 
     def check_available(self) -> None:
         """Raise before any request when this scorer could not score (no ffmpeg)."""
@@ -470,7 +532,10 @@ class ProsodyTakeScorer:
         stats = measure_prosody(
             samples, self.sr, text=text, reference_hz=self.reference_hz
         )
-        outside, off_centre = target_distance(stats, self.targets)
+        scored = self.applicable(text)
+        outside, off_centre = (
+            target_distance(stats, scored) if scored else (0.0, 0.0)
+        )
         measured = {
             k: (
                 None
@@ -481,7 +546,7 @@ class ProsodyTakeScorer:
         }
         misses = [
             k
-            for k, (lo, hi) in self.targets.items()
+            for k, (lo, hi) in scored.items()
             if measured[k] is None or not lo <= measured[k] <= hi
         ]
         return TakeScore(
@@ -492,9 +557,22 @@ class ProsodyTakeScorer:
                 # What a short line cannot show (an#397): a one-word line has
                 # no pauses and no rate to measure, and each such target costs
                 # a whole range-width in `outside`.
-                "unmeasured": [k for k in self.targets if measured[k] is None],
+                "unmeasured": [k for k in scored if measured[k] is None],
+                # What it was not scored on, being too short to show (an#404).
+                "not_applicable": sorted(set(self.targets) - set(scored)),
             },
         )
+
+
+def is_short_line(text: str) -> bool:
+    """Whether ``text`` is too short to show pauses or a rate (an#404).
+
+    >>> is_short_line("Hi!"), is_short_line("[deadpan] No."), is_short_line("He did not do the job.")
+    (True, True, False)
+    """
+    from an.verify.prosody import count_syllables
+
+    return count_syllables(text) < SHORT_LINE_SYLLABLES
 
 
 #: Scorer factories by name: ``TakesSpec -> TakeScorer``.

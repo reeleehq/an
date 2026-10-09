@@ -51,6 +51,7 @@ from an.audio.takes import (
     VoiceTakesError,
     choose_take,
     decode_for_scoring,
+    make_take_scorer,
     style_voice_role,
     takes_choice_part,
     takes_spec,
@@ -838,3 +839,112 @@ def test_a_takes_record_says_what_its_scores_mean(monkeypatch):
     mall = _mall({"takes": _takes(2, target_s=1.0)})
     _run(_scene(), mall, _TakesTTS((2.0, 1.0)))
     assert _record(mall)[1]["score_means"] == "lower is better: |duration - target|"
+
+
+# --- short lines (an#404) ------------------------------------------------------
+
+SHORT = "Hi!"  # one syllable: no pauses, no meaningful rate
+#: f0 and articulation-rate targets. A short line is scored on f0 only.
+SHORT_TARGETS = {"f0_sd_st": [2.0, 4.0], "articulation_rate_sps": [5.0, 6.0]}
+
+
+def _stats(**values) -> ProsodyStats:
+    """Prosody stats with ``values`` measured and everything else unmeasurable."""
+    nan = math.nan
+    base = ProsodyStats(1.0, 1.0, 1.0, None, 0, *[nan] * 13)
+    from dataclasses import replace
+
+    return replace(base, **values)
+
+
+def _fake_prosody(monkeypatch):
+    """Score without ffmpeg: a take's f0 spread is twice its length, its rate the
+    text's syllables per second — so the two targets disagree on a short line."""
+    import an.audio.takes as takes_mod
+    import an.verify.prosody as prosody
+
+    monkeypatch.setattr(pipeline, "apply_voice_effects", _fake_effects)
+    monkeypatch.setattr(takes_mod, "require_ffmpeg", lambda: None)
+    monkeypatch.setattr(takes_mod, "decode_for_scoring", lambda audio, sr: _duration(audio))
+
+    def measure(seconds, sr, *, text=None, reference_hz=None):
+        syllables = prosody.count_syllables(text or "")
+        return _stats(f0_sd_st=2.0 * seconds, articulation_rate_sps=syllables / seconds)
+
+    monkeypatch.setattr(prosody, "measure_prosody", measure)
+
+
+def test_a_short_line_is_scored_only_on_the_targets_it_can_show():
+    from an.audio.takes import SHORT_LINE_INAPPLICABLE, ProsodyTakeScorer, is_short_line
+
+    assert is_short_line(SHORT) and not is_short_line(TEXT)
+    scorer = ProsodyTakeScorer({**SHORT_TARGETS, "pause_share": [0.1, 0.2]})
+    assert set(scorer.applicable(SHORT)) == {"f0_sd_st"}
+    assert scorer.applicable(TEXT) == scorer.targets
+    assert {"pause_share", "articulation_rate_sps"} <= SHORT_LINE_INAPPLICABLE
+
+
+def test_short_lines_choose_on_f0_and_long_lines_as_before(monkeypatch):
+    _fake_prosody(monkeypatch)
+    tts = _TakesTTS((2.0, 1.0, 0.6))  # f0 4.0, 2.0, 1.2
+    mall = _mall({"takes": {"n": 3, "targets": SHORT_TARGETS}})
+    _run(_scene(text=SHORT), mall, tts, take_scorer=make_take_scorer)
+    record = _record(mall)[1]
+    # f0 alone: takes 0 and 1 are on target and tie on the midpoint, so take 0.
+    assert record["chosen"] == 0
+    assert record["takes"][0]["not_applicable"] == ["articulation_rate_sps"]
+    assert record["scorer"]["version"].startswith("2+")
+
+
+def test_an_existing_pick_keeps_its_take_and_its_cache_key(monkeypatch):
+    """The maintainer's an#404 decision: version the scorer so that a line whose
+    take was already picked keeps its pick and its cache key — nothing is
+    re-synthesised or re-billed — and only new or edited lines are scored the
+    new way. Version 1 picked take 2 for this short line (its rate missed by
+    the least); version 2 would pick take 0."""
+    _fake_prosody(monkeypatch)
+
+    class _Version1(ProsodyTakeScorer):
+        """What the code before an#404 wrote: every target scored, version 1."""
+
+        def __init__(self, targets, **kw):
+            super().__init__(targets, **kw)
+            self.version = "1" + self.version[self.version.index("+"):]
+
+        def applicable(self, text):
+            return dict(self.targets)
+
+    tts = _TakesTTS((2.0, 1.0, 0.6))
+    mall = _mall({"takes": {"n": 3, "targets": SHORT_TARGETS}})
+    long_line = "one two three four five six"
+    scene = SceneIR(
+        meta=Meta(title="t", duration=4.0),
+        timeline=[Shot(id="s", renderer="cutout", duration=4.0, dialogue=[
+            Dialogue(speaker="a", text=SHORT, voice_ref="nar"),
+            Dialogue(speaker="a", text=long_line, voice_ref="nar"),
+        ])],
+    )
+    first = _run(scene, mall, tts, take_scorer=lambda spec: _Version1(spec.targets))
+    refs = [d.audio_ref for d in first.timeline[0].dialogue]
+    records = {k: json.loads(v) for k, v in mall["takes"].items()}
+    short_key = next(k for k, r in records.items() if r["chosen"] == 2)
+    billed = len(tts.calls)
+    assert billed == 6
+
+    said: list[str] = []
+    again = _run(scene, mall, tts, take_scorer=make_take_scorer, announce=said.append)
+    # Neither line is re-synthesised; each keeps its audio key and its record.
+    assert len(tts.calls) == billed
+    assert [d.audio_ref for d in again.timeline[0].dialogue] == refs
+    assert set(mall["takes"]) == set(records)
+    assert json.loads(mall["takes"][short_key])["chosen"] == 2
+    # Only the short line is reported as chosen by an older scorer; the long
+    # line's choice is the one version 2 makes too.
+    (older,) = [s for s in said if "older scorer" in s]
+    assert "1 line(s)" in older and repr(SHORT) in older and long_line[:10] not in older
+
+    # An edited (new) short line is scored the new way.
+    edited = "Hey!"
+    _run(_scene(text=edited), mall, tts, take_scorer=make_take_scorer)
+    fresh = [json.loads(v) for k, v in mall["takes"].items() if k not in records]
+    assert [r["chosen"] for r in fresh] == [0]
