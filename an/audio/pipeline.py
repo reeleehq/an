@@ -1285,7 +1285,12 @@ def _line_request(
     req.cache_key = req.take_key(chosen, heard=True)
     req.hand_edit = record.get("digest") != entry.get("heard_digest")
     recorded = (record.get("scorer") or {}).get("version")
-    if recorded != req.scorer.version:
+    agrees = getattr(req.scorer, "agrees_with", None)
+    if recorded != req.scorer.version and not (
+        agrees is not None and agrees(str(recorded), req.text)
+    ):
+        # Kept either way (the choice key holds no version); reported only
+        # when the current scorer might choose otherwise (an#404).
         req.older_scorer = str(recorded)
     audio_store = mall.get("audio") if mall is not None else None
     if audio_store is not None and req.cache_key in audio_store:
