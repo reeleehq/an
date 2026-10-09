@@ -8,9 +8,10 @@ an explicit recorded relicence names those bytes.
 
 The negative tests replay the red-team probe of the design (five scenarios that
 relax a floor statement through per-part sources on the code before an#345),
-in their ``file_sources`` form: each must now refuse, or state the strict class.
-Per-attachment sources keep their behaviour (whether to extend the rule to them
-is an#357's question).
+in their ``file_sources`` form: each must state the strict class. Since an#357
+("inform, don't block") a looser statement is kept and recorded as a rights
+conflict, never refused, unless the publish opts in with ``strict_assets``;
+the per-part form of the same probe is ``tests/test_library_rights_conflicts.py``.
 
 In-memory libraries; the root ``conftest.py`` points the machine registry into
 a temporary folder.
@@ -32,6 +33,7 @@ from an.library import LibraryError, checkout, open_library, publish
 from an.library import api as library_api
 from an.library.api import (
     FILE_SOURCES_FIELD,
+    RightsConflictWarning,
     PER_FILE_SCHEMA_VERSION,
     RELICENSE_COVERS,
     VERSION_KIND,
@@ -82,6 +84,17 @@ STU_FILES = {
     "factory/head_a.svg": STRAY,
 }
 HEADS_PRIVATE = {"parts/head_*.png": PRIVATE}
+
+
+def _conflicted(lib, *args, match: str = "", **kw):
+    """Publish what records a rights conflict (an#357): refused under
+    ``strict_assets``, then recorded with a warning; returns the result."""
+    with pytest.raises(RightsRefusal, match=match or "strict-assets"):
+        publish(lib, *args, strict_assets=True, **kw)
+    with pytest.warns(RightsConflictWarning, match=match or "conflict"):
+        result = publish(lib, *args, **kw)
+    assert result.created and result.conflicts
+    return result
 
 
 # --------------------------------------------------------------------------- the fix
@@ -146,23 +159,28 @@ def test_the_stu_photo_history_needs_a_relicence_and_keeps_the_heads_private():
 def test_t1_a_later_version_cannot_relabel_bytes_its_chain_called_private():
     lib = _memory()
     publish(lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD}, source=PRIVATE)
-    with pytest.raises(RightsRefusal, match="relicence"):
-        publish(
-            lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD},
-            source=PRIVATE, license_parts={"parts/lamp.png": CC0},
-        )
+    r = _conflicted(
+        lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD},
+        source=PRIVATE, license_parts={"parts/lamp.png": CC0}, match="relicence",
+    )
     assert _floor(lib, HEAD) == {"cutan:prop.lamp": "private"}
+    # The looser statement is kept, never discarded.
+    v = read_version(lib, "prop.lamp", r.ref.version)
+    assert v[FILE_SOURCES_FIELD]["parts/lamp.png"]["license"] == "cc0-1.0"
+    (c,) = r.conflicts
+    assert (c.claimed_class, c.binding_class) == ("free", "private")
+    assert "prop.lamp@v001" in c.binding
 
 
 def test_t2_dropping_a_file_and_re_adding_it_relaxes_nothing():
     lib = _memory()
     publish(lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD}, source=PRIVATE)
     publish(lib, "prop.lamp", {"name": "lamp"}, {"parts/other.png": b"x"}, source=PRIVATE)
-    with pytest.raises(RightsRefusal):
-        publish(
-            lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD},
-            source=PRIVATE, license_parts={"parts/lamp.png": CC0},
-        )
+    _conflicted(
+        lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD},
+        source=PRIVATE, license_parts={"parts/lamp.png": CC0},
+    )
+    assert _floor(lib, HEAD) == {"cutan:prop.lamp": "private"}
 
 
 def test_t2_a_dropped_per_file_statement_binds_its_bytes_when_they_return():
@@ -171,9 +189,9 @@ def test_t2_a_dropped_per_file_statement_binds_its_bytes_when_they_return():
     publish(lib, "prop.lamp", {"name": "lamp"}, files, source=CC0,
             license_parts={"parts/lamp.png": PRIVATE})
     publish(lib, "prop.lamp", {"name": "lamp"}, {"parts/base.svg": COLLAR}, source=CC0)
-    with pytest.raises(RightsRefusal):
-        publish(lib, "prop.lamp", {"name": "lamp"}, files, source=CC0,
+    _conflicted(lib, "prop.lamp", {"name": "lamp"}, files, source=CC0,
                 license_parts={"parts/lamp.png": CC0})
+    assert _floor(lib, HEAD) == {"cutan:prop.lamp": "private"}
     # Re-added with no per-file label at all: the lineage still states it private.
     publish(lib, "prop.lamp", {"name": "lamp"}, files, source=CC0)
     assert _floor(lib, HEAD) == {"cutan:prop.lamp": "private"}
@@ -181,12 +199,13 @@ def test_t2_a_dropped_per_file_statement_binds_its_bytes_when_they_return():
 
 def test_t3_the_same_bytes_at_two_paths_have_one_statement():
     lib = _memory()
-    with pytest.raises(LibraryError, match="same bytes"):
-        publish(
-            lib, "prop.x", {"name": "x"},
-            {"parts/a_head.png": HEAD, "spare/z_copy.png": HEAD}, source=CC0,
-            license_parts={"parts/a_head.png": PRIVATE, "spare/z_copy.png": CC0},
-        )
+    r = _conflicted(
+        lib, "prop.x", {"name": "x"},
+        {"parts/a_head.png": HEAD, "spare/z_copy.png": HEAD}, source=CC0,
+        license_parts={"parts/a_head.png": PRIVATE, "spare/z_copy.png": CC0},
+    )
+    assert [c.path for c in r.conflicts] == ["spare/z_copy.png"]
+    assert _floor(lib, HEAD) == {"cutan:prop.x": "private"}
     # A copy the globs miss takes the strictest statement of its bytes, not the
     # last path's.
     publish(
@@ -200,12 +219,12 @@ def test_t3_the_same_bytes_at_two_paths_have_one_statement():
 def test_t4_a_derivative_cannot_label_bytes_new_to_a_private_lineage_free():
     lib = _memory()
     publish(lib, "prop.lamp", {"name": "lamp"}, {"parts/lamp.png": HEAD}, source=PRIVATE)
-    with pytest.raises(RightsRefusal, match="prop.lamp@v001"):
-        publish(
-            lib, "prop.lamp-red", {"name": "red"}, {"parts/lamp.png": HEAD2},
-            source=CC0, derived_from=["cutan:prop.lamp@v001"],
-            license_parts={"parts/lamp.png": CC0},
-        )
+    _conflicted(
+        lib, "prop.lamp-red", {"name": "red"}, {"parts/lamp.png": HEAD2},
+        source=CC0, derived_from=["cutan:prop.lamp@v001"],
+        license_parts={"parts/lamp.png": CC0}, match="prop.lamp@v001",
+    )
+    assert _floor(lib, HEAD2) == {"cutan:prop.lamp-red": "private"}
 
 
 def test_t5_a_relicence_never_frees_a_part_labelled_stricter():
@@ -381,9 +400,9 @@ def test_r1_a_relicence_that_did_not_hold_the_bytes_frees_nothing():
             license_parts={"parts/head_1.png": PRIVATE})
     publish(lib, "prop.stu", {"name": "stu"}, {"parts/collar.svg": COLLAR},
             source=CC0, relicense=RELICENSE)
-    with pytest.raises(RightsRefusal):
-        publish(lib, "prop.stu", {"name": "stu"}, files, source=CC0,
+    _conflicted(lib, "prop.stu", {"name": "stu"}, files, source=CC0,
                 license_parts={"parts/head_1.png": CC0})
+    assert _floor(lib, HEAD) == {"cutan:prop.stu": "private"}
     r = publish(lib, "prop.stu", {"name": "stu"}, files, source=CC0)
     assert r.rights.license_class == "private"
     assert _floor(lib, HEAD) == {"cutan:prop.stu": "private"}
@@ -397,9 +416,13 @@ def test_r2_a_relicence_does_not_cover_a_private_head_moved_to_another_path():
             {"parts/head_1.png": HEAD, "parts/collar.svg": COLLAR}, source=CC0,
             license_parts={"parts/head_1.png": PRIVATE})
     moved = {"heads/h1.png": HEAD, "parts/collar.svg": COLLAR}
-    with pytest.raises(RightsRefusal, match="names"):
-        publish(lib, "prop.stu", {"name": "stu"}, moved, source=CC0,
-                relicense=RELICENSE)
+    r = _conflicted(lib, "prop.stu", {"name": "stu"}, moved, source=CC0,
+                    relicense=RELICENSE)
+    # Unnamed, the moved head is not covered: the relicence's claim about it
+    # is the conflict, and the head stays private.
+    assert [c.path for c in r.conflicts] == ["heads/h1.png"]
+    assert _floor(lib, HEAD) == {"cutan:prop.stu": "private"}
+    assert _floor(lib, COLLAR) == {"cutan:prop.stu": "free"}
     # Named, it keeps binding; the relicence frees the collar only.
     r = publish(lib, "prop.stu", {"name": "stu"}, moved, source=CC0,
                 relicense=RELICENSE, license_parts={"heads/h1.png": PRIVATE})
@@ -412,9 +435,11 @@ def test_r3_a_relicensed_derivative_of_per_file_parts_is_under_the_rule():
     lib = _memory()
     publish(lib, "prop.stu", {"name": "stu"}, STU_FILES, source=CC0,
             license_parts=HEADS_PRIVATE)
-    with pytest.raises(RightsRefusal):
-        publish(lib, "prop.stu-hat", {"name": "hat"}, STU_FILES, source=CC0,
-                derived_from=["cutan:prop.stu@v001"], relicense=RELICENSE)
+    r = _conflicted(lib, "prop.stu-hat", {"name": "hat"}, STU_FILES, source=CC0,
+                    derived_from=["cutan:prop.stu@v001"], relicense=RELICENSE)
+    assert {c.path for c in r.conflicts} == {"parts/head_1.png", "parts/head_2.png"}
+    assert _floor(lib, HEAD)["cutan:prop.stu-hat"] == "private"
+    assert _floor(lib, COLLAR)["cutan:prop.stu-hat"] == "free"
     # Under the rule through its lineage alone, it is written at the schema an
     # older reader refuses.
     publish(lib, "prop.stu-cap", {"name": "cap"}, {"c.svg": COLLAR}, source=CC0,
@@ -424,7 +449,9 @@ def test_r3_a_relicensed_derivative_of_per_file_parts_is_under_the_rule():
 
 def test_m1_what_is_said_about_two_identical_versions_is_kept_apart():
     """Two assets' identical versions share a manifest: the answer must not
-    depend on the order of derived_from."""
+    depend on the order of derived_from. (prop.b's silence about the bytes
+    does not bind an explicit per-file label: an#357, a claim answers a gap.)"""
+    answers = []
     for parents in (["cutan:prop.a@v001", "cutan:prop.b@v001"],
                     ["cutan:prop.b@v001", "cutan:prop.a@v001"]):
         lib = _memory()
@@ -432,9 +459,11 @@ def test_m1_what_is_said_about_two_identical_versions_is_kept_apart():
         publish(lib, "prop.b", {"name": "same"}, {"n.png": HEAD})
         publish(lib, "prop.a", {"name": "same"}, {"n.png": HEAD}, source=CC0,
                 relabel={"by": "t", "reason": "drawn by me"})
-        with pytest.raises(RightsRefusal):
-            publish(lib, "prop.c", {"name": "c"}, {"n.png": HEAD}, source=CC0,
+        r = publish(lib, "prop.c", {"name": "c"}, {"n.png": HEAD}, source=CC0,
                     derived_from=parents, license_parts={"n.png": CC0})
+        answers.append((r.rights.license_class, _floor(lib, HEAD)["cutan:prop.c"],
+                        [c.binding_class for c in r.conflicts]))
+    assert answers[0] == answers[1]
 
 
 def test_s2_an_unreadable_parent_stands_in_as_recorded():

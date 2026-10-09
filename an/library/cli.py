@@ -247,6 +247,7 @@ def publish(
     replace_curation: bool = False,
     extra: str = "",
     license_part: list[str] | None = None,
+    strict_assets: bool = False,
 ) -> str:
     """Publish an asset folder as the next version of ``asset_id``.
 
@@ -273,7 +274,8 @@ def publish(
     expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet
     replace_curation: --style/--tags replace the record's lists instead of adding to them
     extra: further libraries where --derived-from resolves, by package name, comma-separated
-    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. Never looser than what the bytes already carry, unless relicensed
+    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. One looser than what the bytes already carry is kept and reported as a rights conflict, the stricter binding, unless relicensed
+    strict_assets: refuse a publish that would record a rights conflict (a per-part or per-file licence freer than what binds its bytes) instead of recording it
     """
     lib = open_library(package, root or None)
     asset_source = _source_from_flags(
@@ -306,6 +308,7 @@ def publish(
         ),
         replace_curation=replace_curation,
         search=others or None,
+        strict_assets=strict_assets,
         **(
             {"expect_head": None if expect_head == "new" else expect_head}
             if expect_head
@@ -528,12 +531,25 @@ def show(
         f"  files: {_file_count(record, version)}  art: {version.get('art')}  "
         f"manifest: {version['manifest_sha256'][:16]}",
         f"  derived_from: {', '.join(version.get('derived_from') or []) or '-'}",
+        *_conflict_lines(info.get("conflicts") or []),
         "  affords:",
     ]
     for cap, params in sorted((version.get("affordances") or {}).items()):
         keys = (params or {}).get("keys")
         lines.append(f"    {cap}" + (f": {', '.join(keys)}" if keys else ""))
     return "\n".join(lines)
+
+
+def _conflict_lines(conflicts: list[dict]) -> list[str]:
+    """The rights conflicts a version records (an#357), for ``show`` and ``sheet``."""
+    from an.credits import conflict_line
+
+    if not conflicts:
+        return []
+    return [
+        f"  rights conflicts ({len(conflicts)}; the stricter binds, a relicence resolves one):",
+        *(f"    {conflict_line(c)}" for c in conflicts),
+    ]
 
 
 @_refusing
@@ -625,6 +641,7 @@ def promote(
     core_root: str = "",
     as_id: str = "",
     allow_restricted: bool = False,
+    strict_assets: bool = False,
 ) -> str:
     """Copy a version into the core an library, so other genres can reuse it.
 
@@ -634,6 +651,7 @@ def promote(
     core_root: the core an library's root (default: its data folder)
     as_id: promote under another id (when the core library has an unrelated asset with this one)
     allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)
+    strict_assets: refuse a copy that would record a rights conflict, instead of recording it
     """
     package = package or (_namespaces([ref]) or [""])[0]
     if not package or package == CORE_PACKAGE:
@@ -650,6 +668,7 @@ def promote(
             to=target,
             as_id=as_id or None,
             allow_restricted=allow_restricted,
+            strict_assets=strict_assets,
         )
     )
 
@@ -711,18 +730,57 @@ def sheet(
     root: that library's root
     extra: further libraries, by package name, comma-separated
     """
+    from an.library.api import version_conflicts
+    from an.library.federation import resolve as _resolve
     from an.library.sheets import sheet as _sheet
 
+    libraries = _libraries(package, root, extra, refs=refs)
     path = _sheet(
         refs,
-        libraries=_libraries(package, root, extra, refs=refs),
+        libraries=libraries,
         out=out or None,
         cell=cell,
         columns=columns or None,
         parts=parts,
         allow_private_here=allow_private_here,
     )
-    return f"sheet: {path}"
+    lines = [f"sheet: {path}"]
+    for ref in refs:
+        library, pinned, version = _resolve(libraries, ref)
+        found = version_conflicts(libraries, version, owner=library)
+        if found:
+            lines.append(f"{pinned}:")
+            lines += _conflict_lines([c.to_dict() for c in found])
+    return "\n".join(lines)
+
+
+@_refusing
+def reindex(
+    package: str = CORE_PACKAGE,
+    root: str = "",
+    extra: str = "",
+    dry_run: bool = False,
+) -> str:
+    """Rebuild a library's rights floor index from its versions (derived data: always safe).
+
+    package: whose library to reindex (an, or a genre such as cutan)
+    root: that library's root (default: the package's data folder)
+    extra: further libraries where lineage resolves, by package name, comma-separated
+    dry_run: list every statement whose licence class would change (asset, file, before -> after, why), and write nothing
+    """
+    from an.library.api import reindex as _reindex, reindex_changes
+
+    lib = open_library(package, root or None)
+    others = _libraries(package, root, extra)[1:] or None
+    if dry_run:
+        changes = reindex_changes(lib, search=others)
+        if not changes:
+            return f"reindex {lib.name} (dry run): no statement would change"
+        return "\n".join(
+            [f"reindex {lib.name} (dry run): {len(changes)} statement(s) would change"]
+            + [f"  {c}" for c in changes]
+        )
+    return f"reindex {lib.name}: {_reindex(lib, search=others)} blob(s) indexed"
 
 
 _dispatch_funcs = [
@@ -735,4 +793,5 @@ _dispatch_funcs = [
     promote,
     retire,
     sheet,
+    reindex,
 ]

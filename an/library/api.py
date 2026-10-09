@@ -290,6 +290,71 @@ class LibraryIndexWarning(UserWarning):
     """A record or version could not be read; the index skipped it."""
 
 
+class RightsConflictWarning(UserWarning):
+    """A statement about some bytes is freer than one that already binds them (an#357).
+
+    Inform, don't block: the freer statement is kept, the stricter one binds,
+    and the conflict is recorded beside the statement. A publish refuses one
+    only under ``strict_assets``; a relicence resolves it deliberately.
+    """
+
+
+@dataclass(frozen=True)
+class RightsConflict:
+    """A statement a version makes about a file, freer than what binds those bytes (an#357).
+
+    ``claimed`` is the version's own statement (a per-part ``source``, a
+    per-file ``file_sources`` entry, or a relicence that does not cover these
+    bytes); ``binding`` is the stricter statement that wins: the same bytes at
+    another path, the other statement of this version, or what its lineage
+    said. Both are kept; the effective label is ``binding_class``.
+
+    >>> c = RightsConflict("parts/a.png", "ab" * 32, "free", "parts/a.png itemised as cc0-1.0",
+    ...                    "private", "cutan:prop.a@v001: the asset's own label")
+    >>> print(c)
+    parts/a.png: parts/a.png itemised as cc0-1.0 (free) is freer than cutan:prop.a@v001: the asset's own label (private); private binds
+    """
+
+    path: str
+    digest: str
+    claimed_class: str
+    claimed: str
+    binding_class: str
+    binding: str
+
+    def __str__(self) -> str:
+        return (
+            f"{self.path}: {self.claimed} ({self.claimed_class}) is freer than "
+            f"{self.binding} ({self.binding_class}); {self.binding_class} binds"
+        )
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "path": self.path,
+            "sha256": self.digest,
+            "claimed_class": self.claimed_class,
+            "claimed": self.claimed,
+            "binding_class": self.binding_class,
+            "binding": self.binding,
+        }
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "RightsConflict":
+        return cls(
+            str(raw.get("path", "?")),
+            str(raw.get("sha256", "")),
+            str(raw.get("claimed_class", "unknown")),
+            str(raw.get("claimed", "?")),
+            str(raw.get("binding_class", "unknown")),
+            str(raw.get("binding", "?")),
+        )
+
+
+#: The key a floor statement, a check-out's origin block and a credits record
+#: hold rights conflicts under (an#357). Persisted: do not rename.
+CONFLICTS_KEY: str = "conflicts"
+
+
 #: Every error a library verb raises for a caller's mistake (not a bug): the CLI
 #: prints these as a sentence and exits non-zero.
 LIBRARY_ERRORS: tuple[type[BaseException], ...] = (
@@ -666,6 +731,18 @@ def _file_contributions(
     return out
 
 
+def _part_contributions(
+    version: Mapping[str, Any], prefix: str = ""
+) -> list[tuple[str, AssetSource]]:
+    """The per-part sources pinned to the bytes a version holds, as contributors (an#357)."""
+    out: list[tuple[str, AssetSource]] = []
+    for path, raw in sorted((version.get("files") or {}).items()):
+        part = itemising_source(version, path, ContentRef.from_json(raw).item_id)
+        if part is not None:
+            out.append((f"{prefix}{path}", part))
+    return out
+
+
 # --------------------------------------------------------------------------- rights
 
 
@@ -968,6 +1045,7 @@ def version_sources(
     floor: BlobFloor | None = _MACHINE,
     owner: Library | None = None,
     per_file: bool = True,
+    rule: "_PerFileRule | None" = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source a version's rights depend on — its own, its lineage, its bytes.
 
@@ -1011,6 +1089,13 @@ def version_sources(
     """
     if floor is _MACHINE:
         floor = BlobFloor(libraries)
+    rules: list[_PerFileRule] = [rule] if rule is not None else []
+
+    def the_rule() -> "_PerFileRule":
+        if not rules:  # built only when a walk needs it
+            rules.append(_PerFileRule(libraries))
+        return rules[0]
+
     out: list[tuple[str, AssetSource | None]] = []
     seen: set[str] = set()
     trusted: set[tuple[str, str]] = set()  # (library origin, manifest)
@@ -1076,9 +1161,27 @@ def version_sources(
                 )
             )
             # A relicence never covers a per-file statement it did not name:
-            # one stricter than it keeps binding (an#345).
+            # one stricter than it keeps binding (an#345) — nor a per-part
+            # source pinned to the version's own bytes (an#357, probe T5).
             if per_file:
                 out.extend(_file_contributions(version, prefix))
+                out.extend(_part_contributions(version, prefix))
+                if prefix:
+                    # What the rule states about this relicensed parent's own
+                    # bytes where stricter than its relicence: bytes it did not
+                    # cover keep their lineage's statement, and a version
+                    # derived from it inherits that (an#357 review, finding 1).
+                    # The root's own is added once, after the walk.
+                    out.extend(
+                        (f"{prefix}{label}", src)
+                        for label, src in _rule_contributions(
+                            libraries,
+                            version,
+                            holder,
+                            roll_up([(ASSET_SOURCE_LABEL, _source_model(version.get("source")))]),
+                            rule=the_rule(),
+                        )
+                    )
             return _verify(version, holder, True)
 
         def gap(
@@ -1188,6 +1291,9 @@ def version_sources(
     root_ok = walk(version, owner, "", ())
     if floor is None:
         return out
+    out.extend(
+        _rule_contributions(libraries, version, owner, roll_up(out), rule=the_rule())
+    )
     # The root's own statements, when its walk is verified, are this walk.
     own = (
         {(library_origin(owner), version["manifest_sha256"])}
@@ -1263,50 +1369,40 @@ def version_sources(
     return out
 
 
-def blob_statement(
+def _rule_contributions(
     libraries: Libraries,
     version: Mapping[str, Any],
-    path: str,
-    digest: str,
+    owner: Library | None,
+    walked: Rights,
     *,
-    own_label: Callable[[], str] | None = None,
-    owner: Library | None = None,
-) -> dict[str, Any]:
-    """What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor).
+    rule: "_PerFileRule | None" = None,
+) -> list[tuple[str, AssetSource]]:
+    """What :class:`_PerFileRule` states about ``version``'s own blobs, where stricter than ``walked``.
 
-    own_label: the class of the version's own label, computed once by the
-        caller for all its files (it is the same for every file the version
-        does not itemise); default: computed here
-    owner: the library holding ``version``, whose labels on it count (an#307)
+    The rights walk stops at a relicence; the rule does not, for bytes the
+    relicence did not cover (an#345 R1/R2). Without this a version's rights
+    could read freer than what the floor states about its own bytes (an#357:
+    a per-file label behind a relicence that never named it). Only a version
+    the rule can state stricter than its own label is read: one carrying a
+    per-part or per-file statement, a relicence, or per-file statements in
+    its lineage.
     """
-    relicense = version.get(RELICENSE_FIELD)
-    itemised = None if relicense else itemising_source(version, path, digest)
-    if relicense:
-        cls = license_class(
-            _source_model(version.get("source")) or AssetSource(provider="unknown")
-        )
-        if version.get("source") is None:
-            cls = "unknown"
-        label = _relicense_note(relicense)
-    elif itemised is not None:
-        cls, label = (
-            license_class(itemised),
-            f"{path} itemised as {itemised.license or 'no licence'}",
-        )
+    order = LICENSE_CLASS_ORDER.index
+    rule = rule if rule is not None else _PerFileRule(libraries)
+    hashes = _file_hashes(version.get("files") or {})
+    if version.get(RELICENSE_FIELD) or rule.applies(version, owner):
+        digests = set(hashes.values())
     else:
-        cls = (
-            own_label()
-            if own_label is not None
-            else _own_label_class(libraries, version, owner=owner)
-        )
-        label = "the asset's own label"
-    return {
-        "version": version.get("version"),
-        "number": version_number(version["version"]) if version.get("version") else 0,
-        "class": cls,
-        "label": label,
-        "manifest": version.get("manifest_sha256"),
-    }
+        digests = {
+            d for p, d in hashes.items() if any(rule._claims(version, p, d))
+        }
+    out: list[tuple[str, AssetSource]] = []
+    for digest in sorted(digests):
+        cls, why = rule.statement(version, owner, digest)
+        if order(cls) < order(walked.license_class):
+            path = next(p for p, d in sorted(hashes.items()) if d == digest)
+            out.append((f"{path}: {why}", _recorded_source(Rights(cls, []), why)))
+    return out
 
 
 def _own_label_class(
@@ -1349,19 +1445,13 @@ def _relicence_covers(version: Mapping[str, Any], digest: str) -> bool:
 
 
 class _PerFileRule:
-    """What a version says about each of its blobs under the never-relax rule (an#345).
+    """What a version says about each of its blobs under the never-relax rule (an#345, an#357).
 
-    Applies to a version carrying ``file_sources`` and to every version whose
-    lineage does; every other version is stated exactly as before
-    (:func:`blob_statement`), so no stored statement moves on ``reindex``.
     For each file the class stated is the STRICTEST of:
 
-    - its per-file statement if it has one, else the version's label computed
-      without any per-file statement (:func:`_own_label_class`), or — a file
-      only a per-part source itemises — that source, as before (extending the
-      rule to per-part sources is an#357's question);
-    - its per-part source, when it also has a per-file one (neither wins by
-      position);
+    - its per-file statement and its per-part source, whichever it has (neither
+      wins by position), else the version's label computed without any
+      per-file statement (:func:`_own_label_class`);
     - what the version says about the same bytes at its other paths;
     - what every version of its lineage — ``previous`` back to the first,
       and each ``derived_from`` parent — says about these bytes: the
@@ -1369,7 +1459,16 @@ class _PerFileRule:
       hold, its own label (bytes new to a private chain stay private).
 
     A relicensed version states its relicence for the bytes it covers
-    (:data:`RELICENSE_COVERS`) and its per-file statement for any stricter.
+    (:data:`RELICENSE_COVERS`) and its per-file or per-part statement for any
+    stricter. A per-part source carrying the character factory's own stamp,
+    which the factory's record confirms it drew (:func:`factory_drew`), speaks
+    for those bytes alone (an#281: mouths redrawn under a private body).
+
+    Every version is stated this way since an#357, a per-part source included:
+    a version without one, and without per-file statements in its lineage, is
+    stated exactly as before. A statement the version makes that is freer than
+    what binds is kept and recorded as a :class:`RightsConflict`
+    (:meth:`conflicts`), never discarded and never refused here.
     Memoised: build one per operation.
     """
 
@@ -1469,13 +1568,28 @@ class _PerFileRule:
     def lineage(
         self, version: Mapping[str, Any], holder: Library | None, digest: str
     ) -> _Said | None:
-        """The strictest thing the lineage of ``version`` says about ``digest`` (None: no lineage)."""
-        if _relicence_covers(version, digest):
-            return None  # a relicence replaces what it inherits, for what it names
+        """The strictest thing the lineage of ``version`` says about ``digest`` (None: nothing)."""
+        said = self._lineage(version, holder, digest)
+        return _strictest(*said) if said else None
 
-        def compute() -> _Said | None:
+    def _lineage(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> tuple[_Said, ...]:
+        """Every statement the lineage of ``version`` makes about ``digest``, nearest first.
+
+        Through ``previous`` only what a version of the chain said about these
+        very bytes counts (an#357: a hat added in v002 is no earlier statement's
+        bytes); through ``derived_from`` a parent that does not hold them binds
+        them with its own label too (probe T4: a re-carve of a private parent).
+        """
+        if _relicence_covers(version, digest):
+            return ()  # a relicence replaces what it inherits, for what it names
+
+        def compute() -> tuple[_Said, ...]:
             said: list[_Said] = []
-            for ref, parent, at in self.parents(version, holder):
+            refs = self.parents(version, holder)
+            previous = version.get(PREVIOUS_FIELD)
+            for i, (ref, parent, at) in enumerate(refs):
                 if parent is None:
                     recorded = Rights.from_dict(version.get("rights") or {})
                     said.append(
@@ -1485,94 +1599,157 @@ class _PerFileRule:
                         )
                     )
                     continue
-                cls, why = self.said(parent, at, digest)
-                said.append((cls, f"{ref}: {why}"))
-            return _strictest(*said) if said else None
+                via_previous = i == 0 and bool(previous)
+                said += [
+                    (cls, f"{ref}: {why}")
+                    for cls, why in self._said(parent, at, digest, via_previous)
+                ]
+            return tuple(dict.fromkeys(said))
 
         return self._cached(("lineage", *self._vid(version, holder), digest), compute)
 
-    def said(
-        self, version: Mapping[str, Any], holder: Library | None, digest: str
-    ) -> _Said:
-        """What ``version`` says about ``digest``, held or not, with its own lineage's statement."""
+    def _said(
+        self,
+        version: Mapping[str, Any],
+        holder: Library | None,
+        digest: str,
+        via_previous: bool,
+    ) -> tuple[_Said, ...]:
+        """What ``version`` says about ``digest`` as a link of a child's lineage."""
 
-        def compute() -> _Said:
+        def compute() -> tuple[_Said, ...]:
             if digest in _file_hashes(version.get("files") or {}).values():
-                own = self.statement(version, holder, digest)
-            else:
-                own = (self.own_label(version, holder), "its own label")
-            return _strictest(own, self.lineage(version, holder, digest))
+                return self._statement(version, holder, digest)
+            own = () if via_previous else ((self.own_label(version, holder), "its own label"),)
+            return tuple(dict.fromkeys((*own, *self._lineage(version, holder, digest))))
 
-        return self._cached(("said", *self._vid(version, holder), digest), compute)
+        return self._cached(
+            ("said", *self._vid(version, holder), digest, via_previous), compute
+        )
 
     def statement(
         self, version: Mapping[str, Any], holder: Library | None, digest: str
     ) -> _Said:
-        """What ``version`` says about the bytes ``digest`` it holds: strictest over its paths."""
+        """What ``version`` says about the bytes ``digest`` it holds: the strictest
+        over its paths (never the last path's: L1-4 of the an#345 review)."""
+        return _strictest(*self._statement(version, holder, digest))
 
-        def compute() -> _Said:
+    def _statement(
+        self, version: Mapping[str, Any], holder: Library | None, digest: str
+    ) -> tuple[_Said, ...]:
+        def compute() -> tuple[_Said, ...]:
             paths = [
                 p
                 for p, d in sorted(_file_hashes(version.get("files") or {}).items())
                 if d == digest
             ]
-            if not self.applies(version, holder):
-                return _strictest(
-                    *(
-                        (st["class"], st["label"])
-                        for st in (
-                            blob_statement(
-                                self.readers,
-                                version,
-                                p,
-                                digest,
-                                own_label=lambda: self.own_label(version, holder),
-                                owner=holder,
-                            )
-                            for p in paths
-                        )
-                    )
-                )
-            return _strictest(
-                *(self._at_path(version, holder, p, digest) for p in paths)
-            )
+            said = [x for p in paths for x in self._at_path(version, holder, p, digest)]
+            return tuple(dict.fromkeys(said))
 
         return self._cached(("statement", *self._vid(version, holder), digest), compute)
 
-    def _at_path(
-        self, version: Mapping[str, Any], holder: Library | None, path: str, digest: str
-    ) -> _Said:
+    def _claims(
+        self, version: Mapping[str, Any], path: str, digest: str
+    ) -> tuple[_Said | None, _Said | None]:
+        """``(per-file, per-part)``: what ``version`` itself says about the bytes at ``path``."""
         entry = _file_entry(version, path, digest)
         mine = (
             (_source_class(entry), f"{path} itemised per file as {entry.license}")
             if entry is not None
             else None
         )
-        relicense = version.get(RELICENSE_FIELD)
-        if relicense:
-            source = _source_model(version.get("source"))
-            rel = (
-                _source_class(source) if source is not None else "unknown",
-                _relicense_note(relicense),
-            )
-            if _relicence_covers(version, digest):
-                return _strictest(mine, rel)
-            # A relicence speaks only for the bytes it names: these keep what
-            # their lineage said about them.
-            return _strictest(mine or rel, self.lineage(version, holder, digest))
         part = itemising_source(version, path, digest)
         part_said = (
             (license_class(part), f"{path} itemised as {part.license or 'no licence'}")
             if part is not None
             else None
         )
-        if mine is None and part_said is not None:
-            return part_said  # a per-part source alone: as before (an#357)
-        base = _strictest(
-            mine or (self.own_label(version, holder), "the asset's own label"),
-            part_said,
+        return mine, part_said
+
+    def _relicence(self, version: Mapping[str, Any]) -> _Said:
+        source = _source_model(version.get("source"))
+        return (
+            _source_class(source) if source is not None else "unknown",
+            _relicense_note(version[RELICENSE_FIELD]),
         )
-        return _strictest(base, self.lineage(version, holder, digest))
+
+    def _at_path(
+        self, version: Mapping[str, Any], holder: Library | None, path: str, digest: str
+    ) -> tuple[_Said, ...]:
+        """What binds the bytes at ``path``, every statement of it (the caller takes the strictest).
+
+        An explicit claim (a per-part or per-file statement) answers silence:
+        the lineage's ``unknown`` does not bind it, as a per-part source pinned
+        to its bytes always labelled an unlabelled file (an#281); a stated
+        ``private``, ``attribution`` or ``noncommercial`` does (an#357).
+        """
+        mine, part_said = self._claims(version, path, digest)
+        claims = tuple(c for c in (mine, part_said) if c is not None)
+
+        def known(said: tuple[_Said, ...]) -> tuple[_Said, ...]:
+            return tuple(x for x in said if x[0] != "unknown") if claims else said
+
+        if version.get(RELICENSE_FIELD):
+            rel = self._relicence(version)
+            if _relicence_covers(version, digest):
+                # A relicence speaks for what it covers; a stricter statement
+                # this version makes about the file still binds (probe T5).
+                return (*claims, rel)
+            # A relicence speaks only for the bytes it names: these keep what
+            # their lineage said about them.
+            return (
+                *claims,
+                *(() if mine else (rel,)),
+                *known(self._lineage(version, holder, digest)),
+            )
+        if not claims:
+            own = (self.own_label(version, holder), "the asset's own label")
+            if not self.applies(version, holder):
+                return (own,)  # the own label already rolls up the lineage
+            return (own, *self._lineage(version, holder, digest))
+        if mine is None and factory_drew(version, path, digest):
+            # The factory's own drawing, confirmed by its record: its stamp
+            # speaks for these bytes, whatever body they were drawn for (an#281).
+            return claims
+        # An itemised statement never relaxes what binds these bytes (an#357).
+        return (*claims, *known(self._lineage(version, holder, digest)))
+
+    def conflicts(
+        self, version: Mapping[str, Any], holder: Library | None
+    ) -> list[RightsConflict]:
+        """Every statement ``version`` makes about a file that is freer than what binds it (an#357).
+
+        A claim is the file's per-file statement, its per-part source, or a
+        relicence that does not cover these bytes although no stricter
+        statement of this version names them. Each is compared with the
+        version's statement about the digest (:meth:`statement`: the
+        strictest over its paths and its lineage).
+        """
+
+        def compute() -> list[RightsConflict]:
+            order = LICENSE_CLASS_ORDER.index
+            out: list[RightsConflict] = []
+            for path, digest in sorted(_file_hashes(version.get("files") or {}).items()):
+                mine, part_said = self._claims(version, path, digest)
+                claims = [mine, part_said]
+                if (
+                    version.get(RELICENSE_FIELD)
+                    and not _relicence_covers(version, digest)
+                    and mine is None
+                ):
+                    claims.append(self._relicence(version))
+                claims = list(dict.fromkeys(c for c in claims if c is not None))
+                if not claims:
+                    continue  # nothing claimed about this file: nothing to conflict
+                binding = self.statement(version, holder, digest)
+                for claim in claims:
+                    if order(claim[0]) > order(binding[0]):
+                        out.append(
+                            RightsConflict(path, digest, *claim, *binding)
+                        )
+            return out
+
+        return self._cached(("conflicts", *self._vid(version, holder)), compute)
 
 
 def _version_statements(
@@ -1582,58 +1759,91 @@ def _version_statements(
     *,
     rule: _PerFileRule | None = None,
 ) -> Iterator[tuple[str, str, dict[str, Any]]]:
-    """``(digest, asset_key, statement)`` for each file of ``version``.
+    """``(digest, asset_key, statement)`` for each blob of ``version``, one per digest.
 
-    The version's own label is computed at most once (an#249 R4-N3): it walks
-    the version's lineage, and it is the same for every un-itemised file. A
-    version under the per-file rule (:class:`_PerFileRule`) states each of its
-    blobs by that rule, one statement per digest.
+    Every version is stated by :class:`_PerFileRule` (an#357): a per-part or
+    per-file statement never relaxes what binds its bytes, and the same bytes
+    at two paths take the stricter. A statement freer than what binds is
+    kept as a :class:`RightsConflict` under :data:`CONFLICTS_KEY` (only when
+    there is one, so a statement without a conflict is stored as before).
+    The version's own label is computed at most once (an#249 R4-N3).
     """
     asset_key = f"{library.name}:{version['asset']}"
     rule = rule if rule is not None else _PerFileRule(readers)
-    if rule.applies(version, library):
-        for path, raw in sorted((version.get("files") or {}).items()):
-            digest = ContentRef.from_json(raw).item_id
-            cls, why = rule.statement(version, library, digest)
-            yield (
-                digest,
-                asset_key,
-                {
-                    "version": version.get("version"),
-                    "number": version_number(version["version"]),
-                    "class": cls,
-                    "label": why,
-                    "manifest": version.get("manifest_sha256"),
-                },
-            )
-        return
-    memo: list[str] = []
-
-    def own_label() -> str:
-        if not memo:
-            memo.append(_own_label_class(readers, version, owner=library))
-        return memo[0]
-
-    for path, raw in sorted((version.get("files") or {}).items()):
-        digest = ContentRef.from_json(raw).item_id
-        yield (
-            digest,
-            asset_key,
-            blob_statement(
-                readers, version, path, digest, own_label=own_label, owner=library
-            ),
-        )
+    conflicts: dict[str, list[dict[str, str]]] = {}
+    for conflict in rule.conflicts(version, library):
+        conflicts.setdefault(conflict.digest, []).append(conflict.to_dict())
+    digests = dict.fromkeys(
+        ContentRef.from_json(raw).item_id
+        for _, raw in sorted((version.get("files") or {}).items())
+    )
+    for digest in digests:
+        cls, why = rule.statement(version, library, digest)
+        statement = {
+            "version": version.get("version"),
+            "number": version_number(version["version"]),
+            "class": cls,
+            "label": why,
+            "manifest": version.get("manifest_sha256"),
+        }
+        if digest in conflicts:
+            statement[CONFLICTS_KEY] = conflicts[digest]
+        yield (digest, asset_key, statement)
 
 
 def _index_version(
-    library: Library, readers: Libraries, version: Mapping[str, Any]
+    library: Library,
+    readers: Libraries,
+    version: Mapping[str, Any],
+    *,
+    rule: _PerFileRule | None = None,
 ) -> None:
     """Record what ``version`` says about each of its blobs: in ``library``'s floor
     index, and in the machine's memory (which outlives the library's root)."""
-    said = list(_version_statements(library, readers, version))
+    said = list(_version_statements(library, readers, version, rule=rule))
     remember(library, said)
     for digest, asset_key, statement in said:
         record_statement(library.blob_rights, digest, asset_key, statement)
+
+
+def _reindex_readers(library: Library, search: Libraries | None) -> list[Library]:
+    # The search path first, then every other library on the machine: a
+    # lineage link pinned to its parent's manifest resolves wherever the parent
+    # lives, so what a version states does not depend on whether the caller
+    # passed the parent's library (an#361). An unpinned link resolves by name,
+    # and the search path is read first.
+    return machine_libraries(
+        [
+            library,
+            *(
+                lib
+                for lib in (as_libraries(search) if search else [])
+                if lib.name != library.name
+            ),
+        ]
+    )
+
+
+def _fresh_index(
+    library: Library, readers: Libraries
+) -> tuple[dict[str, dict[str, Any]], list[tuple[str, str, dict[str, Any]]]]:
+    """``(index, statements)``: the floor index ``library``'s versions state now, written nowhere."""
+    fresh: dict[str, dict[str, Any]] = {}
+    said_all: list[tuple[str, str, dict[str, Any]]] = []
+    rule = _PerFileRule(readers)  # one memo for the whole library (review N3)
+    for key in sorted(
+        library.versions,
+        key=lambda k: (k.split("@")[0], version_number(k.split("@")[1])),
+    ):
+        try:
+            version = migrate(dict(library.versions[key]), kind=VERSION_KIND.name)
+        except Exception:  # noqa: BLE001 — reported by scan_index; nothing to index
+            continue
+        said = list(_version_statements(library, readers, version, rule=rule))
+        said_all += said
+        for digest, asset_key, statement in said:
+            record_statement(fresh, digest, asset_key, statement)
+    return fresh, said_all
 
 
 def reindex(library: Library, *, search: Libraries | None = None) -> int:
@@ -1648,6 +1858,7 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
     (re-)registers the library's root in the machine registry
     (:mod:`an.library.registry`), so a library made at a custom root before the
     registry existed becomes visible to every other library's rights floor.
+    :func:`reindex_changes` says first what a rebuild would change.
 
     The new index is computed in full first, then written over the old one
     entry by entry, and only then are stale entries removed: a crash midway
@@ -1655,41 +1866,94 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
     R4-N4).
     """
     register_library(library)
-    # The search path first, then every other library on the machine: a
-    # lineage link pinned to its parent's manifest resolves wherever the parent
-    # lives, so what a version states does not depend on whether the caller
-    # passed the parent's library (an#361). An unpinned link resolves by name,
-    # and the search path is read first.
-    readers = machine_libraries(
-        [
-            library,
-            *(
-                lib
-                for lib in (as_libraries(search) if search else [])
-                if lib.name != library.name
-            ),
-        ]
-    )
-    fresh: dict[str, dict[str, Any]] = {}
-    rule = _PerFileRule(readers)  # one memo for the whole library (review N3)
-    for key in sorted(
-        library.versions,
-        key=lambda k: (k.split("@")[0], version_number(k.split("@")[1])),
-    ):
-        try:
-            version = migrate(dict(library.versions[key]), kind=VERSION_KIND.name)
-        except Exception:  # noqa: BLE001 — reported by scan_index; nothing to index
-            continue
-        said = list(_version_statements(library, readers, version, rule=rule))
-        remember(library, said)
-        for digest, asset_key, statement in said:
-            record_statement(fresh, digest, asset_key, statement)
+    fresh, said = _fresh_index(library, _reindex_readers(library, search))
+    remember(library, said)
     store = library.blob_rights
     for digest, entries in fresh.items():
         store[digest] = entries
     for digest in [d for d in store if d not in fresh]:
         del store[digest]
     return len(fresh)
+
+
+@dataclass(frozen=True)
+class LabelChange:
+    """What a :func:`reindex` would change in what one asset states about one blob."""
+
+    asset: str  # "<library>:<asset_id>"
+    paths: tuple[str, ...]  # where the asset's stating version holds the blob
+    digest: str
+    before: str  # the class the index holds now ("" when it holds none)
+    after: str  # the class a rebuild states ("" when it states none)
+    label: str  # why, as the rebuild states it
+    conflicts: int = 0  # rights conflicts the rebuilt statement records
+
+    def __str__(self) -> str:
+        where = ", ".join(self.paths) or self.digest[:12]
+        note = f"; {self.conflicts} rights conflict(s)" if self.conflicts else ""
+        return (
+            f"{self.asset} {where}: {self.before or '-'} -> {self.after or '-'} "
+            f"({self.label}{note})"
+        )
+
+
+def reindex_changes(
+    library: Library, *, search: Libraries | None = None
+) -> list[LabelChange]:
+    """A dry run of :func:`reindex`: every statement whose class would change, and nothing written.
+
+    Neither the library, the machine registry nor its memory of statements is
+    touched. A statement that changes only its wording (its ``label``) or
+    gains a recorded conflict without changing class is not listed as a
+    change unless it gains a conflict.
+
+    >>> lib = open_library("an", records={}, versions={}, blobs={})
+    >>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, {"a.svg": b"<svg/>"},
+    ...             source={"provider": "me", "license": "cc0-1.0"})
+    >>> reindex_changes(lib)
+    []
+    """
+    fresh, _ = _fresh_index(library, _reindex_readers(library, search))
+    store = library.blob_rights
+    out: list[LabelChange] = []
+    for digest in sorted(set(fresh) | set(store)):
+        new = fresh.get(digest) or {}
+        old = (store[digest] if digest in store else None) or {}
+        for asset_key in sorted(set(new) | set(old)):
+            after, before = new.get(asset_key) or {}, old.get(asset_key) or {}
+            gained = len(after.get(CONFLICTS_KEY) or []) > len(
+                before.get(CONFLICTS_KEY) or []
+            )
+            if after.get("class") == before.get("class") and not gained:
+                continue
+            stating = after or before
+            out.append(
+                LabelChange(
+                    asset_key,
+                    _paths_of(library, asset_key, stating.get("version"), digest),
+                    digest,
+                    before.get("class", ""),
+                    after.get("class", ""),
+                    after.get("label") or before.get("label") or "",
+                    len(after.get(CONFLICTS_KEY) or []),
+                )
+            )
+    return out
+
+
+def _paths_of(
+    library: Library, asset_key: str, version: str | None, digest: str
+) -> tuple[str, ...]:
+    """The paths at which ``asset_key@version`` holds ``digest`` (none if unreadable)."""
+    asset_id = asset_key.split(":", 1)[-1]
+    key = version_key(asset_id, version) if version else None
+    try:
+        held = library.versions[key] if key and key in library.versions else {}
+    except Exception:  # noqa: BLE001 — a damaged version names no path
+        return ()
+    return tuple(
+        p for p, d in sorted(_file_hashes(held.get("files") or {}).items()) if d == digest
+    )
 
 
 #: The licence code standing in for each class when only a recorded class is known.
@@ -1718,10 +1982,12 @@ def effective_rights(
     *,
     floor: BlobFloor | None = _MACHINE,
     owner: Library | None = None,
+    rule: "_PerFileRule | None" = None,
 ) -> Rights:
     """The rights of a version, recomputed from its sources, its lineage and its bytes.
 
     owner: the library holding ``version`` (see :func:`version_sources`)
+    rule: a :class:`_PerFileRule` to share with the caller (one per operation)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
     >>> _ = publish(lib, "prop.vase", {"name": "vase"},
@@ -1729,7 +1995,9 @@ def effective_rights(
     >>> effective_rights(lib, read_version(lib, "prop.vase", "v001"), owner=lib).license_class
     'private'
     """
-    rights = roll_up(version_sources(libraries, version, floor=floor, owner=owner))
+    rights = roll_up(
+        version_sources(libraries, version, floor=floor, owner=owner, rule=rule)
+    )
     relicense = version.get(RELICENSE_FIELD)
     if relicense:
         return Rights(
@@ -1903,10 +2171,17 @@ class PublishResult:
     #: For an ``unknown`` result: what would answer each kind of gap, one
     #: sentence each (:func:`unknown_advice`).
     advice: tuple[str, ...] = ()
+    #: The rights conflicts the version records (an#357): statements freer
+    #: than what binds their bytes, kept beside the stricter one that binds.
+    conflicts: tuple[RightsConflict, ...] = ()
 
     def __str__(self) -> str:
         what = "published" if self.created else "unchanged (the head already is this)"
-        return f"{what}: {self.ref} [{self.rights.license_class}] manifest {self.manifest_sha256[:12]}"
+        out = f"{what}: {self.ref} [{self.rights.license_class}] manifest {self.manifest_sha256[:12]}"
+        if self.conflicts:
+            out += f"\n{len(self.conflicts)} rights conflict(s), the stricter binds:"
+            out += "".join(f"\n  {c}" for c in self.conflicts)
+        return out
 
 
 def _same_content(
@@ -2006,8 +2281,9 @@ def _given_file_sources(
     """``{path: source}`` a publish states per file, each pinned to its file's digest.
 
     Refuses: ``license_parts`` with no asset-level source (the label every
-    other file takes would be undefined), a path the asset does not store, a
-    source pinning other bytes, and the same bytes given two classes.
+    other file takes would be undefined), a path the asset does not store, and
+    a source pinning other bytes. The same bytes given two classes are a
+    rights conflict, not an error (an#357).
     """
     given: dict[str, Any] = {}
     if license_parts:
@@ -2039,15 +2315,8 @@ def _given_file_sources(
                 f"than the file holds ({digest[:12]}…)"
             )
         out[path] = {**pinned, "sha256": digest}
-    by_digest: dict[str, tuple[str, str]] = {}
-    for path, src in out.items():
-        cls = license_class(AssetSource.model_validate(src))
-        held = by_digest.setdefault(hashes[path], (path, cls))
-        if held[1] != cls:
-            raise LibraryError(
-                f"{held[0]!r} and {path!r} hold the same bytes but are labelled "
-                f"{held[1]} and {cls}: bytes have one statement — label both alike"
-            )
+    # The same bytes given two classes are not refused (an#357): the rule
+    # states the stricter for both, and publish records the freer as a conflict.
     return out
 
 
@@ -2087,13 +2356,17 @@ def _covered(
     source_doc: Mapping[str, Any] | None,
     entries: Mapping[str, Mapping[str, Any]],
     hashes: Mapping[str, str],
+    *,
+    rule: "_PerFileRule | None" = None,
 ) -> dict[str, Any]:
     """``relicense`` with the digests it covers: all but those a STRICTER per-file statement names.
 
     A relicence relaxes what it names. Bytes an earlier version of the lineage
     labelled stricter PER FILE, which this publish does not label per file
-    itself, are refused (review R1/R2: a head moved to another path, or
-    re-added later, is not freed by a relicence that never named it).
+    itself, are not covered (review R1/R2 of an#345: a head moved to another
+    path, or re-added later, is not freed by a relicence that never named it):
+    they keep binding, and the relicence's claim about them is a rights
+    conflict (an#357), never refused here.
     """
     order = LICENSE_CLASS_ORDER.index
     rel = _source_class(_source_model(source_doc))
@@ -2103,63 +2376,45 @@ def _covered(
         if order(_source_class(_source_model(src))) < order(rel)
     }
     named = {hashes[path] for path in entries}
-    rule = _PerFileRule(readers)
-    for path, digest in sorted(hashes.items()):
-        if digest in named:
-            continue
+    rule = rule if rule is not None else _PerFileRule(readers)
+    for digest in sorted(set(hashes.values()) - named):
         prior = rule.per_file_lineage(pending, None, digest)
         if prior is not None and order(prior[0]) < order(rel):
-            raise RightsRefusal(
-                f"{path!r} holds bytes the lineage labelled per file: {prior[1]} "
-                f"({prior[0]}). A relicence covers only what it names: label it "
-                f"with --license-part '{path}=…' (stricter keeps binding; looser "
-                "is the relaxation this relicence records)"
-            )
+            stricter.add(digest)
     return {
         **relicense,
         RELICENSE_COVERS: sorted(set(hashes.values()) - stricter),
     }
 
 
-def _refuse_relaxing(
-    readers: Libraries,
-    pending: Mapping[str, Any],
-    entries: Mapping[str, Mapping[str, Any]],
-    hashes: Mapping[str, str],
+def _report_conflicts(
+    conflicts: tuple[RightsConflict, ...], *, strict: bool
 ) -> None:
-    """Refuse a per-file statement looser than what already binds its bytes (an#345).
+    """The rights conflicts a new version records (an#357): warned, or refused under ``strict``.
 
-    Binding: the per-part source the descriptor gives the same file, and what
-    the version's lineage — ``previous`` back to the first, every
-    ``derived_from`` parent — says about these bytes (:class:`_PerFileRule`).
+    Inform, don't block: the freer statement is kept in the version, the
+    stricter binds, and the conflict is stated beside it in the floor and
+    wherever the asset is shown. ``strict`` (``--strict-assets``) refuses
+    instead, before anything is written. Called only for a publish that
+    writes a version: republishing what the head already is records nothing.
     """
-    order = LICENSE_CLASS_ORDER.index
-    rule = _PerFileRule(readers)
-    for path, raw in entries.items():
-        digest = hashes[path]
-        mine = _source_class(_source_model(raw))
-        part = itemising_source(pending, path, digest)
-        part_said = (
-            (license_class(part), f"its per-part source ({part.license})")
-            if part is not None
-            else None
+    if not conflicts:
+        return
+    listed = "; ".join(map(str, conflicts))
+    if strict:
+        raise RightsRefusal(
+            f"{len(conflicts)} rights conflict(s), refused under --strict-assets: "
+            f"{listed}. Without it the stricter statement binds and the conflict "
+            "is recorded; to relax deliberately, record a relicence "
+            "(--relicense-by <who> --relicense-reason <why>, naming per-file "
+            "parts that stay stricter with --license-part)"
         )
-        if part_said is not None and part_said[0] != mine:
-            warnings.warn(
-                f"{path}: the per-file label ({mine}) and the descriptor's per-part "
-                f"source ({part_said[0]}) disagree; the stricter is stated",
-                LibraryIndexWarning,
-                stacklevel=3,
-            )
-        binding = _strictest(part_said, rule.lineage(pending, None, digest))
-        if binding[1] and order(mine) > order(binding[0]):
-            raise RightsRefusal(
-                f"the per-file label of {path!r} ({mine}) is looser than what "
-                f"binds those bytes: {binding[1]} ({binding[0]}). A per-file "
-                "label never relaxes a statement; to relax it, record a relicence "
-                "(--relicense-by <who> --relicense-reason <why>): it lists the "
-                "files it covers, and per-file labels stricter than it keep binding"
-            )
+    warnings.warn(
+        f"{len(conflicts)} rights conflict(s), recorded (the stricter statement "
+        f"binds; a relicence resolves one deliberately): {listed}",
+        RightsConflictWarning,
+        stacklevel=3,
+    )
 
 
 def publish(
@@ -2185,6 +2440,7 @@ def publish(
     carry_source: bool = True,
     license_parts: Mapping[str, AssetSource | Mapping[str, Any]] | None = None,
     file_sources: Mapping[str, AssetSource | Mapping[str, Any]] | None = None,
+    strict_assets: bool = False,
 ) -> PublishResult:
     """Publish ``doc`` and its ``files`` as the next version of ``asset_id`` in ``library``.
 
@@ -2247,13 +2503,18 @@ def publish(
         relaxes what the bytes already carry — the per-part source of the same
         file, the same bytes at another path, and every earlier statement of
         this asset's chain or of a version it derives from about them: a
-        looser one is refused unless ``relicense`` records who and why (the
+        looser one is kept and recorded as a rights conflict, the stricter
+        binding (an#357), unless ``relicense`` records who and why (the
         relicence then lists the digests it covers, and a per-file statement
         stricter than it keeps binding). At a later publish a statement is
         carried for its file while the bytes are unchanged; a file changed
         since is recorded ``unlabelled``
     file_sources: ``{path: source}`` — the same, by exact stored path (what a
         stored version holds; :func:`promote` passes it)
+    strict_assets: refuse a publish that would record a rights conflict
+        (:class:`RightsConflict`: a per-part or per-file statement freer than
+        what binds its bytes) instead of recording it with a
+        :class:`RightsConflictWarning` (an#357: inform, don't block, by default)
 
     >>> lib = open_library("an", records={}, versions={}, blobs={})
     >>> doc = {"name": "lamp", "source": {"provider": "me", "license": "cc0-1.0"}}
@@ -2413,7 +2674,8 @@ def publish(
     if relabel:
         pending[RELABEL_FIELD] = relabel
     entries, dropped = _carried_file_sources(head_view, parts_given, hashes)
-    if entries is None and _PerFileRule(readers).applies(pending, None):
+    rule = _PerFileRule(readers)  # one memo for this publish (an#357 review, finding 4)
+    if entries is None and rule.applies(pending, None):
         # Under the rule through its lineage: recorded, so the version is
         # written at the schema an older reader refuses (review S1).
         entries = {}
@@ -2424,12 +2686,11 @@ def publish(
         pending[FILE_SOURCES_FIELD] = entries
         if relicense:
             relicense = pending[RELICENSE_FIELD] = _covered(
-                readers, pending, relicense, source_doc, entries, hashes
+                readers, pending, relicense, source_doc, entries, hashes, rule=rule
             )
-        else:
-            _refuse_relaxing(readers, pending, entries, hashes)
+    conflicts = tuple(rule.conflicts(pending, None))
     floor = BlobFloor(readers)
-    rights = effective_rights(readers, pending, floor=floor, owner=library)
+    rights = effective_rights(readers, pending, floor=floor, owner=library, rule=rule)
     manifest = _manifest(
         doc,
         hashes,
@@ -2489,8 +2750,11 @@ def publish(
     ):
         created = False
         manifest = head_version["manifest_sha256"]
-        rights = effective_rights(readers, head_version, floor=floor, owner=library)
+        rights = effective_rights(
+            readers, head_version, floor=floor, owner=library, rule=rule
+        )
     else:
+        _report_conflicts(conflicts, strict=strict_assets)
         label = _write_version(
             library,
             asset_id,
@@ -2511,7 +2775,9 @@ def publish(
                 "note": note,
             },
         )
-        _index_version(library, readers, read_version(library, asset_id, label))
+        _index_version(
+            library, readers, read_version(library, asset_id, label), rule=rule
+        )
     _save_record(
         library,
         asset_id,
@@ -2544,6 +2810,7 @@ def publish(
             if rights.license_class == "unknown"
             else ()
         ),
+        conflicts=conflicts,
     )
 
 
@@ -3158,8 +3425,31 @@ def show(libraries: Libraries, ref: str | LibraryRef) -> dict[str, Any]:
         "rights": _stricter(
             stored, effective_rights(libraries, version, owner=library)
         ).to_dict(),
+        # Statements freer than what binds their bytes, kept beside it (an#357).
+        CONFLICTS_KEY: [c.to_dict() for c in version_conflicts(libraries, version, owner=library)],
         "versions": versions_of(library, pinned.asset_id),
     }
+
+
+def version_conflicts(
+    libraries: Libraries, version: Mapping[str, Any], *, owner: Library | None = None
+) -> list[RightsConflict]:
+    """The rights conflicts ``version`` records (an#357): each statement it makes
+    about a file that is freer than what binds those bytes.
+
+    >>> lib = open_library("an", records={}, versions={}, blobs={})
+    >>> private = {"provider": "a-film", "license": "all-rights-reserved-private-study"}
+    >>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, {"a.png": b"carved"}, source=private)
+    >>> import warnings
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter("ignore")
+    ...     r = publish(lib, "prop.lamp", {"name": "lamp"}, {"a.png": b"carved"},
+    ...                 license_parts={"a.png": {"provider": "me", "license": "cc0-1.0"}})
+    >>> [(c.path, c.claimed_class, c.binding_class)
+    ...  for c in version_conflicts(lib, read_version(lib, "prop.lamp", "v002"), owner=lib)]
+    [('a.png', 'free', 'private')]
+    """
+    return _PerFileRule(libraries).conflicts(version, owner)
 
 
 # --------------------------------------------------------------------------- verified reads
@@ -3228,6 +3518,7 @@ def promote(
     to: Library | None = None,
     as_id: str | None = None,
     allow_restricted: bool = False,
+    strict_assets: bool = False,
 ) -> PublishResult:
     """Copy one version into another library — by default the core ``an`` library.
 
@@ -3244,6 +3535,8 @@ def promote(
       the one promoted (another character that happens to share the id), it is
       refused: promoting would make it a new version of an unrelated asset.
       ``as_id`` promotes under another id.
+    - ``strict_assets``: refuse a copy that would record a rights conflict
+      (:func:`publish`'s, an#357), instead of recording it.
     """
     library, pinned, version = resolve(libraries, ref)
     target = to if to is not None else open_library(CORE_PACKAGE)
@@ -3296,4 +3589,5 @@ def promote(
         # The per-file statements travel with the bytes they were made about
         # (an#345): left behind, the copy would state its private parts free.
         file_sources=version.get(FILE_SOURCES_FIELD),
+        strict_assets=strict_assets,
     )

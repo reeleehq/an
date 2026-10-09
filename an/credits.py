@@ -110,6 +110,10 @@ class CreditsReport:
     """Everything a project owes, split by whether we actually know."""
 
     entries: list[CreditEntry] = field(default_factory=list)
+    #: ``(asset, conflict)``: rights conflicts a library check-out carried
+    #: (an#357) — a statement about some bytes freer than the one that binds
+    #: them. Informative: the binding statement is already among the entries.
+    conflicts: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
 
     @property
     def owed(self) -> list[CreditEntry]:
@@ -175,7 +179,22 @@ class CreditsReport:
             "own_work": [e.asset for e in self.entries if e.own_work],
             "publishable": self.publishable,
             "commercial": self.commercial,
+            "rights_conflicts": [
+                {"asset": asset, **conflict} for asset, conflict in self.conflicts
+            ],
         }
+
+    def _conflict_lines(self) -> list[str]:
+        if not self.conflicts:
+            return []
+        lines = [
+            "",
+            f"RIGHTS CONFLICTS ({len(self.conflicts)}) — a statement freer than one "
+            "that binds the same bytes; the stricter is what this report counts. "
+            "A relicence in the library resolves one deliberately:",
+        ]
+        lines += [f"  {a}: {conflict_line(c)}" for a, c in self.conflicts]
+        return lines
 
     def format(self) -> str:
         """Human-readable, and honest about what it does not know."""
@@ -191,7 +210,7 @@ class CreditsReport:
             lines.append("")
             lines.append(f"Made by an itself, nothing owed ({len(own)}):")
             lines += [f"  {e.asset}: {e.source.provider}" for e in own]
-            return "\n".join(lines)
+            return "\n".join(lines + self._conflict_lines())
         lines = [
             f"credits: {len(third_party)} third-party asset(s)"
             + (f"; {made_here}." if own else ".")
@@ -241,7 +260,23 @@ class CreditsReport:
             lines.append("")
             lines.append(f"Made by an itself, nothing owed ({len(own)}):")
             lines += [f"  {e.asset}: {e.source.provider}" for e in own]
-        return "\n".join(lines)
+        return "\n".join(lines + self._conflict_lines())
+
+
+def conflict_line(conflict: Mapping[str, Any]) -> str:
+    """One rights conflict (an#357) as a sentence.
+
+    >>> conflict_line({"path": "parts/a.png", "claimed": "parts/a.png itemised as cc0-1.0",
+    ...                "claimed_class": "free", "binding": "v001: the asset's own label",
+    ...                "binding_class": "private"})
+    "parts/a.png: parts/a.png itemised as cc0-1.0 (free) is freer than v001: the asset's own label (private); private binds"
+    """
+    binding = conflict.get("binding_class", "unknown")
+    return (
+        f"{conflict.get('path', '?')}: {conflict.get('claimed', '?')} "
+        f"({conflict.get('claimed_class', '?')}) is freer than "
+        f"{conflict.get('binding', '?')} ({binding}); {binding} binds"
+    )
 
 
 def _detail(e: CreditEntry) -> str:
@@ -415,7 +450,20 @@ def collect_credits(
                 if _source_identity(e.source) not in shown
             )
             report.entries.extend(found)
+            report.conflicts.extend(
+                (f"{store_name}/{key}", c) for c in _origin_conflicts(descriptor)
+            )
     return report
+
+
+def _origin_conflicts(descriptor: Any) -> list[dict[str, Any]]:
+    """The rights conflicts a library check-out recorded on this copy (an#357)."""
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    origin = _origin_of(raw or {}) or {}
+    # "conflicts" is an.library.api.CONFLICTS_KEY (not imported: the library imports this module).
+    return [dict(c) for c in origin.get("conflicts") or [] if isinstance(c, Mapping)]
 
 
 def _confirmed_factory_claim(
@@ -1169,7 +1217,8 @@ def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
             for e in full.entries
             if any(e.asset == u or e.asset.startswith(u + "/") for u in used)
         ]
-        + speech_credits(mall, scene)
+        + speech_credits(mall, scene),
+        conflicts=[(a, c) for a, c in full.conflicts if a in used],
     )
 
 

@@ -140,22 +140,43 @@ so. An environment's planes may each carry their own `source`, so a composite
 stage credits every part of it; `credits_for_scene` restricts a render's check
 to the assets its shots actually name.
 
-## Per-file statements never relax (an#345)
+## Per-file and per-part statements never relax; conflicts inform, never block (an#345, an#357)
 
 A library version can state a licence per file (`file_sources`, each source
-sha-pinned; `publish(license_parts=…)`, `--license-part`). The rule any change
-to that code must keep, enforced in `an.library.api._PerFileRule` and
-`_refuse_relaxing`:
+sha-pinned; `publish(license_parts=…)`, `--license-part`) or per part (an
+`Attachment.source` pinned to its file's digest). The rule any change to that
+code must keep, enforced in `an.library.api._PerFileRule`:
 
-- **A per-file statement can only be stricter than what the bytes already
-  carry**: the same file's per-part source, the same bytes at another path, and
-  everything the asset's own chain (`previous`, back to the first) or a
-  `derived_from` parent said about those bytes. Looser is refused unless a
-  relicence is recorded — and a relicence lists the digests it `covers`; a
+- **What binds a file's bytes is the strictest of** its per-file statement, its
+  per-part source, the same bytes at another path, and everything the asset's
+  own chain (`previous`, back to the first) or a `derived_from` parent said
+  about those bytes. A freer statement is **kept, never discarded**, and
+  recorded as a `RightsConflict` (on the floor statement under `conflicts`, in
+  `PublishResult.conflicts`, in a check-out's origin block), shown by `an
+  credits`, `an library show`, `an library sheet` and `an validate` as a
+  warning (the maintainer's decision on an#357, 2026-10-09: inform, don't
+  block). `--strict-assets` is the opt-in that refuses: `publish`/`promote`
+  (`strict_assets=True`, only when a version is written), `an validate`
+  (an error) and `an render` (refused). Three refinements from the review
+  round: an explicit claim answers SILENCE (a lineage `unknown` does not bind
+  it, as a pinned per-part source always labelled an unlabelled file); through
+  `previous` only statements about these very bytes bind (a hat added in v002
+  is nobody's earlier bytes), while through `derived_from` a parent's own
+  label binds new bytes too (probe T4, a re-carve); and a per-part stamp the
+  character factory's record confirms (`factory_drew`) speaks for its bytes
+  alone (an#281). A relicence resolves
+  a conflict deliberately — and it lists the digests it `covers`; a
   per-file statement stricter than it keeps binding, and bytes the lineage
-  labelled stricter per file must be labelled per file again by the relicensing
-  publish (moved to another path, or re-added later, they are not freed), so a
-  relicence never frees a private part it did not name.
+  labelled stricter per file and not labelled again by the relicensing publish
+  (moved to another path, or re-added later) stay out of `covers`, so a
+  relicence never frees a private part it did not name; nor a per-part source
+  of its own version stricter than it.
+- **A version's rights include what the rule states about its own bytes**
+  (`_rule_contributions`), and so do the rights of anything derived from a
+  relicensed version: the rights walk stops at a relicence, the rule does not
+  for bytes it did not cover, and the two must never disagree (an#357 review
+  finding 1: otherwise a derivative of a relicence that left a private head
+  uncovered read free).
 - **Per-file statements count toward a version's rights, never toward the label
   of the files nothing itemises** (`version_sources(per_file=False)`, at every
   depth): otherwise one private head re-spreads "private" over every file of
@@ -163,13 +184,14 @@ to that code must keep, enforced in `an.library.api._PerFileRule` and
 - Same bytes at two paths: the strictest statement, never the last path's.
 - A statement speaks only for its digest: an edited file loses it and is
   recorded `unlabelled` (never re-pinned by path).
-- Per-part `Attachment.source` itemisation keeps its older, relaxable behaviour
-  until the maintainer decides an#357; do not "fix" it in passing — closing it
-  changes what existing floors state on `reindex`.
+- Before changing what a statement says, run `reindex_changes(library)` (`an
+  library reindex --dry-run`) on the real libraries and list what moves.
 
-The negative tests (`tests/test_library_file_sources.py`) replay the red-team
-probe's five relaxations in their per-file form. A change that makes one of
-them pass by relaxing is a licence defect, not a refactor.
+The negative tests replay the red-team probe's five relaxations, per file
+(`tests/test_library_file_sources.py`) and per part
+(`tests/test_library_rights_conflicts.py`). A change that makes one of them
+pass by relaxing is a licence defect, not a refactor; one that makes a
+conflict refuse by default reverses the maintainer's decision.
 
 ## When you cannot verify
 

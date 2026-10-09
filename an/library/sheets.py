@@ -9,7 +9,8 @@ specimen (a voice, a style, a sound, a kind whose genre gives none) shows a
 labelled placeholder. ``parts=True`` tiles the version's art files instead.
 
 Every cell is captioned with its reference and licence class, the stricter of
-the version's stored and recomputed rights. A sheet showing anything not
+the version's stored and recomputed rights, marked when the version records
+a rights conflict about it (an#357). A sheet showing anything not
 publishable (private or unknown) is refused at a path inside a git work tree
 that does not ignore it (:func:`an.library.root.check_private_output`).
 """
@@ -26,6 +27,9 @@ __all__ = ["DFLT_SHEET", "sheet"]
 
 #: Where a sheet is written by default (relative to the current folder).
 DFLT_SHEET: str = "artifacts/probes/sheet.png"
+#: Appended to a cell's class when the version records a rights conflict
+#: about what the cell shows (an#357; ``an library sheet`` lists them).
+CONFLICT_MARK: str = ", conflict"
 #: The grey of a cell with nothing to draw.
 PLACEHOLDER_GREY: int = 200
 
@@ -159,9 +163,14 @@ def sheet(
     images: list[bytes] = []
     labels: list[str] = []
     classes: list[str] = []
+    from an.library.api import version_conflicts
+
     for ref in refs:
         library, pinned, version = resolve(libraries, ref)
         cls = _rights(library, version)
+        # A rights conflict (an#357) is marked on its cell: the class shown is
+        # the stricter statement, and another statement says something freer.
+        conflicted = {c.path for c in version_conflicts(libraries, version, owner=library)}
         if parts:
             from an.library.api import verified_files
             from an.stage.snapshot import drawable, rasterise
@@ -173,17 +182,25 @@ def sheet(
             # be private while the drawn collar beside it is free).
             part_classes = [_part_class(library, version, d) for _, d in art]
             labels += [
-                (f"{pinned} {p}", f" [{c}]") for (p, _), c in zip(art, part_classes)
+                (f"{pinned} {p}", f" [{c}{CONFLICT_MARK if p in conflicted else ''}]")
+                for (p, _), c in zip(art, part_classes)
             ]
             classes += part_classes
             continue
         kind = entity_kind(pinned.kind)
         if kind is None or getattr(kind, "specimen", None) is None:
             images.append(_placeholder(cell))
-            labels.append((f"{pinned}", f" [{cls}] (no specimen)"))
+            labels.append(
+                (
+                    f"{pinned}",
+                    f" [{cls}{CONFLICT_MARK if conflicted else ''}] (no specimen)",
+                )
+            )
         else:
             images.append(_sharp_specimen(libraries, str(pinned), kind, version, cell))
-            labels.append((f"{pinned}", f" [{cls}]"))
+            labels.append(
+                (f"{pinned}", f" [{cls}{CONFLICT_MARK if conflicted else ''}]")
+            )
         classes.append(cls)
     if not images:
         raise ValueError(f"nothing to draw: {refs} hold no art files")

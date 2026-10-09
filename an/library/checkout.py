@@ -10,7 +10,8 @@ render-time private-study warning look:
   its recomputed ``rights``, and every source those rights depend on that the
   descriptor itself does not hold (the asset-level source, the sources of every
   version it derives from). ``an credits`` reads them
-  (``an.credits._library_origin_credits``). For a version with an asset-level
+  (``an.credits._library_origin_credits``), and the version's rights
+  conflicts (an#357), which it states beside the credits. For a version with an asset-level
   source it also records ``checked_out``: the descriptor's source as the
   check-out left it and the files' digests, so in the copy that label speaks
   only for the bytes it was declared on — a file edited or added since is
@@ -45,6 +46,7 @@ from typing import Any, NamedTuple
 from dol.content import ContentRef, content_hash
 
 from an.library.api import (
+    CONFLICTS_KEY,
     METADATA_ADDED_FLAG,
     ORIGIN_KEY,
     SOURCE_ADDED_KEY,
@@ -52,6 +54,8 @@ from an.library.api import (
     PREVIOUS_FIELD,
     CheckoutError,
     IntegrityError,
+    RightsConflict,
+    _PerFileRule,
     _resolve_lineage,
     _stricter,
     labelled_view,
@@ -215,11 +219,17 @@ def _origin_block(
     contributors: list[tuple[str, Any]],
     rights: Rights,
     visible: set[str],
+    conflicts: list[RightsConflict] = (),
 ) -> dict[str, Any]:
+    # The rights conflicts the version records (an#357) travel with the copy,
+    # so `an credits` and `an validate` state them in the project. Informative
+    # only: they change no class (the stricter statement already binds here).
+    extra = {CONFLICTS_KEY: [c.to_dict() for c in conflicts]} if conflicts else {}
     return {
         "library": str(pinned),
         "manifest_sha256": version["manifest_sha256"],
         "rights": rights.to_dict(),
+        **extra,
         "sources": [
             {
                 "label": label,
@@ -418,7 +428,14 @@ def checkout(
         }
         if added is not None:
             visible.add(ASSET_SOURCE_LABEL)
-        origin = _origin_block(pinned, version, contributors, rights, visible)
+        origin = _origin_block(
+            pinned,
+            version,
+            contributors,
+            rights,
+            visible,
+            _PerFileRule(readers).conflicts(version, library),
+        )
         if added is not None:
             origin[SOURCE_ADDED_KEY] = added
         if labelled.get("source"):
