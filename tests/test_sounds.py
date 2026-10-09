@@ -308,9 +308,12 @@ def test_a_sound_whose_terms_forbid_keeping_its_bytes_is_refused(tmp_path):
 def test_versioned_cc_codes_and_stable_audio_are_classified():
     from an.ir.assets import AssetSource, license_class, provider_terms_restriction
 
-    for code in ("cc-by-nc-4.0", "cc-by-nc-3.0", "cc-by-3.0", "cc-by-sa-4.0", "CC-BY-NC-4.0"):
+    for code in ("cc-by-3.0", "cc-by-sa-4.0", "CC-BY-4.0"):
         assert license_class(AssetSource(provider="freesound", license=code)) == "attribution"
-    assert license_class(AssetSource(provider="p", license="cc-by-nc-sa-4.0")) == "unknown"
+    # an#373: the NC family is one non-commercial class, versioned or not.
+    for code in ("cc-by-nc-4.0", "cc-by-nc-3.0", "CC-BY-NC-4.0", "cc-by-nc-sa-4.0",
+                 "cc-by-nc-nd-4.0", "by-nc"):
+        assert license_class(AssetSource(provider="freesound", license=code)) == "noncommercial"
     stable = AssetSource(provider="stability", license="stability-community")
     assert license_class(stable) == "free"
     assert "1,000,000" in provider_terms_restriction(stable)

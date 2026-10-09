@@ -47,6 +47,7 @@ from an.ir.assets import AssetSource, LicenseClass, license_class
 __all__ = [
     "LICENSE_CLASS_ORDER",
     "PUBLISHABLE_CLASSES",
+    "COMMERCIAL_CLASSES",
     "Rights",
     "RightsRefusal",
     "most_restrictive",
@@ -59,11 +60,16 @@ __all__ = [
 LICENSE_CLASS_ORDER: tuple[LicenseClass, ...] = (
     "private",
     "unknown",
+    "noncommercial",
     "attribution",
     "free",
 )
-#: The classes a video may ship with (``attribution`` with its credit displayed).
-PUBLISHABLE_CLASSES: frozenset[str] = frozenset({"free", "attribution"})
+#: The classes a video may ship with (``attribution`` and ``noncommercial``
+#: with their credit displayed; ``noncommercial`` only in a video nobody earns
+#: from — an#373: flagged for commercial use, never blocked).
+PUBLISHABLE_CLASSES: frozenset[str] = frozenset({"free", "attribution", "noncommercial"})
+#: The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).
+COMMERCIAL_CLASSES: frozenset[str] = frozenset({"free", "attribution"})
 #: The label of a source declared for the asset as a whole (at publish), in reasons.
 ASSET_SOURCE_LABEL: str = "asset"
 #: The label of the source the descriptor itself declares, in reasons.
@@ -83,8 +89,13 @@ class Rights:
 
     @property
     def publishable(self) -> bool:
-        """Whether a video containing this asset may ship."""
+        """Whether a video containing this asset may ship (commercially or not)."""
         return self.license_class in PUBLISHABLE_CLASSES
+
+    @property
+    def commercial(self) -> bool:
+        """Whether a COMMERCIAL video containing this asset may ship (an#373)."""
+        return self.license_class in COMMERCIAL_CLASSES
 
     def to_dict(self) -> dict[str, Any]:
         """The ``rights`` block of a version document."""

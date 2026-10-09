@@ -120,7 +120,11 @@ def _license_parts(
             extra[key] = val
         if "provider" not in extra:
             cls = license_class(AssetSource(provider="-", license=licence))
-            if asset is None or cls == "attribution" or cls != license_class(asset):
+            if (
+                asset is None
+                or cls in ("attribution", "noncommercial")
+                or cls != license_class(asset)
+            ):
                 raise SystemExit(
                     f"an library publish: --license-part {value!r} needs its own "
                     "provider=… (a part whose licence class differs from the "
@@ -421,7 +425,7 @@ def find(
     kind: character, prop, environment, ...
     style: styles, comma-separated (any of them)
     affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
-    rights: any, publishable, or licence classes (free, attribution, private, unknown)
+    rights: any, publishable, commercial (publishable in a commercial video: not non-commercial), or licence classes (free, attribution, noncommercial, private, unknown)
     family: families, comma-separated
     origin: origins, comma-separated
     status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)
