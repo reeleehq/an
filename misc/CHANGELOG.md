@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-09
+- **ADR 0002: a declaration outranks a style's policy** (thorwhalen/cutan#36, decided 2026-10-09): decision 4's precedence now names the asset's own declaration (a character's `gait` or `speech`) after the author's request and before the shot and style policies, with the reason; docs only.
+
 ## 2026-10-06
 - **Skill fixes from the third end-user test** (an#451, an#452, an#453): the `an` skill states the import paths (`play` from `cutan.characters.registration`; `crowd`, `fan_out` from `an`), says the rigs are flat unless `nesting: bones`, gives a recipe for crediting your own art (a part's or a plane's `source` pinned to its bytes; verified with `an credits`), and names `an library show <ref> --json-out` (the descriptor is `version.doc`) and `an library sheet` for inspecting an asset without checking it out.
 - **The `an` skill is an index plus reference files** (end-user test finding 13): `SKILL.md` keeps the essentials, the generated vocabulary and a reference index; the recipes (assets, the scene.md surface, shots, voices, the library, motion presets) are `references/*.md`. The skill-reading tests read the index and every reference file.

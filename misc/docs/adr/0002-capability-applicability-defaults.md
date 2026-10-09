@@ -57,7 +57,9 @@ One aspect has no universal default at all. A character whose face is baked into
 
    Every substitution is recorded.
 
-   A **policy** is how a style says "this show hops even when its characters have legs" (South Park). A first-applicable chain cannot say that. Policies live on the style document. Their precedence is: the author's explicit request, then the shot, then the style, then the aspect's default chain.
+   A **policy** is how a style says "this show hops even when its characters have legs" (South Park). A first-applicable chain cannot say that. Policies live on the style document. Their precedence is: the author's explicit request, then the asset's own declaration, then the shot, then the style, then the aspect's default chain.
+
+   **A declaration outranks a policy** (decided by the maintainer on 2026-10-09, cutan#36). When an asset declares the method for an aspect (a character's `gait` or `speech`, the field `Aspect.declared_by` names) and the shot's or the style's policy orders another, the declaration wins: it counts as the request when the author requested nothing. A statement about one character is more specific than a style's default, so a character keeps its personality across styles. A declaration the asset cannot honour falls back like any request, and is recorded as a substitution. The switch is `an.semantic.matcher.DECLARED_OUTRANKS_POLICY` (`True`); reading this decision the other way (the style winning) needs a new decision, not a flip of the flag.
 
 5. **Every aspect's chain ends in a method that requires nothing.**
    - Every asset gets every aspect *that makes sense for its kind*.
