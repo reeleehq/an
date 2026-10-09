@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -828,6 +828,27 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_rights_conflicts</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Under ``--strict-assets``, refuse a scene using an asset that records a</span>
+<span class="sd">    rights conflict (an#357): the user's opt-in; without it the conflict is a</span>
+<span class="sd">    finding and the stricter statement binds."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">conflict_line</span><span class="p">,</span> <span class="n">credits_for_scene</span>
+
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the credits walk's own, reported at the end</span>
+        <span class="n">conflicts</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span><span class="o">.</span><span class="n">conflicts</span>
+    <span class="k">if</span> <span class="n">conflicts</span><span class="p">:</span>
+        <span class="n">listed</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">conflict_line</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conflicts</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">RenderError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">conflicts</span><span class="p">)</span><span class="si">}</span><span class="s2"> rights conflict(s) in the assets this scene uses, "</span>
+            <span class="sa">f</span><span class="s2">"refused under --strict-assets: </span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">. Without it the stricter "</span>
+            <span class="s2">"statement binds (`an credits` counts it); a relicence in the library "</span>
+            <span class="s2">"resolves a conflict deliberately"</span>
+        <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_scene_has_pending_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return True if any dialogue line lacks a viseme_track or timing."""</span>
     <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
@@ -951,6 +972,8 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># The render's report holds them too (`_pin_findings`): `an render`</span>
         <span class="c1"># lists them in its summary instead of as they happen.</span>
         <span class="n">_echo</span><span class="p">(</span><span class="n">caught</span><span class="p">,</span> <span class="n">all_of_them</span><span class="o">=</span><span class="n">echo_warnings</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">strict_assets</span><span class="p">:</span>
+        <span class="n">_refuse_rights_conflicts</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
         <span class="n">project</span><span class="p">,</span>
         <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>

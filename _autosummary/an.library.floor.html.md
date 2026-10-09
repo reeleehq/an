@@ -10,17 +10,20 @@ library one reads through — and only an explicit, recorded relicence relaxes i
 **What a statement is.** Each version that holds a blob says one thing about it:
 
 - the version’s own per-part `source` for that exact file, if the source pins
-  the same digest (`AssetSource.sha256`) — a per-part claim about OTHER bytes
-  (a stale factory stamp on a re-carved part) itemises nothing;
+  the same digest (`AssetSource.sha256`), never freer than its lineage (see
+  below) — a per-part claim about OTHER bytes (a stale factory stamp on a
+  re-carved part) itemises nothing;
 - otherwise the asset’s own label: its asset-level and descriptor sources and
   its lineage — what the asset says about every file it does not itemise;
 - for a relicensed version, its relicence;
-- for a version carrying per-file statements (`file_sources`, an#345), or
-  one whose lineage does: the strictest of its per-file statement (else its
-  label computed without per-file statements), the same file’s per-part
-  source, the same bytes at its other paths, and what its lineage says about
-  these bytes — so a later statement never relaxes an earlier one
-  (`an.library.api._PerFileRule`).
+- for an itemised file (a per-part source or a per-file statement,
+  `file_sources`, an#345), or any file of a version whose lineage carries
+  per-file statements: the strictest of those statements (else its label
+  computed without per-file statements), the same bytes at its other paths,
+  and what its lineage says about these bytes — so a later statement never
+  relaxes an earlier one (`an.library.api._PerFileRule`). A freer
+  statement is kept and recorded beside the class under `conflicts`
+  (an#357: inform, don’t block).
 
 **Where the statements live.** Each library keeps a derived store,
 `blob_rights`: `sha256 -> {"<library>:<asset_id>": statement}`, one entry

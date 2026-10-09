@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,7 +722,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">labelled placeholder. ``parts=True`` tiles the version's art files instead.</span>
 
 <span class="sd">Every cell is captioned with its reference and licence class, the stricter of</span>
-<span class="sd">the version's stored and recomputed rights. A sheet showing anything not</span>
+<span class="sd">the version's stored and recomputed rights, marked when the version records</span>
+<span class="sd">a rights conflict about it (an#357). A sheet showing anything not</span>
 <span class="sd">publishable (private or unknown) is refused at a path inside a git work tree</span>
 <span class="sd">that does not ignore it (:func:`an.library.root.check_private_output`).</span>
 <span class="sd">"""</span>
@@ -739,6 +740,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: Where a sheet is written by default (relative to the current folder).</span>
 <span class="n">DFLT_SHEET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"artifacts/probes/sheet.png"</span>
+<span class="c1">#: Appended to a cell's class when the version records a rights conflict</span>
+<span class="c1">#: about what the cell shows (an#357; ``an library sheet`` lists them).</span>
+<span class="n">CONFLICT_MARK</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">", conflict"</span>
 <span class="c1">#: The grey of a cell with nothing to draw.</span>
 <span class="n">PLACEHOLDER_GREY</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>
 
@@ -874,9 +878,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">version_conflicts</span>
+
     <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">:</span>
         <span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="n">resolve</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">_rights</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="c1"># A rights conflict (an#357) is marked on its cell: the class shown is</span>
+        <span class="c1"># the stricter statement, and another statement says something freer.</span>
+        <span class="n">conflicted</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">version_conflicts</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">)</span>
+        <span class="p">}</span>
         <span class="k">if</span> <span class="n">parts</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">verified_files</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.snapshot</span><span class="w"> </span><span class="kn">import</span> <span class="n">drawable</span><span class="p">,</span> <span class="n">rasterise</span>
@@ -888,17 +899,25 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># be private while the drawn collar beside it is free).</span>
             <span class="n">part_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">_part_class</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">art</span><span class="p">]</span>
             <span class="n">labels</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">art</span><span class="p">,</span> <span class="n">part_classes</span><span class="p">)</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">c</span><span class="si">}{</span><span class="n">CONFLICT_MARK</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">conflicted</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">art</span><span class="p">,</span> <span class="n">part_classes</span><span class="p">)</span>
             <span class="p">]</span>
             <span class="n">classes</span> <span class="o">+=</span> <span class="n">part_classes</span>
             <span class="k">continue</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">pinned</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="s2">"specimen"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_placeholder</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
-            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">] (no specimen)"</span><span class="p">))</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="bp">cls</span><span class="si">}{</span><span class="n">CONFLICT_MARK</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">conflicted</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">] (no specimen)"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_sharp_specimen</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">),</span> <span class="n">kind</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">cell</span><span class="p">))</span>
-            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s2">]"</span><span class="p">))</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="bp">cls</span><span class="si">}{</span><span class="n">CONFLICT_MARK</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">conflicted</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="n">classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">images</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"nothing to draw: </span><span class="si">{</span><span class="n">refs</span><span class="si">}</span><span class="s2"> hold no art files"</span><span class="p">)</span>

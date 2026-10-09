@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -825,6 +825,10 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Everything a project owes, split by whether we actually know."""</span>
 
     <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: ``(asset, conflict)``: rights conflicts a library check-out carried</span>
+    <span class="c1">#: (an#357) — a statement about some bytes freer than the one that binds</span>
+    <span class="c1">#: them. Informative: the binding statement is already among the entries.</span>
+    <span class="n">conflicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">owed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
@@ -890,7 +894,22 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"own_work"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">],</span>
             <span class="s2">"publishable"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span><span class="p">,</span>
             <span class="s2">"commercial"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">commercial</span><span class="p">,</span>
+            <span class="s2">"rights_conflicts"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">"asset"</span><span class="p">:</span> <span class="n">asset</span><span class="p">,</span> <span class="o">**</span><span class="n">conflict</span><span class="p">}</span> <span class="k">for</span> <span class="n">asset</span><span class="p">,</span> <span class="n">conflict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conflicts</span>
+            <span class="p">],</span>
         <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_conflict_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conflicts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">""</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"RIGHTS CONFLICTS (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conflicts</span><span class="p">)</span><span class="si">}</span><span class="s2">) — a statement freer than one "</span>
+            <span class="s2">"that binds the same bytes; the stricter is what this report counts. "</span>
+            <span class="s2">"A relicence in the library resolves one deliberately:"</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">conflict_line</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conflicts</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">lines</span>
 
 <div class="viewcode-block" id="CreditsReport.format">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.CreditsReport.format">[docs]</a>
@@ -908,7 +927,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Made by an itself, nothing owed (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">own</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
             <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">own</span><span class="p">]</span>
-            <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conflict_lines</span><span class="p">())</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
             <span class="sa">f</span><span class="s2">"credits: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">third_party</span><span class="p">)</span><span class="si">}</span><span class="s2"> third-party asset(s)"</span>
             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"; </span><span class="si">{</span><span class="n">made_here</span><span class="si">}</span><span class="s2">."</span> <span class="k">if</span> <span class="n">own</span> <span class="k">else</span> <span class="s2">"."</span><span class="p">)</span>
@@ -958,9 +977,25 @@ window.runMermaid = runMermaid;</script>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Made by an itself, nothing owed (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">own</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
             <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">own</span><span class="p">]</span>
-        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conflict_lines</span><span class="p">())</span></div>
 </div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">conflict_line</span><span class="p">(</span><span class="n">conflict</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One rights conflict (an#357) as a sentence.</span>
+
+<span class="sd">    &gt;&gt;&gt; conflict_line({"path": "parts/a.png", "claimed": "parts/a.png itemised as cc0-1.0",</span>
+<span class="sd">    ...                "claimed_class": "free", "binding": "v001: the asset's own label",</span>
+<span class="sd">    ...                "binding_class": "private"})</span>
+<span class="sd">    "parts/a.png: parts/a.png itemised as cc0-1.0 (free) is freer than v001: the asset's own label (private); private binds"</span>
+<span class="sd">    """</span>
+    <span class="n">binding</span> <span class="o">=</span> <span class="n">conflict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"binding_class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">conflict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'path'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">conflict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'claimed'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">conflict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'claimed_class'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">) is freer than "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">conflict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'binding'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">binding</span><span class="si">}</span><span class="s2">); </span><span class="si">{</span><span class="n">binding</span><span class="si">}</span><span class="s2"> binds"</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_detail</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="n">CreditEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1139,8 +1174,21 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">_source_identity</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shown</span>
             <span class="p">)</span>
             <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">conflicts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_origin_conflicts</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_origin_conflicts</span><span class="p">(</span><span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The rights conflicts a library check-out recorded on this copy (an#357)."""</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">):</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">_origin_of</span><span class="p">(</span><span class="n">raw</span> <span class="ow">or</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="c1"># "conflicts" is an.library.api.CONFLICTS_KEY (not imported: the library imports this module).</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">origin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conflicts"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_confirmed_factory_claim</span><span class="p">(</span>
@@ -1905,7 +1953,8 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">full</span><span class="o">.</span><span class="n">entries</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">u</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">u</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">used</span><span class="p">)</span>
         <span class="p">]</span>
-        <span class="o">+</span> <span class="n">speech_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">speech_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">),</span>
+        <span class="n">conflicts</span><span class="o">=</span><span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">full</span><span class="o">.</span><span class="n">conflicts</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">used</span><span class="p">],</span>
     <span class="p">)</span></div>
 
 

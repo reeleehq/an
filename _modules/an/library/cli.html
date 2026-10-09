@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -962,6 +962,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">replace_curation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">license_part</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Publish an asset folder as the next version of ``asset_id``.</span>
 
@@ -988,7 +989,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    expect_head: refuse unless the asset's head is this version, or 'new' for an id that must not exist yet</span>
 <span class="sd">    replace_curation: --style/--tags replace the record's lists instead of adding to them</span>
 <span class="sd">    extra: further libraries where --derived-from resolves, by package name, comma-separated</span>
-<span class="sd">    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. Never looser than what the bytes already carry, unless relicensed</span>
+<span class="sd">    license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names ('*' stays in one folder, '**' crosses folders, case-exact); every other file takes the version's label without them. One looser than what the bytes already carry is kept and reported as a rights conflict, the stricter binding, unless relicensed</span>
+<span class="sd">    strict_assets: refuse a publish that would record a rights conflict (a per-part or per-file licence freer than what binds its bytes) instead of recording it</span>
 <span class="sd">    """</span>
     <span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">asset_source</span> <span class="o">=</span> <span class="n">_source_from_flags</span><span class="p">(</span>
@@ -1021,6 +1023,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">),</span>
         <span class="n">replace_curation</span><span class="o">=</span><span class="n">replace_curation</span><span class="p">,</span>
         <span class="n">search</span><span class="o">=</span><span class="n">others</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
         <span class="o">**</span><span class="p">(</span>
             <span class="p">{</span><span class="s2">"expect_head"</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">expect_head</span> <span class="o">==</span> <span class="s2">"new"</span> <span class="k">else</span> <span class="n">expect_head</span><span class="p">}</span>
             <span class="k">if</span> <span class="n">expect_head</span>
@@ -1255,6 +1258,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s2">"  files: </span><span class="si">{</span><span class="n">_file_count</span><span class="p">(</span><span class="n">record</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">)</span><span class="si">}</span><span class="s2">  art: </span><span class="si">{</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'art'</span><span class="p">)</span><span class="si">}</span><span class="s2">  "</span>
         <span class="sa">f</span><span class="s2">"manifest: </span><span class="si">{</span><span class="n">version</span><span class="p">[</span><span class="s1">'manifest_sha256'</span><span class="p">][:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="sa">f</span><span class="s2">"  derived_from: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'derived_from'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">[])</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'-'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">_conflict_lines</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conflicts"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]),</span>
         <span class="s2">"  affords:"</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">cap</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"affordances"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -1262,6 +1266,18 @@ window.runMermaid = runMermaid;</script>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">cap</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">": </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">keys</span> <span class="k">else</span> <span class="s2">""</span><span class="p">))</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_conflict_lines</span><span class="p">(</span><span class="n">conflicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The rights conflicts a version records (an#357), for ``show`` and ``sheet``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">conflict_line</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">conflicts</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s2">"  rights conflicts (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">conflicts</span><span class="p">)</span><span class="si">}</span><span class="s2">; the stricter binds, a relicence resolves one):"</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">conflict_line</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conflicts</span><span class="p">),</span>
+    <span class="p">]</span>
 
 
 <div class="viewcode-block" id="checkout">
@@ -1358,6 +1374,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">core_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">as_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">allow_restricted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Copy a version into the core an library, so other genres can reuse it.</span>
 
@@ -1367,6 +1384,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    core_root: the core an library's root (default: its data folder)</span>
 <span class="sd">    as_id: promote under another id (when the core library has an unrelated asset with this one)</span>
 <span class="sd">    allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)</span>
+<span class="sd">    strict_assets: refuse a copy that would record a rights conflict, instead of recording it</span>
 <span class="sd">    """</span>
     <span class="n">package</span> <span class="o">=</span> <span class="n">package</span> <span class="ow">or</span> <span class="p">(</span><span class="n">_namespaces</span><span class="p">([</span><span class="n">ref</span><span class="p">])</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">""</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">package</span> <span class="ow">or</span> <span class="n">package</span> <span class="o">==</span> <span class="n">CORE_PACKAGE</span><span class="p">:</span>
@@ -1383,6 +1401,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">to</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
             <span class="n">as_id</span><span class="o">=</span><span class="n">as_id</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">allow_restricted</span><span class="o">=</span><span class="n">allow_restricted</span><span class="p">,</span>
+            <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span></div>
 
@@ -1448,18 +1467,57 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    root: that library's root</span>
 <span class="sd">    extra: further libraries, by package name, comma-separated</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">version_conflicts</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.federation</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve</span> <span class="k">as</span> <span class="n">_resolve</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.sheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">sheet</span> <span class="k">as</span> <span class="n">_sheet</span>
 
+    <span class="n">libraries</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="n">refs</span><span class="p">)</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">_sheet</span><span class="p">(</span>
         <span class="n">refs</span><span class="p">,</span>
-        <span class="n">libraries</span><span class="o">=</span><span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="n">refs</span><span class="p">),</span>
+        <span class="n">libraries</span><span class="o">=</span><span class="n">libraries</span><span class="p">,</span>
         <span class="n">out</span><span class="o">=</span><span class="n">out</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cell</span><span class="o">=</span><span class="n">cell</span><span class="p">,</span>
         <span class="n">columns</span><span class="o">=</span><span class="n">columns</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">parts</span><span class="o">=</span><span class="n">parts</span><span class="p">,</span>
         <span class="n">allow_private_here</span><span class="o">=</span><span class="n">allow_private_here</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"sheet: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"sheet: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">:</span>
+        <span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">version_conflicts</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="n">_conflict_lines</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">found</span><span class="p">])</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<span class="nd">@_refusing</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reindex</span><span class="p">(</span>
+    <span class="n">package</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CORE_PACKAGE</span><span class="p">,</span>
+    <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">extra</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Rebuild a library's rights floor index from its versions (derived data: always safe).</span>
+
+<span class="sd">    package: whose library to reindex (an, or a genre such as cutan)</span>
+<span class="sd">    root: that library's root (default: the package's data folder)</span>
+<span class="sd">    extra: further libraries where lineage resolves, by package name, comma-separated</span>
+<span class="sd">    dry_run: list every statement whose licence class would change (asset, file, before -&gt; after, why), and write nothing</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">reindex</span> <span class="k">as</span> <span class="n">_reindex</span><span class="p">,</span> <span class="n">reindex_changes</span>
+
+    <span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="n">_libraries</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">extra</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="n">changes</span> <span class="o">=</span> <span class="n">reindex_changes</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">others</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">changes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"reindex </span><span class="si">{</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (dry run): no statement would change"</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="sa">f</span><span class="s2">"reindex </span><span class="si">{</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (dry run): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span><span class="si">}</span><span class="s2"> statement(s) would change"</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">changes</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"reindex </span><span class="si">{</span><span class="n">lib</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_reindex</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span><span class="w"> </span><span class="n">search</span><span class="o">=</span><span class="n">others</span><span class="p">)</span><span class="si">}</span><span class="s2"> blob(s) indexed"</span>
 
 
 <span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span>
@@ -1472,6 +1530,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">promote</span><span class="p">,</span>
     <span class="n">retire</span><span class="p">,</span>
     <span class="n">sheet</span><span class="p">,</span>
+    <span class="n">reindex</span><span class="p">,</span>
 <span class="p">]</span>
 </pre></div>
 

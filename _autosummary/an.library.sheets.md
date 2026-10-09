@@ -11,7 +11,8 @@ specimen (a voice, a style, a sound, a kind whose genre gives none) shows a
 labelled placeholder. `parts=True` tiles the version’s art files instead.
 
 Every cell is captioned with its reference and licence class, the stricter of
-the version’s stored and recomputed rights. A sheet showing anything not
+the version’s stored and recomputed rights, marked when the version records
+a rights conflict about it (an#357). A sheet showing anything not
 publishable (private or unknown) is refused at a path inside a git work tree
 that does not ignore it (`an.library.root.check_private_output()`).
 

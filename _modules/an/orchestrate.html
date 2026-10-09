@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -872,10 +872,42 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">schema_report</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">semantic_report</span><span class="p">)</span>
+    <span class="n">_rights_conflict_findings</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">strict_assets</span><span class="p">:</span>
         <span class="n">_strict_asset_findings</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rights_conflict_findings</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ValidationReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A finding per rights conflict on an asset the scene uses (an#357).</span>
+
+<span class="sd">    Inform, don't block: a library version that holds a statement freer than</span>
+<span class="sd">    the one binding the same bytes is stated beside the stricter, which is</span>
+<span class="sd">    what `an credits` counts. A warning; an error under ``strict``</span>
+<span class="sd">    (``--strict-assets``, the user's opt-in), as `an render --strict-assets`</span>
+<span class="sd">    refuses it (:func:`an.render.render_project`).</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">conflict_line</span><span class="p">,</span> <span class="n">credits_for_scene</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the credits walk's own warnings</span>
+            <span class="n">conflicts</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span><span class="o">.</span><span class="n">conflicts</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a finding, never a traceback</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"library"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"rights conflicts could not be read: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">asset</span><span class="p">,</span> <span class="n">conflict</span> <span class="ow">in</span> <span class="n">conflicts</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"error"</span> <span class="k">if</span> <span class="n">strict</span> <span class="k">else</span> <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"library/</span><span class="si">{</span><span class="n">asset</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"rights conflict: </span><span class="si">{</span><span class="n">conflict_line</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span><span class="si">}</span><span class="s2"> (`an credits` counts the "</span>
+            <span class="s2">"stricter; a relicence in the library resolves it)"</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_strict_asset_findings</span><span class="p">(</span>

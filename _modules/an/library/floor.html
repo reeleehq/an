@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=0d8338dc"></script>
+    <script src="../../../_static/documentation_options.js?v=a9fbbcc5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.236" />
+  <meta name="docsearch:version" content="0.1.237" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,17 +721,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">**What a statement is.** Each version that holds a blob says one thing about it:</span>
 
 <span class="sd">- the version's own per-part ``source`` for that exact file, if the source pins</span>
-<span class="sd">  the same digest (``AssetSource.sha256``) — a per-part claim about OTHER bytes</span>
-<span class="sd">  (a stale factory stamp on a re-carved part) itemises nothing;</span>
+<span class="sd">  the same digest (``AssetSource.sha256``), never freer than its lineage (see</span>
+<span class="sd">  below) — a per-part claim about OTHER bytes (a stale factory stamp on a</span>
+<span class="sd">  re-carved part) itemises nothing;</span>
 <span class="sd">- otherwise the asset's own label: its asset-level and descriptor sources and</span>
 <span class="sd">  its lineage — what the asset says about every file it does not itemise;</span>
 <span class="sd">- for a relicensed version, its relicence;</span>
-<span class="sd">- for a version carrying per-file statements (``file_sources``, an#345), or</span>
-<span class="sd">  one whose lineage does: the strictest of its per-file statement (else its</span>
-<span class="sd">  label computed without per-file statements), the same file's per-part</span>
-<span class="sd">  source, the same bytes at its other paths, and what its lineage says about</span>
-<span class="sd">  these bytes — so a later statement never relaxes an earlier one</span>
-<span class="sd">  (:class:`an.library.api._PerFileRule`).</span>
+<span class="sd">- for an itemised file (a per-part source or a per-file statement,</span>
+<span class="sd">  ``file_sources``, an#345), or any file of a version whose lineage carries</span>
+<span class="sd">  per-file statements: the strictest of those statements (else its label</span>
+<span class="sd">  computed without per-file statements), the same bytes at its other paths,</span>
+<span class="sd">  and what its lineage says about these bytes — so a later statement never</span>
+<span class="sd">  relaxes an earlier one (:class:`an.library.api._PerFileRule`). A freer</span>
+<span class="sd">  statement is kept and recorded beside the class under ``conflicts``</span>
+<span class="sd">  (an#357: inform, don't block).</span>
 
 <span class="sd">**Where the statements live.** Each library keeps a derived store,</span>
 <span class="sd">``blob_rights``: ``sha256 -&gt; {"&lt;library&gt;:&lt;asset_id&gt;": statement}``, one entry</span>

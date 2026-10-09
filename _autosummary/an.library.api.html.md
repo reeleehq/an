@@ -162,7 +162,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A character published with no rig: the compiler would draw only its placeholder.
 
-### *class* an.library.api.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=())
+### *class* an.library.api.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=(), conflicts=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -176,11 +176,20 @@ sentence each ([`unknown_advice()`](#an.library.api.unknown_advice)).
 * **Type:**
   For an `unknown` result
 
-### an.library.api.effective_rights(libraries, version, \*, floor=<object object>, owner=None)
+#### conflicts *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[RightsConflict, ...]* *= ()*
+
+statements freer
+than what binds their bytes, kept beside the stricter one that binds.
+
+* **Type:**
+  The rights conflicts the version records (an#357)
+
+### an.library.api.effective_rights(libraries, version, \*, floor=<object object>, owner=None, rule=None)
 
 The rights of a version, recomputed from its sources, its lineage and its bytes.
 
 owner: the library holding `version` (see [`version_sources()`](#an.library.api.version_sources))
+rule: a `_PerFileRule` to share with the caller (one per operation)
 
 * **Return type:**
   [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
@@ -231,7 +240,7 @@ index: the index to read (default: a scan of the stores)
 0
 ```
 
-### an.library.api.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False)
+### an.library.api.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False, strict_assets=False)
 
 Copy one version into another library — by default the core `an` library.
 
@@ -248,11 +257,13 @@ from the source version, with the record’s curation carried over.
   the one promoted (another character that happens to share the id), it is
   refused: promoting would make it a new version of an unrelated asset.
   `as_id` promotes under another id.
+- `strict_assets`: refuse a copy that would record a rights conflict
+  ([`publish()`](#an.library.api.publish)’s, an#357), instead of recording it.
 
 * **Return type:**
   [`PublishResult`](#an.library.api.PublishResult)
 
-### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True, license_parts=None, file_sources=None)
+### an.library.api.publish(library, asset_id, doc, files=None, \*, source=None, relicense=None, relabel=None, derived_from=(), title=None, family=None, style=None, origin=None, status=None, tags=None, replace_curation=False, note=None, expect_head=<object object>, search=None, carry_source=True, license_parts=None, file_sources=None, strict_assets=False)
 
 Publish `doc` and its `files` as the next version of `asset_id` in `library`.
 
@@ -326,7 +337,8 @@ license_parts: `{glob: source}` — a per-file statement for every stored
   relaxes what the bytes already carry — the per-part source of the same
   file, the same bytes at another path, and every earlier statement of
   this asset’s chain or of a version it derives from about them: a
-  looser one is refused unless `relicense` records who and why (the
+  looser one is kept and recorded as a rights conflict, the stricter
+  binding (an#357), unless `relicense` records who and why (the
   relicence then lists the digests it covers, and a per-file statement
   stricter than it keeps binding). At a later publish a statement is
   carried for its file while the bytes are unchanged; a file changed
@@ -334,6 +346,11 @@ license_parts: `{glob: source}` — a per-file statement for every stored
 
 file_sources: `{path: source}` — the same, by exact stored path (what a
 : stored version holds; [`promote()`](#an.library.api.promote) passes it)
+
+strict_assets: refuse a publish that would record a rights conflict
+: (`RightsConflict`: a per-part or per-file statement freer than
+  what binds its bytes) instead of recording it with a
+  `RightsConflictWarning` (an#357: inform, don’t block, by default)
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -375,6 +392,7 @@ repair a library whose index was lost or written by an older `an`. It also
 (re-)registers the library’s root in the machine registry
 ([`an.library.registry`](an.library.registry.html.md#module-an.library.registry)), so a library made at a custom root before the
 registry existed becomes visible to every other library’s rights floor.
+`reindex_changes()` says first what a rebuild would change.
 
 The new index is computed in full first, then written over the old one
 entry by entry, and only then are stale entries removed: a crash midway
@@ -485,7 +503,7 @@ stricter.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
-### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None, per_file=True)
+### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None, per_file=True, rule=None)
 
 Every labelled source a version’s rights depend on — its own, its lineage, its bytes.
 

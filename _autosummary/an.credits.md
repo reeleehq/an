@@ -41,15 +41,15 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Classes
 
-| [`CreditsReport`](#an.credits.CreditsReport)([entries])   | Everything a project owes, split by whether we actually know.   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`CreditsReport`](#an.credits.CreditsReport)([entries, conflicts])   | Everything a project owes, split by whether we actually know.   |
+|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|
 
 ### Exceptions
 
 | [`PrivateStudyWarning`](#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
-### *class* an.credits.CreditsReport(entries=<factory>)
+### *class* an.credits.CreditsReport(entries=<factory>, conflicts=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -59,6 +59,15 @@ Everything a project owes, split by whether we actually know.
 
 Whether a COMMERCIAL video may contain everything here (publishable,
 and nothing non-commercial).
+
+#### conflicts *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]]*
+
+rights conflicts a library check-out carried
+(an#357) — a statement about some bytes freer than the one that binds
+them. Informative: the binding statement is already among the entries.
+
+* **Type:**
+  `(asset, conflict)`
 
 #### format()
 

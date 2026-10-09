@@ -95,7 +95,7 @@ extra: further libraries where the members resolve, by package name, comma-separ
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.promote(ref, package='', root='', core_root='', as_id='', allow_restricted=False)
+### an.library.cli.promote(ref, package='', root='', core_root='', as_id='', allow_restricted=False, strict_assets=False)
 
 Copy a version into the core an library, so other genres can reuse it.
 
@@ -105,11 +105,12 @@ root: that library’s root
 core_root: the core an library’s root (default: its data folder)
 as_id: promote under another id (when the core library has an unrelated asset with this one)
 allow_restricted: copy a private or unknown version anyway (it otherwise never leaves its library)
+strict_assets: refuse a copy that would record a rights conflict, instead of recording it
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='', license_part=None)
+### an.library.cli.publish(folder, asset_id, package='an', root='', title='', family='', style='', origin='', status='', tags='', note='', derived_from='', license='', provider='', author='', source_url='', relicense_by='', relicense_reason='', relabel_by='', relabel_reason='', expect_head='', replace_curation=False, extra='', license_part=None, strict_assets=False)
 
 Publish an asset folder as the next version of `asset_id`.
 
@@ -136,7 +137,8 @@ relabel_reason: why — recorded (on the version, or on the head it labels) and 
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated
-license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names (‘\*’ stays in one folder, ‘\*\*’ crosses folders, case-exact); every other file takes the version’s label without them. Never looser than what the bytes already carry, unless relicensed
+license_part: GLOB=LICENCE[,provider=…,author=…,url=…], repeatable — a licence for the files the glob names (‘\*’ stays in one folder, ‘\*\*’ crosses folders, case-exact); every other file takes the version’s label without them. One looser than what the bytes already carry is kept and reported as a rights conflict, the stricter binding, unless relicensed
+strict_assets: refuse a publish that would record a rights conflict (a per-part or per-file licence freer than what binds its bytes) instead of recording it
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
