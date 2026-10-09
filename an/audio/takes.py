@@ -505,7 +505,9 @@ class ProsodyTakeScorer:
         """
         if not is_short_line(text):
             return dict(self.targets)
-        return {k: v for k, v in self.targets.items() if k not in SHORT_LINE_INAPPLICABLE}
+        return {
+            k: v for k, v in self.targets.items() if k not in SHORT_LINE_INAPPLICABLE
+        }
 
     def agrees_with(self, version: str, text: str) -> bool:
         """Whether a choice recorded by scorer ``version`` is the one this scorer
@@ -533,9 +535,7 @@ class ProsodyTakeScorer:
             samples, self.sr, text=text, reference_hz=self.reference_hz
         )
         scored = self.applicable(text)
-        outside, off_centre = (
-            target_distance(stats, scored) if scored else (0.0, 0.0)
-        )
+        outside, off_centre = target_distance(stats, scored) if scored else (0.0, 0.0)
         measured = {
             k: (
                 None
