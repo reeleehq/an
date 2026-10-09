@@ -14,6 +14,9 @@ an.audio.takes
       MAX_TAKES
       TAKES_RECORD_VERSION
       PROSODY_SCORER_VERSION
+      PROSODY_SCORER_AGREES_OFF_SHORT
+      SHORT_LINE_SYLLABLES
+      SHORT_LINE_INAPPLICABLE
       SCORING_SAMPLE_RATE
       REROLL_HINT
       SCORERS
@@ -25,6 +28,7 @@ an.audio.takes
       audio_digest
       choose_take
       decode_for_scoring
+      is_short_line
       make_take_scorer
       normalize_takes
       read_takes_record

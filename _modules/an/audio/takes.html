@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=3a7bb2b6"></script>
+    <script src="../../../_static/documentation_options.js?v=0d8338dc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.235" />
+  <meta name="docsearch:version" content="0.1.236" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -812,7 +812,28 @@ window.runMermaid = runMermaid;</script>
 <span class="n">TAKES_RECORD_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1">#: The prosody scorer's own version (its distance and tie-break); the</span>
 <span class="c1">#: estimator's version (:data:`an.verify.prosody.ESTIMATOR_VERSION`) is joined to it.</span>
-<span class="n">PROSODY_SCORER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span>
+<span class="c1">#: 2 (an#404): a short line is scored only on the targets it can show.</span>
+<span class="n">PROSODY_SCORER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"2"</span>
+<span class="c1">#: The prosody scorer versions whose choice the current one agrees with on a</span>
+<span class="c1">#: line that is NOT short (:meth:`ProsodyTakeScorer.agrees_with`): version 2</span>
+<span class="c1">#: changed short lines only, so a longer line's recorded pick is no "older</span>
+<span class="c1">#: scorer" to report.</span>
+<span class="n">PROSODY_SCORER_AGREES_OFF_SHORT</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"1"</span><span class="p">})</span>
+<span class="c1">#: A line with fewer syllables than this (:func:`an.verify.prosody.count_syllables`)</span>
+<span class="c1">#: is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).</span>
+<span class="n">SHORT_LINE_SYLLABLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="c1">#: The targets a short line cannot show — they need several words — and is not</span>
+<span class="c1">#: scored on (recorded as ``not_applicable`` in the take's detail).</span>
+<span class="n">SHORT_LINE_INAPPLICABLE</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"pause_share"</span><span class="p">,</span>
+        <span class="s2">"pauses_per_min"</span><span class="p">,</span>
+        <span class="s2">"pause_median_s"</span><span class="p">,</span>
+        <span class="s2">"pause_p90_s"</span><span class="p">,</span>
+        <span class="s2">"speech_rate_sps"</span><span class="p">,</span>
+        <span class="s2">"articulation_rate_sps"</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
 <span class="c1">#: The sample rate takes are decoded at for scoring — the one the targets were measured at.</span>
 <span class="n">SCORING_SAMPLE_RATE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span>
 
@@ -1190,6 +1211,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    The score is :func:`an.verify.prosody.target_distance`: the summed distance</span>
 <span class="sd">    outside the ranges, then the summed distance from their midpoints (the</span>
 <span class="sd">    tie-break between takes all on target), in units of each range's width.</span>
+
+<span class="sd">    A SHORT line (fewer than :data:`SHORT_LINE_SYLLABLES` syllables) is scored</span>
+<span class="sd">    only on the targets it can show: the pause and rate targets</span>
+<span class="sd">    (:data:`SHORT_LINE_INAPPLICABLE`) are left out and recorded as</span>
+<span class="sd">    ``not_applicable`` (an#404). Otherwise a one-word line's choice measured</span>
+<span class="sd">    its shortness, every target it cannot measure costing a range-width.</span>
+<span class="sd">    That changed version 1's choices for short lines only; a pick already</span>
+<span class="sd">    recorded keeps its take and its keys (the choice key never holds the</span>
+<span class="sd">    version), and a longer line's pick is not reported as made by an older</span>
+<span class="sd">    scorer (:meth:`agrees_with`).</span>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCORER</span>
@@ -1207,6 +1238,9 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">reference_hz</span> <span class="o">=</span> <span class="n">reference_hz</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sr</span> <span class="o">=</span> <span class="n">sr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PROSODY_SCORER_VERSION</span><span class="si">}</span><span class="s2">+estimator</span><span class="si">{</span><span class="n">ESTIMATOR_VERSION</span><span class="si">}</span><span class="s2">"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_agrees_off_short</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">+estimator</span><span class="si">{</span><span class="n">ESTIMATOR_VERSION</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">PROSODY_SCORER_AGREES_OFF_SHORT</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"targets"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">reference_hz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"reference_hz"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reference_hz</span><span class="p">)</span>
@@ -1219,8 +1253,44 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"of that range (0 inside; a value this take cannot measure, listed in "</span>
         <span class="s2">"`unmeasured`, counts 1). off_centre: each value's distance from its "</span>
         <span class="s2">"range's middle, in the same units (the tie-break). `measured` holds the "</span>
-        <span class="s2">"values, `misses` the targets missed."</span>
+        <span class="s2">"values, `misses` the targets missed. A line under "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SHORT_LINE_SYLLABLES</span><span class="si">}</span><span class="s2"> syllables is not scored on the targets it cannot "</span>
+        <span class="s2">"show (pauses and rates), listed in `not_applicable`."</span>
     <span class="p">)</span>
+
+<div class="viewcode-block" id="ProsodyTakeScorer.applicable">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.takes.html#an.audio.takes.ProsodyTakeScorer.applicable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""The targets ``text`` is scored on: all of them, or for a short line</span>
+<span class="sd">        those it can show (an#404).</span>
+
+<span class="sd">        &gt;&gt;&gt; s = ProsodyTakeScorer({"f0_sd_st": [2, 4], "pause_share": [0.1, 0.2]})</span>
+<span class="sd">        &gt;&gt;&gt; sorted(s.applicable("Hi!")), sorted(s.applicable("He did not do the job."))</span>
+<span class="sd">        (['f0_sd_st'], ['f0_sd_st', 'pause_share'])</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_short_line</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SHORT_LINE_INAPPLICABLE</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ProsodyTakeScorer.agrees_with">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.takes.html#an.audio.takes.ProsodyTakeScorer.agrees_with">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">agrees_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether a choice recorded by scorer ``version`` is the one this scorer</span>
+<span class="sd">        would make for ``text``: the same version, or an older one that scored</span>
+<span class="sd">        a line like this one the same way (version 1, on a line that is not short).</span>
+
+<span class="sd">        &gt;&gt;&gt; s = ProsodyTakeScorer({"f0_sd_st": [2, 4]})</span>
+<span class="sd">        &gt;&gt;&gt; old = s.version.replace("2+", "1+", 1)</span>
+<span class="sd">        &gt;&gt;&gt; s.agrees_with(old, "He did not do the job."), s.agrees_with(old, "Hi!")</span>
+<span class="sd">        (True, False)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">version</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">version</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agrees_off_short</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_short_line</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="ProsodyTakeScorer.check_available">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.takes.html#an.audio.takes.ProsodyTakeScorer.check_available">[docs]</a>
@@ -1236,7 +1306,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">stats</span> <span class="o">=</span> <span class="n">measure_prosody</span><span class="p">(</span>
             <span class="n">samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sr</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">reference_hz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_hz</span>
         <span class="p">)</span>
-        <span class="n">outside</span><span class="p">,</span> <span class="n">off_centre</span> <span class="o">=</span> <span class="n">target_distance</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">scored</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applicable</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">outside</span><span class="p">,</span> <span class="n">off_centre</span> <span class="o">=</span> <span class="n">target_distance</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">scored</span><span class="p">)</span> <span class="k">if</span> <span class="n">scored</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">measured</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">k</span><span class="p">:</span> <span class="p">(</span>
                 <span class="kc">None</span>
@@ -1247,7 +1318,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">}</span>
         <span class="n">misses</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">k</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="n">scored</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">measured</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">lo</span> <span class="o">&lt;=</span> <span class="n">measured</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">hi</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">TakeScore</span><span class="p">(</span>
@@ -1258,9 +1329,25 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># What a short line cannot show (an#397): a one-word line has</span>
                 <span class="c1"># no pauses and no rate to measure, and each such target costs</span>
                 <span class="c1"># a whole range-width in `outside`.</span>
-                <span class="s2">"unmeasured"</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="k">if</span> <span class="n">measured</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="s2">"unmeasured"</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">scored</span> <span class="k">if</span> <span class="n">measured</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="c1"># What it was not scored on, being too short to show (an#404).</span>
+                <span class="s2">"not_applicable"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">scored</span><span class="p">)),</span>
             <span class="p">},</span>
         <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="is_short_line">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.takes.html#an.audio.takes.is_short_line">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_short_line</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``text`` is too short to show pauses or a rate (an#404).</span>
+
+<span class="sd">    &gt;&gt;&gt; is_short_line("Hi!"), is_short_line("[deadpan] No."), is_short_line("He did not do the job.")</span>
+<span class="sd">    (True, True, False)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.prosody</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_syllables</span>
+
+    <span class="k">return</span> <span class="n">count_syllables</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">SHORT_LINE_SYLLABLES</span></div>
 
 
 

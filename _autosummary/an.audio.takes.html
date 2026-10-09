@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=3a7bb2b6"></script>
+    <script src="../_static/documentation_options.js?v=0d8338dc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.235" />
+  <meta name="docsearch:version" content="0.1.236" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -706,13 +706,22 @@ choice key, chosen from the takes already cached where it can.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.PROSODY_SCORER_VERSION" title="an.audio.takes.PROSODY_SCORER_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROSODY_SCORER_VERSION</span></code></a></p></td>
 <td><p>The prosody scorer's own version (its distance and tie-break); the estimator's version (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.ESTIMATOR_VERSION</span></code></a>) is joined to it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.SCORING_SAMPLE_RATE" title="an.audio.takes.SCORING_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORING_SAMPLE_RATE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT" title="an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROSODY_SCORER_AGREES_OFF_SHORT</span></code></a></p></td>
+<td><p>The prosody scorer versions whose choice the current one agrees with on a line that is NOT short (<a class="reference internal" href="#an.audio.takes.ProsodyTakeScorer.agrees_with" title="an.audio.takes.ProsodyTakeScorer.agrees_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ProsodyTakeScorer.agrees_with()</span></code></a>): version 2 changed short lines only, so a longer line's recorded pick is no &quot;older scorer&quot; to report.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.SHORT_LINE_SYLLABLES" title="an.audio.takes.SHORT_LINE_SYLLABLES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHORT_LINE_SYLLABLES</span></code></a></p></td>
+<td><p>A line with fewer syllables than this (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.count_syllables" title="an.verify.prosody.count_syllables"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.verify.prosody.count_syllables()</span></code></a>) is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.SHORT_LINE_INAPPLICABLE" title="an.audio.takes.SHORT_LINE_INAPPLICABLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHORT_LINE_INAPPLICABLE</span></code></a></p></td>
+<td><p>The targets a short line cannot show — they need several words — and is not scored on (recorded as <code class="docutils literal notranslate"><span class="pre">not_applicable</span></code> in the take's detail).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.SCORING_SAMPLE_RATE" title="an.audio.takes.SCORING_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORING_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The sample rate takes are decoded at for scoring — the one the targets were measured at.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a></p></td>
 <td><p>What to run when a recorded take must be replaced (named in every error).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORERS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORERS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TakesSpec</span> <span class="pre">-&gt;</span> <span class="pre">TakeScorer</span></code>.</p></td>
 </tr>
 </tbody>
@@ -730,34 +739,37 @@ choice key, chosen from the takes already cached where it can.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.decode_for_scoring" title="an.audio.takes.decode_for_scoring"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_for_scoring</span></code></a>(audio, *[, sr])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> as mono float samples at <code class="docutils literal notranslate"><span class="pre">sr</span></code> Hz, decoded by ffmpeg — the decoder the targets were measured with, and the only one, so the same bytes score the same on every machine.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.make_take_scorer" title="an.audio.takes.make_take_scorer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_take_scorer</span></code></a>(spec)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.is_short_line" title="an.audio.takes.is_short_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_short_line</span></code></a>(text)</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">text</span></code> is too short to show pauses or a rate (an#404).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.make_take_scorer" title="an.audio.takes.make_take_scorer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_take_scorer</span></code></a>(spec)</p></td>
 <td><p>The scorer <code class="docutils literal notranslate"><span class="pre">spec</span></code> names, from <a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SCORERS</span></code></a> (the pipeline's default <code class="docutils literal notranslate"><span class="pre">take_scorer</span></code>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.normalize_takes" title="an.audio.takes.normalize_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_takes</span></code></a>(raw)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.normalize_takes" title="an.audio.takes.normalize_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_takes</span></code></a>(raw)</p></td>
 <td><p>The canonical <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration of a voice document (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for none).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.read_takes_record" title="an.audio.takes.read_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_takes_record</span></code></a>(store, key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.read_takes_record" title="an.audio.takes.read_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_takes_record</span></code></a>(store, key)</p></td>
 <td><p>The takes record under <code class="docutils literal notranslate"><span class="pre">key</span></code> in <code class="docutils literal notranslate"><span class="pre">store</span></code> (<code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.require_ffmpeg" title="an.audio.takes.require_ffmpeg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_ffmpeg</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.require_ffmpeg" title="an.audio.takes.require_ffmpeg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_ffmpeg</span></code></a>()</p></td>
 <td><p>Raise <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> with the install hint when ffmpeg is not on PATH.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.scorer_identity" title="an.audio.takes.scorer_identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scorer_identity</span></code></a>(scorer)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.scorer_identity" title="an.audio.takes.scorer_identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scorer_identity</span></code></a>(scorer)</p></td>
 <td><p>The scorer as a record names it: name, version and configuration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.style_voice_role" title="an.audio.takes.style_voice_role"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_voice_role</span></code></a>(spec, role)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.style_voice_role" title="an.audio.takes.style_voice_role"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_voice_role</span></code></a>(spec, role)</p></td>
 <td><p>The partial voice document a style casts <code class="docutils literal notranslate"><span class="pre">role</span></code> as, with target NAMES resolved.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.takes_choice_part" title="an.audio.takes.takes_choice_part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_choice_part</span></code></a>(scorer, n)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.takes_choice_part" title="an.audio.takes.takes_choice_part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_choice_part</span></code></a>(scorer, n)</p></td>
 <td><p>What identifies a CHOICE among <code class="docutils literal notranslate"><span class="pre">n</span></code> takes: the scorer's name and its configuration, never its version — a new scorer version keeps the takes it chose, and says so (<a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-data docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.takes_spec" title="an.audio.takes.takes_spec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_spec</span></code></a>(raw, *[, direction])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.takes_spec" title="an.audio.takes.takes_spec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_spec</span></code></a>(raw, *[, direction])</p></td>
 <td><p>The takes a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code> gets from a voice's <code class="docutils literal notranslate"><span class="pre">takes</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for one take.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_takes</span></code></a>(mall, voice_id, *[, direction, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_takes</span></code></a>(mall, voice_id, *[, direction, ...])</p></td>
 <td><p>The takes <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code> declares for a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.write_takes_record" title="an.audio.takes.write_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_takes_record</span></code></a>(store, key, record)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.write_takes_record" title="an.audio.takes.write_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_takes_record</span></code></a>(store, key, record)</p></td>
 <td><p>Write <code class="docutils literal notranslate"><span class="pre">record</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> (stable, indented JSON); no store, no record.</p></td>
 </tr>
 </tbody>
@@ -814,10 +826,20 @@ choice key, chosen from the takes already cached where it can.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">PROSODY_SCORER_AGREES_OFF_SHORT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'1'})</span></span><a class="headerlink" href="#an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT" title="Link to this definition">#</a></dt>
+<dd><p>The prosody scorer versions whose choice the current one agrees with on a
+line that is NOT short (<a class="reference internal" href="#an.audio.takes.ProsodyTakeScorer.agrees_with" title="an.audio.takes.ProsodyTakeScorer.agrees_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ProsodyTakeScorer.agrees_with()</span></code></a>): version 2
+changed short lines only, so a longer line’s recorded pick is no “older
+scorer” to report.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.audio.takes.PROSODY_SCORER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">PROSODY_SCORER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'1'</span></span><a class="headerlink" href="#an.audio.takes.PROSODY_SCORER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">PROSODY_SCORER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'2'</span></span><a class="headerlink" href="#an.audio.takes.PROSODY_SCORER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>The prosody scorer’s own version (its distance and tie-break); the
-estimator’s version (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.ESTIMATOR_VERSION</span></code></a>) is joined to it.</p>
+estimator’s version (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.ESTIMATOR_VERSION</span></code></a>) is joined to it.
+2 (an#404): a short line is scored only on the targets it can show.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -828,12 +850,57 @@ estimator’s version (<a class="reference internal" href="an.verify.prosody.htm
 <p>The score is <a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.target_distance" title="an.verify.prosody.target_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.verify.prosody.target_distance()</span></code></a>: the summed distance
 outside the ranges, then the summed distance from their midpoints (the
 tie-break between takes all on target), in units of each range’s width.</p>
+<p>A SHORT line (fewer than <a class="reference internal" href="#an.audio.takes.SHORT_LINE_SYLLABLES" title="an.audio.takes.SHORT_LINE_SYLLABLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">SHORT_LINE_SYLLABLES</span></code></a> syllables) is scored
+only on the targets it can show: the pause and rate targets
+(<a class="reference internal" href="#an.audio.takes.SHORT_LINE_INAPPLICABLE" title="an.audio.takes.SHORT_LINE_INAPPLICABLE"><code class="xref py py-data docutils literal notranslate"><span class="pre">SHORT_LINE_INAPPLICABLE</span></code></a>) are left out and recorded as
+<code class="docutils literal notranslate"><span class="pre">not_applicable</span></code> (an#404). Otherwise a one-word line’s choice measured
+its shortness, every target it cannot measure costing a range-width.
+That changed version 1’s choices for short lines only; a pick already
+recorded keeps its take and its keys (the choice key never holds the
+version), and a longer line’s pick is not reported as made by an older
+scorer (<a class="reference internal" href="#an.audio.takes.ProsodyTakeScorer.agrees_with" title="an.audio.takes.ProsodyTakeScorer.agrees_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">agrees_with()</span></code></a>).</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.SCORE_MEANS">
-<span class="sig-name descname"><span class="pre">SCORE_MEANS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;score</span> <span class="pre">=</span> <span class="pre">[outside,</span> <span class="pre">off_centre],</span> <span class="pre">lower</span> <span class="pre">is</span> <span class="pre">better;</span> <span class="pre">the</span> <span class="pre">take</span> <span class="pre">with</span> <span class="pre">the</span> <span class="pre">smallest</span> <span class="pre">pair</span> <span class="pre">is</span> <span class="pre">kept.</span> <span class="pre">outside:</span> <span class="pre">for</span> <span class="pre">each</span> <span class="pre">target</span> <span class="pre">in</span> <span class="pre">scorer.config.targets,</span> <span class="pre">how</span> <span class="pre">far</span> <span class="pre">the</span> <span class="pre">measured</span> <span class="pre">value</span> <span class="pre">sits</span> <span class="pre">outside</span> <span class="pre">its</span> <span class="pre">[low,</span> <span class="pre">high]</span> <span class="pre">range,</span> <span class="pre">in</span> <span class="pre">widths</span> <span class="pre">of</span> <span class="pre">that</span> <span class="pre">range</span> <span class="pre">(0</span> <span class="pre">inside;</span> <span class="pre">a</span> <span class="pre">value</span> <span class="pre">this</span> <span class="pre">take</span> <span class="pre">cannot</span> <span class="pre">measure,</span> <span class="pre">listed</span> <span class="pre">in</span> <span class="pre">`unmeasured`,</span> <span class="pre">counts</span> <span class="pre">1).</span> <span class="pre">off_centre:</span> <span class="pre">each</span> <span class="pre">value's</span> <span class="pre">distance</span> <span class="pre">from</span> <span class="pre">its</span> <span class="pre">range's</span> <span class="pre">middle,</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">units</span> <span class="pre">(the</span> <span class="pre">tie-break).</span> <span class="pre">`measured`</span> <span class="pre">holds</span> <span class="pre">the</span> <span class="pre">values,</span> <span class="pre">`misses`</span> <span class="pre">the</span> <span class="pre">targets</span> <span class="pre">missed.&quot;</span></span><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.SCORE_MEANS" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">SCORE_MEANS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;score</span> <span class="pre">=</span> <span class="pre">[outside,</span> <span class="pre">off_centre],</span> <span class="pre">lower</span> <span class="pre">is</span> <span class="pre">better;</span> <span class="pre">the</span> <span class="pre">take</span> <span class="pre">with</span> <span class="pre">the</span> <span class="pre">smallest</span> <span class="pre">pair</span> <span class="pre">is</span> <span class="pre">kept.</span> <span class="pre">outside:</span> <span class="pre">for</span> <span class="pre">each</span> <span class="pre">target</span> <span class="pre">in</span> <span class="pre">scorer.config.targets,</span> <span class="pre">how</span> <span class="pre">far</span> <span class="pre">the</span> <span class="pre">measured</span> <span class="pre">value</span> <span class="pre">sits</span> <span class="pre">outside</span> <span class="pre">its</span> <span class="pre">[low,</span> <span class="pre">high]</span> <span class="pre">range,</span> <span class="pre">in</span> <span class="pre">widths</span> <span class="pre">of</span> <span class="pre">that</span> <span class="pre">range</span> <span class="pre">(0</span> <span class="pre">inside;</span> <span class="pre">a</span> <span class="pre">value</span> <span class="pre">this</span> <span class="pre">take</span> <span class="pre">cannot</span> <span class="pre">measure,</span> <span class="pre">listed</span> <span class="pre">in</span> <span class="pre">`unmeasured`,</span> <span class="pre">counts</span> <span class="pre">1).</span> <span class="pre">off_centre:</span> <span class="pre">each</span> <span class="pre">value's</span> <span class="pre">distance</span> <span class="pre">from</span> <span class="pre">its</span> <span class="pre">range's</span> <span class="pre">middle,</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">units</span> <span class="pre">(the</span> <span class="pre">tie-break).</span> <span class="pre">`measured`</span> <span class="pre">holds</span> <span class="pre">the</span> <span class="pre">values,</span> <span class="pre">`misses`</span> <span class="pre">the</span> <span class="pre">targets</span> <span class="pre">missed.</span> <span class="pre">A</span> <span class="pre">line</span> <span class="pre">under</span> <span class="pre">4</span> <span class="pre">syllables</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">scored</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">targets</span> <span class="pre">it</span> <span class="pre">cannot</span> <span class="pre">show</span> <span class="pre">(pauses</span> <span class="pre">and</span> <span class="pre">rates),</span> <span class="pre">listed</span> <span class="pre">in</span> <span class="pre">`not_applicable`.&quot;</span></span><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.SCORE_MEANS" title="Link to this definition">#</a></dt>
 <dd><p>What a take’s <code class="docutils literal notranslate"><span class="pre">score</span></code> pair means, written into each takes record (an#397).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.agrees_with">
+<span class="sig-name descname"><span class="pre">agrees_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#ProsodyTakeScorer.agrees_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.agrees_with" title="Link to this definition">#</a></dt>
+<dd><p>Whether a choice recorded by scorer <code class="docutils literal notranslate"><span class="pre">version</span></code> is the one this scorer
+would make for <code class="docutils literal notranslate"><span class="pre">text</span></code>: the same version, or an older one that scored
+a line like this one the same way (version 1, on a line that is not short).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">ProsodyTakeScorer</span><span class="p">({</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"2+"</span><span class="p">,</span> <span class="s2">"1+"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">agrees_with</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="s2">"He did not do the job."</span><span class="p">),</span> <span class="n">s</span><span class="o">.</span><span class="n">agrees_with</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="s2">"Hi!"</span><span class="p">)</span>
+<span class="go">(True, False)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.applicable">
+<span class="sig-name descname"><span class="pre">applicable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#ProsodyTakeScorer.applicable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.applicable" title="Link to this definition">#</a></dt>
+<dd><p>The targets <code class="docutils literal notranslate"><span class="pre">text</span></code> is scored on: all of them, or for a short line
+those it can show (an#404).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">ProsodyTakeScorer</span><span class="p">({</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">"pause_share"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">applicable</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">)),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">applicable</span><span class="p">(</span><span class="s2">"He did not do the job."</span><span class="p">))</span>
+<span class="go">(['f0_sd_st'], ['f0_sd_st', 'pause_share'])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -870,6 +937,20 @@ tie-break between takes all on target), in units of each range’s width.</p>
 <dt class="sig sig-object py" id="an.audio.takes.SCORING_SAMPLE_RATE">
 <span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">SCORING_SAMPLE_RATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16000</span></span><a class="headerlink" href="#an.audio.takes.SCORING_SAMPLE_RATE" title="Link to this definition">#</a></dt>
 <dd><p>The sample rate takes are decoded at for scoring — the one the targets were measured at.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.SHORT_LINE_INAPPLICABLE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">SHORT_LINE_INAPPLICABLE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'articulation_rate_sps',</span> <span class="pre">'pause_median_s',</span> <span class="pre">'pause_p90_s',</span> <span class="pre">'pause_share',</span> <span class="pre">'pauses_per_min',</span> <span class="pre">'speech_rate_sps'})</span></span><a class="headerlink" href="#an.audio.takes.SHORT_LINE_INAPPLICABLE" title="Link to this definition">#</a></dt>
+<dd><p>The targets a short line cannot show — they need several words — and is not
+scored on (recorded as <code class="docutils literal notranslate"><span class="pre">not_applicable</span></code> in the take’s detail).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.SHORT_LINE_SYLLABLES">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">SHORT_LINE_SYLLABLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#an.audio.takes.SHORT_LINE_SYLLABLES" title="Link to this definition">#</a></dt>
+<dd><p>A line with fewer syllables than this (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.count_syllables" title="an.verify.prosody.count_syllables"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.verify.prosody.count_syllables()</span></code></a>)
+is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -980,6 +1061,21 @@ the targets were measured with, and the only one, so the same bytes score the
 same on every machine. Raises <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> without ffmpeg.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.is_short_line">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">is_short_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#is_short_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.is_short_line" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">text</span></code> is too short to show pauses or a rate (an#404).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_short_line</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">),</span> <span class="n">is_short_line</span><span class="p">(</span><span class="s2">"[deadpan] No."</span><span class="p">),</span> <span class="n">is_short_line</span><span class="p">(</span><span class="s2">"He did not do the job."</span><span class="p">)</span>
+<span class="go">(True, True, False)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1183,15 +1279,20 @@ declaration raises <a class="reference internal" href="#an.audio.takes.VoiceTake
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.DEFAULT_SCORER"><code class="docutils literal notranslate"><span class="pre">DEFAULT_SCORER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.MAX_TAKES"><code class="docutils literal notranslate"><span class="pre">MAX_TAKES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT"><code class="docutils literal notranslate"><span class="pre">PROSODY_SCORER_AGREES_OFF_SHORT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.PROSODY_SCORER_VERSION"><code class="docutils literal notranslate"><span class="pre">PROSODY_SCORER_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.SCORE_MEANS"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.SCORE_MEANS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.agrees_with"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.agrees_with()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.applicable"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.applicable()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.check_available"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.check_available()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.REROLL_HINT"><code class="docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SCORERS"><code class="docutils literal notranslate"><span class="pre">SCORERS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SCORING_SAMPLE_RATE"><code class="docutils literal notranslate"><span class="pre">SCORING_SAMPLE_RATE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SHORT_LINE_INAPPLICABLE"><code class="docutils literal notranslate"><span class="pre">SHORT_LINE_INAPPLICABLE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SHORT_LINE_SYLLABLES"><code class="docutils literal notranslate"><span class="pre">SHORT_LINE_SYLLABLES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_KEY"><code class="docutils literal notranslate"><span class="pre">TAKES_KEY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_RECORD_VERSION"><code class="docutils literal notranslate"><span class="pre">TAKES_RECORD_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_STORE"><code class="docutils literal notranslate"><span class="pre">TAKES_STORE</span></code></a></li>
@@ -1207,6 +1308,7 @@ declaration raises <a class="reference internal" href="#an.audio.takes.VoiceTake
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.audio_digest"><code class="docutils literal notranslate"><span class="pre">audio_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.choose_take"><code class="docutils literal notranslate"><span class="pre">choose_take()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.decode_for_scoring"><code class="docutils literal notranslate"><span class="pre">decode_for_scoring()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.is_short_line"><code class="docutils literal notranslate"><span class="pre">is_short_line()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.make_take_scorer"><code class="docutils literal notranslate"><span class="pre">make_take_scorer()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.normalize_takes"><code class="docutils literal notranslate"><span class="pre">normalize_takes()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.read_takes_record"><code class="docutils literal notranslate"><span class="pre">read_takes_record()</span></code></a></li>

@@ -81,16 +81,19 @@ an.audio.takes.VoiceTakesError: takes: n=3 with the prosody scorer needs `target
 
 ### Module Attributes
 
-| [`TAKES_KEY`](#an.audio.takes.TAKES_KEY)              | The key, in a voice document, declaring best-of-N takes.                                                                                                                                                                           |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`TAKES_STORE`](#an.audio.takes.TAKES_STORE)            | The name of the store the choices are recorded in.                                                                                                                                                                                 |
-| [`DEFAULT_SCORER`](#an.audio.takes.DEFAULT_SCORER)         | The scorer a `takes` declaration uses when it names none.                                                                                                                                                                          |
-| [`MAX_TAKES`](#an.audio.takes.MAX_TAKES)              | each one is a billed request.                                                                                                                                                                                                      |
-| [`TAKES_RECORD_VERSION`](#an.audio.takes.TAKES_RECORD_VERSION)   | The shape of a record in `mall["takes"]`; raised when a field changes meaning.                                                                                                                                                     |
-| [`PROSODY_SCORER_VERSION`](#an.audio.takes.PROSODY_SCORER_VERSION) | The prosody scorer's own version (its distance and tie-break); the estimator's version ([`an.verify.prosody.ESTIMATOR_VERSION`](an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)) is joined to it. |
-| [`SCORING_SAMPLE_RATE`](#an.audio.takes.SCORING_SAMPLE_RATE)    | The sample rate takes are decoded at for scoring — the one the targets were measured at.                                                                                                                                           |
-| [`REROLL_HINT`](#an.audio.takes.REROLL_HINT)            | What to run when a recorded take must be replaced (named in every error).                                                                                                                                                          |
-| [`SCORERS`](#an.audio.takes.SCORERS)                | `TakesSpec -> TakeScorer`.                                                                                                                                                                                                         |
+| [`TAKES_KEY`](#an.audio.takes.TAKES_KEY)                       | The key, in a voice document, declaring best-of-N takes.                                                                                                                                                                                                                                  |
+|----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`TAKES_STORE`](#an.audio.takes.TAKES_STORE)                     | The name of the store the choices are recorded in.                                                                                                                                                                                                                                        |
+| [`DEFAULT_SCORER`](#an.audio.takes.DEFAULT_SCORER)                  | The scorer a `takes` declaration uses when it names none.                                                                                                                                                                                                                                 |
+| [`MAX_TAKES`](#an.audio.takes.MAX_TAKES)                       | each one is a billed request.                                                                                                                                                                                                                                                             |
+| [`TAKES_RECORD_VERSION`](#an.audio.takes.TAKES_RECORD_VERSION)            | The shape of a record in `mall["takes"]`; raised when a field changes meaning.                                                                                                                                                                                                            |
+| [`PROSODY_SCORER_VERSION`](#an.audio.takes.PROSODY_SCORER_VERSION)          | The prosody scorer's own version (its distance and tie-break); the estimator's version ([`an.verify.prosody.ESTIMATOR_VERSION`](an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)) is joined to it.                                                        |
+| [`PROSODY_SCORER_AGREES_OFF_SHORT`](#an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT) | The prosody scorer versions whose choice the current one agrees with on a line that is NOT short ([`ProsodyTakeScorer.agrees_with()`](#an.audio.takes.ProsodyTakeScorer.agrees_with)): version 2 changed short lines only, so a longer line's recorded pick is no "older scorer" to report. |
+| [`SHORT_LINE_SYLLABLES`](#an.audio.takes.SHORT_LINE_SYLLABLES)            | A line with fewer syllables than this ([`an.verify.prosody.count_syllables()`](an.verify.prosody.html.md#an.verify.prosody.count_syllables)) is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).                                            |
+| [`SHORT_LINE_INAPPLICABLE`](#an.audio.takes.SHORT_LINE_INAPPLICABLE)         | The targets a short line cannot show — they need several words — and is not scored on (recorded as `not_applicable` in the take's detail).                                                                                                                                                |
+| [`SCORING_SAMPLE_RATE`](#an.audio.takes.SCORING_SAMPLE_RATE)             | The sample rate takes are decoded at for scoring — the one the targets were measured at.                                                                                                                                                                                                  |
+| [`REROLL_HINT`](#an.audio.takes.REROLL_HINT)                     | What to run when a recorded take must be replaced (named in every error).                                                                                                                                                                                                                 |
+| [`SCORERS`](#an.audio.takes.SCORERS)                         | `TakesSpec -> TakeScorer`.                                                                                                                                                                                                                                                                |
 
 ### Functions
 
@@ -98,6 +101,7 @@ an.audio.takes.VoiceTakesError: takes: n=3 with the prosody scorer needs `target
 |----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`choose_take`](#an.audio.takes.choose_take)(scores)                               | The index of the best take: the lowest score, ties to the lower index.                                                                                                                                                            |
 | [`decode_for_scoring`](#an.audio.takes.decode_for_scoring)(audio, \*[, sr])               | `audio` as mono float samples at `sr` Hz, decoded by ffmpeg — the decoder the targets were measured with, and the only one, so the same bytes score the same on every machine.                                                    |
+| [`is_short_line`](#an.audio.takes.is_short_line)(text)                               | Whether `text` is too short to show pauses or a rate (an#404).                                                                                                                                                                    |
 | [`make_take_scorer`](#an.audio.takes.make_take_scorer)(spec)                            | The scorer `spec` names, from [`SCORERS`](#an.audio.takes.SCORERS) (the pipeline's default `take_scorer`).                                                                                                    |
 | [`normalize_takes`](#an.audio.takes.normalize_takes)(raw)                              | The canonical `takes` declaration of a voice document (`{}` for none).                                                                                                                                                            |
 | [`read_takes_record`](#an.audio.takes.read_takes_record)(store, key)                     | The takes record under `key` in `store` (`mall["takes"]`), or `None`.                                                                                                                                                             |
@@ -135,10 +139,18 @@ each one is a billed request.
 * **Type:**
   More takes than this per line is refused
 
-### an.audio.takes.PROSODY_SCORER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+### an.audio.takes.PROSODY_SCORER_AGREES_OFF_SHORT *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'1'})*
+
+The prosody scorer versions whose choice the current one agrees with on a
+line that is NOT short ([`ProsodyTakeScorer.agrees_with()`](#an.audio.takes.ProsodyTakeScorer.agrees_with)): version 2
+changed short lines only, so a longer line’s recorded pick is no “older
+scorer” to report.
+
+### an.audio.takes.PROSODY_SCORER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
 
 The prosody scorer’s own version (its distance and tie-break); the
 estimator’s version ([`an.verify.prosody.ESTIMATOR_VERSION`](an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)) is joined to it.
+2 (an#404): a short line is scored only on the targets it can show.
 
 ### *class* an.audio.takes.ProsodyTakeScorer(targets, , reference_hz=None, sr=16000)
 
@@ -150,9 +162,49 @@ The score is [`an.verify.prosody.target_distance()`](an.verify.prosody.html.md#a
 outside the ranges, then the summed distance from their midpoints (the
 tie-break between takes all on target), in units of each range’s width.
 
-#### SCORE_MEANS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "score = [outside, off_centre], lower is better; the take with the smallest pair is kept. outside: for each target in scorer.config.targets, how far the measured value sits outside its [low, high] range, in widths of that range (0 inside; a value this take cannot measure, listed in \`unmeasured\`, counts 1). off_centre: each value's distance from its range's middle, in the same units (the tie-break). \`measured\` holds the values, \`misses\` the targets missed."*
+A SHORT line (fewer than [`SHORT_LINE_SYLLABLES`](#an.audio.takes.SHORT_LINE_SYLLABLES) syllables) is scored
+only on the targets it can show: the pause and rate targets
+([`SHORT_LINE_INAPPLICABLE`](#an.audio.takes.SHORT_LINE_INAPPLICABLE)) are left out and recorded as
+`not_applicable` (an#404). Otherwise a one-word line’s choice measured
+its shortness, every target it cannot measure costing a range-width.
+That changed version 1’s choices for short lines only; a pick already
+recorded keeps its take and its keys (the choice key never holds the
+version), and a longer line’s pick is not reported as made by an older
+scorer ([`agrees_with()`](#an.audio.takes.ProsodyTakeScorer.agrees_with)).
+
+#### SCORE_MEANS *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= "score = [outside, off_centre], lower is better; the take with the smallest pair is kept. outside: for each target in scorer.config.targets, how far the measured value sits outside its [low, high] range, in widths of that range (0 inside; a value this take cannot measure, listed in \`unmeasured\`, counts 1). off_centre: each value's distance from its range's middle, in the same units (the tie-break). \`measured\` holds the values, \`misses\` the targets missed. A line under 4 syllables is not scored on the targets it cannot show (pauses and rates), listed in \`not_applicable\`."*
 
 What a take’s `score` pair means, written into each takes record (an#397).
+
+#### agrees_with(version, text)
+
+Whether a choice recorded by scorer `version` is the one this scorer
+would make for `text`: the same version, or an older one that scored
+a line like this one the same way (version 1, on a line that is not short).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4]})
+>>> old = s.version.replace("2+", "1+", 1)
+>>> s.agrees_with(old, "He did not do the job."), s.agrees_with(old, "Hi!")
+(True, False)
+```
+
+#### applicable(text)
+
+The targets `text` is scored on: all of them, or for a short line
+those it can show (an#404).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4], "pause_share": [0.1, 0.2]})
+>>> sorted(s.applicable("Hi!")), sorted(s.applicable("He did not do the job."))
+(['f0_sd_st'], ['f0_sd_st', 'pause_share'])
+```
 
 #### check_available()
 
@@ -175,6 +227,16 @@ What to run when a recorded take must be replaced (named in every error).
 ### an.audio.takes.SCORING_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16000*
 
 The sample rate takes are decoded at for scoring — the one the targets were measured at.
+
+### an.audio.takes.SHORT_LINE_INAPPLICABLE *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'articulation_rate_sps', 'pause_median_s', 'pause_p90_s', 'pause_share', 'pauses_per_min', 'speech_rate_sps'})*
+
+The targets a short line cannot show — they need several words — and is not
+scored on (recorded as `not_applicable` in the take’s detail).
+
+### an.audio.takes.SHORT_LINE_SYLLABLES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
+
+A line with fewer syllables than this ([`an.verify.prosody.count_syllables()`](an.verify.prosody.html.md#an.verify.prosody.count_syllables))
+is SHORT: too short to show pauses or a rate (an#404, end-user test finding 8).
 
 ### an.audio.takes.TAKES_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'takes'*
 
@@ -255,6 +317,18 @@ The index of the best take: the lowest score, ties to the lower index.
 `audio` as mono float samples at `sr` Hz, decoded by ffmpeg — the decoder
 the targets were measured with, and the only one, so the same bytes score the
 same on every machine. Raises [`VoiceTakesError`](#an.audio.takes.VoiceTakesError) without ffmpeg.
+
+### an.audio.takes.is_short_line(text)
+
+Whether `text` is too short to show pauses or a rate (an#404).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> is_short_line("Hi!"), is_short_line("[deadpan] No."), is_short_line("He did not do the job.")
+(True, True, False)
+```
 
 ### an.audio.takes.make_take_scorer(spec)
 
