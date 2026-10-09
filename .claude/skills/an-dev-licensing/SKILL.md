@@ -113,17 +113,19 @@ about, and none of them becomes acceptable by being written into a table.
 ## Licence classes an asset can be in (an#211)
 
 `an.ir.assets.license_class(source)` is the one classifier `an credits` and the
-render-end check read. Four answers, and the fourth is not the second:
+render-end check read. Five answers, and `unknown` is not `free`:
 
 | Class | Codes (normalised: lowercase words joined by `-`) | Meaning for the video |
 |---|---|---|
-| `attribution` | `ATTRIBUTION_REQUIRING_LICENSES` (CC BY family) | shippable; the credit MUST be displayed |
+| `attribution` | `ATTRIBUTION_REQUIRING_LICENSES` (CC BY, BY-SA, BY-ND) | shippable; the credit MUST be displayed |
+| `noncommercial` | `NONCOMMERCIAL_LICENSES` (CC BY-NC, BY-NC-SA, BY-NC-ND), the ElevenLabs free plan | shippable in a personal or private video with its credit, **never commercially**: `an credits` lists it under NON-COMMERCIAL USE ONLY and its credit under MUST BE DISPLAYED; publishable, never blocking; `Rights.commercial` / `CreditsReport.commercial` are false; `find(rights="commercial")` leaves it out (an#373) |
 | `free` | `cc0-*`, `pd`, `pdm`, `public-domain…`, `cc-pdm…`, `mit…`, `apache…`, `bsd…` | shippable; nothing owed |
 | `private` | `all-rights-reserved…`, `private-study…`, `arr` | **not publishable**: all rights reserved, private study only — `an credits` opens with it and `render` ends with a `PrivateStudyWarning` |
 | `unknown` | anything else, or none | UNVERIFIED — behaves like a refusal until someone reads the licence |
 
-A licence version at the end of a code counts as its family (`cc-by-nc-4.0` is
-`cc-by-nc`'s class). Provider terms (`an.ir.assets.PROVIDER_TERMS`) class what a
+Strictness, for every roll-up: `private` > `unknown` > `noncommercial` >
+`attribution` > `free`. A licence version at the end of a code counts as its
+family (`cc-by-nc-4.0` is `cc-by-nc`'s class). Provider terms (`an.ir.assets.PROVIDER_TERMS`) class what a
 provider made for you under its own terms, and their restriction is printed
 wherever the asset is listed: ElevenLabs' paid and free plans, and Stable
 Audio's `stability-community` (`free`; the licence ends above USD 1M annual

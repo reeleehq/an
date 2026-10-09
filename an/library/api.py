@@ -110,6 +110,7 @@ from an.library.registry import RegistryError, generated_by
 from an.library.rights import (
     ASSET_SOURCE_LABEL,
     LICENSE_CLASS_ORDER,
+    COMMERCIAL_CLASSES,
     PUBLISHABLE_CLASSES,
     Rights,
     RightsRefusal,
@@ -202,6 +203,8 @@ STATUS_HISTORY_FIELD: str = "status_history"
 #: The ``rights=`` filter values besides a licence class.
 RIGHTS_ANY: str = "any"
 RIGHTS_PUBLISHABLE: str = "publishable"
+#: ``find(rights=…)``: what a COMMERCIAL video may use (an#373: not ``noncommercial``).
+RIGHTS_COMMERCIAL: str = "commercial"
 #: File extensions by art type, for the derived ``art`` facet.
 VECTOR_EXTS: frozenset[str] = frozenset({".svg"})
 RASTER_EXTS: frozenset[str] = frozenset({".png", ".jpg", ".jpeg", ".webp", ".gif"})
@@ -1692,6 +1695,7 @@ def reindex(library: Library, *, search: Libraries | None = None) -> int:
 #: The licence code standing in for each class when only a recorded class is known.
 _CLASS_LICENSE: dict[str, str | None] = {
     "private": PRIVATE_STUDY,
+    "noncommercial": "cc-by-nc",
     "attribution": "cc-by",
     "free": PUBLIC_DOMAIN,
     "unknown": None,
@@ -2872,11 +2876,14 @@ def _rights_filter(rights: str | Iterable[str] | None) -> set[str] | None:
     for v in values:
         if v == RIGHTS_PUBLISHABLE:
             out |= set(PUBLISHABLE_CLASSES)
+        elif v == RIGHTS_COMMERCIAL:
+            out |= set(COMMERCIAL_CLASSES)
         elif v in LICENSE_CLASS_ORDER:
             out.add(v)
         else:
             raise LibraryError(
-                f"rights={v!r} is not {RIGHTS_ANY!r}, {RIGHTS_PUBLISHABLE!r} or a "
+                f"rights={v!r} is not {RIGHTS_ANY!r}, {RIGHTS_PUBLISHABLE!r}, "
+                f"{RIGHTS_COMMERCIAL!r} or a "
                 f"licence class {list(LICENSE_CLASS_ORDER)}"
             )
     return out
@@ -2969,7 +2976,9 @@ def find(
         its own boolean facet, so a list of them is AND, as across facets. An
         unregistered name raises, naming the close ones
     rights: ``any`` (default — study renders are legitimate), ``publishable``
-        (``free`` + ``attribution``), or licence classes. Rights are recomputed
+        (``free`` + ``attribution`` + ``noncommercial``), ``commercial``
+        (``free`` + ``attribution``: what a commercial video may use, an#373),
+        or licence classes. Rights are recomputed
         from each version's sources and lineage, not read from its cache
     status: curation statuses; an asset whose status is hidden
         (:data:`HIDDEN_STATUSES`: ``retired``) is offered only when its status

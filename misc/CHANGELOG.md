@@ -5,6 +5,7 @@ day per chunk of work; keep entries terse.
 
 ## 2026-10-09
 - **ADR 0002: a declaration outranks a style's policy** (thorwhalen/cutan#36, decided 2026-10-09): decision 4's precedence now names the asset's own declaration (a character's `gait` or `speech`) after the author's request and before the shot and style policies, with the reason; docs only.
+- **One non-commercial licence class** (an#373): `noncommercial` covers CC BY-NC (SA, ND, versioned) and the ElevenLabs free plan; it owes its credit, is publishable, and is flagged for commercial use (`an credits`: NON-COMMERCIAL USE ONLY; `Rights.commercial`, `CreditsReport.commercial`, `find(rights="commercial")`). Strictness: private > unknown > noncommercial > attribution > free.
 
 ## 2026-10-06
 - **Skill fixes from the third end-user test** (an#451, an#452, an#453): the `an` skill states the import paths (`play` from `cutan.characters.registration`; `crowd`, `fan_out` from `an`), says the rigs are flat unless `nesting: bones`, gives a recipe for crediting your own art (a part's or a plane's `source` pinned to its bytes; verified with `an credits`), and names `an library show <ref> --json-out` (the descriptor is `version.doc`) and `an library sheet` for inspecting an asset without checking it out.

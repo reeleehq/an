@@ -54,6 +54,8 @@ from pydantic import BaseModel, ConfigDict, Field
 __all__ = [
     "AssetSource",
     "ATTRIBUTION_REQUIRING_LICENSES",
+    "NONCOMMERCIAL_LICENSES",
+    "NONCOMMERCIAL_RESTRICTION",
     "LicenseClass",
     "PRIVATE_STUDY",
     "PUBLIC_DOMAIN",
@@ -61,6 +63,7 @@ __all__ = [
     "PROVIDER_TERMS_RESTRICTIONS",
     "provider_terms_restriction",
     "license_class",
+    "license_restriction",
     "normalise_license",
     "requires_attribution",
 ]
@@ -81,9 +84,12 @@ PUBLIC_DOMAIN: str = "public-domain"
 #:
 #: - ``attribution`` — shippable, with a credit that MUST be displayed;
 #: - ``free`` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+#: - ``noncommercial`` — shippable in a personal or private video, with its
+#:   credit displayed, but NOT for commercial use (a monetised, sponsored or
+#:   client video): CC BY-NC and its variants, the ElevenLabs free plan (an#373);
 #: - ``private`` — NOT shippable: all rights reserved, private study only;
 #: - ``unknown`` — not classified, which is not the same as free.
-LicenseClass = Literal["attribution", "free", "private", "unknown"]
+LicenseClass = Literal["attribution", "free", "noncommercial", "private", "unknown"]
 
 #: Licences of what a provider SYNTHESIZES for you, under the provider's own
 #: terms (an#307): the ``source.license`` a voice document declares for the
@@ -95,11 +101,10 @@ LicenseClass = Literal["attribution", "free", "private", "unknown"]
 #:
 #: - ElevenLabs: on a paid plan the output may be used commercially with no
 #:   credit (``free``). On the free plan it must credit ElevenLabs AND is for
-#:   non-commercial use only: no class here says "publishable, but not
-#:   commercially", and ``attribution`` would read as shippable, so it is
-#:   ``unknown`` — not publishable — with its restriction named
-#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).
-#:   Check the current terms before shipping.
+#:   non-commercial use only: ``noncommercial`` (an#373, the maintainer's
+#:   decision of 2026-10-09: one class for it and CC BY-NC), with its
+#:   restriction named (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is
+#:   listed. Check the current terms before shipping.
 #: - Stability AI (Stable Audio Open and the other community models): under the
 #:   Stability AI Community License (read 2026-10-06 at
 #:   stability.ai/community-license-agreement, last updated 2024-07-05) "You
@@ -111,7 +116,7 @@ _STABILITY_TERMS: dict[str, LicenseClass] = {"stability-community": "free"}
 PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
     "elevenlabs": {
         "elevenlabs-paid-plan": "free",
-        "elevenlabs-free-plan": "unknown",
+        "elevenlabs-free-plan": "noncommercial",
     },
     # The names a Stable Audio output's source is recorded under.
     "stability": _STABILITY_TERMS,
@@ -122,7 +127,7 @@ PROVIDER_TERMS: dict[str, dict[str, LicenseClass]] = {
 #: credits report prints beside it.
 PROVIDER_TERMS_RESTRICTIONS: dict[str, str] = {
     "elevenlabs-free-plan": "ElevenLabs free plan: non-commercial use only, and "
-    "the video must credit ElevenLabs (elevenlabs.io); not publishable as is",
+    "the video must credit ElevenLabs (elevenlabs.io)",
     "stability-community": "Stability AI Community License: the licence ends once "
     "you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "
     "licence is needed), and use must follow Stability's acceptable use policy",
@@ -184,8 +189,25 @@ ATTRIBUTION_REQUIRING_LICENSES: frozenset[str] = frozenset(
         "cc-by-sa",
         "by-sa",
         "cc-by-nd",
-        "cc-by-nc",
     }
+)
+#: Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373):
+#: Creative Commons' NC family. Matched like :data:`ATTRIBUTION_REQUIRING_LICENSES`
+#: (a trailing version counts as its family: ``cc-by-nc-sa-4.0``).
+NONCOMMERCIAL_LICENSES: frozenset[str] = frozenset(
+    {
+        "cc-by-nc",
+        "by-nc",
+        "cc-by-nc-sa",
+        "by-nc-sa",
+        "cc-by-nc-nd",
+        "by-nc-nd",
+    }
+)
+#: What a ``noncommercial`` licence restricts, printed wherever one is listed
+#: (a provider's own terms say it in their own words instead).
+NONCOMMERCIAL_RESTRICTION: str = (
+    "non-commercial use only (no monetised, sponsored or client video); credit owed"
 )
 #: A licence version at the end of a code (``cc-by-nc-4.0``, ``cc-by-3.0``): a
 #: code is attribution-requiring when the code without it is listed (an#332).
@@ -264,7 +286,7 @@ def license_class(source: AssetSource) -> LicenseClass:
     >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
     'attribution'
     >>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
-    'attribution'
+    'noncommercial'
     >>> license_class(AssetSource(provider="p", license="bespoke"))
     'unknown'
 
@@ -278,6 +300,11 @@ def license_class(source: AssetSource) -> LicenseClass:
     if not source.license:
         return "unknown"
     raw = source.license.strip().lower()
+    if (
+        raw in NONCOMMERCIAL_LICENSES
+        or _LICENSE_VERSION_RE.sub("", raw) in NONCOMMERCIAL_LICENSES
+    ):
+        return "noncommercial"
     if (
         raw in ATTRIBUTION_REQUIRING_LICENSES
         or _LICENSE_VERSION_RE.sub("", raw) in ATTRIBUTION_REQUIRING_LICENSES
@@ -304,4 +331,20 @@ def requires_attribution(source: AssetSource) -> bool | None:
     ``None`` here — the question is not whom to credit but that it may not ship
     at all; :func:`license_class` says so (``"private"``).
     """
-    return {"attribution": True, "free": False}.get(license_class(source))
+    return {"attribution": True, "noncommercial": True, "free": False}.get(
+        license_class(source)
+    )
+
+
+def license_restriction(source: AssetSource) -> str | None:
+    """What a licence restricts beyond its class's credit, for a report line (an#373).
+
+    >>> license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]
+    'non-commercial use only '
+    >>> license_restriction(AssetSource(provider="p", license="cc-by-4.0")) is None
+    True
+    """
+    terms = provider_terms_restriction(source)
+    if terms is not None:
+        return terms
+    return NONCOMMERCIAL_RESTRICTION if license_class(source) == "noncommercial" else None

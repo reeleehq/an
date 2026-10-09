@@ -42,6 +42,7 @@ from an.ir.assets import (
     AssetSource,
     LicenseClass,
     license_class,
+    license_restriction,
     provider_terms_restriction,
     requires_attribution,
 )
@@ -77,7 +78,7 @@ class CreditEntry:
 
     @property
     def license_class(self) -> LicenseClass:
-        """``attribution`` / ``free`` / ``private`` / ``unknown`` (an#211)."""
+        """``attribution`` / ``free`` / ``noncommercial`` / ``private`` / ``unknown`` (an#211, an#373)."""
         return license_class(self.source)
 
     @property
@@ -112,8 +113,23 @@ class CreditsReport:
 
     @property
     def owed(self) -> list[CreditEntry]:
-        """Entries that definitely require an attribution."""
-        return [e for e in self.entries if e.license_class == "attribution"]
+        """Entries that definitely require an attribution (a non-commercial licence owes one too)."""
+        return [
+            e for e in self.entries if e.license_class in ("attribution", "noncommercial")
+        ]
+
+    @property
+    def noncommercial(self) -> list[CreditEntry]:
+        """Entries for NON-COMMERCIAL use only (an#373): fine in a personal or
+        private video, never in a monetised, sponsored or client one. Flagged,
+        never blocking."""
+        return [e for e in self.entries if e.license_class == "noncommercial"]
+
+    @property
+    def commercial(self) -> bool:
+        """Whether a COMMERCIAL video may contain everything here (publishable,
+        and nothing non-commercial)."""
+        return self.publishable and not self.noncommercial
 
     @property
     def private(self) -> list[CreditEntry]:
@@ -153,8 +169,10 @@ class CreditsReport:
             ],
             "unverified": [e.asset for e in self.unverified],
             "private_study": [e.asset for e in self.private],
+            "non_commercial": [e.asset for e in self.noncommercial],
             "own_work": [e.asset for e in self.entries if e.own_work],
             "publishable": self.publishable,
+            "commercial": self.commercial,
         }
 
     def format(self) -> str:
@@ -185,6 +203,15 @@ class CreditsReport:
             )
             for e in self.private:
                 lines.append(f"  {e.asset}: {_private_label(e.source)}")
+        if self.noncommercial:
+            lines.append("")
+            lines.append(
+                f"NON-COMMERCIAL USE ONLY — {len(self.noncommercial)} asset(s) may "
+                "be in a personal or private video, with the credit below, but NOT "
+                "in a commercial one (monetised, sponsored, client work):"
+            )
+            for e in self.noncommercial:
+                lines.append(f"  {e.asset}: license={e.source.license!r}{_detail(e)}")
         if self.owed:
             lines.append("")
             lines.append("MUST BE DISPLAYED to ship this video:")
@@ -230,9 +257,10 @@ def _detail(e: CreditEntry) -> str:
         if extra.get(SPEECH_EXTRA_TERMS):
             bits.append(str(extra[SPEECH_EXTRA_TERMS]))
         out += " (" + ", ".join(b for b in bits if b) + ")"
-    elif restriction := provider_terms_restriction(e.source):
+    elif restriction := license_restriction(e.source):
         # A provider's terms that hold beyond the class (an#332: Stable
-        # Audio's revenue cap), on any asset made under them.
+        # Audio's revenue cap), on any asset made under them; a non-commercial
+        # licence's restriction (an#373).
         out += f" ({restriction})"
     from an.sound_fetch import cut_label
 
@@ -1042,8 +1070,8 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
     provider's terms decide what is owed, and nobody recorded them. The licence
     that counts for synthesized speech is a provider-terms code
     (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``;
-    ``elevenlabs-free-plan`` is non-commercial only and owes a credit, so it is
-    not publishable and is listed with that restriction), or any licence ``an``
+    ``elevenlabs-free-plan`` is ``noncommercial``: it owes a credit and is
+    flagged for commercial use, an#373), or any licence ``an``
     recognises;
     it is read as the voice's provider's, so another provider's terms count for
     nothing (an#307). A voice
