@@ -151,9 +151,38 @@ def validate_project(
         fps=fps,
     )
     report = schema_report.merge(semantic_report)
+    _rights_conflict_findings(project, scene, report)
     if strict_assets:
         _strict_asset_findings(project, scene, report, fps=fps)
     return report
+
+
+def _rights_conflict_findings(project: Project, scene, report: ValidationReport) -> None:
+    """A warning per rights conflict on an asset the scene uses (an#357).
+
+    Inform, don't block: a library version that holds a statement freer than
+    the one binding the same bytes is stated beside the stricter, which is
+    what `an credits` counts. Never an error, ``--strict-assets`` included:
+    the opt-in refusal belongs to the publish that records a conflict.
+    """
+    import warnings
+
+    from an.credits import conflict_line, credits_for_scene
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # the credits walk's own warnings
+            conflicts = credits_for_scene(project.mall, scene).conflicts
+    except Exception as e:  # noqa: BLE001 — a finding, never a traceback
+        report.add("warning", "library", f"rights conflicts could not be read: {e}")
+        return
+    for asset, conflict in conflicts:
+        report.add(
+            "warning",
+            f"library/{asset}",
+            f"rights conflict: {conflict_line(conflict)} (`an credits` counts the "
+            "stricter; a relicence in the library resolves it)",
+        )
 
 
 def _strict_asset_findings(
