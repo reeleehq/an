@@ -1178,7 +1178,14 @@ def version_sources(
                             libraries,
                             version,
                             holder,
-                            roll_up([(ASSET_SOURCE_LABEL, _source_model(version.get("source")))]),
+                            roll_up(
+                                [
+                                    (
+                                        ASSET_SOURCE_LABEL,
+                                        _source_model(version.get("source")),
+                                    )
+                                ]
+                            ),
                             rule=the_rule(),
                         )
                     )
@@ -1393,9 +1400,7 @@ def _rule_contributions(
     if version.get(RELICENSE_FIELD) or rule.applies(version, owner):
         digests = set(hashes.values())
     else:
-        digests = {
-            d for p, d in hashes.items() if any(rule._claims(version, p, d))
-        }
+        digests = {d for p, d in hashes.items() if any(rule._claims(version, p, d))}
     out: list[tuple[str, AssetSource]] = []
     for digest in sorted(digests):
         cls, why = rule.statement(version, owner, digest)
@@ -1620,7 +1625,11 @@ class _PerFileRule:
         def compute() -> tuple[_Said, ...]:
             if digest in _file_hashes(version.get("files") or {}).values():
                 return self._statement(version, holder, digest)
-            own = () if via_previous else ((self.own_label(version, holder), "its own label"),)
+            own = (
+                ()
+                if via_previous
+                else ((self.own_label(version, holder), "its own label"),)
+            )
             return tuple(dict.fromkeys((*own, *self._lineage(version, holder, digest))))
 
         return self._cached(
@@ -1729,7 +1738,9 @@ class _PerFileRule:
         def compute() -> list[RightsConflict]:
             order = LICENSE_CLASS_ORDER.index
             out: list[RightsConflict] = []
-            for path, digest in sorted(_file_hashes(version.get("files") or {}).items()):
+            for path, digest in sorted(
+                _file_hashes(version.get("files") or {}).items()
+            ):
                 mine, part_said = self._claims(version, path, digest)
                 claims = [mine, part_said]
                 if (
@@ -1744,9 +1755,7 @@ class _PerFileRule:
                 binding = self.statement(version, holder, digest)
                 for claim in claims:
                     if order(claim[0]) > order(binding[0]):
-                        out.append(
-                            RightsConflict(path, digest, *claim, *binding)
-                        )
+                        out.append(RightsConflict(path, digest, *claim, *binding))
             return out
 
         return self._cached(("conflicts", *self._vid(version, holder)), compute)
@@ -1952,7 +1961,9 @@ def _paths_of(
     except Exception:  # noqa: BLE001 — a damaged version names no path
         return ()
     return tuple(
-        p for p, d in sorted(_file_hashes(held.get("files") or {}).items()) if d == digest
+        p
+        for p, d in sorted(_file_hashes(held.get("files") or {}).items())
+        if d == digest
     )
 
 
@@ -2387,9 +2398,7 @@ def _covered(
     }
 
 
-def _report_conflicts(
-    conflicts: tuple[RightsConflict, ...], *, strict: bool
-) -> None:
+def _report_conflicts(conflicts: tuple[RightsConflict, ...], *, strict: bool) -> None:
     """The rights conflicts a new version records (an#357): warned, or refused under ``strict``.
 
     Inform, don't block: the freer statement is kept in the version, the
@@ -3426,7 +3435,9 @@ def show(libraries: Libraries, ref: str | LibraryRef) -> dict[str, Any]:
             stored, effective_rights(libraries, version, owner=library)
         ).to_dict(),
         # Statements freer than what binds their bytes, kept beside it (an#357).
-        CONFLICTS_KEY: [c.to_dict() for c in version_conflicts(libraries, version, owner=library)],
+        CONFLICTS_KEY: [
+            c.to_dict() for c in version_conflicts(libraries, version, owner=library)
+        ],
         "versions": versions_of(library, pinned.asset_id),
     }
 

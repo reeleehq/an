@@ -170,7 +170,9 @@ def sheet(
         cls = _rights(library, version)
         # A rights conflict (an#357) is marked on its cell: the class shown is
         # the stricter statement, and another statement says something freer.
-        conflicted = {c.path for c in version_conflicts(libraries, version, owner=library)}
+        conflicted = {
+            c.path for c in version_conflicts(libraries, version, owner=library)
+        }
         if parts:
             from an.library.api import verified_files
             from an.stage.snapshot import drawable, rasterise
