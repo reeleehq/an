@@ -67,7 +67,9 @@ LICENSE_CLASS_ORDER: tuple[LicenseClass, ...] = (
 #: The classes a video may ship with (``attribution`` and ``noncommercial``
 #: with their credit displayed; ``noncommercial`` only in a video nobody earns
 #: from — an#373: flagged for commercial use, never blocked).
-PUBLISHABLE_CLASSES: frozenset[str] = frozenset({"free", "attribution", "noncommercial"})
+PUBLISHABLE_CLASSES: frozenset[str] = frozenset(
+    {"free", "attribution", "noncommercial"}
+)
 #: The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).
 COMMERCIAL_CLASSES: frozenset[str] = frozenset({"free", "attribution"})
 #: The label of a source declared for the asset as a whole (at publish), in reasons.

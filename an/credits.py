@@ -115,7 +115,9 @@ class CreditsReport:
     def owed(self) -> list[CreditEntry]:
         """Entries that definitely require an attribution (a non-commercial licence owes one too)."""
         return [
-            e for e in self.entries if e.license_class in ("attribution", "noncommercial")
+            e
+            for e in self.entries
+            if e.license_class in ("attribution", "noncommercial")
         ]
 
     @property

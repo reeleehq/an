@@ -347,4 +347,6 @@ def license_restriction(source: AssetSource) -> str | None:
     terms = provider_terms_restriction(source)
     if terms is not None:
         return terms
-    return NONCOMMERCIAL_RESTRICTION if license_class(source) == "noncommercial" else None
+    return (
+        NONCOMMERCIAL_RESTRICTION if license_class(source) == "noncommercial" else None
+    )
