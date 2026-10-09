@@ -13,6 +13,8 @@ an.ir.assets
       LicenseClass
       PROVIDER_TERMS_RESTRICTIONS
       ATTRIBUTION_REQUIRING_LICENSES
+      NONCOMMERCIAL_LICENSES
+      NONCOMMERCIAL_RESTRICTION
    
    .. rubric:: Functions
 
@@ -20,6 +22,7 @@ an.ir.assets
    
       provider_terms_restriction
       license_class
+      license_restriction
       normalise_license
       requires_attribution
    

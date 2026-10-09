@@ -206,7 +206,9 @@ affords: capabilities the asset must ALL have — `limbs.legs`, or
   unregistered name raises, naming the close ones
 
 rights: `any` (default — study renders are legitimate), `publishable`
-: (`free` + `attribution`), or licence classes. Rights are recomputed
+: (`free` + `attribution` + `noncommercial`), `commercial`
+  (`free` + `attribution`: what a commercial video may use, an#373),
+  or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
 
 status: curation statuses; an asset whose status is hidden

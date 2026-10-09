@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=9e0336af"></script>
+    <script src="../../../_static/documentation_options.js?v=3a7bb2b6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.234" />
+  <meta name="docsearch:version" content="0.1.235" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -767,6 +767,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"AssetSource"</span><span class="p">,</span>
     <span class="s2">"ATTRIBUTION_REQUIRING_LICENSES"</span><span class="p">,</span>
+    <span class="s2">"NONCOMMERCIAL_LICENSES"</span><span class="p">,</span>
+    <span class="s2">"NONCOMMERCIAL_RESTRICTION"</span><span class="p">,</span>
     <span class="s2">"LicenseClass"</span><span class="p">,</span>
     <span class="s2">"PRIVATE_STUDY"</span><span class="p">,</span>
     <span class="s2">"PUBLIC_DOMAIN"</span><span class="p">,</span>
@@ -774,6 +776,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"PROVIDER_TERMS_RESTRICTIONS"</span><span class="p">,</span>
     <span class="s2">"provider_terms_restriction"</span><span class="p">,</span>
     <span class="s2">"license_class"</span><span class="p">,</span>
+    <span class="s2">"license_restriction"</span><span class="p">,</span>
     <span class="s2">"normalise_license"</span><span class="p">,</span>
     <span class="s2">"requires_attribution"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -794,9 +797,12 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:</span>
 <span class="c1">#: - ``attribution`` — shippable, with a credit that MUST be displayed;</span>
 <span class="c1">#: - ``free`` — shippable, nothing owed (public domain, CC0, MIT-shaped);</span>
+<span class="c1">#: - ``noncommercial`` — shippable in a personal or private video, with its</span>
+<span class="c1">#:   credit displayed, but NOT for commercial use (a monetised, sponsored or</span>
+<span class="c1">#:   client video): CC BY-NC and its variants, the ElevenLabs free plan (an#373);</span>
 <span class="c1">#: - ``private`` — NOT shippable: all rights reserved, private study only;</span>
 <span class="c1">#: - ``unknown`` — not classified, which is not the same as free.</span>
-<span class="n">LicenseClass</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"attribution"</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">,</span> <span class="s2">"private"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">]</span>
+<span class="n">LicenseClass</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"attribution"</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">,</span> <span class="s2">"noncommercial"</span><span class="p">,</span> <span class="s2">"private"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">]</span>
 
 <span class="c1">#: Licences of what a provider SYNTHESIZES for you, under the provider's own</span>
 <span class="c1">#: terms (an#307): the ``source.license`` a voice document declares for the</span>
@@ -808,11 +814,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:</span>
 <span class="c1">#: - ElevenLabs: on a paid plan the output may be used commercially with no</span>
 <span class="c1">#:   credit (``free``). On the free plan it must credit ElevenLabs AND is for</span>
-<span class="c1">#:   non-commercial use only: no class here says "publishable, but not</span>
-<span class="c1">#:   commercially", and ``attribution`` would read as shippable, so it is</span>
-<span class="c1">#:   ``unknown`` — not publishable — with its restriction named</span>
-<span class="c1">#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).</span>
-<span class="c1">#:   Check the current terms before shipping.</span>
+<span class="c1">#:   non-commercial use only: ``noncommercial`` (an#373, the maintainer's</span>
+<span class="c1">#:   decision of 2026-10-09: one class for it and CC BY-NC), with its</span>
+<span class="c1">#:   restriction named (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is</span>
+<span class="c1">#:   listed. Check the current terms before shipping.</span>
 <span class="c1">#: - Stability AI (Stable Audio Open and the other community models): under the</span>
 <span class="c1">#:   Stability AI Community License (read 2026-10-06 at</span>
 <span class="c1">#:   stability.ai/community-license-agreement, last updated 2024-07-05) "You</span>
@@ -824,7 +829,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">PROVIDER_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"elevenlabs-paid-plan"</span><span class="p">:</span> <span class="s2">"free"</span><span class="p">,</span>
-        <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"unknown"</span><span class="p">,</span>
+        <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"noncommercial"</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="c1"># The names a Stable Audio output's source is recorded under.</span>
     <span class="s2">"stability"</span><span class="p">:</span> <span class="n">_STABILITY_TERMS</span><span class="p">,</span>
@@ -835,7 +840,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: credits report prints beside it.</span>
 <span class="n">PROVIDER_TERMS_RESTRICTIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"ElevenLabs free plan: non-commercial use only, and "</span>
-    <span class="s2">"the video must credit ElevenLabs (elevenlabs.io); not publishable as is"</span><span class="p">,</span>
+    <span class="s2">"the video must credit ElevenLabs (elevenlabs.io)"</span><span class="p">,</span>
     <span class="s2">"stability-community"</span><span class="p">:</span> <span class="s2">"Stability AI Community License: the licence ends once "</span>
     <span class="s2">"you (with affiliates) make over USD 1,000,000 a year (then an Enterprise "</span>
     <span class="s2">"licence is needed), and use must follow Stability's acceptable use policy"</span><span class="p">,</span>
@@ -900,8 +905,25 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"cc-by-sa"</span><span class="p">,</span>
         <span class="s2">"by-sa"</span><span class="p">,</span>
         <span class="s2">"cc-by-nd"</span><span class="p">,</span>
-        <span class="s2">"cc-by-nc"</span><span class="p">,</span>
     <span class="p">}</span>
+<span class="p">)</span>
+<span class="c1">#: Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373):</span>
+<span class="c1">#: Creative Commons' NC family. Matched like :data:`ATTRIBUTION_REQUIRING_LICENSES`</span>
+<span class="c1">#: (a trailing version counts as its family: ``cc-by-nc-sa-4.0``).</span>
+<span class="n">NONCOMMERCIAL_LICENSES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"cc-by-nc"</span><span class="p">,</span>
+        <span class="s2">"by-nc"</span><span class="p">,</span>
+        <span class="s2">"cc-by-nc-sa"</span><span class="p">,</span>
+        <span class="s2">"by-nc-sa"</span><span class="p">,</span>
+        <span class="s2">"cc-by-nc-nd"</span><span class="p">,</span>
+        <span class="s2">"by-nc-nd"</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="c1">#: What a ``noncommercial`` licence restricts, printed wherever one is listed</span>
+<span class="c1">#: (a provider's own terms say it in their own words instead).</span>
+<span class="n">NONCOMMERCIAL_RESTRICTION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"non-commercial use only (no monetised, sponsored or client video); credit owed"</span>
 <span class="p">)</span>
 <span class="c1">#: A licence version at the end of a code (``cc-by-nc-4.0``, ``cc-by-3.0``): a</span>
 <span class="c1">#: code is attribution-requiring when the code without it is listed (an#332).</span>
@@ -988,7 +1010,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="cc-by-4.0"))</span>
 <span class="sd">    'attribution'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))</span>
-<span class="sd">    'attribution'</span>
+<span class="sd">    'noncommercial'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="bespoke"))</span>
 <span class="sd">    'unknown'</span>
 
@@ -1002,6 +1024,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"unknown"</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">raw</span> <span class="ow">in</span> <span class="n">NONCOMMERCIAL_LICENSES</span>
+        <span class="ow">or</span> <span class="n">_LICENSE_VERSION_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span> <span class="ow">in</span> <span class="n">NONCOMMERCIAL_LICENSES</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"noncommercial"</span>
     <span class="k">if</span> <span class="p">(</span>
         <span class="n">raw</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span>
         <span class="ow">or</span> <span class="n">_LICENSE_VERSION_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span>
@@ -1031,7 +1058,28 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``None`` here — the question is not whom to credit but that it may not ship</span>
 <span class="sd">    at all; :func:`license_class` says so (``"private"``).</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">"attribution"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"attribution"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"noncommercial"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="license_restriction">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.assets.html#an.ir.assets.license_restriction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">license_restriction</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a licence restricts beyond its class's credit, for a report line (an#373).</span>
+
+<span class="sd">    &gt;&gt;&gt; license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]</span>
+<span class="sd">    'non-commercial use only '</span>
+<span class="sd">    &gt;&gt;&gt; license_restriction(AssetSource(provider="p", license="cc-by-4.0")) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">provider_terms_restriction</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">terms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">terms</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">NONCOMMERCIAL_RESTRICTION</span> <span class="k">if</span> <span class="n">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"noncommercial"</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

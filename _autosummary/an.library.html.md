@@ -327,6 +327,10 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The rolled-up rights of one version, as stored on it.
 
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video containing this asset may ship (an#373).
+
 #### *classmethod* from_dict(d)
 
 Read a version’s `rights` block back.
@@ -336,7 +340,7 @@ Read a version’s `rights` block back.
 
 #### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
-Whether a video containing this asset may ship.
+Whether a video containing this asset may ship (commercially or not).
 
 #### to_dict()
 
@@ -532,7 +536,9 @@ affords: capabilities the asset must ALL have — `limbs.legs`, or
   unregistered name raises, naming the close ones
 
 rights: `any` (default — study renders are legitimate), `publishable`
-: (`free` + `attribution`), or licence classes. Rights are recomputed
+: (`free` + `attribution` + `noncommercial`), `commercial`
+  (`free` + `attribution`: what a commercial video may use, an#373),
+  or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
 
 status: curation statuses; an asset whose status is hidden

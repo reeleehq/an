@@ -53,21 +53,24 @@ what keeps `an` from shipping unattributed work in the meantime.
 | [`LicenseClass`](#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
 | [`PROVIDER_TERMS_RESTRICTIONS`](#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)    | the words a credits report prints beside it.                                                                                                                                               |
 | [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
+| [`NONCOMMERCIAL_LICENSES`](#an.ir.assets.NONCOMMERCIAL_LICENSES)         | Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373): Creative Commons' NC family.                                                                                  |
+| [`NONCOMMERCIAL_RESTRICTION`](#an.ir.assets.NONCOMMERCIAL_RESTRICTION)      | What a `noncommercial` licence restricts, printed wherever one is listed (a provider's own terms say it in their own words instead).                                                       |
 
 ### Functions
 
-| [`provider_terms_restriction`](#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.   |
-|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`license_class`](#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).             |
-| [`normalise_license`](#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                      |
-| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.              |
+| [`provider_terms_restriction`](#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.      |
+|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`license_class`](#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                |
+| [`license_restriction`](#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373). |
+| [`normalise_license`](#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                         |
+| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                 |
 
 ### Classes
 
 | [`AssetSource`](#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
 |--------------------------------------------------------------------------|----------------------------------------------------|
 
-### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
+### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
 Licence codes that oblige the *user of the output* to credit someone.
 
@@ -112,10 +115,24 @@ What a licence means for shipping the video it ends up in.
 
 - `attribution` — shippable, with a credit that MUST be displayed;
 - `free` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+- `noncommercial` — shippable in a personal or private video, with its
+  credit displayed, but NOT for commercial use (a monetised, sponsored or
+  client video): CC BY-NC and its variants, the ElevenLabs free plan (an#373);
 - `private` — NOT shippable: all rights reserved, private study only;
 - `unknown` — not classified, which is not the same as free.
 
-alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘noncommercial’, ‘private’, ‘unknown’]
+
+### an.ir.assets.NONCOMMERCIAL_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by-nc', 'by-nc-nd', 'by-nc-sa', 'cc-by-nc', 'cc-by-nc-nd', 'cc-by-nc-sa'})*
+
+Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373):
+Creative Commons’ NC family. Matched like [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES)
+(a trailing version counts as its family: `cc-by-nc-sa-4.0`).
+
+### an.ir.assets.NONCOMMERCIAL_RESTRICTION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'non-commercial use only (no monetised, sponsored or client video); credit owed'*
+
+What a `noncommercial` licence restricts, printed wherever one is listed
+(a provider’s own terms say it in their own words instead).
 
 ### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
 
@@ -125,7 +142,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io)', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
 
 the words a
 credits report prints beside it.
@@ -144,7 +161,7 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 What this asset’s licence means for shipping the video (an#211).
 
 * **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
@@ -154,7 +171,7 @@ What this asset’s licence means for shipping the video (an#211).
 >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
 'attribution'
 >>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
-'attribution'
+'noncommercial'
 >>> license_class(AssetSource(provider="p", license="bespoke"))
 'unknown'
 ```
@@ -166,6 +183,20 @@ A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 'free'
 >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
 'unknown'
+```
+
+### an.ir.assets.license_restriction(source)
+
+What a licence restricts beyond its class’s credit, for a report line (an#373).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]
+'non-commercial use only '
+>>> license_restriction(AssetSource(provider="p", license="cc-by-4.0")) is None
+True
 ```
 
 ### an.ir.assets.normalise_license(code)

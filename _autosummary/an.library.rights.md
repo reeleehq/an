@@ -41,9 +41,10 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 
 ### Module Attributes
 
-| [`LICENSE_CLASS_ORDER`](#an.library.rights.LICENSE_CLASS_ORDER)   | Licence classes, most restrictive first.                                     |
-|------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`PUBLISHABLE_CLASSES`](#an.library.rights.PUBLISHABLE_CLASSES)   | The classes a video may ship with (`attribution` with its credit displayed). |
+| [`LICENSE_CLASS_ORDER`](#an.library.rights.LICENSE_CLASS_ORDER)   | Licence classes, most restrictive first.                                                                                                                                                                  |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PUBLISHABLE_CLASSES`](#an.library.rights.PUBLISHABLE_CLASSES)   | The classes a video may ship with (`attribution` and `noncommercial` with their credit displayed; `noncommercial` only in a video nobody earns from — an#373: flagged for commercial use, never blocked). |
+| [`COMMERCIAL_CLASSES`](#an.library.rights.COMMERCIAL_CLASSES)    | The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).                                                                                                                         |
 
 ### Functions
 
@@ -63,19 +64,29 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 | [`RightsRefusal`](#an.library.rights.RightsRefusal)   | A private or unknown version would leave the user's library without an override.   |
 |------------------------------------------------------------------|------------------------------------------------------------------------------------|
 
-### an.library.rights.LICENSE_CLASS_ORDER *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown'], ...]* *= ('private', 'unknown', 'attribution', 'free')*
+### an.library.rights.COMMERCIAL_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free'})*
+
+The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).
+
+### an.library.rights.LICENSE_CLASS_ORDER *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'noncommercial', 'private', 'unknown'], ...]* *= ('private', 'unknown', 'noncommercial', 'attribution', 'free')*
 
 Licence classes, most restrictive first. The roll-up keeps the first that occurs.
 
-### an.library.rights.PUBLISHABLE_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free'})*
+### an.library.rights.PUBLISHABLE_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free', 'noncommercial'})*
 
-The classes a video may ship with (`attribution` with its credit displayed).
+The classes a video may ship with (`attribution` and `noncommercial`
+with their credit displayed; `noncommercial` only in a video nobody earns
+from — an#373: flagged for commercial use, never blocked).
 
 ### *class* an.library.rights.Rights(license_class, reasons=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The rolled-up rights of one version, as stored on it.
+
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video containing this asset may ship (an#373).
 
 #### *classmethod* from_dict(d)
 
@@ -86,7 +97,7 @@ Read a version’s `rights` block back.
 
 #### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
-Whether a video containing this asset may ship.
+Whether a video containing this asset may ship (commercially or not).
 
 #### to_dict()
 
@@ -113,7 +124,7 @@ The source the descriptor itself declares (or `an credits` reconstructs), if any
 The most restrictive of `classes`; `free` for none.
 
 * **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> most_restrictive(["free", "attribution"]), most_restrictive([])

@@ -55,6 +55,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a project owes, split by whether we actually know.
 
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video may contain everything here (publishable,
+and nothing non-commercial).
+
 #### format()
 
 Human-readable, and honest about what it does not know.
@@ -62,9 +67,18 @@ Human-readable, and honest about what it does not know.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+#### *property* noncommercial *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+
+fine in a personal or
+private video, never in a monetised, sponsored or client one. Flagged,
+never blocking.
+
+* **Type:**
+  Entries for NON-COMMERCIAL use only (an#373)
+
 #### *property* owed *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
-Entries that definitely require an attribution.
+Entries that definitely require an attribution (a non-commercial licence owes one too).
 
 #### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
@@ -179,8 +193,8 @@ licence the user holds); otherwise the speech is listed UNVERIFIED — the
 provider’s terms decide what is owed, and nobody recorded them. The licence
 that counts for synthesized speech is a provider-terms code
 (`an.ir.assets.PROVIDER_TERMS`: `elevenlabs-paid-plan` is `free`;
-`elevenlabs-free-plan` is non-commercial only and owes a credit, so it is
-not publishable and is listed with that restriction), or any licence `an`
+`elevenlabs-free-plan` is `noncommercial`: it owes a credit and is
+flagged for commercial use, an#373), or any licence `an`
 recognises;
 it is read as the voice’s provider’s, so another provider’s terms count for
 nothing (an#307). A voice

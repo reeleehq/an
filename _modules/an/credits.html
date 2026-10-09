@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=9e0336af"></script>
+    <script src="../../_static/documentation_options.js?v=3a7bb2b6"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +410,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.234" />
+  <meta name="docsearch:version" content="0.1.235" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">AssetSource</span><span class="p">,</span>
     <span class="n">LicenseClass</span><span class="p">,</span>
     <span class="n">license_class</span><span class="p">,</span>
+    <span class="n">license_restriction</span><span class="p">,</span>
     <span class="n">provider_terms_restriction</span><span class="p">,</span>
     <span class="n">requires_attribution</span><span class="p">,</span>
 <span class="p">)</span>
@@ -790,7 +791,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">license_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LicenseClass</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""``attribution`` / ``free`` / ``private`` / ``unknown`` (an#211)."""</span>
+<span class="w">        </span><span class="sd">"""``attribution`` / ``free`` / ``noncommercial`` / ``private`` / ``unknown`` (an#211, an#373)."""</span>
         <span class="k">return</span> <span class="n">license_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -827,8 +828,25 @@ window.runMermaid = runMermaid;</script>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">owed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Entries that definitely require an attribution."""</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"attribution"</span><span class="p">]</span>
+<span class="w">        </span><span class="sd">"""Entries that definitely require an attribution (a non-commercial licence owes one too)."""</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">e</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"attribution"</span><span class="p">,</span> <span class="s2">"noncommercial"</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">noncommercial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Entries for NON-COMMERCIAL use only (an#373): fine in a personal or</span>
+<span class="sd">        private video, never in a monetised, sponsored or client one. Flagged,</span>
+<span class="sd">        never blocking."""</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"noncommercial"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">commercial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether a COMMERCIAL video may contain everything here (publishable,</span>
+<span class="sd">        and nothing non-commercial)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">private</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
@@ -868,8 +886,10 @@ window.runMermaid = runMermaid;</script>
             <span class="p">],</span>
             <span class="s2">"unverified"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">],</span>
             <span class="s2">"private_study"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">],</span>
+            <span class="s2">"non_commercial"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">],</span>
             <span class="s2">"own_work"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">own_work</span><span class="p">],</span>
             <span class="s2">"publishable"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span><span class="p">,</span>
+            <span class="s2">"commercial"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">commercial</span><span class="p">,</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="CreditsReport.format">
@@ -902,6 +922,15 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_private_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"NON-COMMERCIAL USE ONLY — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">)</span><span class="si">}</span><span class="s2"> asset(s) may "</span>
+                <span class="s2">"be in a personal or private video, with the credit below, but NOT "</span>
+                <span class="s2">"in a commercial one (monetised, sponsored, client work):"</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">noncommercial</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: license=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">!r}{</span><span class="n">_detail</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">owed</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"MUST BE DISPLAYED to ship this video:"</span><span class="p">)</span>
@@ -949,9 +978,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SPEECH_EXTRA_TERMS</span><span class="p">):</span>
             <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra</span><span class="p">[</span><span class="n">SPEECH_EXTRA_TERMS</span><span class="p">]))</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="s2">" ("</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bits</span> <span class="k">if</span> <span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="s2">")"</span>
-    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">:=</span> <span class="n">provider_terms_restriction</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">:=</span> <span class="n">license_restriction</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">):</span>
         <span class="c1"># A provider's terms that hold beyond the class (an#332: Stable</span>
-        <span class="c1"># Audio's revenue cap), on any asset made under them.</span>
+        <span class="c1"># Audio's revenue cap), on any asset made under them; a non-commercial</span>
+        <span class="c1"># licence's restriction (an#373).</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">restriction</span><span class="si">}</span><span class="s2">)"</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_fetch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cut_label</span>
 
@@ -1775,8 +1805,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    provider's terms decide what is owed, and nobody recorded them. The licence</span>
 <span class="sd">    that counts for synthesized speech is a provider-terms code</span>
 <span class="sd">    (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``;</span>
-<span class="sd">    ``elevenlabs-free-plan`` is non-commercial only and owes a credit, so it is</span>
-<span class="sd">    not publishable and is listed with that restriction), or any licence ``an``</span>
+<span class="sd">    ``elevenlabs-free-plan`` is ``noncommercial``: it owes a credit and is</span>
+<span class="sd">    flagged for commercial use, an#373), or any licence ``an``</span>
 <span class="sd">    recognises;</span>
 <span class="sd">    it is read as the voice's provider's, so another provider's terms count for</span>
 <span class="sd">    nothing (an#307). A voice</span>

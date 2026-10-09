@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=9e0336af"></script>
+    <script src="../_static/documentation_options.js?v=3a7bb2b6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.234" />
+  <meta name="docsearch:version" content="0.1.235" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -663,6 +663,12 @@ what keeps <code class="code docutils literal notranslate"><span class="pre">an<
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></code></a></p></td>
 <td><p>Licence codes that oblige the <em>user of the output</em> to credit someone.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.NONCOMMERCIAL_LICENSES" title="an.ir.assets.NONCOMMERCIAL_LICENSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NONCOMMERCIAL_LICENSES</span></code></a></p></td>
+<td><p>Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373): Creative Commons' NC family.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.NONCOMMERCIAL_RESTRICTION" title="an.ir.assets.NONCOMMERCIAL_RESTRICTION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NONCOMMERCIAL_RESTRICTION</span></code></a></p></td>
+<td><p>What a <code class="docutils literal notranslate"><span class="pre">noncommercial</span></code> licence restricts, printed wherever one is listed (a provider's own terms say it in their own words instead).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -675,10 +681,13 @@ what keeps <code class="code docutils literal notranslate"><span class="pre">an<
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.license_class" title="an.ir.assets.license_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">license_class</span></code></a>(source)</p></td>
 <td><p>What this asset's licence means for shipping the video (an#211).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.normalise_license" title="an.ir.assets.normalise_license"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalise_license</span></code></a>(code)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.license_restriction" title="an.ir.assets.license_restriction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">license_restriction</span></code></a>(source)</p></td>
+<td><p>What a licence restricts beyond its class's credit, for a report line (an#373).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.normalise_license" title="an.ir.assets.normalise_license"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalise_license</span></code></a>(code)</p></td>
 <td><p>A licence code folded to lowercase words joined by <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.assets.requires_attribution" title="an.ir.assets.requires_attribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_attribution</span></code></a>(source)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.assets.requires_attribution" title="an.ir.assets.requires_attribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_attribution</span></code></a>(source)</p></td>
 <td><p>Whether shipping this asset obliges the user to credit someone.</p></td>
 </tr>
 </tbody>
@@ -695,7 +704,7 @@ what keeps <code class="code docutils literal notranslate"><span class="pre">an<
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES">
-<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'by',</span> <span class="pre">'by-sa',</span> <span class="pre">'cc-by',</span> <span class="pre">'cc-by-4.0',</span> <span class="pre">'cc-by-nc',</span> <span class="pre">'cc-by-nd',</span> <span class="pre">'cc-by-sa',</span> <span class="pre">'cc-by-sa-4.0'})</span></span><a class="headerlink" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'by',</span> <span class="pre">'by-sa',</span> <span class="pre">'cc-by',</span> <span class="pre">'cc-by-4.0',</span> <span class="pre">'cc-by-nd',</span> <span class="pre">'cc-by-sa',</span> <span class="pre">'cc-by-sa-4.0'})</span></span><a class="headerlink" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="Link to this definition">#</a></dt>
 <dd><p>Licence codes that oblige the <em>user of the output</em> to credit someone.</p>
 <p>Matched case-insensitively against the licence code. Deliberately a small,
 explicit set rather than a pattern: “does this oblige me” is a question with
@@ -748,10 +757,28 @@ as <code class="docutils literal notranslate"><span class="pre">lacing.Rights</s
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">attribution</span></code> — shippable, with a credit that MUST be displayed;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">free</span></code> — shippable, nothing owed (public domain, CC0, MIT-shaped);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">noncommercial</span></code> — shippable in a personal or private video, with its
+credit displayed, but NOT for commercial use (a monetised, sponsored or
+client video): CC BY-NC and its variants, the ElevenLabs free plan (an#373);</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">private</span></code> — NOT shippable: all rights reserved, private study only;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unknown</span></code> — not classified, which is not the same as free.</p></li>
 </ul>
-<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘attribution’, ‘free’, ‘private’, ‘unknown’]</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘attribution’, ‘free’, ‘noncommercial’, ‘private’, ‘unknown’]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.assets.NONCOMMERCIAL_LICENSES">
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">NONCOMMERCIAL_LICENSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'by-nc',</span> <span class="pre">'by-nc-nd',</span> <span class="pre">'by-nc-sa',</span> <span class="pre">'cc-by-nc',</span> <span class="pre">'cc-by-nc-nd',</span> <span class="pre">'cc-by-nc-sa'})</span></span><a class="headerlink" href="#an.ir.assets.NONCOMMERCIAL_LICENSES" title="Link to this definition">#</a></dt>
+<dd><p>Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373):
+Creative Commons’ NC family. Matched like <a class="reference internal" href="#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES" title="an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES"><code class="xref py py-data docutils literal notranslate"><span class="pre">ATTRIBUTION_REQUIRING_LICENSES</span></code></a>
+(a trailing version counts as its family: <code class="docutils literal notranslate"><span class="pre">cc-by-nc-sa-4.0</span></code>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.assets.NONCOMMERCIAL_RESTRICTION">
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">NONCOMMERCIAL_RESTRICTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'non-commercial</span> <span class="pre">use</span> <span class="pre">only</span> <span class="pre">(no</span> <span class="pre">monetised,</span> <span class="pre">sponsored</span> <span class="pre">or</span> <span class="pre">client</span> <span class="pre">video);</span> <span class="pre">credit</span> <span class="pre">owed'</span></span><a class="headerlink" href="#an.ir.assets.NONCOMMERCIAL_RESTRICTION" title="Link to this definition">#</a></dt>
+<dd><p>What a <code class="docutils literal notranslate"><span class="pre">noncommercial</span></code> licence restricts, printed wherever one is listed
+(a provider’s own terms say it in their own words instead).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -766,7 +793,7 @@ so <code class="docutils literal notranslate"><span class="pre">&quot;All</span>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.assets.PROVIDER_TERMS_RESTRICTIONS">
-<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PROVIDER_TERMS_RESTRICTIONS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'elevenlabs-free-plan':</span> <span class="pre">'ElevenLabs</span> <span class="pre">free</span> <span class="pre">plan:</span> <span class="pre">non-commercial</span> <span class="pre">use</span> <span class="pre">only,</span> <span class="pre">and</span> <span class="pre">the</span> <span class="pre">video</span> <span class="pre">must</span> <span class="pre">credit</span> <span class="pre">ElevenLabs</span> <span class="pre">(elevenlabs.io);</span> <span class="pre">not</span> <span class="pre">publishable</span> <span class="pre">as</span> <span class="pre">is',</span> <span class="pre">'stability-community':</span> <span class="pre">&quot;Stability</span> <span class="pre">AI</span> <span class="pre">Community</span> <span class="pre">License:</span> <span class="pre">the</span> <span class="pre">licence</span> <span class="pre">ends</span> <span class="pre">once</span> <span class="pre">you</span> <span class="pre">(with</span> <span class="pre">affiliates)</span> <span class="pre">make</span> <span class="pre">over</span> <span class="pre">USD</span> <span class="pre">1,000,000</span> <span class="pre">a</span> <span class="pre">year</span> <span class="pre">(then</span> <span class="pre">an</span> <span class="pre">Enterprise</span> <span class="pre">licence</span> <span class="pre">is</span> <span class="pre">needed),</span> <span class="pre">and</span> <span class="pre">use</span> <span class="pre">must</span> <span class="pre">follow</span> <span class="pre">Stability's</span> <span class="pre">acceptable</span> <span class="pre">use</span> <span class="pre">policy&quot;}</span></span><a class="headerlink" href="#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">PROVIDER_TERMS_RESTRICTIONS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'elevenlabs-free-plan':</span> <span class="pre">'ElevenLabs</span> <span class="pre">free</span> <span class="pre">plan:</span> <span class="pre">non-commercial</span> <span class="pre">use</span> <span class="pre">only,</span> <span class="pre">and</span> <span class="pre">the</span> <span class="pre">video</span> <span class="pre">must</span> <span class="pre">credit</span> <span class="pre">ElevenLabs</span> <span class="pre">(elevenlabs.io)',</span> <span class="pre">'stability-community':</span> <span class="pre">&quot;Stability</span> <span class="pre">AI</span> <span class="pre">Community</span> <span class="pre">License:</span> <span class="pre">the</span> <span class="pre">licence</span> <span class="pre">ends</span> <span class="pre">once</span> <span class="pre">you</span> <span class="pre">(with</span> <span class="pre">affiliates)</span> <span class="pre">make</span> <span class="pre">over</span> <span class="pre">USD</span> <span class="pre">1,000,000</span> <span class="pre">a</span> <span class="pre">year</span> <span class="pre">(then</span> <span class="pre">an</span> <span class="pre">Enterprise</span> <span class="pre">licence</span> <span class="pre">is</span> <span class="pre">needed),</span> <span class="pre">and</span> <span class="pre">use</span> <span class="pre">must</span> <span class="pre">follow</span> <span class="pre">Stability's</span> <span class="pre">acceptable</span> <span class="pre">use</span> <span class="pre">policy&quot;}</span></span><a class="headerlink" href="#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS" title="Link to this definition">#</a></dt>
 <dd><p>the words a
 credits report prints beside it.</p>
 <dl class="field-list simple">
@@ -790,7 +817,7 @@ owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</
 <dd><p>What this asset’s licence means for shipping the video (an#211).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code></a>[<code class="docutils literal notranslate"><span class="pre">'attribution'</span></code>, <code class="docutils literal notranslate"><span class="pre">'free'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unknown'</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code></a>[<code class="docutils literal notranslate"><span class="pre">'attribution'</span></code>, <code class="docutils literal notranslate"><span class="pre">'free'</span></code>, <code class="docutils literal notranslate"><span class="pre">'noncommercial'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unknown'</span></code>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"pd"</span><span class="p">))</span>
@@ -800,7 +827,7 @@ owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</
 <span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-4.0"</span><span class="p">))</span>
 <span class="go">'attribution'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"freesound"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-nc-4.0"</span><span class="p">))</span>
-<span class="go">'attribution'</span>
+<span class="go">'noncommercial'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"bespoke"</span><span class="p">))</span>
 <span class="go">'unknown'</span>
 </pre></div>
@@ -810,6 +837,23 @@ owed (an#211). <code class="docutils literal notranslate"><span class="pre">pd</
 <span class="go">'free'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">license_class</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"openai"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"elevenlabs-paid-plan"</span><span class="p">))</span>
 <span class="go">'unknown'</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.assets.license_restriction">
+<span class="sig-prename descclassname"><span class="pre">an.ir.assets.</span></span><span class="sig-name descname"><span class="pre">license_restriction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/assets.html#license_restriction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.assets.license_restriction" title="Link to this definition">#</a></dt>
+<dd><p>What a licence restricts beyond its class’s credit, for a report line (an#373).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">license_restriction</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"freesound"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-nc-4.0"</span><span class="p">))[:</span><span class="mi">24</span><span class="p">]</span>
+<span class="go">'non-commercial use only '</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">license_restriction</span><span class="p">(</span><span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">license</span><span class="o">=</span><span class="s2">"cc-by-4.0"</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -922,10 +966,13 @@ at all; <a class="reference internal" href="#an.ir.assets.license_class" title="
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.LicenseClass"><code class="docutils literal notranslate"><span class="pre">LicenseClass</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.NONCOMMERCIAL_LICENSES"><code class="docutils literal notranslate"><span class="pre">NONCOMMERCIAL_LICENSES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.NONCOMMERCIAL_RESTRICTION"><code class="docutils literal notranslate"><span class="pre">NONCOMMERCIAL_RESTRICTION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.PRIVATE_STUDY"><code class="docutils literal notranslate"><span class="pre">PRIVATE_STUDY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS"><code class="docutils literal notranslate"><span class="pre">PROVIDER_TERMS_RESTRICTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.PUBLIC_DOMAIN"><code class="docutils literal notranslate"><span class="pre">PUBLIC_DOMAIN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.license_class"><code class="docutils literal notranslate"><span class="pre">license_class()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.license_restriction"><code class="docutils literal notranslate"><span class="pre">license_restriction()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.normalise_license"><code class="docutils literal notranslate"><span class="pre">normalise_license()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.provider_terms_restriction"><code class="docutils literal notranslate"><span class="pre">provider_terms_restriction()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.assets.requires_attribution"><code class="docutils literal notranslate"><span class="pre">requires_attribution()</span></code></a></li>

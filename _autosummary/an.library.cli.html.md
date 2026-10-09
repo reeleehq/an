@@ -56,7 +56,7 @@ Find assets: AND across facets, OR within one facet’s comma-separated values.
 kind: character, prop, environment, …
 style: styles, comma-separated (any of them)
 affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
-rights: any, publishable, or licence classes (free, attribution, private, unknown)
+rights: any, publishable, commercial (publishable in a commercial video: not non-commercial), or licence classes (free, attribution, noncommercial, private, unknown)
 family: families, comma-separated
 origin: origins, comma-separated
 status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)

@@ -1,4 +1,4 @@
-> built 2026-10-09 10:06 UTC from 030564c (main) · an 0.1.234. Details: build_info.json
+> built 2026-10-09 10:57 UTC from 0521c51 (main) · an 0.1.235. Details: build_info.json
 
 # index.html.md
 
@@ -12458,6 +12458,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Everything a project owes, split by whether we actually know.
 
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video may contain everything here (publishable,
+and nothing non-commercial).
+
 #### format()
 
 Human-readable, and honest about what it does not know.
@@ -12465,9 +12470,18 @@ Human-readable, and honest about what it does not know.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+#### *property* noncommercial *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+
+fine in a personal or
+private video, never in a monetised, sponsored or client one. Flagged,
+never blocking.
+
+* **Type:**
+  Entries for NON-COMMERCIAL use only (an#373)
+
 #### *property* owed *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
-Entries that definitely require an attribution.
+Entries that definitely require an attribution (a non-commercial licence owes one too).
 
 #### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
@@ -12582,8 +12596,8 @@ licence the user holds); otherwise the speech is listed UNVERIFIED — the
 provider’s terms decide what is owed, and nobody recorded them. The licence
 that counts for synthesized speech is a provider-terms code
 (`an.ir.assets.PROVIDER_TERMS`: `elevenlabs-paid-plan` is `free`;
-`elevenlabs-free-plan` is non-commercial only and owes a credit, so it is
-not publishable and is listed with that restriction), or any licence `an`
+`elevenlabs-free-plan` is `noncommercial`: it owes a credit and is
+flagged for commercial use, an#373), or any licence `an`
 recognises;
 it is read as the voice’s provider’s, so another provider’s terms count for
 nothing (an#307). A voice
@@ -16254,21 +16268,24 @@ what keeps `an` from shipping unattributed work in the meantime.
 | [`LicenseClass`](_autosummary/an.ir.assets.html.md#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
 | [`PROVIDER_TERMS_RESTRICTIONS`](_autosummary/an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)    | the words a credits report prints beside it.                                                                                                                                               |
 | [`ATTRIBUTION_REQUIRING_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
+| [`NONCOMMERCIAL_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.NONCOMMERCIAL_LICENSES)         | Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373): Creative Commons' NC family.                                                                                  |
+| [`NONCOMMERCIAL_RESTRICTION`](_autosummary/an.ir.assets.html.md#an.ir.assets.NONCOMMERCIAL_RESTRICTION)      | What a `noncommercial` licence restricts, printed wherever one is listed (a provider's own terms say it in their own words instead).                                                       |
 
 ### Functions
 
-| [`provider_terms_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.   |
-|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`license_class`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).             |
-| [`normalise_license`](_autosummary/an.ir.assets.html.md#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                      |
-| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.              |
+| [`provider_terms_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.      |
+|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`license_class`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).                |
+| [`license_restriction`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_restriction)(source)          | What a licence restricts beyond its class's credit, for a report line (an#373). |
+| [`normalise_license`](_autosummary/an.ir.assets.html.md#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                         |
+| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.                 |
 
 ### Classes
 
 | [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
 |--------------------------------------------------------------------------|----------------------------------------------------|
 
-### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
+### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
 Licence codes that oblige the *user of the output* to credit someone.
 
@@ -16313,10 +16330,24 @@ What a licence means for shipping the video it ends up in.
 
 - `attribution` — shippable, with a credit that MUST be displayed;
 - `free` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+- `noncommercial` — shippable in a personal or private video, with its
+  credit displayed, but NOT for commercial use (a monetised, sponsored or
+  client video): CC BY-NC and its variants, the ElevenLabs free plan (an#373);
 - `private` — NOT shippable: all rights reserved, private study only;
 - `unknown` — not classified, which is not the same as free.
 
-alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘noncommercial’, ‘private’, ‘unknown’]
+
+### an.ir.assets.NONCOMMERCIAL_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by-nc', 'by-nc-nd', 'by-nc-sa', 'cc-by-nc', 'cc-by-nc-nd', 'cc-by-nc-sa'})*
+
+Licence codes for NON-COMMERCIAL use only, each owing a credit too (an#373):
+Creative Commons’ NC family. Matched like [`ATTRIBUTION_REQUIRING_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES)
+(a trailing version counts as its family: `cc-by-nc-sa-4.0`).
+
+### an.ir.assets.NONCOMMERCIAL_RESTRICTION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'non-commercial use only (no monetised, sponsored or client video); credit owed'*
+
+What a `noncommercial` licence restricts, printed wherever one is listed
+(a provider’s own terms say it in their own words instead).
 
 ### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
 
@@ -16326,7 +16357,7 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
-### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io)', 'stability-community': "Stability AI Community License: the licence ends once you (with affiliates) make over USD 1,000,000 a year (then an Enterprise licence is needed), and use must follow Stability's acceptable use policy"}*
 
 the words a
 credits report prints beside it.
@@ -16345,7 +16376,7 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 What this asset’s licence means for shipping the video (an#211).
 
 * **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
@@ -16355,7 +16386,7 @@ What this asset’s licence means for shipping the video (an#211).
 >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
 'attribution'
 >>> license_class(AssetSource(provider="freesound", license="cc-by-nc-4.0"))
-'attribution'
+'noncommercial'
 >>> license_class(AssetSource(provider="p", license="bespoke"))
 'unknown'
 ```
@@ -16367,6 +16398,20 @@ A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 'free'
 >>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
 'unknown'
+```
+
+### an.ir.assets.license_restriction(source)
+
+What a licence restricts beyond its class’s credit, for a report line (an#373).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]
+'non-commercial use only '
+>>> license_restriction(AssetSource(provider="p", license="cc-by-4.0")) is None
+True
 ```
 
 ### an.ir.assets.normalise_license(code)
@@ -19668,7 +19713,9 @@ affords: capabilities the asset must ALL have — `limbs.legs`, or
   unregistered name raises, naming the close ones
 
 rights: `any` (default — study renders are legitimate), `publishable`
-: (`free` + `attribution`), or licence classes. Rights are recomputed
+: (`free` + `attribution` + `noncommercial`), `commercial`
+  (`free` + `attribution`: what a commercial video may use, an#373),
+  or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
 
 status: curation statuses; an asset whose status is hidden
@@ -20075,7 +20122,7 @@ Find assets: AND across facets, OR within one facet’s comma-separated values.
 kind: character, prop, environment, …
 style: styles, comma-separated (any of them)
 affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
-rights: any, publishable, or licence classes (free, attribution, private, unknown)
+rights: any, publishable, commercial (publishable in a commercial video: not non-commercial), or licence classes (free, attribution, noncommercial, private, unknown)
 family: families, comma-separated
 origin: origins, comma-separated
 status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)
@@ -20850,6 +20897,10 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The rolled-up rights of one version, as stored on it.
 
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video containing this asset may ship (an#373).
+
 #### *classmethod* from_dict(d)
 
 Read a version’s `rights` block back.
@@ -20859,7 +20910,7 @@ Read a version’s `rights` block back.
 
 #### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
-Whether a video containing this asset may ship.
+Whether a video containing this asset may ship (commercially or not).
 
 #### to_dict()
 
@@ -21055,7 +21106,9 @@ affords: capabilities the asset must ALL have — `limbs.legs`, or
   unregistered name raises, naming the close ones
 
 rights: `any` (default — study renders are legitimate), `publishable`
-: (`free` + `attribution`), or licence classes. Rights are recomputed
+: (`free` + `attribution` + `noncommercial`), `commercial`
+  (`free` + `attribution`: what a commercial video may use, an#373),
+  or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
 
 status: curation statuses; an asset whose status is hidden
@@ -22378,9 +22431,10 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 
 ### Module Attributes
 
-| [`LICENSE_CLASS_ORDER`](_autosummary/an.library.rights.html.md#an.library.rights.LICENSE_CLASS_ORDER)   | Licence classes, most restrictive first.                                     |
-|------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`PUBLISHABLE_CLASSES`](_autosummary/an.library.rights.html.md#an.library.rights.PUBLISHABLE_CLASSES)   | The classes a video may ship with (`attribution` with its credit displayed). |
+| [`LICENSE_CLASS_ORDER`](_autosummary/an.library.rights.html.md#an.library.rights.LICENSE_CLASS_ORDER)   | Licence classes, most restrictive first.                                                                                                                                                                  |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PUBLISHABLE_CLASSES`](_autosummary/an.library.rights.html.md#an.library.rights.PUBLISHABLE_CLASSES)   | The classes a video may ship with (`attribution` and `noncommercial` with their credit displayed; `noncommercial` only in a video nobody earns from — an#373: flagged for commercial use, never blocked). |
+| [`COMMERCIAL_CLASSES`](_autosummary/an.library.rights.html.md#an.library.rights.COMMERCIAL_CLASSES)    | The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).                                                                                                                         |
 
 ### Functions
 
@@ -22400,19 +22454,29 @@ Order, most restrictive first: `private` > `unknown` > `attribution` >
 | [`RightsRefusal`](_autosummary/an.library.rights.html.md#an.library.rights.RightsRefusal)   | A private or unknown version would leave the user's library without an override.   |
 |------------------------------------------------------------------|------------------------------------------------------------------------------------|
 
-### an.library.rights.LICENSE_CLASS_ORDER *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown'], ...]* *= ('private', 'unknown', 'attribution', 'free')*
+### an.library.rights.COMMERCIAL_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free'})*
+
+The classes a COMMERCIAL video may ship with (monetised, sponsored, client work).
+
+### an.library.rights.LICENSE_CLASS_ORDER *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'noncommercial', 'private', 'unknown'], ...]* *= ('private', 'unknown', 'noncommercial', 'attribution', 'free')*
 
 Licence classes, most restrictive first. The roll-up keeps the first that occurs.
 
-### an.library.rights.PUBLISHABLE_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free'})*
+### an.library.rights.PUBLISHABLE_CLASSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'attribution', 'free', 'noncommercial'})*
 
-The classes a video may ship with (`attribution` with its credit displayed).
+The classes a video may ship with (`attribution` and `noncommercial`
+with their credit displayed; `noncommercial` only in a video nobody earns
+from — an#373: flagged for commercial use, never blocked).
 
 ### *class* an.library.rights.Rights(license_class, reasons=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The rolled-up rights of one version, as stored on it.
+
+#### *property* commercial *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether a COMMERCIAL video containing this asset may ship (an#373).
 
 #### *classmethod* from_dict(d)
 
@@ -22423,7 +22487,7 @@ Read a version’s `rights` block back.
 
 #### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
-Whether a video containing this asset may ship.
+Whether a video containing this asset may ship (commercially or not).
 
 #### to_dict()
 
@@ -22450,7 +22514,7 @@ The source the descriptor itself declares (or `an credits` reconstructs), if any
 The most restrictive of `classes`; `free` for none.
 
 * **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ```pycon
 >>> most_restrictive(["free", "attribution"]), most_restrictive([])
@@ -38596,29 +38660,29 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-09 10:06 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/030564cf356ccd6f1df52be90e8c02bda38ea9b5"><code>030564c</code></a> on branch <code>main</code>, for **an 0.1.234** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-09 10:57 UTC** from commit <a href="https://github.com/reeleehq/an/commit/0521c510ef2be879768e3e92273cd6ce183460df"><code>0521c51</code></a> on branch <code>main</code>, for **an 0.1.235** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
-|                     |                                                                                                                                                      |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/030564cf356ccd6f1df52be90e8c02bda38ea9b5"><code>030564cf356ccd6f1df52be90e8c02bda38ea9b5</code></a> |
-| Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.234</code>                                                                                                                                 |
-| Working tree        | clean                                                                                                                                                |
-| Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
+|                     |                                                                                                                                                    |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Commit              | <a href="https://github.com/reeleehq/an/commit/0521c510ef2be879768e3e92273cd6ce183460df"><code>0521c510ef2be879768e3e92273cd6ce183460df</code></a> |
+| Branch              | <code>main</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.235</code>                                                                                                                               |
+| Working tree        | clean                                                                                                                                              |
+| Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
 ## Continuous integration
 
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
-| Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/37914873211">37914873211</a>        |
+| Repository   | <code>reeleehq/an</code>                                                                   |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/37920114853">37920114853</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>09100e4daf5c1d556984432938c0bc63a616b66a</code> (in the history of the built commit) |
+| Event commit | <code>62fcce606a40b9c0d053a2251cc82bfccbaae16f</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -38643,13 +38707,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.234/">0.1.234</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.235/">0.1.235</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
-git clone https://github.com/thorwhalen/an && cd an
-git checkout 030564cf356ccd6f1df52be90e8c02bda38ea9b5
+git clone https://github.com/reeleehq/an && cd an
+git checkout 0521c510ef2be879768e3e92273cd6ce183460df
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=9e0336af"></script>
+    <script src="../_static/documentation_options.js?v=3a7bb2b6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.234" />
+  <meta name="docsearch:version" content="0.1.235" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1133,6 +1133,12 @@ sentence each (<code class="xref py py-func docutils literal notranslate"><span 
 <p>The rolled-up rights of one version, as stored on it.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.library.Rights.commercial">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">commercial</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.library.Rights.commercial" title="Link to this definition">#</a></dt>
+<dd><p>Whether a COMMERCIAL video containing this asset may ship (an#373).</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.library.Rights.from_dict">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#Rights.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Rights.from_dict" title="Link to this definition">#</a></dt>
@@ -1147,7 +1153,7 @@ sentence each (<code class="xref py py-func docutils literal notranslate"><span 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.Rights.publishable">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">publishable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.library.Rights.publishable" title="Link to this definition">#</a></dt>
-<dd><p>Whether a video containing this asset may ship.</p>
+<dd><p>Whether a video containing this asset may ship (commercially or not).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1370,7 +1376,9 @@ same-named other one.</p>
 its own boolean facet, so a list of them is AND, as across facets. An
 unregistered name raises, naming the close ones</p>
 </dd>
-<dt>rights: <code class="docutils literal notranslate"><span class="pre">any</span></code> (default — study renders are legitimate), <code class="docutils literal notranslate"><span class="pre">publishable</span></code></dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">free</span></code> + <code class="docutils literal notranslate"><span class="pre">attribution</span></code>), or licence classes. Rights are recomputed
+<dt>rights: <code class="docutils literal notranslate"><span class="pre">any</span></code> (default — study renders are legitimate), <code class="docutils literal notranslate"><span class="pre">publishable</span></code></dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">free</span></code> + <code class="docutils literal notranslate"><span class="pre">attribution</span></code> + <code class="docutils literal notranslate"><span class="pre">noncommercial</span></code>), <code class="docutils literal notranslate"><span class="pre">commercial</span></code>
+(<code class="docutils literal notranslate"><span class="pre">free</span></code> + <code class="docutils literal notranslate"><span class="pre">attribution</span></code>: what a commercial video may use, an#373),
+or licence classes. Rights are recomputed
 from each version’s sources and lineage, not read from its cache</p>
 </dd>
 <dt>status: curation statuses; an asset whose status is hidden</dt><dd><p>(<code class="xref py py-data docutils literal notranslate"><span class="pre">HIDDEN_STATUSES</span></code>: <code class="docutils literal notranslate"><span class="pre">retired</span></code>) is offered only when its status
@@ -2126,6 +2134,7 @@ hidden status (<code class="docutils literal notranslate"><span class="pre">reti
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.RegistryError"><code class="docutils literal notranslate"><span class="pre">RegistryError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights"><code class="docutils literal notranslate"><span class="pre">Rights</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.commercial"><code class="docutils literal notranslate"><span class="pre">Rights.commercial</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.from_dict"><code class="docutils literal notranslate"><span class="pre">Rights.from_dict()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.publishable"><code class="docutils literal notranslate"><span class="pre">Rights.publishable</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.Rights.to_dict"><code class="docutils literal notranslate"><span class="pre">Rights.to_dict()</span></code></a></li>
