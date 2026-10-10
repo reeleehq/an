@@ -1,0 +1,83 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>maya — an character preview</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: #1a1d21; color: #d8dae0;
+    margin: 0; padding: 24px; display: grid; gap: 24px;
+    grid-template-columns: 320px 1fr;
+  }
+  h1, h2, h3 { font-weight: 500; margin: 0 0 8px; }
+  .panel {
+    background: #23262b; border-radius: 8px; padding: 16px;
+    border: 1px solid #2f333a;
+  }
+  .stage {
+    background: #0f1115; border-radius: 8px; min-height: 480px;
+    display: grid; place-items: center; padding: 24px;
+  }
+  .head-wrap { width: 320px; height: 320px; position: relative; }
+  .head-wrap img { width: 100%; height: 100%; }
+  .mouth-overlay {
+    position: absolute; left: 50%; top: 60%; transform: translate(-50%, -50%);
+    width: 96px; height: 48px;
+  }
+  .mouth-overlay img { width: 100%; height: 100%; }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .swatch {
+    background: #15171a; border: 1px solid #2f333a; border-radius: 6px;
+    padding: 8px; text-align: center;
+  }
+  .swatch img { width: 64px; height: 32px; }
+  code { background: #15171a; padding: 1px 6px; border-radius: 4px; }
+  .meta { font-size: 12px; color: #8a909a; }
+</style>
+</head>
+<body>
+<div class="panel">
+  <h1>maya</h1>
+  <p class="meta">Maya</p>
+  <h3>Viseme set</h3>
+  <div class="grid">
+    <div class="swatch"><img src="parts/mouth/mouth_a.svg"/><div class="meta">mouth_a</div></div><div class="swatch"><img src="parts/mouth/mouth_b.svg"/><div class="meta">mouth_b</div></div><div class="swatch"><img src="parts/mouth/mouth_c.svg"/><div class="meta">mouth_c</div></div><div class="swatch"><img src="parts/mouth/mouth_d.svg"/><div class="meta">mouth_d</div></div><div class="swatch"><img src="parts/mouth/mouth_e.svg"/><div class="meta">mouth_e</div></div><div class="swatch"><img src="parts/mouth/mouth_f.svg"/><div class="meta">mouth_f</div></div><div class="swatch"><img src="parts/mouth/mouth_g.svg"/><div class="meta">mouth_g</div></div><div class="swatch"><img src="parts/mouth/mouth_h.svg"/><div class="meta">mouth_h</div></div><div class="swatch"><img src="parts/mouth/mouth_x.svg"/><div class="meta">mouth_x</div></div>
+  </div>
+  <h3 style="margin-top:16px">Idle animation</h3>
+  <p class="meta">±2 px breath, 0.5° head tilt at 4 s period.</p>
+  <h3 style="margin-top:16px">Pivots detected</h3>
+  <ul class="meta"><li>root</li><li>neck</li><li>shoulder_l</li><li>shoulder_r</li></ul>
+  <h3 style="margin-top:16px">Files</h3>
+  <p class="meta">Descriptor: <code>character.json</code><br>
+  Source SVG: <code>maya.svg</code><br>
+  Parts: <code>parts/</code></p>
+</div>
+<div class="stage">
+  <div class="head-wrap" id="stage">
+    <img src="parts/head.svg" id="head"/>
+    <div class="mouth-overlay"><img id="mouth" src="parts/mouth/mouth_x.svg"/></div>
+  </div>
+</div>
+<script>
+  // Cycle visemes once per second.
+  const shapes = ["a", "b", "c", "d", "e", "f", "g", "h", "x"];
+  let i = 0;
+  const mouth = document.getElementById('mouth');
+  setInterval(() => {
+    i = (i + 1) % shapes.length;
+    mouth.src = `parts/mouth/mouth_${shapes[i]}.svg`;
+  }, 700);
+  // ±2 px sine breath on head.
+  const head = document.getElementById('stage');
+  const t0 = performance.now();
+  function tick() {
+    const t = (performance.now() - t0) / 1000;
+    const dy = 2 * Math.sin(2 * Math.PI * t / 4);
+    const rot = 0.5 * Math.sin(2 * Math.PI * (t / 4 + 0.25));
+    head.style.transform = `translateY(${dy.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+</script>
+</body></html>

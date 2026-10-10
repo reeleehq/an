@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>an — character gallery</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif;
+          background:#1a1d21; color:#d8dae0; padding:32px; max-width:920px; margin:auto; }
+  a { color:#7eb6ff; }
+  h1, h2, h3 { font-weight: 500; }
+  .hero { background:#23262b; border:1px solid #2f333a; border-radius:8px;
+           padding:24px; margin: 24px 0; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+           gap: 16px; }
+  .card { background:#23262b; border:1px solid #2f333a; border-radius:8px; padding:12px; }
+  .meta { color:#8a909a; font-size: 14px; }
+</style></head><body>
+<h1>character gallery</h1>
+<p>Built by <code>examples/character_gallery/build.py</code>. Demonstrates
+the Phase 11 character authoring + SVG-texture rendering pipeline.</p>
+
+<div class="hero">
+  <h2>Cartoon: <em>Procedural</em></h2>
+  <p class="meta">Two offline characters speaking, rendered through the
+  Pixi SVG-texture runtime introduced in Phase 11b. The same pipeline any
+  production scene uses.</p>
+  <video src="videos/cartoon.mp4" controls autoplay loop muted
+         playsinline style="width:100%;background:#0f1115;border-radius:8px"></video>
+</div>
+
+<h2>Per-character previews</h2>
+<p class="meta">Click through to inspect individual characters' parts and
+the 9-shape mouth set used for lip-sync.</p>
+<div class="grid"><div class="card"><h3>maya</h3><p><a href="cartoon/assets/characters/maya/preview.html">live preview</a></p></div>
+<div class="card"><h3>charlie</h3><p><a href="cartoon/assets/characters/charlie/preview.html">live preview</a></p></div></div>
+</body></html>
