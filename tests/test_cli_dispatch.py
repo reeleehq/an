@@ -131,7 +131,10 @@ def test_a_namespaced_command_is_reachable_under_its_group():
     names = _group_commands(_app(), "character")
     assert names == [command_name(f) for f in registered_namespaces()["character"]]
     assert runner.invoke(_app(), ["character", "--help"]).exit_code == 0
-    assert runner.invoke(_app(), ["character", "validate", "--help"]).exit_code == 0
+    # Whichever command the genre registered first: the contract is that every
+    # one answers `--help` under its group, not that a named one exists (an#433).
+    for name in names:
+        assert runner.invoke(_app(), ["character", name, "--help"]).exit_code == 0
 
 
 @pytest.mark.parametrize(
