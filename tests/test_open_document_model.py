@@ -515,13 +515,34 @@ def test_no_genre_is_found_without_its_entry_point():
         assert "cutout_animation (cutan)" in genres.providers_of("play")
 
 
-def _fresh_example(tmp_path, name="park_bench_cartoon"):
+def _emotion_of_first_line(scene_md: Path) -> str | None:
+    """The first shot's first dialogue line's `[emotion]`, as the parser reads it."""
+    from an.ir.sync import markdown_to_ir
+
+    shot = markdown_to_ir(scene_md.read_text(encoding="utf-8")).timeline[0]
+    return shot.dialogue[0].emotion if shot.dialogue else None
+
+
+def _example_dir() -> Path:
+    """The first committed example whose opening line carries an emotion.
+
+    Chosen by what the tests need (a scene that uses the genre's `[emotion]`
+    sugar), not by the name of one of the genre's examples (an#433).
+    """
+    from tests._corpus_roots import corpus_glob
+
+    for scene_md in corpus_glob("examples/*/scene.md"):
+        if _emotion_of_first_line(scene_md):
+            return scene_md.parent
+    raise LookupError("no committed example opens with an `[emotion]` line")
+
+
+def _fresh_example(tmp_path):
     import shutil
     import time
 
-    from tests._corpus_roots import corpus_glob
-
-    (source,) = corpus_glob(f"examples/{name}")
+    source = _example_dir()
+    name = source.name
     root = tmp_path / name
     shutil.copytree(source, root)
     later = time.time() + 5  # the md is the newer file: `sync` must PARSE it
@@ -559,7 +580,8 @@ def test_project_load_loads_the_genres_itself(tmp_path):
     )
     out = _run(["-c", code, str(root)], cwd=tmp_path)
     assert out.returncode == 0, out.stderr
-    assert out.stdout.strip() == "('cutout_animation',) thinking", out.stdout
+    emotion = _emotion_of_first_line(_example_dir() / "scene.md")
+    assert out.stdout.strip() == f"('cutout_animation',) {emotion}", out.stdout
 
 
 def test_both_entry_points_call_load(monkeypatch, tmp_path):

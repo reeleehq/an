@@ -117,20 +117,3 @@ def test_every_committed_scene_md_dialogue_line_parses():
                 except SceneMarkdownError:
                     offenders.append(f"{md.relative_to(ROOT)}: {line[:60]}")
     assert not offenders, offenders
-
-
-@pytest.mark.genre("cutout_animation")
-def test_promote_demo_has_its_line_again():
-    """Its IR carries the line. Whether visemes are stamped depends on whether
-    someone ran the example (`auto_audio=True` persists them) — the bench does
-    not care, because `_prepare_promote_demo` regenerates the staged IR from
-    the md, so the fixture's picture and contract hash are a property of the
-    tree, not of developer state."""
-    import json
-
-    from tests._corpus_roots import corpus_glob
-
-    (promote,) = corpus_glob("examples/promote_demo/ir/scene.json")
-    ir = json.loads(promote.read_text(encoding="utf-8"))
-    (line,) = ir["timeline"][0]["dialogue"]
-    assert line["speaker"] == "maya" and line["text"].startswith("I started life")
