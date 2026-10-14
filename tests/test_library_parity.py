@@ -34,7 +34,8 @@ PROJECTS = sorted(
 
 
 def test_the_corpus_has_characters_to_compare():
-    assert len(PROJECTS) >= 4
+    # Non-empty, not a count: how big the genre's corpus is, is the genre's (an#433).
+    assert PROJECTS
 
 
 def _built(project: Path) -> dict[str, tuple[str, set[str], dict[str, set[str]]]]:

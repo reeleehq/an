@@ -221,6 +221,26 @@ def _spoken_line(speaker: str) -> Dialogue:
     )
 
 
+def _mouth_path(shot: Shot, entity: str) -> str:
+    """The path of ``entity``'s mouth node in the COMPILED scene, whatever the rig.
+
+    Which part carries the mouth is the genre's rig to decide (an#433); the
+    warning under test must name the path the compiled scene actually has.
+    """
+    scene = compile_shot(shot)
+
+    def walk(node, prefix):
+        path = f"{prefix}/{node.name}" if prefix else node.name
+        if node.visual is not None and node.visual.kind == "mouth":
+            yield path
+        for child in node.children:
+            yield from walk(child, path)
+
+    (root,) = (c for c in scene.scene.children if c.name == entity)
+    (path,) = walk(root, "")
+    return path
+
+
 @pytest.mark.genre("cutout_animation")
 def test_the_helper_actually_reaches_the_viseme_branch():
     """Guards the guard: prove `_spoken_line` gets past the earlier `continue`s.
@@ -237,7 +257,7 @@ def test_the_helper_actually_reaches_the_viseme_branch():
     )
     scene = compile_shot(shot)
     targets = {ch.target for a in scene.animations.values() for ch in a.channels}
-    assert "charlie/head/mouth" in targets, (
+    assert _mouth_path(shot, "charlie") in targets, (
         "an on-screen speaker produced no viseme channel, so every off-screen "
         "test below is testing nothing"
     )
@@ -257,7 +277,9 @@ def test_an_off_screen_speaker_warns_and_emits_no_channel():
         duration=1.0,
         dialogue=[_spoken_line("narrator")],
     )
-    with pytest.warns(CutoutCompileWarning, match="no viseme-capable mouth node"):
+    # The wording is the genre's; the contract is that the discard is audible
+    # and names who was discarded (an#433).
+    with pytest.warns(CutoutCompileWarning, match="narrator"):
         scene = compile_shot(shot)
     targets = {ch.target for a in scene.animations.values() for ch in a.channels}
     assert not any(t.startswith("narrator") for t in targets), (
@@ -276,7 +298,8 @@ def test_a_typo_speaker_names_the_scenes_actual_mouths():
         entities=[_character("charlie")],
         dialogue=[_spoken_line("charlei")],
     )
-    with pytest.warns(CutoutCompileWarning, match="charlie/head/mouth"):
+    mouth = _mouth_path(shot.model_copy(update={"dialogue": []}), "charlie")
+    with pytest.warns(CutoutCompileWarning, match=re.escape(mouth)):
         compile_shot(shot)
 
 

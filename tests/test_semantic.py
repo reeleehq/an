@@ -345,15 +345,21 @@ def test_the_digest_names_every_entry_a_shot_uses_with_its_version():
         ],
     )
     v = vocabulary_versions(shot)
+    # The core's own entries are named; the genre's are READ from its registered
+    # declaration (an#433): the walk entry, and every method its aspects may
+    # resolve to ("a walk may resolve to any locomotion method").
+    walk = lookup("motion_preset", "walk")
+    genre_ids = [
+        walk.id,
+        *(m.id for a in walk.aspects for m in methods_of(a)),
+    ]
     for eid in (
         "camera.push_in",
-        "motion.walk",
         "action.play",
         "action.tween",
         "easing.ease_in",
         "entity.character",
-        "loco.legged_cycle",  # a walk may resolve to any locomotion method
-        "loco.rock",
+        *genre_ids,
     ):
         assert eid in v, eid
 
@@ -412,10 +418,12 @@ def test_bumping_an_entrys_version_rerenders_the_shots_that_use_it(tmp_path):
             actions=[PlayAction(target="ned", animation=animation)],
         )
 
+    # Two of the genre's registered presets, read from the registry (an#433).
+    first, second = entries(kind="motion_preset", owner="cutout_animation")[:2]
     ctx = _ctx(tmp_path)
-    hopper, nodder = shot("hop"), shot("nod")
+    hopper, nodder = shot(first.name), shot(second.name)
     before = _key(hopper, ctx), _key(nodder, ctx)
-    hop = lookup("motion_preset", "hop")
+    hop = lookup("motion_preset", first.name)
     register_entry(replace(hop, version="2"), owner="cutout_animation", replace=True)
     try:
         assert _key(hopper, ctx) != before[0]  # a miss: the shot re-renders

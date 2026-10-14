@@ -193,7 +193,21 @@ def test_the_library_loads_the_genres_before_it_analyses(tmp_path):
         [sys.executable, "-c", code], capture_output=True, text=True, env=env, cwd=ROOT
     )
     assert out.returncode == 0, out.stderr[-2000:]
-    assert out.stdout.strip().splitlines()[-1] == "['swap.view']"
+    # Same blob, published in-process (genres loaded): the plain script must
+    # derive exactly the facets this process does (an#433).
+    from an.library import open_library, publish
+    from cutan.characters.schema import CharacterDescriptor
+
+    lib = open_library("an", records={}, versions={}, blobs={})
+    publish(
+        lib,
+        "character.blob",
+        CharacterDescriptor(name="blob").model_dump(mode="json"),
+        source={"provider": "an-tests", "license": "cc0-1.0"},
+    )
+    expected = sorted(lib.versions["character.blob@v001"]["affordances"])
+    assert expected, "a blob affords nothing, so this proves nothing"
+    assert out.stdout.strip().splitlines()[-1] == str(expected)
 
 
 # --------------------------------------------------------------------------- substitutions

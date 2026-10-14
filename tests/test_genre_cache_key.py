@@ -74,9 +74,14 @@ def test_a_core_only_process_keys_no_genre_code():
 
 @pytest.mark.genre("cutout_animation")
 def test_the_cut_out_genres_code_is_in_the_key():
-    """The real thing: ``cutan``'s compile passes, lowering and visuals script are keyed."""
+    """The real thing: every module the loaded cut-out genre registered a hook
+    from is keyed. The names come from the registry, not from a list here
+    (an#433): the genre may move its code, the key must follow it."""
     from an.genres import load
+    from an.genres.registry import hook_modules
 
     load()
-    mods = cache_key.render_path_modules()
-    assert {"cutan.compile.passes", "cutan.compile.lowering", "cutan.characters.play"} <= set(mods)
+    mods = set(cache_key.render_path_modules())
+    declared = {m for m in hook_modules() if m.partition(".")[0] == "cutan"}
+    assert declared, "the cut-out genre registered no hook module"
+    assert declared <= mods

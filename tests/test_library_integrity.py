@@ -719,7 +719,12 @@ def test_a_placeholder_character_affords_only_its_rest_view():
     lib = _memory()
     with pytest.warns(PlaceholderRigWarning):
         r = publish(lib, "character.ghost", {"name": "ghost"}, source=CC0)
-    assert sorted(r.affordances) == ["swap.view"]
+    # Only the rest view: the same facet a character with no art at all affords
+    # (the genre's capability name is read, not copied: an#433).
+    from cutan.library import CHARACTER_CAPABILITIES
+
+    assert r.affordances and set(r.affordances) < {c.name for c in CHARACTER_CAPABILITIES}
+    assert len(r.affordances) == 1
 
 
 @pytest.mark.parametrize(

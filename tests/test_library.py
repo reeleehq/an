@@ -369,15 +369,23 @@ def test_slots_without_their_art_afford_nothing(alice_dir):
     assert "side" not in a["swap.view"]["keys"]
 
 
-def test_a_legless_blob_has_its_rest_view_and_no_gait_capability():
-    """Which walks apply is the matcher's answer (ADR 0002), not a stored fact."""
+def test_a_legless_blob_has_its_rest_view_and_no_gait_capability(alice_dir):
+    """Which walks apply is the matcher's answer (ADR 0002), not a stored fact.
+
+    Stated against the genre's declarations and a complete rig, never against
+    capability names or a view spelling of its own (an#433): the blob affords
+    something, strictly less than a complete rig, and what it affords is a lone
+    non-swappable rest view.
+    """
     lib = _memory()
+    publish_dir(lib, alice_dir, "character.alice", source=MIT)
     publish(lib, "character.blob", CharacterDescriptor(name="blob"), source=CC0)
     a = _afford(lib, "character.blob")
-    assert sorted(a) == ["swap.view"]
-    assert a["swap.view"] == {
-        "keys": ["front"],
-        "rest": "front",
+    assert a and set(a) < set(_afford(lib, "character.alice"))
+    (view,) = a.values()
+    assert view == {
+        "keys": [view["rest"]],
+        "rest": view["rest"],
         "swappable": False,
         "overrides": [],
     }
@@ -470,8 +478,8 @@ def test_near_misses_name_what_is_missing_and_how_to_add_it(stocked):
     assert [h.asset_id for h in result.hits] == ["character.alice"]
     (blob,) = result.near
     assert blob.missing == ["limbs.legs", "swap.view:side"] and blob.score == 0.0
-    assert "leg_l" in blob.remedies["limbs.legs"]
-    assert "add-views" in blob.remedies["swap.view:side"]
+    # The remedy wording is the genre's; the contract is one per missing spec.
+    assert all(blob.remedies[spec] for spec in blob.missing)
     assert (
         find(stocked, kind="character", affords="limbs.legs").near == []
     )  # only when asked

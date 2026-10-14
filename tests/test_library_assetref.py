@@ -37,7 +37,8 @@ def _ids(paths):
 @pytest.mark.genre("cutout_animation")
 def test_the_corpus_is_found():
     """Guard the guard: an empty glob would make every parametrised case vanish."""
-    assert len(SCENE_MDS) >= 10 and len(SCENE_JSONS) >= 1
+    # Non-empty, not a count: how big the genre's corpus is, is the genre's (an#433).
+    assert SCENE_MDS and SCENE_JSONS
 
 
 def _entities(scene: SceneIR) -> list[AssetRef]:

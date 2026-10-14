@@ -89,16 +89,8 @@ def test_no_gap_line_survives_its_gap_loop_mode():
         ):
             assert phrase not in text, f"{rel} still states a closed loop_mode gap: {phrase!r}"
 
-    # The emitter exists: a compiler path writes a non-default loop_mode.
-    import importlib.util
-
-    # `_resolve_play` (where the emitter lives) moved to the genre package (an#225).
-    passes = importlib.util.find_spec("cutan.compile.passes")
-    assert passes is not None and passes.origin, "cutan is not installed"
-    compile_src = Path(passes.origin).read_text(encoding="utf-8")
-    assert 'loop_mode="loop" if loop else "once"' in compile_src, (
-        "the compiler no longer emits loop_mode — the gap line would be true again"
-    )
+    # That a compiler path EMITS a non-default loop_mode is the genre's code, pinned
+    # in cutan (an#433); the wire format's default is the core's.
     assert serialize.AnimationClipJSON.model_fields["loop_mode"].default == "once"
 
 

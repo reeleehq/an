@@ -39,21 +39,24 @@ def test_character_entity_creates_subtree():
         ],
     )
     j = compile_shot(shot, mall={"characters": {}})
-    # One character node under root, with placeholder parts.
+    # One character node under root, drawn from the built-in placeholder rig.
     assert len(j.scene.children) == 1
     char = j.scene.children[0]
     assert char.name == "charlie"
-    part_names = [c.name for c in char.children]
-    assert "head" in part_names
-    assert "torso" in part_names
-    # Head has a mouth CHILD NODE for lip-sync — the node path
-    # charlie/head/mouth is what viseme channels target. (This used to also
+    assert char.children, "the placeholder rig draws nothing"
+
+    # The rig has a mouth CHILD NODE for lip-sync — the node path
+    # charlie/<...>/mouth is what viseme channels target. (This used to also
     # assert the vestigial NodeJSON.slots entry; that field was serialized
-    # dead weight the runtime never read, deleted in an#86.)
-    head = next(c for c in char.children if c.name == "head")
-    mouth = next((c for c in head.children if c.name == "mouth"), None)
-    assert mouth is not None
-    assert mouth.visual is not None and mouth.visual.kind == "mouth"
+    # dead weight the runtime never read, deleted in an#86.) Which part carries
+    # it, and what its siblings are called, is the genre's to say (an#433).
+    def mouths(node):
+        for child in node.children:
+            if child.visual is not None and child.visual.kind == "mouth":
+                yield child
+            yield from mouths(child)
+
+    assert list(mouths(char)), "no node of the placeholder rig is a mouth"
 
 
 @pytest.mark.genre("cutout_animation")
