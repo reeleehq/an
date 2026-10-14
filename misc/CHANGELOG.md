@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-14
+- **Tests: the last cutan-owned pins leave an's suite** (an#433, rest of #427): surface/compile/loud-discard tests read the compiled scene or a synthetic subtree instead of the placeholder rig; library/capabilities/semantic/cache-key tests read the genre's registered declarations; corpus counts become non-empty checks; DiceBear licence data, the promote-demo line, default colours and the `loop_mode` emitter line move to cutan (reeleehq/cutan#85). Test-only.
+
 ## 2026-10-09
 - **ADR 0002: a declaration outranks a style's policy** (thorwhalen/cutan#36, decided 2026-10-09): decision 4's precedence now names the asset's own declaration (a character's `gait` or `speech`) after the author's request and before the shot and style policies, with the reason; docs only.
 - **One non-commercial licence class** (an#373): `noncommercial` covers CC BY-NC (SA, ND, versioned) and the ElevenLabs free plan; it owes its credit, is publishable, and is flagged for commercial use (`an credits`: NON-COMMERCIAL USE ONLY; `Rights.commercial`, `CreditsReport.commercial`, `find(rights="commercial")`). Strictness: private > unknown > noncommercial > attribution > free.

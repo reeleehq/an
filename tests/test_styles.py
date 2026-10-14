@@ -523,17 +523,6 @@ def test_the_leg_role_reaches_a_character_that_HAS_legs():
 
 
 @pytest.mark.genre("cutout_animation")
-def test_the_default_leg_and_pupil_colours_are_the_literals_they_replaced():
-    """Both moved from inline literals into named constants. A constant whose
-    value drifts is a picture change nobody asked for, and only a labelled
-    golden run would otherwise catch it."""
-    from cutan.compile.passes import DFLT_LEG_COLOUR, DFLT_PUPIL_COLOUR
-
-    assert DFLT_LEG_COLOUR == "#2c3e50"
-    assert DFLT_PUPIL_COLOUR == "#1a1a1a"
-
-
-@pytest.mark.genre("cutout_animation")
 def test_the_compiled_document_records_which_pack_produced_it():
     """It recorded nothing: `compile_shot` never passed `style_pack` into the
     meta, so the field its docstring called provenance was unconditionally
