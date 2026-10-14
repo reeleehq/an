@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -735,7 +735,7 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.GAIN_STEP_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">GAIN_STEP_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.audio.loudness.GAIN_STEP_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">GAIN_STEP_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.audio.loudness.GAIN_STEP_DB" title="Link to this definition">#</a></dt>
 <dd><p>A voice’s gain is rounded to this, so a new line that moves its voice’s
 loudness by less than half of it re-renders nothing else (half a dB is
 below what a listener hears between two lines; the measurement itself is
@@ -744,7 +744,7 @@ to 0.1 LU).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.LEVEL_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">LEVEL_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.loudness.LEVEL_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">LEVEL_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.loudness.LEVEL_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever a leveled line’s bytes would change for the same inputs
 (the limiter, its window, the encoding); part of every leveled line’s key.
 A test pins the leveled output to it.</p>
@@ -752,7 +752,7 @@ A test pins the leveled output to it.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.LIMITER_WINDOW_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">LIMITER_WINDOW_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></span><a class="headerlink" href="#an.audio.loudness.LIMITER_WINDOW_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">LIMITER_WINDOW_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></span><a class="headerlink" href="#an.audio.loudness.LIMITER_WINDOW_S" title="Link to this definition">#</a></dt>
 <dd><p>the gain eases into a peak
 and back out over this much on each side, so nothing below ~20 Hz is
 modulated within a cycle (a 5 ms release distorted anything under 100 Hz,
@@ -766,14 +766,14 @@ an#315 review).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.MAX_GAIN_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MAX_GAIN_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24.0</span></span><a class="headerlink" href="#an.audio.loudness.MAX_GAIN_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MAX_GAIN_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24.0</span></span><a class="headerlink" href="#an.audio.loudness.MAX_GAIN_DB" title="Link to this definition">#</a></dt>
 <dd><p>The largest gain leveling gives a voice; beyond it the voice is mostly
 noise (room tone measured at -62 LUFS asked for +46 dB). Capped, and warned.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.MIN_MEASURE_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MIN_MEASURE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.audio.loudness.MIN_MEASURE_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MIN_MEASURE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.audio.loudness.MIN_MEASURE_S" title="Link to this definition">#</a></dt>
 <dd><p>EBU R128 gates
 in 400 ms blocks, and a voice of only short lines would read as silence.</p>
 <dl class="field-list simple">
@@ -785,20 +785,20 @@ in 400 ms blocks, and a voice of only short lines would read as silence.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.MISS_WARNING_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MISS_WARNING_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.audio.loudness.MISS_WARNING_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">MISS_WARNING_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.audio.loudness.MISS_WARNING_DB" title="Link to this definition">#</a></dt>
 <dd><p>A leveled voice that ends further than this from its target (the limiter
 held its peaks, or the gain was capped) is warned about.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.OFFSET_LIMITS_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">OFFSET_LIMITS_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-12.0,</span> <span class="pre">12.0)</span></span><a class="headerlink" href="#an.audio.loudness.OFFSET_LIMITS_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">OFFSET_LIMITS_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-12.0,</span> <span class="pre">12.0)</span></span><a class="headerlink" href="#an.audio.loudness.OFFSET_LIMITS_DB" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">loudness_offset_db</span></code> bounds on a voice document.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.SILENCE_LUFS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">SILENCE_LUFS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-70.0</span></span><a class="headerlink" href="#an.audio.loudness.SILENCE_LUFS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">SILENCE_LUFS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-70.0</span></span><a class="headerlink" href="#an.audio.loudness.SILENCE_LUFS" title="Link to this definition">#</a></dt>
 <dd><p>never leveled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -809,14 +809,14 @@ held its peaks, or the gain was capped) is warned about.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.SPREAD_WARNING_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">SPREAD_WARNING_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.0</span></span><a class="headerlink" href="#an.audio.loudness.SPREAD_WARNING_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">SPREAD_WARNING_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.0</span></span><a class="headerlink" href="#an.audio.loudness.SPREAD_WARNING_DB" title="Link to this definition">#</a></dt>
 <dd><p>Voices further apart than this, with no target set, are warned about.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.loudness.VoiceLevel">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">VoiceLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lufs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/loudness.html#VoiceLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.VoiceLevel" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One voice’s measured loudness, and the gain leveling gives it.</p>
 <dl class="field-list simple">
 </dl>
@@ -825,14 +825,14 @@ held its peaks, or the gain was capped) is warned about.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.audio.loudness.VoiceLoudnessError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">VoiceLoudnessError</span></span><a class="reference internal" href="../_modules/an/audio/loudness.html#VoiceLoudnessError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.VoiceLoudnessError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>The voices cannot be measured or leveled (no ffmpeg, an unreadable line).</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.audio.loudness.VoiceLoudnessWarning">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">VoiceLoudnessWarning</span></span><a class="reference internal" href="../_modules/an/audio/loudness.html#VoiceLoudnessWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.loudness.VoiceLoudnessWarning" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
 <p>The film’s voices differ in loudness by more than <a class="reference internal" href="#an.audio.loudness.SPREAD_WARNING_DB" title="an.audio.loudness.SPREAD_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">SPREAD_WARNING_DB</span></code></a>.</p>
 </dd></dl>
 
@@ -843,7 +843,7 @@ held its peaks, or the gain was capped) is warned about.</p>
 (<code class="docutils literal notranslate"><span class="pre">-inf</span></code> for silence).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -858,7 +858,7 @@ Returns each voice’s level; warns (<a class="reference internal" href="#an.aud
 voice it had to cap or could not bring within <a class="reference internal" href="#an.audio.loudness.MISS_WARNING_DB" title="an.audio.loudness.MISS_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">MISS_WARNING_DB</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.audio.loudness.VoiceLevel" title="an.audio.loudness.VoiceLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLevel</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.audio.loudness.VoiceLevel" title="an.audio.loudness.VoiceLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLevel</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -871,7 +871,7 @@ PCM WAV of exactly the length of the decoded source (an MP3 source is
 stored decoded, as the mux would decode it).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -885,7 +885,7 @@ same request is other audio, an#315 review), the gain, the ceiling, the
 rate a non-WAV source is decoded at, and <a class="reference internal" href="#an.audio.loudness.LEVEL_VERSION" title="an.audio.loudness.LEVEL_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">LEVEL_VERSION</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leveled_key</span><span class="p">(</span><span class="sa">b</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">gain_db</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">peak_db</span><span class="o">=-</span><span class="mf">1.5</span><span class="p">)</span> <span class="o">!=</span> <span class="n">leveled_key</span><span class="p">(</span><span class="sa">b</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">gain_db</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">peak_db</span><span class="o">=-</span><span class="mf">1.5</span><span class="p">)</span>
@@ -905,7 +905,7 @@ Every sample’s gain is at most what that sample needs, so the ceiling holds
 exactly; nothing moves in time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -917,7 +917,7 @@ exactly; nothing moves in time.</p>
 leveled line’s leveled audio).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.audio.loudness.VoiceLevel" title="an.audio.loudness.VoiceLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLevel</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.audio.loudness.VoiceLevel" title="an.audio.loudness.VoiceLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLevel</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -929,7 +929,7 @@ leveled line’s leveled audio).</p>
 <a class="reference internal" href="#an.audio.loudness.SPREAD_WARNING_DB" title="an.audio.loudness.SPREAD_WARNING_DB"><code class="xref py py-data docutils literal notranslate"><span class="pre">SPREAD_WARNING_DB</span></code></a>; <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -940,7 +940,7 @@ leveled line’s leveled audio).</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{voice</span> <span class="pre">id:</span> <span class="pre">[line,</span> <span class="pre">...]}</span></code> for every line with audio in the store.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -951,7 +951,7 @@ leveled line’s leveled audio).</p>
 <dd><p><a class="reference internal" href="#an.audio.loudness.voiced_lines" title="an.audio.loudness.voiced_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">voiced_lines()</span></code></a>, by each line’s SOURCE audio (a leveled line’s own).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -791,13 +791,13 @@ silence) is left whole.</p></li>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.ATEMPO_STAGE_LIMITS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">ATEMPO_STAGE_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">ATEMPO_STAGE_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="Link to this definition">#</a></dt>
 <dd><p>One <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stage’s clean range; a factor beyond it is chained in stages.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.CHAIN_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">CHAIN_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.audio.effects.CHAIN_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">CHAIN_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.audio.effects.CHAIN_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>The version of the ffmpeg chain every effected line passes (pitch, tempo,
 and the decode of a non-WAV line before its trim): its filters, rate
 (<a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a>), <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages and flags (an#309). Keyed
@@ -811,7 +811,7 @@ to exactly <code class="docutils literal notranslate"><span class="pre">input</s
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.DFLT_TRIM_KEEP_LEAD_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_KEEP_LEAD_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_KEEP_LEAD_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S" title="Link to this definition">#</a></dt>
 <dd><p>more than the lip-sync
 anticipation lead (2/24 s), so the mouth can open before the sound.</p>
 <dl class="field-list simple">
@@ -823,7 +823,7 @@ anticipation lead (2/24 s), so the mouth can open before the sound.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.DFLT_TRIM_KEEP_TAIL_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_KEEP_TAIL_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.2</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_KEEP_TAIL_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.2</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S" title="Link to this definition">#</a></dt>
 <dd><p>a word’s release and decay.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -834,7 +834,7 @@ anticipation lead (2/24 s), so the mouth can open before the sound.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.DFLT_TRIM_THRESHOLD_DB">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_THRESHOLD_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-20.0</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_THRESHOLD_DB" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">DFLT_TRIM_THRESHOLD_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-20.0</span></span><a class="headerlink" href="#an.audio.effects.DFLT_TRIM_THRESHOLD_DB" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">trim_silence</span></code>’s defaults. A window is “speech” when its RMS level is within
 <code class="docutils literal notranslate"><span class="pre">threshold_db</span></code> of the line’s loudest window. Measured on two eleven_v3 lines
 (an#254): the breath before “Hi!” peaks 25 dB under the word and its room
@@ -857,13 +857,13 @@ cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.effects.SilenceTrim">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">SilenceTrim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lead_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#SilenceTrim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.SilenceTrim" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What <a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim_silence()</span></code></a> produced: the trimmed WAV, and what it cut.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.effects.SilenceTrim.lead_s">
-<span class="sig-name descname"><span class="pre">lead_s</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.audio.effects.SilenceTrim.lead_s" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">lead_s</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.audio.effects.SilenceTrim.lead_s" title="Link to this definition">#</a></dt>
 <dd><p>Seconds cut before the kept audio, and after it.</p>
 </dd></dl>
 
@@ -873,14 +873,14 @@ cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.
 <dd><p>The record the trimmed WAV carries (<a class="reference internal" href="#an.audio.effects.trim_record" title="an.audio.effects.trim_record"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim_record()</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.effects.SilenceTrim.source_s">
-<span class="sig-name descname"><span class="pre">source_s</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.audio.effects.SilenceTrim.source_s" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">source_s</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.audio.effects.SilenceTrim.source_s" title="Link to this definition">#</a></dt>
 <dd><p>The length of the audio before the trim, seconds.</p>
 </dd></dl>
 
@@ -888,7 +888,7 @@ cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TEMPO_LIMITS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TEMPO_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.TEMPO_LIMITS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TEMPO_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.TEMPO_LIMITS" title="Link to this definition">#</a></dt>
 <dd><p>half to double speed. Outside it speech stops being speech.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -899,7 +899,7 @@ cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TEMPO_PAD_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TEMPO_PAD_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#an.audio.effects.TEMPO_PAD_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TEMPO_PAD_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#an.audio.effects.TEMPO_PAD_S" title="Link to this definition">#</a></dt>
 <dd><p>Seconds of silence appended before the <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, so their window
 never eats the line’s tail (it dropped 20-40 ms of every short padded clip,
 an#350); the output is then cut to the exact length the tempo gives.
@@ -908,13 +908,13 @@ Enough for the slowest stage of <a class="reference internal" href="#an.audio.ef
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TRIM_KEEP_LIMITS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_KEEP_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.TRIM_KEEP_LIMITS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_KEEP_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.TRIM_KEEP_LIMITS" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">keep_lead_s</span></code> / <code class="docutils literal notranslate"><span class="pre">keep_tail_s</span></code> bounds, seconds.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TRIM_RECORD_TAG">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_RECORD_TAG</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an:trim_silence</span> <span class="pre">'</span></span><a class="headerlink" href="#an.audio.effects.TRIM_RECORD_TAG" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_RECORD_TAG</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an:trim_silence</span> <span class="pre">'</span></span><a class="headerlink" href="#an.audio.effects.TRIM_RECORD_TAG" title="Link to this definition">#</a></dt>
 <dd><p>The prefix of the <code class="docutils literal notranslate"><span class="pre">LIST</span></code>/<code class="docutils literal notranslate"><span class="pre">INFO</span></code> comment a trimmed WAV carries.</p>
 </dd></dl>
 
@@ -926,20 +926,20 @@ Enough for the slowest stage of <a class="reference internal" href="#an.audio.ef
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TRIM_THRESHOLD_LIMITS">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_THRESHOLD_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-80.0,</span> <span class="pre">-3.0)</span></span><a class="headerlink" href="#an.audio.effects.TRIM_THRESHOLD_LIMITS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_THRESHOLD_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(-80.0,</span> <span class="pre">-3.0)</span></span><a class="headerlink" href="#an.audio.effects.TRIM_THRESHOLD_LIMITS" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">threshold_db</span></code> bounds (relative to the line’s loudest window).</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TRIM_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.effects.TRIM_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.effects.TRIM_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>Bumped whenever a trimmed line’s bytes would change (algorithm, window,
 record tag, rounding); part of every trimmed line’s key.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.TRIM_WINDOW_S">
-<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_WINDOW_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.02</span></span><a class="headerlink" href="#an.audio.effects.TRIM_WINDOW_S" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TRIM_WINDOW_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.02</span></span><a class="headerlink" href="#an.audio.effects.TRIM_WINDOW_S" title="Link to this definition">#</a></dt>
 <dd><p>a change to it (or
 to anything else that moves a trimmed line’s bytes) is a <a class="reference internal" href="#an.audio.effects.TRIM_VERSION" title="an.audio.effects.TRIM_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">TRIM_VERSION</span></code></a>
 bump — a test pins the trim’s output to the version (an#309).</p>
@@ -953,7 +953,7 @@ bump — a test pins the trim’s output to the version (an#309).</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.audio.effects.VoiceEffectError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">VoiceEffectError</span></span><a class="reference internal" href="../_modules/an/audio/effects.html#VoiceEffectError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.VoiceEffectError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A voice declares an effect that is unknown, malformed or out of range.</p>
 </dd></dl>
 
@@ -967,7 +967,7 @@ asked for an effect. <code class="docutils literal notranslate"><span class="pre
 ffmpeg (<a class="reference internal" href="#an.audio.effects.trim_silence" title="an.audio.effects.trim_silence"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim_silence()</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -979,7 +979,7 @@ ffmpeg (<a class="reference internal" href="#an.audio.effects.trim_silence" titl
 <p>One stage when <code class="docutils literal notranslate"><span class="pre">factor</span></code> already fits (the pitch-only chain, always).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
@@ -999,7 +999,7 @@ ffmpeg (<a class="reference internal" href="#an.audio.effects.trim_silence" titl
 trim (part of <a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1011,7 +1011,7 @@ trim (part of <a class="reference internal" href="#an.audio.effects.CHAIN_VERSIO
 PCM WAV at <code class="docutils literal notranslate"><span class="pre">out_path</span></code> (part of <a class="reference internal" href="#an.audio.effects.CHAIN_VERSION" title="an.audio.effects.CHAIN_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHAIN_VERSION</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 <dl class="simple">
@@ -1033,7 +1033,7 @@ container came in (an#350: a tempo chain’s output is cut to it)</p>
 <dd><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1047,7 +1047,7 @@ container came in (an#350: a tempo chain’s output is cut to it)</p>
 Unknown keys raise — an effect that silently does nothing is worse than none.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1063,7 +1063,7 @@ a take’s own trailing silence (a provider pads ~0.3 s) is not counted. A
 when it is installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">array</span><span class="o">,</span><span class="w"> </span><span class="nn">io</span><span class="o">,</span><span class="w"> </span><span class="nn">wave</span>
@@ -1085,7 +1085,7 @@ when it is installed.</p>
 read from the comment it wrote; <code class="docutils literal notranslate"><span class="pre">None</span></code> for audio it did not write.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1132,7 +1132,7 @@ record of a zero cut), and a pad is never longer than the silence it keeps.</p>
 id) has no effects; so does a store that does not exist.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>

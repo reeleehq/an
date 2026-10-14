@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -674,7 +674,7 @@ was built over different stores.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.library.federation.AssetNotFoundError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.federation.</span></span><span class="sig-name descname"><span class="pre">AssetNotFoundError</span></span><a class="reference internal" href="../_modules/an/library/federation.html#AssetNotFoundError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.federation.AssetNotFoundError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#LookupError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LookupError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#LookupError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LookupError</span></code></a></p>
 <p>No library on the search path holds the asset or version asked for.</p>
 </dd></dl>
 
@@ -687,31 +687,31 @@ was built over different stores.</p>
 <dd class="field-odd"><p>What the read functions accept</p>
 </dd>
 </dl>
-<p>alias of <a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</p>
+<p>alias of <a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.federation.Library">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.federation.</span></span><span class="sig-name descname"><span class="pre">Library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/federation.html#Library"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.federation.Library" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One library: its name (the namespace of its ids), its mall, and its root if on disk.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.blob_rights">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">blob_rights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.blob_rights" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">blob_rights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.blob_rights" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">sha256</span> <span class="pre">-&gt;</span> <span class="pre">{asset:</span> <span class="pre">statement}</span></code>, derived (<a class="reference internal" href="an.library.floor.html#module-an.library.floor" title="an.library.floor"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.floor</span></code></a>).</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.blobs">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">blobs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.blobs" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">blobs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.blobs" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">sha256</span> <span class="pre">-&gt;</span> <span class="pre">bytes</span></code> (content-addressed).</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.labels">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.labels" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.labels" title="Link to this definition">#</a></dt>
 <dd><p>statements made
 about a version after it was published (an#307).</p>
 <dl class="field-list simple">
@@ -723,13 +723,13 @@ about a version after it was published (an#307).</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.records">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">records</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.records" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">records</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.records" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">asset_id</span> <span class="pre">-&gt;</span> <span class="pre">record</span></code> (mutable curation).</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.versions">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">versions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.versions" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">versions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.versions" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">&lt;asset_id&gt;&#64;&lt;vNNN&gt;</span> <span class="pre">-&gt;</span> <span class="pre">version</span></code> (write-once).</p>
 </dd></dl>
 
@@ -741,7 +741,7 @@ about a version after it was published (an#307).</p>
 <dd><p>Normalise one library or a search path to a list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -777,7 +777,7 @@ The returned reference is pinned (<code class="docutils literal notranslate"><sp
 it resolved in.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>, <a class="reference internal" href="an.library.ids.html#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>, <a class="reference internal" href="an.library.ids.html#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -788,7 +788,7 @@ it resolved in.</p>
 <dd><p>The ordered libraries <code class="docutils literal notranslate"><span class="pre">package</span></code> reads: its own, then the core <code class="docutils literal notranslate"><span class="pre">an</span></code>, then <code class="docutils literal notranslate"><span class="pre">extra</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
 </dd>
 </dl>
 <dl class="simple">

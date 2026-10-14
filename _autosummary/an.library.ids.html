@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -694,13 +694,13 @@ guard: nothing that parses here can contain <code class="docutils literal notran
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.library.ids.AssetIdError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">AssetIdError</span></span><a class="reference internal" href="../_modules/an/library/ids.html#AssetIdError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.AssetIdError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>An asset id, version label or library reference that does not parse.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.ids.LATEST">
-<span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">LATEST</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'latest'</span></span><a class="headerlink" href="#an.library.ids.LATEST" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">LATEST</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'latest'</span></span><a class="headerlink" href="#an.library.ids.LATEST" title="Link to this definition">#</a></dt>
 <dd><p>the record’s head, resolved once and then pinned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -712,7 +712,7 @@ guard: nothing that parses here can contain <code class="docutils literal notran
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.ids.LibraryRef">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">LibraryRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/ids.html#LibraryRef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.LibraryRef" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A parsed <code class="docutils literal notranslate"><span class="pre">[&lt;namespace&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;]</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">version</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> when the reference gave none (read as <code class="docutils literal notranslate"><span class="pre">latest</span></code> by
 readers; refused where a pin is required, e.g. <code class="docutils literal notranslate"><span class="pre">AssetRef.library</span></code>).</p>
@@ -720,13 +720,13 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.ids.LibraryRef.is_pinned">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_pinned</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.library.ids.LibraryRef.is_pinned" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_pinned</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.library.ids.LibraryRef.is_pinned" title="Link to this definition">#</a></dt>
 <dd><p>Whether this names one immutable version (a label or a content hash).</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="an.library.ids.LibraryRef.kind">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.library.ids.LibraryRef.kind" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.library.ids.LibraryRef.kind" title="Link to this definition">#</a></dt>
 <dd><p>The asset kind, from the id’s prefix.</p>
 </dd></dl>
 
@@ -756,7 +756,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.ids.SHA256_PREFIX">
-<span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">SHA256_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sha256:'</span></span><a class="headerlink" href="#an.library.ids.SHA256_PREFIX" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">SHA256_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sha256:'</span></span><a class="headerlink" href="#an.library.ids.SHA256_PREFIX" title="Link to this definition">#</a></dt>
 <dd><p>The prefix of a content-addressed version selector (<code class="docutils literal notranslate"><span class="pre">sha256:&lt;hex</span> <span class="pre">prefix&gt;</span></code>).</p>
 </dd></dl>
 
@@ -766,7 +766,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <dd><p>The kind an asset id declares by its prefix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_kind</span><span class="p">(</span><span class="s2">"environment.palace-hall"</span><span class="p">)</span>
@@ -781,7 +781,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">asset_id</span></code> if it is <code class="docutils literal notranslate"><span class="pre">&lt;kind&gt;.&lt;slug&gt;</span></code>, else raise <a class="reference internal" href="#an.library.ids.AssetIdError" title="an.library.ids.AssetIdError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetIdError</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_asset_id</span><span class="p">(</span><span class="s2">"prop.teacup-victorian"</span><span class="p">)</span>
@@ -799,7 +799,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">name</span></code> if it can name a library (a package name), else raise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -810,7 +810,7 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">label</span></code> if it is <code class="docutils literal notranslate"><span class="pre">vNNN</span></code>, else raise <a class="reference internal" href="#an.library.ids.AssetIdError" title="an.library.ids.AssetIdError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetIdError</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -845,7 +845,7 @@ on whatever the library’s head is that day.</p>
 <dd><p>The label of the <code class="docutils literal notranslate"><span class="pre">number</span></code>-th version (1-based).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_label</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">version_label</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
@@ -860,7 +860,7 @@ on whatever the library’s head is that day.</p>
 <dd><p>The number of a version label.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span><span class="p">(</span><span class="s2">"v012"</span><span class="p">)</span>

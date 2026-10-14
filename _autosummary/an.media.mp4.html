@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,14 +681,14 @@ one reads here, and rebinding one – the bench’s <code class="docutils litera
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.media.mp4.AUDIO_SAMPLE_RATE">
-<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">AUDIO_SAMPLE_RATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">44100</span></span><a class="headerlink" href="#an.media.mp4.AUDIO_SAMPLE_RATE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">AUDIO_SAMPLE_RATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">44100</span></span><a class="headerlink" href="#an.media.mp4.AUDIO_SAMPLE_RATE" title="Link to this definition">#</a></dt>
 <dd><p>The sample rate of every shot’s audio stream, silent base included. One
 rate for the whole film, so the concat never resamples.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.media.mp4.DEFAULT_PIX_FMT">
-<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.media.mp4.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.media.mp4.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
 <dd><p>The delivered encode’s pixel format, and **the one first-order quality lever
 in this file**. Measured on 30 real 1080p <code class="code docutils literal notranslate"><span class="pre">an</span></code> frames, edge-band mean error:
 current flags 11.35, crf18 4:2:0 11.05, crf18 <code class="code docutils literal notranslate"><span class="pre">-tune</span> <span class="pre">animation</span></code> 10.96,
@@ -709,7 +709,7 @@ at <code class="code docutils literal notranslate"><span class="pre">def</span><
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.media.mp4.DETERMINISTIC_X264_ARGS">
-<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">DETERMINISTIC_X264_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('-threads',</span> <span class="pre">'1',</span> <span class="pre">'-crf',</span> <span class="pre">'23',</span> <span class="pre">'-preset',</span> <span class="pre">'medium',</span> <span class="pre">'-colorspace',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_primaries',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_trc',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_range',</span> <span class="pre">'tv',</span> <span class="pre">'-x264-params',</span> <span class="pre">'colorprim=bt709:transfer=bt709:colormatrix=bt709')</span></span><a class="headerlink" href="#an.media.mp4.DETERMINISTIC_X264_ARGS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">DETERMINISTIC_X264_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('-threads',</span> <span class="pre">'1',</span> <span class="pre">'-crf',</span> <span class="pre">'23',</span> <span class="pre">'-preset',</span> <span class="pre">'medium',</span> <span class="pre">'-colorspace',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_primaries',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_trc',</span> <span class="pre">'bt709',</span> <span class="pre">'-color_range',</span> <span class="pre">'tv',</span> <span class="pre">'-x264-params',</span> <span class="pre">'colorprim=bt709:transfer=bt709:colormatrix=bt709')</span></span><a class="headerlink" href="#an.media.mp4.DETERMINISTIC_X264_ARGS" title="Link to this definition">#</a></dt>
 <dd><p>x264 encode knobs pinned so the delivered mp4 is a function of the frames
 rather than of the machine (an#34, research §2).</p>
 <p><code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1</span></code> — <code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1/4/11</span></code> all give bit-identical decoded pixels, so
@@ -759,7 +759,7 @@ because no ledger exists yet to invalidate.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.media.mp4.MediaError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">MediaError</span></span><a class="reference internal" href="../_modules/an/media/mp4.html#MediaError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.media.mp4.MediaError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>A sink could not write what it was asked to. Carries actionable detail.</p>
 <p>A renderer re-raises it as its own typed error at its boundary
 (<code class="docutils literal notranslate"><span class="pre">frame_stage_renderer(...,</span> <span class="pre">error=...)</span></code>), so a cut-out render still fails
@@ -768,7 +768,7 @@ with <code class="docutils literal notranslate"><span class="pre">CutoutRenderEr
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.media.mp4.SUPPORTED_PIX_FMTS">
-<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_PIX_FMTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('yuv420p',</span> <span class="pre">'yuv444p')</span></span><a class="headerlink" href="#an.media.mp4.SUPPORTED_PIX_FMTS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.media.mp4.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_PIX_FMTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('yuv420p',</span> <span class="pre">'yuv444p')</span></span><a class="headerlink" href="#an.media.mp4.SUPPORTED_PIX_FMTS" title="Link to this definition">#</a></dt>
 <dd><p>a typo would reach ffmpeg
 as an obscure failure minutes into a render, and a format outside this set
 has not been measured against the panel.</p>
@@ -790,7 +790,7 @@ picture’s length (frames / fps): the concat advances each shot by its
 container length, which is the longer of the two streams (an#195).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -807,7 +807,7 @@ the second shot of a parallel render it would surface from a thread. A
 format outside the list has also never been measured against the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -818,7 +818,7 @@ format outside the list has also never been measured against the panel.</p>
 <dd><p>Refuse before anything launches when ffmpeg is not on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -834,7 +834,7 @@ never passes one, so the lever reaches the encode AND the recorded
 environment, and the two cannot disagree.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -854,7 +854,7 @@ container and left sub-frame holes in the film’s video timestamps, which
 ffprobe reads as <code class="docutils literal notranslate"><span class="pre">r_frame_rate=120/1</span></code> (an#195).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -868,7 +868,7 @@ an audio_ref or duration are skipped silently. Returns <code class="docutils lit
 audio is available, so the caller can use a video-only path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>

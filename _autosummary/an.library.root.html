@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,20 +681,20 @@ their folders on first use.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.root.CORE_PACKAGE">
-<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">CORE_PACKAGE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an'</span></span><a class="headerlink" href="#an.library.root.CORE_PACKAGE" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">CORE_PACKAGE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'an'</span></span><a class="headerlink" href="#an.library.root.CORE_PACKAGE" title="Link to this definition">#</a></dt>
 <dd><p>The core package, whose library every genre’s search path reads after its own.</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.root.LIBRARY_DIRNAME">
-<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">LIBRARY_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'library'</span></span><a class="headerlink" href="#an.library.root.LIBRARY_DIRNAME" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">LIBRARY_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'library'</span></span><a class="headerlink" href="#an.library.root.LIBRARY_DIRNAME" title="Link to this definition">#</a></dt>
 <dd><p>The sub-folder of a root that holds the library stores.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.library.root.LibraryLocationWarning">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">LibraryLocationWarning</span></span><a class="reference internal" href="../_modules/an/library/root.html#LibraryLocationWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.root.LibraryLocationWarning" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
 <p>Library data, or private material checked out of it, sits inside a git work tree.</p>
 <p>ADR 0005 decision 2: a library root is never inside a repository. The default
 guarantees it; an explicit <code class="docutils literal notranslate"><span class="pre">root</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code> or a project in a repo
@@ -703,7 +703,7 @@ can break it, and the library may hold private-study material.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.library.root.PROJECTS_DIRNAME">
-<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">PROJECTS_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'projects'</span></span><a class="headerlink" href="#an.library.root.PROJECTS_DIRNAME" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.root.</span></span><span class="sig-name descname"><span class="pre">PROJECTS_DIRNAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'projects'</span></span><a class="headerlink" href="#an.library.root.PROJECTS_DIRNAME" title="Link to this definition">#</a></dt>
 <dd><p>The sub-folder of a root that holds agent-made projects (design §7.5).</p>
 </dd></dl>
 
@@ -713,7 +713,7 @@ can break it, and the library may hold private-study material.</p>
 <dd><p>The git work tree containing <code class="docutils literal notranslate"><span class="pre">path</span></code> (or its nearest existing ancestor), if any.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
@@ -730,7 +730,7 @@ can break it, and the library may hold private-study material.</p>
 <dd><p>The override variable for <code class="docutils literal notranslate"><span class="pre">package</span></code>’s root.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">home_env_var</span><span class="p">(</span><span class="s2">"an"</span><span class="p">),</span> <span class="n">home_env_var</span><span class="p">(</span><span class="s2">"my-genre"</span><span class="p">)</span>
@@ -745,7 +745,7 @@ can break it, and the library may hold private-study material.</p>
 <dd><p>The data root of <code class="docutils literal notranslate"><span class="pre">package</span></code> — its library and its projects live under it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <p>root: an explicit root; wins over everything
@@ -773,7 +773,7 @@ the library package of the genre the video is made in
 names no genre).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">project_dir</span><span class="p">(</span><span class="s2">"alice-and-bob"</span><span class="p">,</span> <span class="s2">"/lib"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
@@ -791,7 +791,7 @@ names no genre).</p>
 <dd><p>Where agent-made projects go by default: <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;/projects/</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">projects_root</span><span class="p">(</span><span class="s2">"/lib"</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="s2">"cutan"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>

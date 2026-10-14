@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -685,7 +685,7 @@ intact, so a cut-out render still fails with <code class="docutils literal notra
 <dl class="py class">
 <dt class="sig sig-object py" id="an.engines.frame_stage.FrameStageRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.engines.frame_stage.</span></span><span class="sig-name descname"><span class="pre">FrameStageRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.engines.capture.FrameStageError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/engines/frame_stage.html#FrameStageRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.frame_stage.FrameStageRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A <code class="docutils literal notranslate"><span class="pre">Renderer</span></code> that drives an <a class="reference internal" href="an.engines.protocol.html#an.engines.protocol.Engine" title="an.engines.protocol.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> frame by frame.</p>
 <p>Build it with <a class="reference internal" href="#an.engines.frame_stage.frame_stage_renderer" title="an.engines.frame_stage.frame_stage_renderer"><code class="xref py py-func docutils literal notranslate"><span class="pre">frame_stage_renderer()</span></code></a>. Stateless across renders, so one
 instance serves every shot of a parallel render: each <code class="docutils literal notranslate"><span class="pre">render</span></code> opens its
@@ -694,7 +694,7 @@ own session.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.engines.frame_stage.FrameStageRenderer.capture_options">
-<span class="sig-name descname"><span class="pre">capture_options</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.engines.frame_stage.FrameStageRenderer.capture_options" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">capture_options</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.engines.frame_stage.FrameStageRenderer.capture_options" title="Link to this definition">#</a></dt>
 <dd><p>Capture-loop tunables passed through to <a class="reference internal" href="an.engines.capture.html#an.engines.capture.capture_frames" title="an.engines.capture.capture_frames"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.engines.capture.capture_frames()</span></code></a>
 (<code class="docutils literal notranslate"><span class="pre">batch</span></code>, <code class="docutils literal notranslate"><span class="pre">workers</span></code>, <code class="docutils literal notranslate"><span class="pre">max_inflight</span></code>, <code class="docutils literal notranslate"><span class="pre">batch_pixels</span></code>); unset = its defaults.</p>
 </dd></dl>
@@ -718,7 +718,7 @@ rest of the shot or the mux. Each instant is snapped to the frame
 showing then (<code class="docutils literal notranslate"><span class="pre">floor(t</span> <span class="pre">*</span> <span class="pre">fps)</span></code>, clamped to the shot).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -736,7 +736,7 @@ showing then (<code class="docutils literal notranslate"><span class="pre">floor
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.engines.frame_stage.FrameStageRenderer.supported_renderers">
-<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.engines.frame_stage.FrameStageRenderer.supported_renderers" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.engines.frame_stage.FrameStageRenderer.supported_renderers" title="Link to this definition">#</a></dt>
 <dd><p>The <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values this renderer claims (the ONE place it names them).</p>
 </dd></dl>
 
@@ -744,7 +744,7 @@ showing then (<code class="docutils literal notranslate"><span class="pre">floor
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.engines.frame_stage.SHOT_WORKSPACE_PATTERN">
-<span class="sig-prename descclassname"><span class="pre">an.engines.frame_stage.</span></span><span class="sig-name descname"><span class="pre">SHOT_WORKSPACE_PATTERN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'shot_{shot_id}'</span></span><a class="headerlink" href="#an.engines.frame_stage.SHOT_WORKSPACE_PATTERN" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.engines.frame_stage.</span></span><span class="sig-name descname"><span class="pre">SHOT_WORKSPACE_PATTERN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'shot_{shot_id}'</span></span><a class="headerlink" href="#an.engines.frame_stage.SHOT_WORKSPACE_PATTERN" title="Link to this definition">#</a></dt>
 <dd><p>A shot’s scratch directory under <code class="docutils literal notranslate"><span class="pre">RenderContext.work_dir</span></code>. Kept from the
 stage renderer it came from, so the paths a render leaves behind (and that
 the bench and film assembly read) do not move.</p>
@@ -753,7 +753,7 @@ the bench and film assembly read) do not move.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.engines.frame_stage.StateDrivenAdapter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.engines.frame_stage.</span></span><span class="sig-name descname"><span class="pre">StateDrivenAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/engines/frame_stage.html#StateDrivenAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.frame_stage.StateDrivenAdapter" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A state-driven session seen as a time-driven one: the core evaluates <code class="docutils literal notranslate"><span class="pre">at(t)</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">frame(t)</span></code> is <code class="docutils literal notranslate"><span class="pre">render(evaluate_timeline(timeline,</span> <span class="pre">t,</span> <span class="pre">space=space))</span></code> and
 <code class="docutils literal notranslate"><span class="pre">state(t)</span></code> is the evaluated state, so the capture loop and the conformance
@@ -777,7 +777,7 @@ still reads capabilities from real members.</p>
 <dd><p>One list of frames per request, a frame per instant, in order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -804,7 +804,7 @@ the renderer raises at its boundary for every core error.</p>
 <dd><p>Refuse an object that is not an engine, saying what is missing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">require_engine</span><span class="p">(</span><span class="nb">object</span><span class="p">())</span>
@@ -821,7 +821,7 @@ the renderer raises at its boundary for every core error.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">&lt;work_dir&gt;/shot_&lt;id&gt;</span></code>: the one per-shot scratch directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>

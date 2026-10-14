@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=41e11f07"></script>
+    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.238" />
+  <meta name="docsearch:version" content="0.1.239" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -683,7 +683,7 @@ calls it as a module attribute, at call time.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.engines.capture.DEFAULT_BATCH">
-<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_BATCH" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_BATCH" title="Link to this definition">#</a></dt>
 <dd><p>Frames per round trip of a batched session. Measured on the stage at
 1920x1080 on an M1 Max: 67 ms/frame one frame per call, 46 at four, 46 at
 eight – the round trip is ~20 ms of fixed cost, amortised by the batch.</p>
@@ -691,7 +691,7 @@ eight – the round trip is ~20 ms of fixed cost, amortised by the batch.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.engines.capture.DEFAULT_BATCH_PIXELS">
-<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BATCH_PIXELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4147200</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_BATCH_PIXELS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BATCH_PIXELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4147200</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_BATCH_PIXELS" title="Link to this definition">#</a></dt>
 <dd><p>a supersample
 counts k² times, an open shutter once per instant): at most this many per
 round trip, twice this many waiting on the pool. A frame COUNT bounds nothing
@@ -706,7 +706,7 @@ one reply overflowed the driver’s string limit and the render hung).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.engines.capture.DEFAULT_ENCODE_WORKERS">
-<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
 <dd><p>Threads resolving and encoding frames while the engine draws the next batch.
 The stage’s decode/encode is ~60 ms/frame of Pillow at 1080p, the same order
 as the page’s own work, so it must overlap it. Two, not <code class="code docutils literal notranslate"><span class="pre">cpu_count()</span></code>: a
@@ -715,7 +715,7 @@ parallel render already runs one engine per shot.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.engines.capture.DEFAULT_MAX_INFLIGHT">
-<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.engines.capture.DEFAULT_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
 <dd><p>frames handed to the pool and not yet written.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -727,7 +727,7 @@ parallel render already runs one engine per shot.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.engines.capture.FrameStageError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.engines.capture.</span></span><span class="sig-name descname"><span class="pre">FrameStageError</span></span><a class="reference internal" href="../_modules/an/engines/capture.html#FrameStageError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.capture.FrameStageError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>The frame stage could not produce a frame directory it can vouch for.</p>
 <p>A renderer built by <code class="docutils literal notranslate"><span class="pre">frame_stage_renderer(...,</span> <span class="pre">error=...)</span></code> re-raises it as
 its own typed error at its boundary.</p>
@@ -744,7 +744,7 @@ known, sets the pixel budget and is passed to the resolve. <code class="docutils
 tunable reads the module default at call time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -756,7 +756,7 @@ tunable reads the module default at call time.</p>
 <p>One sample at factor 1 is returned as is – the engine’s own bytes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
