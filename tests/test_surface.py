@@ -20,6 +20,7 @@ Checked where each can fail:
 from __future__ import annotations
 
 import io
+import math
 import shutil
 import warnings
 from pathlib import Path
@@ -33,12 +34,15 @@ from an.adapters.cutout.surface import (
     GLOW_NODE,
     GRAIN_NODE,
     OUTLINE_RING,
+    apply_surface,
+    drawn_box,
     grain_greys,
     grain_indices,
     grain_png,
     ring_offsets,
 )
 from an.ir.schema import AssetRef, Shot, TweenAction
+from an.stage.serialize import NodeJSON, VisualJSON
 from an.styles import StylePack, SurfaceTreatment, surface_for
 
 pytestmark = pytest.mark.genre("cutout_animation")
@@ -139,12 +143,29 @@ def test_nested_parts_and_kinds_without_copies_are_left_alone_by_default():
     assert all(c.visual.underlays is None for c in head.children)
 
 
-def test_nested_true_reaches_face_features_but_never_an_eye_or_a_mouth():
-    doc = _compile(pack=StylePack(name="p", surface={"outline": {"nested": True}}))
-    head = _node(doc, "charlie/head")
+def test_nested_true_reaches_every_drawable_part_but_never_an_eye_or_a_mouth():
+    # A synthetic subtree in the core's own vocabulary, not a genre's rig: the
+    # rule under test is `UNDERLAY_KINDS`, which the stage owns (an#433).
+    def part(name: str, kind: str) -> NodeJSON:
+        return NodeJSON(name=name, visual=VisualJSON(kind=kind, width=10, height=10))
+
+    head = NodeJSON(
+        name="head",
+        visual=VisualJSON(kind="ellipse", width=40, height=40),
+        children=[
+            part("hair", "rect"),
+            part("brow", "rect"),
+            part("eye", "eye"),
+            part("mouth", "mouth"),
+        ],
+    )
+    apply_surface(
+        NodeJSON(name="c", children=[head]),
+        SurfaceTreatment(outline={"nested": True}),
+        textures={},
+    )
     got = {c.name: c.visual.underlays is not None for c in head.children}
-    assert got == {"hair": True, "left_brow": True, "right_brow": True,
-                   "left_eye": False, "right_eye": False, "mouth": False}
+    assert got == {"hair": True, "brow": True, "eye": False, "mouth": False}
 
 
 def test_an_svg_part_gets_a_ring_of_texture_copies(tmp_path):
@@ -204,9 +225,14 @@ def test_the_glow_is_the_entitys_first_child_an_additive_gradient_on_its_box():
     assert glow.visual.underlays is None  # never outlined itself
     src = doc.assets.textures[glow.visual.asset_id].src
     assert src.startswith("data:image/svg+xml;base64,")
-    # procedural rig box: x -65..65 (arms), y -84 (hair top) .. 40 (torso bottom)
-    assert (glow.transform.x, glow.transform.y) == (0.0, -22.0)
-    assert (glow.visual.width, glow.visual.height) == (130.0 + 40, 124.0 + 40)
+    # The glow sits at the centre of what the entity draws, `radius` past each edge.
+    drawn = drawn_box(ent.model_copy(update={"children": ent.children[1:]}))
+    x0, y0, x1, y1 = drawn
+    assert (glow.transform.x, glow.transform.y) == ((x0 + x1) / 2, (y0 + y1) / 2)
+    assert (glow.visual.width, glow.visual.height) == (
+        math.ceil(x1 - x0 + 2 * 20),
+        math.ceil(y1 - y0 + 2 * 20),
+    )
 
 
 # --- per-entity override --------------------------------------------------------
