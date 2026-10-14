@@ -292,7 +292,9 @@ def test_an_render_prints_the_findings_grouped_with_their_fix(tmp_path, fake_ren
     assert "Lengthen the shot" in lines[at + 2]
     # The render's own warning, after it, addressed to the shot it names.
     assert lines[at + 3] == "  stand-ins, substitutions and compile notes (1):"
-    assert lines[at + 4].startswith("    timeline/0: shot 'hello' dialogue line 0 is spoken by 'bob'")
+    # The compile note's wording is the genre's; what is core's is the section,
+    # the shot path it is addressed to, and that it names the speaker (an#433).
+    assert lines[at + 4].startswith("    timeline/0:") and "'bob'" in lines[at + 4]
 
 
 def test_the_summary_is_short(tmp_path):
@@ -373,27 +375,30 @@ def test_every_post_synthesis_check_is_a_registered_check():
     assert set(POST_SYNTHESIS_CHECKS) <= set(check_names())
 
 
-@pytest.mark.genre("cutout_animation")
-def test_a_line_spoken_while_a_view_hides_the_mouth_is_rerun_after_synthesis(monkeypatch):
-    """`cutout.hidden_mouth_while_speaking` reads the line's real span: run after
-    synthesis, it is reported under its own kind."""
-    import cutan.characters.checks as v
-    from an.genres import load as load_genres
-
-    load_genres()
-    calls = []
-    monkeypatch.setattr(
-        v,
-        "_check_hidden_mouth_while_speaking",
-        lambda shot, path, report, resolved, stores: (
-            calls.append(path),
-            report.add("warning", f"{path}/dialogue/0", "hidden"),
-        ),
-    )
-    scene = SceneIR(meta=Meta(fps=12), timeline=[_hi_shot(duration=2.0)])
+def test_a_genre_check_named_for_the_rerun_is_run_after_synthesis():
+    """`post_synthesis_findings` runs a registered check BY NAME and reports it
+    under that name, whoever owns it. Pinned over a demo genre's check; the
+    cut-out genre's own post-synthesis check is pinned in cutan (an#433), and
+    `test_every_post_synthesis_check_is_a_registered_check` keeps the core's list
+    honest against what is registered."""
+    from an.genres.registry import SemanticCheck, register_check, unregister_owner
     import an.ir.validate as core_validate
 
-    found = core_validate.post_synthesis_findings(scene)
-    assert ("cutout.hidden_mouth_while_speaking", "timeline/0/dialogue/0") in [
-        (k, f.ir_path) for k, f in found
+    calls = []
+
+    def run(ctx):
+        calls.append(ctx.shot.id)
+        ctx.report.add("warning", "timeline/0/dialogue/0", "demo")
+
+    register_check(SemanticCheck("demo.real_span", run), owner="demo_rerun")
+    try:
+        scene = SceneIR(meta=Meta(fps=12), timeline=[_hi_shot(duration=2.0)])
+        found = core_validate.post_synthesis_findings(
+            scene, checks=("demo.real_span",)
+        )
+    finally:
+        unregister_owner("demo_rerun")
+    assert calls
+    assert [(k, f.ir_path) for k, f in found] == [
+        ("demo.real_span", "timeline/0/dialogue/0")
     ]
