@@ -10,6 +10,8 @@ provider factories.
     an voices rescore <project> "He did not ask"    # re-choose a line's take from its cached takes
     an voices reroll <project> "He did not ask"     # synthesize new takes for it (billed)
     an voices design <project>                      # design options from each voice's notes (billed)
+    an voices design <project> --library accent=irish,gender=male --no-design   # library candidates by accent (free)
+    an voices audition <project> --voices jerry_voice   # the character's lines in each option's voice (billed)
     an voices choose <project> jerry_voice B --by noel   # the writer's pick becomes the voice_id (recorded)
     an voices cast <project> paul_voice <voice_id> --by noel   # a voice picked by hand, recorded the same way
     an voices import <project> takes/ --transcript takes/ --license cc-by-4.0 --recorded-by "J. Doe"
@@ -153,28 +155,85 @@ _reroll.__name__ = "reroll"  # `an voices reroll`
 
 
 def design(
-    project: str, voices: str = "", model: str = "", only_chosen: bool = False
+    project: str,
+    voices: str = "",
+    model: str = "",
+    only_chosen: bool = False,
+    library: str = "",
+    no_design: bool = False,
+    library_limit: int = 0,
 ) -> str:
     """Design voice options from each voice document's notes (ElevenLabs Voice Design,
-    billed): samples to artifacts/voice_samples/, the options to artifacts/voice_options/.
-    Play the samples to the writer, then run `an voices choose`.
+    billed) and/or list candidates from the shared voice library by accent, gender and
+    age (free): samples to artifacts/voice_samples/, the options to artifacts/voice_options/.
+    Play the samples to the writer (or `an voices audition` first), then `an voices choose`.
 
     project: the project directory
-    voices: comma-separated voice refs (default: every voice document with notes)
+    voices: comma-separated voice refs (default: every voice document with notes or a library query)
     model: the voice-design model (default: eleven_ttv_v3)
     only_chosen: save only the chosen option as an account voice, at `choose` (previews expire: choose soon)
+    library: a shared-library query for every voice without its own `library` key: accent=irish,gender=male,age=middle_aged
+    no_design: skip the designed previews: library candidates only, nothing billed
+    library_limit: at most this many library candidates per voice (default 8)
     """
-    from an.audio.voice_design import DFLT_DESIGN_MODEL, design_project_voices
+    from an.audio.voice_design import (
+        DFLT_DESIGN_MODEL,
+        DFLT_LIBRARY_LIMIT,
+        default_library,
+        design_project_voices,
+    )
 
     refs = [r.strip() for r in voices.split(",") if r.strip()] or None
     manifest = design_project_voices(
-        project, refs, model_id=model or DFLT_DESIGN_MODEL, persist=not only_chosen
+        project,
+        refs,
+        model_id=model or DFLT_DESIGN_MODEL,
+        persist=not only_chosen,
+        library=default_library(),  # the CLI opts in: a document's `library` key is honoured
+        library_query=library or None,
+        library_limit=library_limit or DFLT_LIBRARY_LIMIT,
+        design=not no_design,
+    )
+    lines = []
+    for ref, entry in manifest.items():
+        for o in entry["options"]:
+            about = f"  {o['name']}: {o['about']}" if o.get("kind") == "library" else ""
+            lines.append(
+                f"{ref} {o['option']}: {o.get('sample_path') or '(no sample)'}"
+                + (f"  (voice_id {o['voice_id']})" if o.get("voice_id") else "")
+                + about
+            )
+    return "\n".join(lines)
+
+
+def audition(
+    project: str, voices: str = "", options: str = "", tts: str = "", redo: bool = False
+) -> str:
+    """An audition reel per option: the character's own lines from the scene, spoken in
+    that option's voice with the film's TTS provider, the voice document's model, settings
+    and effects (its cues as audio tags), 0.6 s apart, to artifacts/voice_auditions/
+    (billed: one request per line per option; the whole bill is printed first, and a reel
+    already made for the same lines, voice and settings is not made again). Play them to
+    the writer, then `an voices choose`.
+
+    project: the project directory
+    voices: comma-separated voice refs (default: every voice with options)
+    options: comma-separated option labels to audition (default: all, e.g. A,B,L1)
+    tts: the TTS provider the film renders with (default: elevenlabs)
+    redo: make every reel again even when nothing changed (billed again)
+    """
+    from an.audio.voice_design import DESIGN_PROVIDER, audition_project_voices
+
+    refs = [r.strip() for r in voices.split(",") if r.strip()] or None
+    labels = [o.strip() for o in options.split(",") if o.strip()] or None
+    manifests = audition_project_voices(
+        project, refs, options=labels, tts=make_tts(tts or DESIGN_PROVIDER), redo=redo
     )
     return "\n".join(
-        f"{ref} {o['option']}: {o['sample_path']}"
-        + (f"  (voice_id {o['voice_id']})" if o["voice_id"] else "")
-        for ref, entry in manifest.items()
+        f"{ref} {o['option']}: {o['audition_path']}"
+        for ref, entry in manifests.items()
         for o in entry["options"]
+        if o.get("audition_path")
     )
 
 
@@ -276,6 +335,7 @@ _dispatch_funcs: list[Callable[..., Any]] = [
     _rescore,
     _reroll,
     design,
+    audition,
     choose,
     cast,
     import_recorded,
