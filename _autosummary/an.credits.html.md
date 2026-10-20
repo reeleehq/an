@@ -49,7 +49,7 @@ parts carved out of several clips credits each clip, part by part.
 | [`PrivateStudyWarning`](#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
-### *class* an.credits.CreditsReport(entries=<factory>, conflicts=<factory>)
+### *class* an.credits.CreditsReport(entries=list(), conflicts=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -178,15 +178,15 @@ character would bury the one carved head.
 
 Whether a descriptor’s source was written by a generator rather than a person.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
 True
 >>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.credits.speech_credits(mall, scene)
 
@@ -210,9 +210,6 @@ nothing (an#307). A voice
 whose document names no provider (the offline default) is not listed:
 which provider spoke it is not recorded anywhere.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`CreditEntry`]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> line = NS(voice_ref="bob", speaker="bob", audio_ref="k1")
@@ -225,6 +222,9 @@ which provider spoke it is not recorded anywhere.
 >>> [e.license_class for e in speech_credits(mall, scene)]
 ['free']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`CreditEntry`]
 
 ### an.credits.warn_if_private_study(report, , output=None)
 

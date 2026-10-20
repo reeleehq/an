@@ -112,9 +112,6 @@ The address string of a compiled `(target, property)` pair, unvalidated
 
 `text` as an [`Address`](#an.timing.address.Address); raises [`AddressError`](#an.timing.address.AddressError) naming the fault.
 
-* **Return type:**
-  [`Address`](#an.timing.address.Address)
-
 ```pycon
 >>> parse_address("charlie/left_arm:rotation").target
 'charlie/left_arm'
@@ -123,3 +120,6 @@ Traceback (most recent call last):
  ...
 an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
 ```
+
+* **Return type:**
+  [`Address`](#an.timing.address.Address)

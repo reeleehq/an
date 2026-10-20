@@ -281,15 +281,15 @@ Where an evaluation sits: time `t` inside the segment `[start, end)`.
 
 Whether a discrete value has switched to the segment’s second key.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
 (True, False)
 >>> Segment(0.9999999999, 0.0, 1.0).switched(1.0)  # only at b.time itself
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### *class* an.timing.kinds.VectorKind
 
@@ -316,9 +316,6 @@ The value between keys `a` and `b` at eased progress `u`.
 A kind instance from its contract spec (`{"kind": name, **params}`),
 a bare kind name, or an instance (returned as is).
 
-* **Return type:**
-  [`FieldKind`](#an.timing.kinds.FieldKind)
-
 ```pycon
 >>> kind_from_spec("discrete")
 DiscreteKind(switch_at=0.5)
@@ -327,6 +324,9 @@ Traceback (most recent call last):
  ...
 an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
 ```
+
+* **Return type:**
+  [`FieldKind`](#an.timing.kinds.FieldKind)
 
 ### an.timing.kinds.kind_names(, owner=None)
 
@@ -342,13 +342,13 @@ Register a field kind under `name` (how a genre adds one).
 `owner` names who registered it; only [`CORE_OWNER`](#an.timing.kinds.CORE_OWNER)’s kinds reach
 `an`’s contract files.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](#an.timing.kinds.FieldKind)]
-
 ```pycon
 >>> sorted(kind_names())[:3]
 ['angle', 'color', 'discrete']
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](#an.timing.kinds.FieldKind)]
 
 ### an.timing.kinds.shortest_delta(a, b, period=360.0)
 
@@ -357,13 +357,13 @@ The signed shortest turn from `a` to `b`, in `[-period/2, period/2]`.
 An exact half turn goes in the direction of `b - a`, so a return trip
 retraces its path (0 -> 180 -> 0 goes there and back, not round).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> shortest_delta(350, 10), shortest_delta(10, 350), shortest_delta(0, 180)
 (20.0, -20.0, 180.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.kinds.slerp(a, b, u)
 

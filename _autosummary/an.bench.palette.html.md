@@ -121,9 +121,6 @@ function parseColor(s) {
 Note what that is **not**: a 3-digit CSS shorthand expander. `"#222"`
 pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> hex(parse_color("#222"))
 '0x222000'
@@ -132,6 +129,9 @@ pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 >>> hex(parse_color(None))
 '0x888888'
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.palette.runtime_literal_colours(runtime_js)
 

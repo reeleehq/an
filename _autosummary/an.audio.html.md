@@ -72,13 +72,13 @@ what may never run in memory).
 
 Characters one request bills: the text as sent, audio tags included.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 #### check_available()
 
@@ -135,13 +135,13 @@ it (every model but `eleven_v3`, measured) still returns different
 takes; without a seed the request is unchanged and the model’s own
 sampling varies the take.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -260,7 +260,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
-### *class* an.audio.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
+### *class* an.audio.VisemeTrack(visemes=list(), convention='rhubarb', duration=0.0, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -273,7 +273,7 @@ is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
 *which word* a mouth shape belongs to read them from the IR.
 
-### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
+### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -303,13 +303,13 @@ The default lip-sync provider: the loaded genre’s `offline` one (the
 deterministic char-to-viseme provider of `cutan`), else
 [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
-* **Return type:**
-  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> default_lipsync().name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.default_tts()
 
@@ -343,13 +343,13 @@ The default name (`"offline"`) resolves to [`NullLipSync`](an.audio.lipsync.html
 when no loaded genre provides it, so voicing a line needs no genre; any other
 name that nothing provides is an error that says how to get it.
 
-* **Return type:**
-  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> make_lipsync("offline").name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.make_tts(name)
 
@@ -476,4 +476,5 @@ audio’s actual length.
 | [`providers`](an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                     |
 | [`takes`](an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
 | [`tts`](an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                      |
+| [`voice_design`](an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.      |
 | [`voices`](an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).          |

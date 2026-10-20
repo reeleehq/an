@@ -78,15 +78,15 @@ default orchestrate chain.
 Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 1 means identical.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> x = np.zeros((8, 8), dtype=np.float32)
 >>> ssim(x, x)
 1.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.verify.media.ssim_image_files(path_a, path_b)
 

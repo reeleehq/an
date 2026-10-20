@@ -79,12 +79,12 @@ recorded in the compiled document.
 
 ### Classes
 
-| [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Counter`](#an.stage.text.Counter)(\*\*data)                             | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
-| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
-| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
-| [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
+| [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*[, kind, schema_version, ...])   | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Counter`](#an.stage.text.Counter)(\*[, format, start])                      | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
+| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                      | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])         | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
+| [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded)     | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -99,7 +99,7 @@ The unit that typesets the whole string as ONE node, `block_0` (an#341):
 what a replacement set swaps, since per-word units of different strings do
 not line up.
 
-### *class* an.stage.text.Counter(\*\*data)
+### *class* an.stage.text.Counter(, format='{d}', start=None)
 
 Bases: `BaseModel`
 
@@ -186,7 +186,7 @@ schema (the rule `PathDescriptor` and `PropDescriptor` follow).
 
 The swap set a text block with `texts` declares (an#341).
 
-### *class* an.stage.text.TextDescriptor(\*\*data)
+### *class* an.stage.text.TextDescriptor(\*, kind='TextDescriptor', schema_version='0.1.0', name, text=None, texts=None, rest=None, counter=None, layer='world', unit='word', size=0.06, color='#1a1a1a', stroke_width=0.0, stroke_color='#1a1a1a', font=None, features=None, align='center', max_width=None, leading=1.2, tracking=0.0, anchor=None, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -406,9 +406,6 @@ Set `desc` on a `width` x `height` frame and take each unit’s contours.
 document’s own directory in the props store. A block with `texts` is set
 with its rest string ([`layout_text_set()`](#an.stage.text.layout_text_set) sets every one).
 
-* **Return type:**
-  [`TextLayout`](#an.stage.text.TextLayout)
-
 ```pycon
 >>> lay = layout_text(TextDescriptor(name="t", text="Hello big world"), width=1920, height=1080)
 >>> [u.name for u in lay.units]
@@ -421,6 +418,9 @@ with its rest string ([`layout_text_set()`](#an.stage.text.layout_text_set) sets
 ['block_0']
 ```
 
+* **Return type:**
+  [`TextLayout`](#an.stage.text.TextLayout)
+
 ### an.stage.text.layout_text_set(desc, , width, height, base_dir=None)
 
 Every string of a block’s replacement set, set once: `{key: layout}`.
@@ -430,14 +430,14 @@ Each is set exactly as a single-string block would be, so each is centred
 builder’s job ([`an.stage.text_layout.build_text_subtree()`](an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)). A block
 with no `texts` returns `{}`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](#an.stage.text.TextLayout)]
-
 ```pycon
 >>> lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)
 >>> sorted(lays), [lay.units[0].name for lay in lays.values()]
 (['a', 'b'], ['block_0', 'block_0'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](#an.stage.text.TextLayout)]
 
 ### an.stage.text.resolve_text(document, overrides=None)
 
@@ -446,14 +446,14 @@ The text block an entity draws: its stored document with `overrides` on top.
 Validated strictly AFTER the merge, so a stored document may be a reusable
 style with no `text` of its own, and each entity supplies the words:
 
-* **Return type:**
-  [`TextDescriptor`](#an.stage.text.TextDescriptor)
-
 ```pycon
 >>> style = {"kind": "TextDescriptor", "name": "label", "size": 0.04}
 >>> resolve_text(style, {"text": "Paris"}).text
 'Paris'
 ```
+
+* **Return type:**
+  [`TextDescriptor`](#an.stage.text.TextDescriptor)
 
 ### an.stage.text.reveal_units(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
 
@@ -476,13 +476,13 @@ name ([`an.ir.compose.stagger()`](an.ir.compose.html.md#an.ir.compose.stagger), 
 `an.stage.text.stagger` stays as an alias of this function so old imports
 keep working.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
-
 ```pycon
 >>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
 ['tween', 'set', 'sequence']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.stage.text.text_entity_problem(entity, desc)
 
@@ -503,13 +503,13 @@ raises) and by `an validate` (which reports) so the two agree:
 `{key: key}` for a block’s replacement set — the `text` set as a
 swap declaration states it (`{}` for a single-string block).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))
 {'a': 'a', 'b': 'b'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.text.unit_names(desc, , width, height, base_dir=None)
 

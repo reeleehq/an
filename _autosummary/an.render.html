@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -691,7 +693,7 @@ adapters and the same flow handles them.</p>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.render.CacheReach">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">CacheReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#CacheReach"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.CacheReach" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">CacheReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/render.html#CacheReach"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.render.CacheReach" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p><a class="reference internal" href="#an.render.cache_reach" title="an.render.cache_reach"><code class="xref py py-func docutils literal notranslate"><span class="pre">cache_reach()</span></code></a>’s answer: shot-cache ids, and derived-store entries
 by store name.</p>
@@ -819,11 +821,6 @@ not guess.</p>
 message — the message carries its fix — at most <code class="docutils literal notranslate"><span class="pre">max_per_group</span></code> per kind.
 <code class="docutils literal notranslate"><span class="pre">info</span></code> findings are counted in the report, not listed. <code class="docutils literal notranslate"><span class="pre">[]</span></code> when the
 render found nothing to warn about.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">recs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"findings"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"severity"</span><span class="p">:</span> <span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"ir_path"</span><span class="p">:</span> <span class="s2">"timeline/0/dialogue/1"</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"line 1 (bob) ends at 3.64s as synthesized, past the shot's "</span>
 <span class="gp">... </span>    <span class="s2">"3.6s end. Lengthen the shot"</span><span class="p">,</span> <span class="s2">"suggested_fix"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"location"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -836,6 +833,11 @@ render found nothing to warn about.</p>
 <span class="go">    timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -862,11 +864,6 @@ folder or temp dir. Only WHOLE path components are replaced, at both ends
 <code class="docutils literal notranslate"><span class="pre">/u/me/p</span></code>) or a path that merely ends like one (<code class="docutils literal notranslate"><span class="pre">/mnt/data/p</span></code> against
 <code class="docutils literal notranslate"><span class="pre">/data/p</span></code>) is left as it is. A Windows path matches with either
 separator and in any case.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">portable_text</span><span class="p">(</span><span class="s2">"missing at /u/me/p/assets/a.png; see /u/me/x.log"</span><span class="p">,</span>
 <span class="gp">... </span>              <span class="n">root</span><span class="o">=</span><span class="s2">"/u/me/p"</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="s2">"/u/me"</span><span class="p">,</span> <span class="n">tmp</span><span class="o">=</span><span class="s2">"/t"</span><span class="p">)</span>
 <span class="go">'missing at assets/a.png; see ~/x.log'</span>
@@ -879,6 +876,11 @@ separator and in any case.</p>
 <span class="go">'a.png'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

@@ -108,20 +108,17 @@ The prefix of a content-addressed version selector (`sha256:<hex prefix>`).
 
 The kind an asset id declares by its prefix.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> asset_kind("environment.palace-hall")
 'environment'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.ids.check_asset_id(asset_id)
 
 Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](#an.library.ids.AssetIdError).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> check_asset_id("prop.teacup-victorian")
@@ -130,6 +127,9 @@ Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](#an.libr
 Traceback (most recent call last):
 AssetIdError: ...
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.library.ids.check_namespace(name)
 
@@ -154,9 +154,6 @@ Parse a library reference.
 `AssetRef.library`, where a floating reference would make a render depend
 on whatever the library’s head is that day.
 
-* **Return type:**
-  [`LibraryRef`](#an.library.ids.LibraryRef)
-
 ```pycon
 >>> parse_ref("character.alice")
 LibraryRef(asset_id='character.alice', version=None, namespace=None)
@@ -167,26 +164,29 @@ Traceback (most recent call last):
 AssetIdError: ...
 ```
 
+* **Return type:**
+  [`LibraryRef`](#an.library.ids.LibraryRef)
+
 ### an.library.ids.version_label(number)
 
 The label of the `number`-th version (1-based).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> version_label(1), version_label(1000)
 ('v001', 'v1000')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.ids.version_number(label)
 
 The number of a version label.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> version_number("v012")
 12
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)

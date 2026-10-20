@@ -54,13 +54,12 @@ PNG bytes of shot `shot`’s film frame at `t` seconds (see [`frames()`](#an.pro
 
 PNG bytes of shot `shot`’s film frame at each of `times` (seconds into the shot).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
-
 project: a loaded [`Project`](an.project.html.md#an.project.Project) or its folder
 supersample: as `an render --supersample` (the frame is the film’s only
 
 > if it matches the render’s)
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 ### an.probe.probe(project_dir, shot, at, , out=None, columns=None, supersample=1, allow_private_here=False)
 

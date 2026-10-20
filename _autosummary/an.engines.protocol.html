@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -782,11 +784,6 @@ instant at <code class="docutils literal notranslate"><span class="pre">i</span>
 <dt class="sig sig-object py" id="an.engines.protocol.FrameJob.requests">
 <span class="sig-name descname"><span class="pre">requests</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/engines/protocol.html#FrameJob.requests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.protocol.FrameJob.requests" title="Link to this definition">#</a></dt>
 <dd><p>Every frame’s request, frame <code class="docutils literal notranslate"><span class="pre">i</span></code> at <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">fps</span></code> unless a clock says otherwise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.engines.protocol.FrameRequest" title="an.engines.protocol.FrameRequest"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameRequest</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">job</span> <span class="o">=</span> <span class="n">FrameJob</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"."</span><span class="p">),</span>
 <span class="gp">... </span>               <span class="n">Path</span><span class="p">(</span><span class="s2">"."</span><span class="p">),</span> <span class="n">total_frames</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">supersample</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -794,6 +791,11 @@ instant at <code class="docutils literal notranslate"><span class="pre">i</span>
 <span class="go">[(0.0,), (0.25,), (0.5,)]</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.engines.protocol.FrameRequest" title="an.engines.protocol.FrameRequest"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameRequest</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
@@ -934,7 +936,7 @@ may stage files in it (the stage engine’s runtime copy); the core owns
 its own document, and the core does not second-guess it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -954,17 +956,17 @@ its own document, and the core does not second-guess it.</p>
 <dt class="sig sig-object py" id="an.engines.protocol.require_seekable">
 <span class="sig-prename descclassname"><span class="pre">an.engines.protocol.</span></span><span class="sig-name descname"><span class="pre">require_seekable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/engines/protocol.html#require_seekable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.engines.protocol.require_seekable" title="Link to this definition">#</a></dt>
 <dd><p>The session’s drive mode, or a refusal that says what to add.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">require_seekable</span><span class="p">(</span><span class="nb">object</span><span class="p">())</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">  </span><span class="c">...</span>
 <span class="gr">an.engines.protocol.UnseekableEngineError</span>: <span class="n">this engine session cannot be captured: it has no frame(t) (time-driven), and no render(state) with a timeline (state-driven). Add frame(t) and state(t) if the engine evaluates the timeline itself, or timeline and render(state) if the core should evaluate it.</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

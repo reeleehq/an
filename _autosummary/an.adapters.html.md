@@ -86,7 +86,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -200,7 +200,7 @@ key — so 30 render-side entries still compare. It needs no
 `SCHEMA_VERSION` migration, and it MUST reach per-shot provenance, because
 a row that does not record it cannot be read back later.
 
-### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=<factory>, log='', provenance=<factory>)
+### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=list(), log='', provenance=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

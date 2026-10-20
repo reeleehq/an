@@ -60,35 +60,35 @@ True
 
 ### Classes
 
-| [`AssetRef`](#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
-|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Camera`](#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
-| [`CameraFollow`](#an.ir.schema.CameraFollow)(\*\*data)    | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
-| [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
-| [`CameraShake`](#an.ir.schema.CameraShake)(\*\*data)     | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
-| [`Captions`](#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
-| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*\*data)       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
-| [`CueUntil`](#an.ir.schema.CueUntil)(\*\*data)        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
-| [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)     | Composition: an empty span that consumes time.                                                                                                                      |
-| [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)        | One line of spoken dialogue.                                                                                                                                        |
-| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*\*data) | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`LoopAction`](#an.ir.schema.LoopAction)(\*\*data)      | Composition: repeat `child` `count` times.                                                                                                                          |
-| [`Meta`](#an.ir.schema.Meta)(\*\*data)            | Scene metadata.                                                                                                                                                     |
-| [`Narration`](#an.ir.schema.Narration)(\*\*data)       | Off-screen narration.                                                                                                                                               |
-| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*\*data)  | Composition: run all children simultaneously starting at the same time.                                                                                             |
-| [`Resolution`](#an.ir.schema.Resolution)(\*\*data)      | Pixel dimensions of the rendered output.                                                                                                                            |
-| [`SceneIR`](#an.ir.schema.SceneIR)(\*\*data)         | Top-level Scene IR document.                                                                                                                                        |
-| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*\*data)  | Composition: run children one after the other.                                                                                                                      |
-| [`SetAction`](#an.ir.schema.SetAction)(\*\*data)       | Set a property to a value at a specific time.                                                                                                                       |
-| [`Shot`](#an.ir.schema.Shot)(\*\*data)            | A single rendered unit.                                                                                                                                             |
-| [`SoundCue`](#an.ir.schema.SoundCue)(\*\*data)        | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
-| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*\*data)  | Where an entity stands on the stage, and how big it is.                                                                                                             |
-| [`Transition`](#an.ir.schema.Transition)(\*\*data)      | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`TweenAction`](#an.ir.schema.TweenAction)(\*\*data)     | Animate a property from a start value to an end value over a duration.                                                                                              |
-| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*\*data)  | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
-| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*\*data)     | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
-| [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*\*data)   | One loudness for every voice of the film (an#315).                                                                                                                  |
-| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*\*data)    | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
+| [`AssetRef`](#an.ir.schema.AssetRef)(\*, kind, id, store, ref[, ...])          | Reference to an entry in a project store.                                                                                                                           |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Camera`](#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraFollow`](#an.ir.schema.CameraFollow)(\*, target[, axes])                   | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
+| [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
+| [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
+| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
+| [`CueUntil`](#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
+| [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                      |
+| [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                        |
+| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
+| [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
+| [`Meta`](#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                     |
+| [`Narration`](#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                               |
+| [`ParallelAction`](#an.ir.schema.ParallelAction)(\*[, name, kind, children])         | Composition: run all children simultaneously starting at the same time.                                                                                             |
+| [`Resolution`](#an.ir.schema.Resolution)(\*[, width, height])                    | Pixel dimensions of the rendered output.                                                                                                                            |
+| [`SceneIR`](#an.ir.schema.SceneIR)(\*[, version, compatible_version, ...])    | Top-level Scene IR document.                                                                                                                                        |
+| [`SequenceAction`](#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                      |
+| [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                       |
+| [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
+| [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, direction]) | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
+| [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
+| [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
+| [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
+| [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
 
 ### an.ir.schema.Action
 
@@ -102,7 +102,7 @@ with its own fields rather than the open member’s.
 
 alias of `Annotated`[`Annotated`[[`SetAction`](#an.ir.schema.SetAction), `Tag`(tag=set)] | `Annotated`[[`TweenAction`](#an.ir.schema.TweenAction), `Tag`(tag=tween)] | `Annotated`[[`SequenceAction`](#an.ir.schema.SequenceAction), `Tag`(tag=sequence)] | `Annotated`[[`ParallelAction`](#an.ir.schema.ParallelAction), `Tag`(tag=parallel)] | `Annotated`[[`DelayAction`](#an.ir.schema.DelayAction), `Tag`(tag=delay)] | `Annotated`[[`LoopAction`](#an.ir.schema.LoopAction), `Tag`(tag=loop)] | `Annotated`[[`ExtensionAction`](#an.ir.schema.ExtensionAction), `SerializeAsAny`(), `Tag`(tag=extension)], `Discriminator`(discriminator=`_action_tag`, custom_error_type=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[`None`](https://docs.python.org/3/builtins/constants.html#None))]
 
-### *class* an.ir.schema.AssetRef(\*\*data)
+### *class* an.ir.schema.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -167,7 +167,7 @@ it. So this field can grow without retiring a single ledger row.
 
 The `kind` of every action the core defines (the static union members).
 
-### *class* an.ir.schema.Camera(\*\*data)
+### *class* an.ir.schema.Camera(, shake=None, follow=None, move=None, keys=None, \*\*extra_data)
 
 Bases: `_CameraShakes`
 
@@ -209,7 +209,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.ir.schema.CameraFollow(\*\*data)
+### *class* an.ir.schema.CameraFollow(, target, axes='x', \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -230,7 +230,7 @@ every frame), so planes parallax with it like any camera move.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.CameraKey(\*\*data)
+### *class* an.ir.schema.CameraKey(, at=0.0, x=0.0, y=0.0, zoom=1.0, rotation=0.0, easing=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -271,7 +271,7 @@ Camera position in scene pixels. `+x` moves the camera right.
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
 
-### *class* an.ir.schema.CameraShake(\*\*data)
+### *class* an.ir.schema.CameraShake(, at=0.0, duration=0.4, amplitude=0.015, frequency=24.0, decay=True, seed=0, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -320,7 +320,7 @@ the same seed draws the same jolt on every machine.
 * **Type:**
   Which jitter
 
-### *class* an.ir.schema.Captions(\*\*data)
+### *class* an.ir.schema.Captions(, burn=True, sidecar=True, max_chars=42, max_lines=2, size=0.05, color='#1a1a1a', highlight=None, anchor='bottom', font=None, strict=False, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -378,7 +378,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### *class* an.ir.schema.CueAnchor(\*\*data)
+### *class* an.ir.schema.CueAnchor(, when, reaches, offset=0.0, shot=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -406,7 +406,7 @@ added after. `shot` names the shot to look in, for a cue in
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.CueUntil(\*\*data)
+### *class* an.ir.schema.CueUntil(, cue, offset=0.0, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -442,7 +442,7 @@ jumps. Art direction, chosen to read as an impact rather than a tremor.
 * **Type:**
   A camera shake’s defaults (an#429)
 
-### *class* an.ir.schema.DelayAction(\*\*data)
+### *class* an.ir.schema.DelayAction(, name=None, kind='delay', duration, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -452,7 +452,7 @@ Composition: an empty span that consumes time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Dialogue(\*\*data)
+### *class* an.ir.schema.Dialogue(, speaker, text, voice_ref=None, start=None, duration=None, emotion=None, emotion_intensity=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, leveled=None, spoken=None, pause=None, at=None, direction=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -520,9 +520,6 @@ on a line never synthesized (no `audio_ref`) was authored — the
 spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
 2.3
@@ -531,6 +528,9 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -556,7 +556,7 @@ has none (offline, Rhubarb) or the line was stamped before an#96.
 
 The union tag of the open member.
 
-### *class* an.ir.schema.ExtensionAction(\*\*data)
+### *class* an.ir.schema.ExtensionAction(, name=None, kind, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -595,7 +595,7 @@ comes back unchanged (`strict=False`).
 * **Return type:**
   [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
-### *class* an.ir.schema.LoopAction(\*\*data)
+### *class* an.ir.schema.LoopAction(, name=None, kind='loop', child, count=1, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -605,7 +605,7 @@ Composition: repeat `child` `count` times.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Meta(\*\*data)
+### *class* an.ir.schema.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -692,7 +692,7 @@ cannot reach is WARNED about by name at compile.
 One loudness for every voice ([`VoiceLoudness`](#an.ir.schema.VoiceLoudness), an#315); `None`
 — the default — levels nothing, and is omitted from JSON.
 
-### *class* an.ir.schema.Narration(\*\*data)
+### *class* an.ir.schema.Narration(, text, voice_ref=None, start=None, duration=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -702,7 +702,7 @@ Off-screen narration. Same shape as Dialogue minus the speaker pin.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.ParallelAction(\*\*data)
+### *class* an.ir.schema.ParallelAction(\*, name=None, kind='parallel', children=<factory>, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -712,7 +712,7 @@ Composition: run all children simultaneously starting at the same time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Resolution(\*\*data)
+### *class* an.ir.schema.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -734,7 +734,7 @@ The id of a specimen shot.
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).
 
-### *class* an.ir.schema.SceneIR(\*\*data)
+### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -757,7 +757,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.SequenceAction(\*\*data)
+### *class* an.ir.schema.SequenceAction(\*, name=None, kind='sequence', children=<factory>, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -767,7 +767,7 @@ Composition: run children one after the other.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.SetAction(\*\*data)
+### *class* an.ir.schema.SetAction(, name=None, kind='set', target, property, value, at=0.0, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -777,7 +777,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*\*data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -822,7 +822,7 @@ Per-shot override of [`Meta.step_hz`](#an.ir.schema.Meta.step_hz) (`None` = inhe
 
 How this shot is entered ([`Transition`](#an.ir.schema.Transition)); `None` is a hard cut.
 
-### *class* an.ir.schema.SoundCue(\*\*data)
+### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -843,7 +843,7 @@ whole thing).
 -12.0
 ```
 
-#### at *: [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[Ge(ge=0)])] | [CueAnchor](#an.ir.schema.CueAnchor)*
+#### at *: [Union](https://docs.python.org/3/library/typing.html#typing.Union)[[float](https://docs.python.org/3/builtins/functions.html#float), [CueAnchor](#an.ir.schema.CueAnchor)]*
 
 Seconds, or a [`CueAnchor`](#an.ir.schema.CueAnchor) resolved from the picture when the film
 is laid out (an#317).
@@ -870,7 +870,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Ends the cue at another cue’s start ([`CueUntil`](#an.ir.schema.CueUntil)), instead of a
 fixed `duration`.
 
-### *class* an.ir.schema.StagePlacement(\*\*data)
+### *class* an.ir.schema.StagePlacement(, at=None, scale=1.0, after=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -931,7 +931,7 @@ after it; an entity placed after an entity rides the default depth.
 * **Type:**
   What this entity is drawn immediately after (an#344)
 
-#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `(x, y)` in scene pixels from the stage centre. `None` = default layout.
 
@@ -950,7 +950,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
 
-### *class* an.ir.schema.Transition(\*\*data)
+### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -990,7 +990,7 @@ A `wipe`’s direction; omitted from a dump for every other kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.TweenAction(\*\*data)
+### *class* an.ir.schema.TweenAction(, name=None, kind='tween', target, property, to_value, from_value=None, duration=1.0, easing='ease_in_out', \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -1057,7 +1057,7 @@ The easing this tween draws with under a scene default of
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### *class* an.ir.schema.VisemeKeyframe(\*\*data)
+### *class* an.ir.schema.VisemeKeyframe(, time, viseme, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1067,7 +1067,7 @@ A single mouth-shape keyframe in a viseme track.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.VisemeTrack(\*\*data)
+### *class* an.ir.schema.VisemeTrack(\*, fps_hint=None, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1077,7 +1077,7 @@ Aligned viseme track produced by the lip-sync stage. Optional in P1.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.VoiceLoudness(\*\*data)
+### *class* an.ir.schema.VoiceLoudness(, target_lufs=-16.0, peak_db=-1.5, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1113,7 +1113,7 @@ speech for the web;
 * **Type:**
   The level every voice is brought to, LUFS (-16
 
-### *class* an.ir.schema.WordTimingIR(\*\*data)
+### *class* an.ir.schema.WordTimingIR(, text, start, end, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1133,9 +1133,6 @@ when it declares one, else the scene’s, else `None` (smooth). The ONE
 statement of the shot-over-scene rule — the cutout renderer, the preview
 and the project renderer all call it (an#89 review: three copies).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_step_hz(Shot(id="s", step_hz=10.0), 15.0)
 10.0
@@ -1145,17 +1142,20 @@ and the project renderer all call it (an#89 review: three copies).
 True
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.ir.schema.stage_specimen(ref)
 
 A short shot showing the one stage entity `ref` casts, on its own (an#347).
-
-* **Return type:**
-  [`Shot`](#an.ir.schema.Shot)
 
 ```pycon
 >>> stage_specimen(AssetRef(kind="prop", id="lamp", store="props", ref="lamp")).entities[0].id
 'lamp'
 ```
+
+* **Return type:**
+  [`Shot`](#an.ir.schema.Shot)
 
 ### an.ir.schema.unregistered_action_kind(kind, , where='')
 

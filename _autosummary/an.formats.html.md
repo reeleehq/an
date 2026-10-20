@@ -85,9 +85,6 @@ A parsed format: literal `prefix`, the specifier, literal `suffix`.
 
 `value` drawn as `fmt` says (see the module docstring).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> [format_number(v, "{d}") for v in (2.5, 3.5, -0.4, 29.5)]
 ['2', '4', '0', '30']
@@ -95,12 +92,12 @@ A parsed format: literal `prefix`, the specifier, literal `suffix`.
 '-1,234'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.formats.parse_format(fmt)
 
 Parse `fmt`: literal text around exactly one `{specifier}`.
-
-* **Return type:**
-  [`NumberFormat`](#an.formats.NumberFormat)
 
 ```pycon
 >>> parse_format("Day {d}").prefix
@@ -110,3 +107,6 @@ Traceback (most recent call last):
 ...
 an.formats.CounterFormatError: counter format '{.3d}': `d` takes no precision (it is an integer); the subset is d, ,d, .Nf, .N%, s, .Ns
 ```
+
+* **Return type:**
+  [`NumberFormat`](#an.formats.NumberFormat)

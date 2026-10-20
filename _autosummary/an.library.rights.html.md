@@ -78,7 +78,7 @@ The classes a video may ship with (`attribution` and `noncommercial`
 with their credit displayed; `noncommercial` only in a video nobody earns
 from — an#373: flagged for commercial use, never blocked).
 
-### *class* an.library.rights.Rights(license_class, reasons=<factory>)
+### *class* an.library.rights.Rights(license_class, reasons=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -123,13 +123,13 @@ The source the descriptor itself declares (or `an credits` reconstructs), if any
 
 The most restrictive of `classes`; `free` for none.
 
-* **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
-
 ```pycon
 >>> most_restrictive(["free", "attribution"]), most_restrictive([])
 ('attribution', 'free')
 ```
+
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ### an.library.rights.roll_up(sources, , inherited=())
 
@@ -138,20 +138,17 @@ Roll labelled sources (and parents’ rights) up to one [`Rights`](#an.library.r
 A `None` source is `unknown`. The reasons name every contributor of the
 winning class, so a reader sees *why* a version is restricted.
 
-* **Return type:**
-  [`Rights`](#an.library.rights.Rights)
-
 ```pycon
 >>> roll_up([("asset", None)]).to_dict()
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
 
+* **Return type:**
+  [`Rights`](#an.library.rights.Rights)
+
 ### an.library.rights.sources_in(doc, , store, source=None, files=None)
 
 Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
 
 store: the project store this kind of document lives in (`characters`,
 : `props`, `environments`, `sounds`) — its sources are read by
@@ -178,3 +175,6 @@ With no source anywhere the asset contributes `None`: `unknown`.
 ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]
 ['asset', 'descriptor']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]

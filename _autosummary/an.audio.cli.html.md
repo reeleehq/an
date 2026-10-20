@@ -11,6 +11,8 @@ provider factories.
 > an voices list –provider mac_say
 > an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
 > an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
+> an voices design <project>                      # design options from each voice’s notes (billed)
+> an voices choose <project> jerry_voice B        # the writer’s pick becomes the voice_id
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
 `rescore` and `reroll` are the only ways a recorded best-of-N take is
@@ -32,9 +34,6 @@ A provider whose `list_voices` takes `search` (ElevenLabs) filters on
 its server; for the others the filter is a case-insensitive substring over
 the name, id and labels.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
-
 ```pycon
 >>> from an.audio.tts import VoiceMeta
 >>> class Fake:
@@ -45,18 +44,21 @@ the name, id and labels.
 ['Ada']
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
 ### an.audio.cli.format_voices(voices)
 
 One line per voice: `voice_id  name  (labels)`.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta
 >>> print(format_voices([VoiceMeta("abc", "Ada", "x", extra={"labels": {"accent": "british"}})]))
 abc  Ada  (accent=british)
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>)
 

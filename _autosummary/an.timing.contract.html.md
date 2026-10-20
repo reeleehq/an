@@ -180,13 +180,13 @@ The sparse state of compiled document `doc` at `t`, keyed by address.
 
 The contract’s comparison (see the module docstring).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> values_close(1e9, 1e9 + 0.5), values_close([1, "a"], [1.0, "a"]), values_close(True, 1)
 (True, True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.timing.contract.write_contract(directory=PosixPath('/home/runner/work/an/an/an/data/timing'))
 

@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="voice_design.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.audio.voice_design &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../../_static/documentation_options.js?v=876c1b95"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/audio/voice_design';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.240" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.voice_design</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.audio.voice_design</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Design a project's voices from their written notes, then let the writer choose.</span>
+
+<span class="sd">A voice document (``assets/voices/&lt;ref&gt;.json``) may carry the voice in words:</span>
+<span class="sd">``notes`` (age, accent, pitch, pace, attitude) and, optionally,</span>
+<span class="sd">``sample_text`` (what the samples say). Voice design turns those words into</span>
+<span class="sd">candidate voices the writer can LISTEN to, and the writer's choice becomes the</span>
+<span class="sd">document's ``voice_id``. That is how a regional accent gets cast by the one</span>
+<span class="sd">person who can hear it (a local ear for a local accent), with nobody else</span>
+<span class="sd">picking from a stock library.</span>
+
+<span class="sd">Two steps, both plain functions over injected stores:</span>
+
+<span class="sd">- :func:`design_voice_options`: per voice, ask a *designer* for previews of its</span>
+<span class="sd">  notes speaking its sample text, store each preview's audio in ``samples`` and</span>
+<span class="sd">  return the options manifest (``{ref: {"notes", "sample_text", "design_model",</span>
+<span class="sd">  "options": [{"option": "A", "generated_voice_id", "voice_id", "sample",</span>
+<span class="sd">  "duration_s"}]}}``). With ``persist=True`` (the default) every preview is saved</span>
+<span class="sd">  as a durable provider voice at once, because a provider's previews expire; with</span>
+<span class="sd">  ``persist=False`` only the chosen one is, later (fewer voices in the account,</span>
+<span class="sd">  but a choice must come before the previews expire).</span>
+<span class="sd">- :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it</span>
+<span class="sd">  as a voice first when it was not persisted).</span>
+
+<span class="sd">The project-level forms, :func:`design_project_voices` and</span>
+<span class="sd">:func:`choose_project_voice`, keep the manifest in</span>
+<span class="sd">``artifacts/voice_options/&lt;ref&gt;.json``, the samples in</span>
+<span class="sd">``artifacts/voice_samples/&lt;ref&gt;_&lt;option&gt;.mp3``, and write the chosen ``voice_id``</span>
+<span class="sd">(and ``provider``) into the voice document. ``an voices design`` and ``an voices</span>
+<span class="sd">choose`` are their CLI.</span>
+
+<span class="sd">The designer is a seam (``designer=``): by default</span>
+<span class="sd">:class:`ElevenLabsVoiceDesigner` (ElevenLabs Voice Design through the</span>
+<span class="sd">``elevenlabs`` SDK an's ElevenLabs TTS already uses; key in ``ELEVEN_API_KEY``).</span>
+<span class="sd">voxy's ``ElevenLabsSpeechModel`` is a drop-in (``designer=voxy.get_speech_model("elevenlabs")``),</span>
+<span class="sd">not the default because voxy brings torch. Anything with these two methods works::</span>
+
+<span class="sd">    design_voice_previews(description, *, text, model_id) -&gt; [preview]   # preview.generated_voice_id, .audio, .duration_s</span>
+<span class="sd">    design_voice(description, *, preview, name) -&gt; profile                # profile.segment is the voice id</span>
+
+<span class="sd">Designing is billed by the provider; nothing here is called by a render.</span>
+
+<span class="sd">&gt;&gt;&gt; class Fake:</span>
+<span class="sd">...     def design_voice_previews(self, description, *, text=None, model_id=None):</span>
+<span class="sd">...         from types import SimpleNamespace as N</span>
+<span class="sd">...         return [N(generated_voice_id=f"g{i}", audio=b"ID3", duration_s=1.0) for i in range(2)]</span>
+<span class="sd">...     def design_voice(self, description, *, preview, name):</span>
+<span class="sd">...         from types import SimpleNamespace as N</span>
+<span class="sd">...         return N(segment="v-" + getattr(preview, "generated_voice_id", preview))</span>
+<span class="sd">&gt;&gt;&gt; samples = {}</span>
+<span class="sd">&gt;&gt;&gt; notes = "A man in his fifties from rural Yorkshire, warm and unhurried."</span>
+<span class="sd">&gt;&gt;&gt; manifest = design_voice_options({"jerry": {"notes": notes}}, samples=samples, designer=Fake())</span>
+<span class="sd">&gt;&gt;&gt; [(o["option"], o["voice_id"], o["sample"]) for o in manifest["jerry"]["options"]]</span>
+<span class="sd">[('A', 'v-g0', 'jerry_A'), ('B', 'v-g1', 'jerry_B')]</span>
+<span class="sd">&gt;&gt;&gt; sorted(samples)</span>
+<span class="sd">['jerry_A', 'jerry_B']</span>
+<span class="sd">&gt;&gt;&gt; choose_voice_option(manifest["jerry"], "B", designer=Fake())</span>
+<span class="sd">'v-g1'</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ElevenLabsVoiceDesigner"</span><span class="p">,</span>
+    <span class="s2">"VoiceDesignError"</span><span class="p">,</span>
+    <span class="s2">"choose_project_voice"</span><span class="p">,</span>
+    <span class="s2">"choose_voice_option"</span><span class="p">,</span>
+    <span class="s2">"default_designer"</span><span class="p">,</span>
+    <span class="s2">"design_project_voices"</span><span class="p">,</span>
+    <span class="s2">"design_voice_options"</span><span class="p">,</span>
+    <span class="s2">"designable_voices"</span><span class="p">,</span>
+    <span class="s2">"sample_text_from_lines"</span><span class="p">,</span>
+    <span class="s2">"sample_text_of"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: The key, in a voice document, holding the voice in words.</span>
+<span class="n">NOTES_KEY</span> <span class="o">=</span> <span class="s2">"notes"</span>
+<span class="c1">#: The key, in a voice document, holding what the designed samples say.</span>
+<span class="n">SAMPLE_TEXT_KEY</span> <span class="o">=</span> <span class="s2">"sample_text"</span>
+<span class="c1">#: ElevenLabs Voice Design's model (the expressive one, which reads accents best).</span>
+<span class="n">DFLT_DESIGN_MODEL</span> <span class="o">=</span> <span class="s2">"eleven_ttv_v3"</span>
+<span class="c1">#: ElevenLabs' bounds on a voice description and a preview text (characters).</span>
+<span class="n">NOTES_LENGTH</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">SAMPLE_TEXT_LENGTH</span> <span class="o">=</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="c1">#: Seconds one provider request may take.</span>
+<span class="n">DFLT_REQUEST_TIMEOUT_S</span> <span class="o">=</span> <span class="mi">120</span>
+<span class="c1">#: The provider a designed voice belongs to (written into the voice document).</span>
+<span class="n">DESIGN_PROVIDER</span> <span class="o">=</span> <span class="s2">"elevenlabs"</span>
+<span class="c1">#: Labels of the options, in order (past the alphabet: numbers).</span>
+<span class="n">OPTION_LABELS</span> <span class="o">=</span> <span class="s2">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span>
+<span class="c1">#: Where the project-level forms keep their records, under the project root.</span>
+<span class="n">OPTIONS_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice_options"</span>
+<span class="n">SAMPLES_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice_samples"</span>
+
+
+<div class="viewcode-block" id="VoiceDesignError">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.VoiceDesignError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VoiceDesignError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A voice that cannot be designed or chosen (no notes, an unknown option, ...)."""</span></div>
+
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceDesigner">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceDesigner">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElevenLabsVoiceDesigner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""ElevenLabs Voice Design through the ``elevenlabs`` SDK (what an's ElevenLabs</span>
+<span class="sd">    TTS already uses): the default designer, with voxy's two-method shape.</span>
+
+<span class="sd">    api_key: defaults to ``ELEVEN_API_KEY`` / ``ELEVENLABS_API_KEY``</span>
+<span class="sd">    client_factory: ``api_key -&gt; client``; tests inject a fake so nothing is billed</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">client_factory</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">timeout_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REQUEST_TIMEOUT_S</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">api_key</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ELEVEN_API_KEY"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ELEVENLABS_API_KEY"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="o">=</span> <span class="n">client_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span> <span class="o">=</span> <span class="n">timeout_s</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_request_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"timeout_in_seconds"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span><span class="p">)}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="s2">"voice design needs an ElevenLabs key: set ELEVEN_API_KEY"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>  <span class="c1"># type: ignore</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover - depends on the environment</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="s2">"voice design needs the elevenlabs package: pip install elevenlabs"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">return</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ElevenLabsVoiceDesigner.design_voice_previews">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceDesigner.design_voice_previews">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">design_voice_previews</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_DESIGN_MODEL</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Previews (``generated_voice_id``, ``audio`` mp3 bytes, ``duration_s``) of ``description``."""</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span> <span class="k">if</span> <span class="n">text</span> <span class="k">else</span> <span class="p">{</span><span class="s2">"auto_generate_text"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span><span class="o">.</span><span class="n">text_to_voice</span><span class="o">.</span><span class="n">design</span><span class="p">(</span>
+            <span class="n">voice_description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
+            <span class="n">request_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_options</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">SimpleNamespace</span><span class="p">(</span>
+                <span class="n">generated_voice_id</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">generated_voice_id</span><span class="p">,</span>
+                <span class="n">audio</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">audio_base_64</span><span class="p">),</span>
+                <span class="n">duration_s</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">"duration_secs"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">previews</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceDesigner.design_voice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceDesigner.design_voice">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">design_voice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">preview</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Save ``preview`` (or its ``generated_voice_id``) as an account voice; ``.segment`` is its id."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+
+        <span class="n">generated_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">preview</span><span class="p">,</span> <span class="s2">"generated_voice_id"</span><span class="p">,</span> <span class="n">preview</span><span class="p">)</span>
+        <span class="n">voice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span><span class="o">.</span><span class="n">text_to_voice</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">voice_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">voice_description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">generated_voice_id</span><span class="o">=</span><span class="n">generated_id</span><span class="p">,</span>
+            <span class="n">request_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_options</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">segment</span><span class="o">=</span><span class="n">voice</span><span class="o">.</span><span class="n">voice_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceDesigner.delete_voice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceDesigner.delete_voice">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_voice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Remove a saved voice from the account (a choice the writer replaced)."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">request_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_options</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="default_designer">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.default_designer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_designer</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ElevenLabsVoiceDesigner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The designer used when none is given: :class:`ElevenLabsVoiceDesigner`."""</span>
+    <span class="k">return</span> <span class="n">ElevenLabsVoiceDesigner</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_label</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">OPTION_LABELS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">OPTION_LABELS</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_clip</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``text`` cut at the last sentence end (else word) within ``limit`` characters.</span>
+
+<span class="sd">    &gt;&gt;&gt; _clip("One. Two three. Four", 12)</span>
+<span class="sd">    'One.'</span>
+<span class="sd">    &gt;&gt;&gt; _clip("short", 12)</span>
+<span class="sd">    'short'</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">limit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="n">limit</span><span class="p">]</span>
+    <span class="n">cut</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">". "</span><span class="p">),</span> <span class="n">head</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">"? "</span><span class="p">),</span> <span class="n">head</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">"! "</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">cut</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">head</span><span class="p">[:</span> <span class="n">cut</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">head</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="sample_text_from_lines">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.sample_text_from_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_text_from_lines</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">SAMPLE_TEXT_LENGTH</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A sample text from a voice's own dialogue lines, or ``None`` when they are</span>
+<span class="sd">    too short for a provider preview (then the provider writes one).</span>
+
+<span class="sd">    &gt;&gt;&gt; sample_text_from_lines(["Hi."]) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; len(sample_text_from_lines(["That's a big mountain over there, I'd say."] * 5)) &gt;= 100</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\s+"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">,</span> <span class="n">ln</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">ln</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="n">ln</span> <span class="ow">and</span> <span class="n">ln</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_clip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">SAMPLE_TEXT_LENGTH</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="designable_voices">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.designable_voices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">designable_voices</span><span class="p">(</span>
+    <span class="n">voices</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The voice documents (of ``refs``, else all) that carry ``notes``.</span>
+
+<span class="sd">    Raise :class:`VoiceDesignError` for a named ref that is missing or has no</span>
+<span class="sd">    usable notes; skip the unnamed ones silently.</span>
+
+<span class="sd">    &gt;&gt;&gt; designable_voices({"a": {"notes": "x" * 30}, "b": {}})</span>
+<span class="sd">    {'a': {'notes': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}</span>
+<span class="sd">    """</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span> <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">named</span> <span class="k">if</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">voices</span><span class="p">):</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">voices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">_notes_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span>
+        <span class="k">elif</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_notes_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"no such voice document"</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NOTES_KEY</span><span class="p">)</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">NOTES_LENGTH</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">notes</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"no </span><span class="si">{</span><span class="n">NOTES_KEY</span><span class="si">!r}</span><span class="s2">: write the voice in words (age, accent, pitch, pace, attitude)"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lo</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">notes</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">NOTES_KEY</span><span class="si">!r}</span><span class="s2"> is </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">notes</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="si">}</span><span class="s2"> characters; the designer takes </span><span class="si">{</span><span class="n">lo</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">hi</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="sample_text_of">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.sample_text_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_text_of</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">fallback</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The document's ``sample_text`` (clipped), else ``fallback``."""</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAMPLE_TEXT_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">_clip</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">SAMPLE_TEXT_LENGTH</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">SAMPLE_TEXT_LENGTH</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">fallback</span>
+    <span class="k">return</span> <span class="n">fallback</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_voice_id_of</span><span class="p">(</span><span class="n">profile</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="s2">"segment"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="s2">"metadata"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">candidate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the designer returned no voice id (</span><span class="si">{</span><span class="n">profile</span><span class="si">!r}</span><span class="s2">)"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="design_voice_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.design_voice_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">design_voice_options</span><span class="p">(</span>
+    <span class="n">voices</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">samples</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">refs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_DESIGN_MODEL</span><span class="p">,</span>
+    <span class="n">persist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an"</span><span class="p">,</span>
+    <span class="n">lines_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Design options for each voice with notes; return the options manifest.</span>
+
+<span class="sd">    voices: ``{ref: voice document}`` (a project's ``voices`` store)</span>
+<span class="sd">    samples: where each option's audio goes, keyed ``&lt;ref&gt;_&lt;option&gt;`` (mp3 bytes)</span>
+<span class="sd">    refs: the voices to design (default: every one with ``notes``)</span>
+<span class="sd">    designer: a two-method designer (default: :func:`default_designer`)</span>
+<span class="sd">    model_id: the provider's voice-design model</span>
+<span class="sd">    persist: save every option as a durable voice now (else only the chosen one, later)</span>
+<span class="sd">    name_prefix: prefix of the saved voices' names in the provider account</span>
+<span class="sd">    lines_of: ``ref -&gt; that voice's dialogue lines``, for a sample text when the</span>
+<span class="sd">        document has none (else the provider writes one)</span>
+<span class="sd">    """</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">designable_voices</span><span class="p">(</span><span class="n">voices</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no voice document has </span><span class="si">{</span><span class="n">NOTES_KEY</span><span class="si">!r}</span><span class="s2">: nothing to design from"</span>
+        <span class="p">)</span>
+    <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
+    <span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">todo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">notes</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="n">NOTES_KEY</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">fallback</span> <span class="o">=</span> <span class="n">sample_text_from_lines</span><span class="p">(</span><span class="n">lines_of</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span> <span class="k">if</span> <span class="n">lines_of</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">sample_text_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span>
+        <span class="n">previews</span> <span class="o">=</span> <span class="n">designer</span><span class="o">.</span><span class="n">design_voice_previews</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">preview</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">previews</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">_label</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">samples</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">preview</span><span class="o">.</span><span class="n">audio</span>
+            <span class="n">voice_id</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_voice_id_of</span><span class="p">(</span>
+                    <span class="n">designer</span><span class="o">.</span><span class="n">design_voice</span><span class="p">(</span>
+                        <span class="n">notes</span><span class="p">,</span> <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_prefix</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">persist</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"option"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+                    <span class="s2">"generated_voice_id"</span><span class="p">:</span> <span class="n">preview</span><span class="o">.</span><span class="n">generated_voice_id</span><span class="p">,</span>
+                    <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
+                    <span class="s2">"sample"</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span>
+                    <span class="s2">"duration_s"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">preview</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="n">manifest</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
+            <span class="s2">"sample_text"</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+            <span class="s2">"design_model"</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span>
+            <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">name_prefix</span><span class="p">,</span>
+            <span class="s2">"options"</span><span class="p">:</span> <span class="n">options</span><span class="p">,</span>
+            <span class="s2">"chosen"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="n">manifest</span></div>
+
+
+
+<div class="viewcode-block" id="choose_voice_option">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.choose_voice_option">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">choose_voice_option</span><span class="p">(</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The provider ``voice_id`` of ``option`` in one voice's manifest ``entry``.</span>
+
+<span class="sd">    An option that was not persisted is saved as a voice now (its preview must</span>
+<span class="sd">    not have expired).</span>
+<span class="sd">    """</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()),</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">()))</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no option </span><span class="si">{</span><span class="n">option</span><span class="si">!r}{</span><span class="sa">f</span><span class="s1">' for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s1">'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> (options: </span><span class="si">{</span><span class="n">labels</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">found</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span>
+    <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name_prefix'</span><span class="p">,</span><span class="w"> </span><span class="s1">'an'</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_voice_id_of</span><span class="p">(</span>
+        <span class="n">designer</span><span class="o">.</span><span class="n">design_voice</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">],</span> <span class="n">preview</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"generated_voice_id"</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># --- the project-level forms ---------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonDirStore</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.artifacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BlobStore</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoicesStore</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">_Mp3Store</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+        <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"mp3"</span>
+
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">VoicesStore</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"voices"</span><span class="p">),</span>
+        <span class="n">JsonDirStore</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">OPTIONS_DIR</span><span class="p">),</span>
+        <span class="n">_Mp3Store</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">SAMPLES_DIR</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_lines</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``ref -&gt; the dialogue lines spoken in that voice`` in the project's scene."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_voice_id</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="n">proj</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">project_dir</span><span class="p">))</span>
+    <span class="n">by_voice</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="s2">"dialogue"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">():</span>
+            <span class="n">by_voice</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">line</span><span class="o">.</span><span class="n">text</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">ref</span><span class="p">:</span> <span class="n">by_voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="p">[])</span>
+
+
+<div class="viewcode-block" id="design_project_voices">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.design_project_voices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">design_project_voices</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">refs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_DESIGN_MODEL</span><span class="p">,</span>
+    <span class="n">persist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Design options for the project's voices; write manifests and samples; return the manifest.</span>
+
+<span class="sd">    A voice document without ``sample_text`` speaks its own lines from the scene.</span>
+<span class="sd">    """</span>
+    <span class="n">voices</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lines_of</span> <span class="o">=</span> <span class="n">_project_lines</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - no readable scene: the provider writes the sample text</span>
+        <span class="n">lines_of</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">manifest</span> <span class="o">=</span> <span class="n">design_voice_options</span><span class="p">(</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">voices</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
+        <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+        <span class="n">refs</span><span class="o">=</span><span class="n">refs</span><span class="p">,</span>
+        <span class="n">designer</span><span class="o">=</span><span class="n">designer</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
+        <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+        <span class="n">name_prefix</span><span class="o">=</span><span class="n">name_prefix</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">lines_of</span><span class="o">=</span><span class="n">lines_of</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">manifest</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]:</span>
+            <span class="n">o</span><span class="p">[</span><span class="s2">"sample_path"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">SAMPLES_DIR</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">o</span><span class="p">[</span><span class="s1">'sample'</span><span class="p">]</span><span class="si">}</span><span class="s2">.mp3"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+        <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+    <span class="k">return</span> <span class="n">manifest</span></div>
+
+
+
+<div class="viewcode-block" id="choose_project_voice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.choose_project_voice">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">choose_project_voice</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write the chosen option's ``voice_id`` into ``assets/voices/&lt;ref&gt;.json``; return the document."""</span>
+    <span class="n">voices</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no options for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: run `an voices design` first"</span><span class="p">)</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
+    <span class="n">voice_id</span> <span class="o">=</span> <span class="n">choose_voice_option</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">designer</span><span class="o">=</span><span class="n">designer</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">doc</span><span class="p">[</span><span class="s2">"provider"</span><span class="p">]</span> <span class="o">=</span> <span class="n">DESIGN_PROVIDER</span>
+    <span class="n">doc</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">voice_id</span>
+    <span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span>
+    <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"option"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">}</span>
+    <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+    <span class="k">return</span> <span class="n">doc</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

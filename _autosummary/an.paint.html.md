@@ -55,9 +55,9 @@ This is genre-neutral core vocabulary: a plane of the 2D stage draws one
 
 ### Classes
 
-| [`Gradient`](#an.paint.Gradient)(\*\*data)     | A linear or radial gradient between colour stops (see the module docstring).   |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`GradientStop`](#an.paint.GradientStop)(\*\*data) | A colour at an offset along the gradient (`0` start, `1` end).                 |
+| [`Gradient`](#an.paint.Gradient)(\*[, type, angle, center, radius])   | A linear or radial gradient between colour stops (see the module docstring).   |
+|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`GradientStop`](#an.paint.GradientStop)(\*, offset, color)               | A colour at an offset along the gradient (`0` start, `1` end).                 |
 
 ### an.paint.DFLT_GRADIENT_ANGLE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 180.0*
 
@@ -66,7 +66,7 @@ top to bottom.
 * **Type:**
   CSS’s default gradient direction
 
-### *class* an.paint.Gradient(\*\*data)
+### *class* an.paint.Gradient(, type='linear', stops, angle=180.0, center=(0.5, 0.5), radius=0.5)
 
 Bases: `BaseModel`
 
@@ -98,7 +98,7 @@ non-square box).
 * **Type:**
   Radial only
 
-### *class* an.paint.GradientStop(\*\*data)
+### *class* an.paint.GradientStop(, offset, color)
 
 Bases: `BaseModel`
 
@@ -112,10 +112,10 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 A hex colour as `(r, g, b, a)` in `0..1`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> rgba_of("#ff000080")
 (1.0, 0.0, 0.0, 0.5019607843137255)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]

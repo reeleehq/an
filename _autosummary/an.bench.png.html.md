@@ -103,9 +103,6 @@ Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.array([[[1, 2, 3], [4, 5, 6]]], np.uint8)
@@ -113,12 +110,12 @@ interlaced images, naming what it found.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.png.encode_png(rgb, , level=9)
 
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -128,6 +125,9 @@ True
 >>> decode_png(data).shape
 (2, 3, 3)
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.bench.png.png_dimensions(data)
 
@@ -142,14 +142,14 @@ Cheap on purpose. The bench reads this for **every** frame on disk rather
 than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import numpy as np
 >>> png_dimensions(encode_png(np.zeros((240, 320, 3), np.uint8)))
 (320, 240)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.png.read_png(path)
 
@@ -178,14 +178,14 @@ takes three channels). Dropping alpha unconditionally would make a
 transparency regression invisible to the one gate that exists to see
 changes, so a non-opaque alpha is an error rather than a silent narrowing.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> to_rgb(np.full((1, 1, 4), 255, np.uint8)).shape
 (1, 1, 3)
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.png.write_png(path, rgb, , level=9)
 

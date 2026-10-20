@@ -188,13 +188,13 @@ BYTES (not the request that made them: a take re-synthesised under the
 same request is other audio, an#315 review), the gain, the ceiling, the
 rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> leveled_key(b"a", gain_db=1.0, peak_db=-1.5) != leveled_key(b"a", gain_db=1.1, peak_db=-1.5)
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.loudness.limit_peaks(samples, , ceiling, window=1)
 

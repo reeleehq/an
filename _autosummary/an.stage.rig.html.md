@@ -71,13 +71,13 @@ Two layers live here:
 
 ### Classes
 
-| [`Attachment`](#an.stage.rig.Attachment)(\*\*data)   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                   |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`Bone`](#an.stage.rig.Bone)(\*\*data)         | A skeleton joint with a local transform relative to its parent.                    |
-| [`RigDocument`](#an.stage.rig.RigDocument)(\*\*data)  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`. |
-| [`RigModel`](#an.stage.rig.RigModel)(\*\*data)     | Common config: forward-compatible reads, strict writes.                            |
-| [`Skin`](#an.stage.rig.Skin)(\*\*data)         | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
-| [`Slot`](#an.stage.rig.Slot)(\*\*data)         | A draw-order slot bound to a bone, displaying one attachment at a time.            |
+| [`Attachment`](#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                   |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`Bone`](#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                    |
+| [`RigDocument`](#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`. |
+| [`RigModel`](#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                            |
+| [`Skin`](#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
+| [`Slot`](#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.            |
 
 ### Exceptions
 
@@ -85,7 +85,7 @@ Two layers live here:
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`RigError`](#an.stage.rig.RigError)          | A rig cannot be built as declared (a cycle, or a chain the stage cannot draw). |
 
-### *class* an.stage.rig.Attachment(\*\*data)
+### *class* an.stage.rig.Attachment(, path, anchor=(0.5, 0.5), x=0.0, y=0.0, width=None, height=None, source=None, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -114,7 +114,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### width *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -141,7 +141,7 @@ parts share one `head` bone and still land in different places — before
 this field they all stacked on the bone, because the descriptor had no
 way to say otherwise and the compiler used hardcoded literals instead.
 
-### *class* an.stage.rig.Bone(\*\*data)
+### *class* an.stage.rig.Bone(, name, parent=None, x=0.0, y=0.0, rotation_deg=0.0, scale_x=1.0, scale_y=1.0, pivot=None, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -157,7 +157,7 @@ A skeleton joint with a local transform relative to its parent.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### pivot *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -218,7 +218,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A rig’s bone rest pose was NOT applied, because the document may predate it.
 
-### *class* an.stage.rig.RigDocument(\*\*data)
+### *class* an.stage.rig.RigDocument(, origin=None, rest_rotation=None, nesting=None, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -244,7 +244,7 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for RigDocument
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### nesting *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### nesting *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones']]*
 
 a slot nests under its
 OWN bone’s primary slot only, so limbs are siblings of the torso (the
@@ -256,7 +256,7 @@ kinematics). [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain) is the rul
 * **Type:**
   How slots nest (an#340). Unset or `"flat"`
 
-#### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The point of the art that the entity’s placement (`stage.at`) refers
 to, in view_box units (an#338). Unset, the rig is placed by the centre
@@ -280,7 +280,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A rig cannot be built as declared (a cycle, or a chain the stage cannot draw).
 
-### *class* an.stage.rig.RigModel(\*\*data)
+### *class* an.stage.rig.RigModel(\*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -306,7 +306,7 @@ legs 37.7x118.6 against 38x120. The constants were an approximation of
 exactly this product, which is the evidence that the rig should have been
 driving it all along.
 
-### *class* an.stage.rig.Skin(\*\*data)
+### *class* an.stage.rig.Skin(\*, name='default', slots=<factory>, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -322,7 +322,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.rig.Slot(\*\*data)
+### *class* an.stage.rig.Slot(, name, bone, draw_order=0, attachment=None, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -334,7 +334,7 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### attachment *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
@@ -347,9 +347,6 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Path used inside the runtime dir, relative to `index.html`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> art_src("maya", "parts/head.svg")
 'characters/maya/parts/head.svg'
@@ -357,13 +354,13 @@ Path used inside the runtime dir, relative to `index.html`.
 'props/lamp/parts/body.svg'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.rig.attachment_box(width, height, art)
 
 The box a part draws in, in view_box units: the declared size wins, the
 art’s aspect is kept (an#220).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> attachment_box(None, None, (40, 20))       # the art's own extent
@@ -380,13 +377,13 @@ art’s aspect is kept (an#220).
 True
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.rig.bone_extent_centre(bones)
 
 The DEFAULT point in view_box space that the entity’s placement refers
 to, when the rig declares no [`RigDocument.origin`](#an.stage.rig.RigDocument.origin) ([`rig_origin()`](#an.stage.rig.rig_origin)).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> bone_extent_centre({"root": (512.0, 980.0), "head": (512.0, 420.0)})
@@ -405,6 +402,9 @@ one. On the default rig it lands at y=700, within 20 units of the torso
 bone — i.e. it reproduces the convention the deleted `torso_y = 0.0`
 literal encoded, without hardcoding a bone name.
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.rig.bone_positions(desc)
 
 Absolute `(x, y)` per bone, in view_box units.
@@ -421,15 +421,15 @@ looping — a malformed rig is #78’s business, not this function’s.
 Whether any bone of a (raw or model) rig document has a non-zero
 `rotation_deg` or a non-unit `scale_x`/`scale_y`.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})
 True
 >>> bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None, skip_slots=None)
 
@@ -504,9 +504,6 @@ painted together, so an unrelated part ordered between a chain’s members
 stage compiler; the asset validators only warn. Nothing in `flat`
 nesting.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -516,6 +513,9 @@ nesting.
 >>> chain_draw_order_problems(rig)[0].startswith("the stage paints each chain's parts together")
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.chain_paint_order(desc, , built=None)
 
@@ -532,9 +532,6 @@ builder’s own order ([`natural_paint_order()`](#an.stage.rig.natural_paint_ord
 their tree order and a chain already painted in declared order is not
 reordered. `built` limits it to the slots the builder drew.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -543,6 +540,9 @@ reordered. `built` limits it to the slots the builder drew.
 >>> chain_paint_order(rig)
 {None: ['torso'], 'torso': ['arm', 'torso']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.stage.rig.chain_pose_problems(desc)
 
@@ -554,9 +554,6 @@ scale, so its `rotation_deg`/`scale_*` would be lost (its `x`/`y`
 are kept: positions sum along the chain). Refused at compile, like the
 draw order; give the bone a slot or move its pose to the bone below it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],
@@ -566,6 +563,9 @@ draw order; give the bone a slot or move its pose to the bone below it.
 True
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.rig.declared_origin(desc)
 
 The rig’s DECLARED origin as two floats, or `None` when it declares none.
@@ -574,9 +574,6 @@ The rig’s DECLARED origin as two floats, or `None` when it declares none.
 it); a descriptor model that predates [`RigDocument`](#an.stage.rig.RigDocument), where
 `origin` is an `extra` key (a list), is read the same way.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> declared_origin(NS(origin=[512, 1010])), declared_origin(NS())
@@ -584,6 +581,9 @@ it); a descriptor model that predates [`RigDocument`](#an.stage.rig.RigDocument)
 >>> declared_origin({"origin": [0, 5]})
 (0.0, 5.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.drawn_attachment(desc, skin, slot)
 
@@ -601,9 +601,6 @@ can give ([`chain_draw_order_problems()`](#an.stage.rig.chain_draw_order_problem
 each part follows its bone’s world transform, and the list says who
 paints over whom. `built` limits it to the slots the builder drew.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -613,6 +610,9 @@ paints over whom. `built` limits it to the slots the builder drew.
 >>> global_paint_order(rig)
 ['arm', 'cord', 'arm/hand']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.legacy_rest_pose_unknown(raw, kind, , since)
 
@@ -626,9 +626,6 @@ that whose bones carry a pose, and which says nothing about
 about. A version older than `since` is caught too, should a read skip
 the migration.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> k = DocumentKind("Demo", "schema_version", "0.2.0")
 >>> legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
@@ -636,6 +633,9 @@ True
 >>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.stage.rig.natural_paint_order(order, keys)
 
@@ -649,13 +649,13 @@ first, then its children by their own `(draw_order, name)`.
 
 `"flat"` or `"bones"` (an#340); unset is flat.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> nesting_of({"nesting": "bones"}), nesting_of({})
 ('bones', 'flat')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.rig.omit_unset_rig_fields(data)
 
@@ -665,15 +665,15 @@ A subclass that declares its own `model_serializer` REPLACES the base’s
 (pydantic keeps one per model), so it must call this on its output, or an
 unset `origin` reaches every stored descriptor as `null`.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> omit_unset_rig_fields({"name": "lamp", "origin": None})
 {'name': 'lamp'}
 >>> omit_unset_rig_fields({"origin": [512.0, 1010.0]})
 {'origin': [512.0, 1010.0]}
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.rig.part_probe(characters_store, , art_prefix='characters/')
 
@@ -711,14 +711,14 @@ slot itself, which puts eyes and mouth under `head` and leaves every limb
 a direct child of the entity. `nesting: bones` (an#340) follows the bone
 hierarchy to the nearest ancestor’s primary slot instead.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> primary_slot_per_bone(NS(slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head")]))["head"]
 'head'
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.protect_legacy_rest_pose(doc)
 
@@ -731,9 +731,6 @@ whose bones carry none gets nothing (and every document on the
 maintainer’s machine was of that kind when this shipped). Returns `doc`,
 edited in place; the caller sets the version.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]
 False
@@ -742,6 +739,9 @@ False
 >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.rig.raster_digest(store, , art_prefix='characters/')
 
@@ -766,9 +766,6 @@ for `PropDescriptor`, `cutan` for `CharacterDescriptor`): it registers
 [`protect_legacy_rest_pose()`](#an.stage.rig.protect_legacy_rest_pose) as that kind’s `from -> to` migration and
 records `to` as the version the builder applies the rest pose from.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> register_rest_pose_migration("DemoRig", "1.0", "2.0")
 >>> REST_POSE_SINCE["DemoRig"]
@@ -777,6 +774,9 @@ records `to` as the version the builder applies the rest pose from.
 >>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
 {'version': '1.0', 'bones': []}
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.rest_pose_protection(raw, migrated, , kind='rig document')
 
@@ -788,9 +788,6 @@ its pixels. An author who added a rotation to such a file is the other
 case, and nothing else would tell them why the part did not move. A flag
 the AUTHOR wrote (present in the stored document) is a choice, and silent.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> old = {"schema_version": "0.1.0", "bones": [{"name": "leg", "rotation_deg": 20}]}
 >>> rest_pose_protection(old, {**old, "rest_rotation": False}).startswith("its bones carry")
@@ -798,6 +795,9 @@ True
 >>> rest_pose_protection({**old, "rest_rotation": False}, {**old, "rest_rotation": False}) is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.rest_transform(bone)
 
@@ -809,15 +809,15 @@ swap poses, the face solver, presets, a from-less tween, the runtime’s
 load), so this is the whole change. An authored `rotation` tween stays
 ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]
 -0.3839724354387525
 >>> rest_transform(Bone(name="leg", rotation_deg=-0.0))
 {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.rig.rig_affordances(desc)
 
@@ -832,9 +832,6 @@ one bone (a head with its face) add no depth, and a flat rig affords
 nothing here: that nesting is a drawing convention, not a joint. The core registers it as the `prop`
 analyser; a genre’s analyser composes it for its own kinds.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
@@ -842,6 +839,9 @@ analyser; a genre’s analyser composes it for its own kinds.
 >>> rig_affordances(rig)
 {'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.rig.rig_origin(desc)
 
@@ -853,9 +853,6 @@ has one, else the centre of its bones’ extent ([`bone_extent_centre()`](#an.st
 reports where a rig’s art reaches from its stage point (`cutan`’s
 `stage_extent`) reads it too, so the two agree by construction.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> bones = [NS(name="root", parent=None, x=512, y=980), NS(name="top", parent="root", x=0, y=-560)]
@@ -864,6 +861,9 @@ reports where a rig’s art reaches from its stage point (`cutan`’s
 >>> rig_origin(NS(bones=bones, origin=(512, 980)))
 (512.0, 980.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.rig.rig_origin_problems(desc)
 
@@ -875,9 +875,6 @@ whole rig nowhere; one outside the `view_box` is legal (a hanging sign’s
 hook can sit above its art) but is far more often a unit slip (scene pixels
 written where view_box units belong), so it is said, not refused.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig_origin_problems(NS(origin=(512, 1010), view_box=(0, 0, 1024, 1024)))
@@ -887,6 +884,9 @@ True
 >>> rig_origin_problems(NS(origin=(float("nan"), 0), view_box=(0, 0, 1024, 1024)))[0][:30]
 'origin (nan, 0.0) is not finit'
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.rig_problems(desc)
 
@@ -898,15 +898,15 @@ parent: forward kinematics only, so it is refused); a slot whose `bone`
 names no bone (it used to land at the origin, silently). Shared by the
 asset validators (`an character validate`, `an.stage.props.validate_prop()`).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],
 ...                 slots=[NS(name="s", bone="nope")]))
 ['bones form a cycle (a closed linkage): a -> b -> a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.rig_rest_problems(desc)
 
@@ -920,9 +920,6 @@ part about its joint is `x: 0, y: 0` on the attachment and the art’s
 `anchor` at the joint. Nothing is said about a rig that keeps its legacy
 pose (`rest_rotation: false`), since its bones pose nothing.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> doc = {"bones": [{"name": "leg", "rotation_deg": 20}],
 ...        "slots": [{"name": "leg", "bone": "leg"}],
@@ -934,13 +931,13 @@ True
 []
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.rig.slot_node_paths(desc)
 
 `{slot: its node path relative to the entity}` (`torso/arm/hand`), by
 [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from types import SimpleNamespace as NS
@@ -949,6 +946,9 @@ True
 >>> slot_node_paths(rig)
 {'a': 'a', 'b': 'a/b'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.slot_parent_chain(desc)
 

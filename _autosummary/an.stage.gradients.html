@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -668,15 +670,15 @@ side and stretched to the box – a smooth ramp loses nothing to that, and a
 <dt class="sig sig-object py" id="an.stage.gradients.gradient_alias">
 <span class="sig-prename descclassname"><span class="pre">an.stage.gradients.</span></span><span class="sig-name descname"><span class="pre">gradient_alias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/gradients.html#gradient_alias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.gradients.gradient_alias" title="Link to this definition">#</a></dt>
 <dd><p>A content-addressed texture alias: the same gradient, the same alias.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gradient_alias</span><span class="p">(</span><span class="s2">"glass.sky"</span><span class="p">,</span> <span class="s2">"data:x"</span><span class="p">)</span> <span class="o">==</span> <span class="n">gradient_alias</span><span class="p">(</span><span class="s2">"glass.sky"</span><span class="p">,</span> <span class="s2">"data:x"</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gradient_alias</span><span class="p">(</span><span class="s2">"glass.sky"</span><span class="p">,</span> <span class="s2">"data:x"</span><span class="p">)</span> <span class="o">==</span> <span class="n">gradient_alias</span><span class="p">(</span><span class="s2">"glass.sky"</span><span class="p">,</span> <span class="s2">"data:x"</span><span class="p">)</span>
-<span class="go">True</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -696,11 +698,6 @@ side and stretched to the box – a smooth ramp loses nothing to that, and a
 <dd><p>The SVG that paints <code class="docutils literal notranslate"><span class="pre">gradient</span></code> over <code class="docutils literal notranslate"><span class="pre">box</span></code>, laid out on the centred <code class="docutils literal notranslate"><span class="pre">frame</span></code>.</p>
 <p>Coordinates are scene pixels (the <code class="docutils literal notranslate"><span class="pre">viewBox</span></code>); <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">height</span></code> are the
 raster size, at most <code class="docutils literal notranslate"><span class="pre">raster_max</span></code> on the longer side.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.paint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Gradient</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">svg</span> <span class="o">=</span> <span class="n">gradient_svg</span><span class="p">(</span><span class="n">Gradient</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"radial"</span><span class="p">,</span> <span class="n">stops</span><span class="o">=</span><span class="p">[</span><span class="s2">"#fff"</span><span class="p">,</span> <span class="s2">"#000"</span><span class="p">]),</span>
 <span class="gp">... </span>                   <span class="n">box</span><span class="o">=</span><span class="p">(</span><span class="mf">4000.0</span><span class="p">,</span> <span class="mf">4000.0</span><span class="p">),</span> <span class="n">frame</span><span class="o">=</span><span class="p">(</span><span class="mf">1920.0</span><span class="p">,</span> <span class="mf">1080.0</span><span class="p">))</span>
@@ -710,6 +707,11 @@ raster size, at most <code class="docutils literal notranslate"><span class="pre
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

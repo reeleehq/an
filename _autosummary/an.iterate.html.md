@@ -38,10 +38,10 @@ agent can review what changed across runs.
 
 ### Classes
 
-| [`IterateResponse`](#an.iterate.IterateResponse)(\*\*data)                       | Structured reply from Claude for a single iterate() call.   |
+| [`IterateResponse`](#an.iterate.IterateResponse)(\*, summary[, patches, ...])    | Structured reply from Claude for a single iterate() call.   |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | [`IterateResult`](#an.iterate.IterateResult)([success, summary, patches, ...]) | Outcome of an iterate() call.                               |
-| [`Patch`](#an.iterate.Patch)(\*\*data)                                 | A single mutation against the SceneIR JSON tree.            |
+| [`Patch`](#an.iterate.Patch)(\*, op, path[, value])                    | A single mutation against the SceneIR JSON tree.            |
 
 ### Exceptions
 
@@ -54,7 +54,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when an iterate call cannot apply its proposed patches.
 
-### *class* an.iterate.IterateResponse(\*\*data)
+### *class* an.iterate.IterateResponse(\*, summary, patches=<factory>, affected_shots=<factory>)
 
 Bases: `BaseModel`
 
@@ -64,13 +64,13 @@ Structured reply from Claude for a single iterate() call.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.iterate.IterateResult(success=True, summary='', patches=<factory>, affected_shots=<factory>, new_scene=None, validation=None, error=None)
+### *class* an.iterate.IterateResult(success=True, summary='', patches=list(), affected_shots=list(), new_scene=None, validation=None, error=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an iterate() call.
 
-### *class* an.iterate.Patch(\*\*data)
+### *class* an.iterate.Patch(, op, path, value=None)
 
 Bases: `BaseModel`
 
@@ -109,11 +109,11 @@ Loads the installed genres first (their presets and methods are part of
 the vocabulary). Stable for a given registry, so it caches as well as the
 hand-written one did.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> text = system_prompt()
 >>> "walk" in text and "Rules:" in text
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

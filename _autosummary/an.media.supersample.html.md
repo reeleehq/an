@@ -83,9 +83,6 @@ rounding, so a block averaging exactly `.5` goes to the EVEN neighbour.
 Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> f = np.array([[0, 0, 1, 2], [0, 4, 1, 2]], np.uint8)[..., None].repeat(3, -1)
@@ -95,12 +92,12 @@ invisible in a picture and moves every golden.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.media.supersample.check_factor(factor)
 
 Validate a supersample factor, or refuse with the reason.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -110,6 +107,9 @@ Traceback (most recent call last):
   ...
 an.media.supersample.SupersampleError: supersample must be >= 1, got 0
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.media.supersample.resolve_png_bytes(data, , factor)
 

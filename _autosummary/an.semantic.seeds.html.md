@@ -64,11 +64,11 @@ A JSON Schema object for `fn`’s keyword parameters, defaults included.
 Positional-only and `skip``ped parameters are left out (``target`,
 `rest`, `parts` are the compiler’s, not the author’s).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> def f(target, *, height: float = 30.0, label: str = "x", n: int | None = None): ...
 >>> schema_of_callable(f, skip=("target",))["properties"]["height"]
 {'type': 'number', 'default': 30.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

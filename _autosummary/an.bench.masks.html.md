@@ -68,15 +68,15 @@ Implemented as shifted ORs rather than a convolution: `k` is 2 or 3 here,
 so nine shifts beat pulling in scipy, and the package’s dependency
 perimeter is four names wide on purpose.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> m = np.zeros((1, 5, 5), bool); m[0, 2, 2] = True
 >>> int(dilate(m, 3)[0].sum())
 9
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.edge_mask(luma, , threshold=40)
 
@@ -86,15 +86,15 @@ Pixels straddling a hard luma step, from the reference plane only.
 two-apart difference is undefined there; excluding it is what keeps the
 operator string honest.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> y = np.zeros((1, 5, 6), np.uint8); y[0, :, 3:] = 255
 >>> int(edge_mask(y).sum())
 6
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.flat_mask(rgb, , k=3)
 
@@ -103,9 +103,6 @@ The interior of large flat colour fields, from the source frames.
 ~90% of a flat-cutout frame, and the part no edge metric touches. Banding
 and blocking live here, and without this mask they are invisible.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 9, 9, 3), np.uint8); a[0, :, 5:] = 255
@@ -113,12 +110,12 @@ and blocking live here, and without this mask they are invisible.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.masks.held_mask(rgb)
 
 `(N-1, H, W)`: pixels the animator held perfectly still between frames.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -126,6 +123,9 @@ True
 >>> int(held_mask(a).sum())
 8
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.ring_mask(edge)
 
@@ -135,12 +135,12 @@ Where ringing and mosquito noise land. Excluding the edge is what makes it
 a different measurement from `coded_luma_edge_error` rather than a second
 name for it.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> e = np.zeros((1, 5, 5), bool); e[0, 2, 2] = True
 >>> int(ring_mask(e).sum())
 8
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

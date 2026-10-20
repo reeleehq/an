@@ -126,9 +126,6 @@ rounding, so a block averaging exactly `.5` goes to the EVEN neighbour.
 Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> f = np.array([[0, 0, 1, 2], [0, 4, 1, 2]], np.uint8)[..., None].repeat(3, -1)
@@ -138,12 +135,12 @@ invisible in a picture and moves every golden.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.media.check_factor(factor)
 
 Validate a supersample factor, or refuse with the reason.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -154,15 +151,15 @@ Traceback (most recent call last):
 an.media.supersample.SupersampleError: supersample must be >= 1, got 0
 ```
 
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
 ### an.media.check_frame_samples(frame_samples, , total_frames, duration)
 
 Validate `frame_samples` against the render it is for; normalise to tuples.
 
 Checked before a browser launches, for `check_factor`’s reason: the render
 costs minutes and this costs microseconds.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> check_frame_samples(None, total_frames=3, duration=0.1) is None
@@ -174,6 +171,9 @@ Traceback (most recent call last):
   ...
 an.media.shutter.ShutterError: frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.media.frame_path(frames_dir, index)
 
@@ -206,9 +206,6 @@ The frame indices in `[0, total_frames)` that have no file on disk.
 Checked on DISK rather than on a capture loop’s bookkeeping, because the
 mux reads the directory: the directory is what must hold every frame.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import tempfile
 >>> d = Path(tempfile.mkdtemp())
@@ -216,6 +213,9 @@ mux reads the directory: the directory is what must hold every frame.
 >>> missing_frames(d, 3)
 [1, 2]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.media.register_sink(name, factory, , replace=False)
 
@@ -242,9 +242,6 @@ a smear’s profile is not exactly a physical sensor’s. The centroid of what
 is drawn is still the average of the sampled positions, which is the
 property the impact ground truth relies on.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a, b = np.full((1, 2, 3), 1, np.uint8), np.full((1, 2, 3), 2, np.uint8)
@@ -255,6 +252,9 @@ property the impact ground truth relies on.
 >>> temporal_mean([a]) is a
 True
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### Modules
 

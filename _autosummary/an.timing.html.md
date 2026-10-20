@@ -145,7 +145,7 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### *class* an.timing.Channel(target, property, keyframes=<factory>)
+### *class* an.timing.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -153,7 +153,7 @@ Sorted keyframes for one property of one target.
 
 Construction validates that `keyframes` is non-empty and sorted.
 
-### *class* an.timing.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.timing.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -202,7 +202,7 @@ The value between keys `a` and `b` at eased progress `u`.
 
 True when the value (or part of it) switches on TIME rather than moving.
 
-### *class* an.timing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+### *class* an.timing.EasingEntry(name, curve, family, solver, description, version=1, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -340,7 +340,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.timing.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+### *class* an.timing.PropertySpace(name, fields=(), version=1, description='', undeclared=DiscreteKind())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -387,9 +387,6 @@ Where an evaluation sits: time `t` inside the segment `[start, end)`.
 
 Whether a discrete value has switched to the segment’s second key.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
 (True, False)
@@ -397,13 +394,16 @@ Whether a discrete value has switched to the segment’s second key.
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### *exception* an.timing.SpaceError
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A property space is malformed, unknown, or already registered.
 
-### *class* an.timing.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.timing.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -416,7 +416,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.timing.Track(target_root='', clips=<factory>)
+### *class* an.timing.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -460,9 +460,6 @@ engine that implements only part of the registry passes (the stage runtime
 implements the legacy names; see `an.stage.easing`). Sequences
 always take the legacy Bézier solver.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> apply_easing(None, 0.25)
 0.25
@@ -473,6 +470,9 @@ Traceback (most recent call last):
  ...
 an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.check_channel(channel, kind)
 
@@ -507,13 +507,13 @@ Every registered entry in registration order; only `owner`’s when given.
 
 The registered entry called `name`.
 
-* **Return type:**
-  [`EasingEntry`](an.timing.easing.html.md#an.timing.easing.EasingEntry)
-
 ```pycon
 >>> easing_entry("ease").family
 'legacy'
 ```
+
+* **Return type:**
+  [`EasingEntry`](an.timing.easing.html.md#an.timing.easing.EasingEntry)
 
 ### an.timing.evaluate_channel(channel, t, , kind=None)
 
@@ -609,9 +609,6 @@ The address string of a compiled `(target, property)` pair, unvalidated
 A kind instance from its contract spec (`{"kind": name, **params}`),
 a bare kind name, or an instance (returned as is).
 
-* **Return type:**
-  [`FieldKind`](an.timing.kinds.html.md#an.timing.kinds.FieldKind)
-
 ```pycon
 >>> kind_from_spec("discrete")
 DiscreteKind(switch_at=0.5)
@@ -620,6 +617,9 @@ Traceback (most recent call last):
  ...
 an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
 ```
+
+* **Return type:**
+  [`FieldKind`](an.timing.kinds.html.md#an.timing.kinds.FieldKind)
 
 ### an.timing.kind_names(, owner=None)
 
@@ -634,20 +634,17 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.timing.parse_address(text)
 
 `text` as an [`Address`](#an.timing.Address); raises [`AddressError`](#an.timing.AddressError) naming the fault.
-
-* **Return type:**
-  [`Address`](an.timing.address.html.md#an.timing.address.Address)
 
 ```pycon
 >>> parse_address("charlie/left_arm:rotation").target
@@ -657,6 +654,9 @@ Traceback (most recent call last):
  ...
 an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
 ```
+
+* **Return type:**
+  [`Address`](an.timing.address.html.md#an.timing.address.Address)
 
 ### an.timing.register_easing(entry, , replace=False, owner=None)
 
@@ -678,13 +678,13 @@ Register a field kind under `name` (how a genre adds one).
 `owner` names who registered it; only `CORE_OWNER`’s kinds reach
 `an`’s contract files.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
-
 ```pycon
 >>> sorted(kind_names())[:3]
 ['angle', 'color', 'discrete']
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
 
 ### an.timing.register_space(space, , replace=False, owner=None)
 
@@ -737,9 +737,6 @@ the executable spec `runtime.js` is tested against.
 yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
 the evaluable form”.
 
-* **Return type:**
-  [`Timeline`](an.timing.timeline.html.md#an.timing.timeline.Timeline)
-
 ```pycon
 >>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
 ...     {"animation_id": "m", "start_time": 0.0}]}]},
@@ -749,6 +746,9 @@ the evaluable form”.
 >>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
 {('a', 'x'): 1.0}
 ```
+
+* **Return type:**
+  [`Timeline`](an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ### an.timing.wrap_time(t, duration, loop_mode)
 

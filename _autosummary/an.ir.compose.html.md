@@ -119,9 +119,6 @@ Compute the total duration of an action tree without evaluating it.
 
 `play_extent` resolves a duration-less `play` (see [`PlayExtent`](#an.ir.compose.PlayExtent)).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> duration_of(tween("a", "x", to=1.0, duration=2.0))
 2.0
@@ -134,6 +131,9 @@ Compute the total duration of an action tree without evaluating it.
 >>> duration_of(set_("a", "x", 1.0))
 0.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.ir.compose.flatten(action, , start=0.0, play_extent=None)
 
@@ -174,13 +174,13 @@ The registered [`ActionKind`](an.genres.html.md#an.genres.ActionKind) that gover
 Raises [`UnregisteredKindError`](an.genres.html.md#an.genres.UnregisteredKindError), naming the genre that
 provides it, for a kind nobody registered.
 
-* **Return type:**
-  [`ActionKind`](an.genres.registry.html.md#an.genres.registry.ActionKind)
-
 ```pycon
 >>> kind_of(delay(1.0)).name
 'delay'
 ```
+
+* **Return type:**
+  [`ActionKind`](an.genres.registry.html.md#an.genres.registry.ActionKind)
 
 ### an.ir.compose.loop(action, count)
 
@@ -196,15 +196,15 @@ around them (whatever field a composite keeps its children in: its kind’s
 `children` hook says which values are children, the model’s fields say
 where they live, so `loop.child` and a genre’s composite are reached).
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> act = sequence(delay(1.0), loop(set_("a", "x", 1.0), 2))
 >>> renamed = map_leaves(act, lambda a: a.model_copy(update={"target": "b"}) if a.kind == "set" else a)
 >>> [a.target for a in iter_actions(renamed) if a.kind == "set"]
 ['b']
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.ir.compose.parallel(\*actions)
 
@@ -218,13 +218,13 @@ Run all children at once. Total duration = max of child durations.
 `action` as its registered model (an `ExtensionAction` left open
 by a document read before its genre loaded is validated now).
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> resolve_action(delay(0.5)).duration
 0.5
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.ir.compose.sequence(\*actions)
 
@@ -254,9 +254,6 @@ Total duration: the latest child’s end. `scene.md` holds it verbatim (a
 `an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
-* **Return type:**
-  [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
 ```pycon
 >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
 ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -273,6 +270,9 @@ Traceback (most recent call last):
 ValueError: stagger lag must be >= 0, got -1.0
 ```
 
+* **Return type:**
+  [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
 ### an.ir.compose.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
@@ -280,12 +280,12 @@ Animate a property from `from_` (or its current value) to `to`.
 `easing` left out inherits the scene’s `meta.default_easing` (else
 `"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
 
-* **Return type:**
-  [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)
-
 ```pycon
 >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
 False
 >>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
 'linear'
 ```
+
+* **Return type:**
+  [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)

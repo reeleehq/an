@@ -32,25 +32,25 @@ IR’s `shot.entities` includes `voice` refs that configure
 the render rather than appearing in it, so the two numbers differ on every
 scene with dialogue. Both are recorded; only this one is inside the hash.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> count_drawable_entities({"scene": {"children": [{}, {}]}})
 2
 ```
 
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
 ### an.bench.contract.count_nodes(scene_json)
 
 Every node in the tree, root included.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> count_nodes({"scene": {"children": [{"children": [{}]}]}})
 3
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.contract.frames_sha256(frame_paths)
 
@@ -81,9 +81,6 @@ already free of both (every escaping set goes through `sorted()`, the
 palette hash is `sum(ord(c)) % 5` rather than Python’s `hash()`, and
 the staged JSON is written with `sort_keys=True`).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = scene_contract_sha256({"meta": {"fps": 24}, "scene": {"children": []}})
 >>> a == scene_contract_sha256({"scene": {"children": []}, "meta": {"fps": 24}})
@@ -91,6 +88,9 @@ True
 >>> len(a)
 64
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.contract.scenes_contract_sha256(scene_jsons)
 
@@ -106,9 +106,6 @@ A multi-shot scene hashes the ordered list of per-shot digests, because
 hashing only the first shot would let a change to the second one pass as
 “the same scene” — which is precisely the claim this digest exists to deny.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = {"scene": {"children": []}}
 >>> scenes_contract_sha256([a]) == scene_contract_sha256(a)
@@ -116,3 +113,6 @@ True
 >>> scenes_contract_sha256([a, a]) == scene_contract_sha256(a)
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

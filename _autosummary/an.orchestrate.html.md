@@ -28,7 +28,7 @@ True
 | [`OrchestratorReport`](#an.orchestrate.OrchestratorReport)([success, output_path, ...])   | Outcome of an end-to-end orchestrated run.   |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------|
 
-### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None, root=None)
+### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=list(), error=None, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

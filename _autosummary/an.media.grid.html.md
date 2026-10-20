@@ -33,9 +33,6 @@ The caption that fits `room` (in `measure`’s units): a long one is
 shortened with `…`; a `(head, tail)` pair keeps its tail whole and
 shortens only the head (an#460), unless not even the tail fits.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> fit_caption(("cutan:prop.desk-oversimplified", " [free]"), 20, len)
 'cutan:prop.d… [free]'
@@ -43,17 +40,19 @@ shortens only the head (an#460), unless not even the tail fits.
 'cutan:prop.desk-ove…'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.media.grid.tile(images, , cell=256, columns=None, labels=None, gap=4, background=(255, 255, 255))
 
 One PNG holding every image of `images` (PNG bytes), each in a `cell` square.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 columns: cells per row (default: the smallest square grid that holds them)
 labels: one caption per image, drawn under its cell; a `(head, tail)`
 
 > pair is shortened in its head only, so the tail always shows
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.media.grid.trim(image, , tolerance=8, margin=0.06)
 
@@ -61,12 +60,12 @@ labels: one caption per image, drawn under its cell; a `(head, tail)`
 
 An image that is all background is returned unchanged.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.full((20, 20, 3), 255, np.uint8); a[5:9, 10:12] = 0
 >>> decode_png(trim(encode_png(a), margin=0)).shape
 (4, 2, 3)
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)

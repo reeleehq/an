@@ -1,4 +1,4 @@
-> built 2026-10-14 05:06 UTC from 5219317 (main) · an 0.1.239. Details: build_info.json
+> built 2026-10-20 11:19 UTC from bc8639a (main) · an 0.1.240. Details: build_info.json
 
 # index.html.md
 
@@ -329,7 +329,7 @@ type), pinned by `tests/test_cutout_channel_parity.py`.
 |-------------------------------------------------------------------------------------------|---------------------------------------------------------|
 | [`Keyframe`](_autosummary/an.adapters.cutout.channel.html.md#an.adapters.cutout.channel.Keyframe)(time, value[, easing])          | One keyframe: time, value, optional per-segment easing. |
 
-### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=<factory>)
+### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -390,7 +390,7 @@ This path keeps working for every existing caller; new code imports from
 |------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | [`LoopMode`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.LoopMode)(\*values)                            | How a clip behaves past its natural duration.         |
 
-### *class* an.adapters.cutout.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.adapters.cutout.clip.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -418,13 +418,13 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.adapters.cutout.compile.html.md
@@ -494,27 +494,27 @@ load the stage back through this `__init__`.
 
 ### Classes
 
-| [`CutoutRenderer`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.CutoutRenderer)([engine, name, ...])   | The stage renderer: the stage engine through the core frame stage.        |
-|----------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.CutoutSceneJSON)(\*\*data)             | Top-level cutout scene JSON — the JS runtime's input contract.            |
-| [`NodeJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.NodeJSON)(\*\*data)                    | One node in the scene tree.                                               |
-| [`VisualJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.VisualJSON)(\*\*data)                  | Drawable content attached to a node.                                      |
-| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AnimationClipJSON)(\*\*data)           | A named, reusable animation clip.                                         |
-| [`ChannelJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.ChannelJSON)(\*\*data)                 | One animated property of one target.                                      |
-| [`KeyframeJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.KeyframeJSON)(\*\*data)                | Single keyframe in an animation channel.                                  |
-| [`TimelineJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.TimelineJSON)(\*\*data)                | Top-level timeline: total duration + tracks.                              |
-| [`TrackJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.TrackJSON)(\*\*data)                   | A sequence of placed clips with optional target-prefix metadata.          |
-| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.PlacedClipJSON)(\*\*data)              | An animation placed on a track at a specific time.                        |
-| [`AssetsJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetsJSON)(\*\*data)                  | Map of asset id → AssetJSON, split by kind.                               |
-| [`AssetJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetJSON)(\*\*data)                   | A single asset (texture / audio file).                                    |
-| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetResolutionJSON)(\*\*data)         | How one scene entity's store reference actually resolved at compile time. |
+| [`CutoutRenderer`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.CutoutRenderer)([engine, name, ...])                | The stage renderer: the stage engine through the core frame stage.        |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.CutoutSceneJSON)(\*[, version, meta, ...])          | Top-level cutout scene JSON — the JS runtime's input contract.            |
+| [`NodeJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.NodeJSON)(\*, name[, transform, visual, ...])       | One node in the scene tree.                                               |
+| [`VisualJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.VisualJSON)(\*[, kind, fit, texture_id, ...])       | Drawable content attached to a node.                                      |
+| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AnimationClipJSON)(\*, name, duration[, ...])       | A named, reusable animation clip.                                         |
+| [`ChannelJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.ChannelJSON)(\*, target, property[, keyframes])     | One animated property of one target.                                      |
+| [`KeyframeJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.KeyframeJSON)(\*, time, value[, easing])            | Single keyframe in an animation channel.                                  |
+| [`TimelineJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.TimelineJSON)(\*, duration[, tracks])               | Top-level timeline: total duration + tracks.                              |
+| [`TrackJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.TrackJSON)(\*[, target_root, clips])                | A sequence of placed clips with optional target-prefix metadata.          |
+| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.PlacedClipJSON)(\*, animation_id[, ...])            | An animation placed on a track at a specific time.                        |
+| [`AssetsJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetsJSON)(\*[, textures, audio])                  | Map of asset id → AssetJSON, split by kind.                               |
+| [`AssetJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetJSON)(\*, src[, width, height, duration])      | A single asset (texture / audio file).                                    |
+| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.AssetResolutionJSON)(\*, id, kind, store, ref, ...) | How one scene entity's store reference actually resolved at compile time. |
 
 ### Exceptions
 
 | [`CutoutRenderError`](_autosummary/an.adapters.cutout.html.md#an.adapters.cutout.CutoutRenderError)   | Raised when a cutout render fails.   |
 |----------------------------------------------------------------------|--------------------------------------|
 
-### *class* an.adapters.cutout.AnimationClipJSON(\*\*data)
+### *class* an.adapters.cutout.AnimationClipJSON(\*, name, duration, loop_mode='once', channels=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -524,7 +524,7 @@ A named, reusable animation clip.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.AssetJSON(\*\*data)
+### *class* an.adapters.cutout.AssetJSON(, src, width=None, height=None, duration=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -534,7 +534,7 @@ A single asset (texture / audio file).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.AssetResolutionJSON(\*\*data)
+### *class* an.adapters.cutout.AssetResolutionJSON(, id, kind, store, ref, resolved, fallback=False, detail='', \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -579,7 +579,7 @@ Environments: “store” | “preset” | “default”.
 * **Type:**
   What was built. Characters
 
-### *class* an.adapters.cutout.AssetsJSON(\*\*data)
+### *class* an.adapters.cutout.AssetsJSON(\*, textures=<factory>, audio=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -589,7 +589,7 @@ Map of asset id → AssetJSON, split by kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.ChannelJSON(\*\*data)
+### *class* an.adapters.cutout.ChannelJSON(\*, target, property, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -605,7 +605,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
+### *class* an.adapters.cutout.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](_autosummary/an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -641,7 +641,7 @@ items sorted (`applyPaintOrder`) and one list across containers
 
 The `Shot.renderer` values this renderer claims (the ONE place it names them).
 
-### *class* an.adapters.cutout.CutoutSceneJSON(\*\*data)
+### *class* an.adapters.cutout.CutoutSceneJSON(\*, version='0.1.0', meta=<factory>, scene, animations=<factory>, timeline, assets=<factory>, asset_resolution=<factory>, overlay=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -671,7 +671,7 @@ has no overlay, and then omitted from the serialized document.
 * **Type:**
   The camera-immune layer (an#155)
 
-### *class* an.adapters.cutout.KeyframeJSON(\*\*data)
+### *class* an.adapters.cutout.KeyframeJSON(, time, value, easing=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -681,7 +681,7 @@ Single keyframe in an animation channel.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.NodeJSON(\*\*data)
+### *class* an.adapters.cutout.NodeJSON(\*, name, transform=<factory>, visual=None, children=<factory>, scope=None, z_index=None, paint_order=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -717,7 +717,7 @@ This node’s place among its siblings when its parent sorts them
 (an#403): a nested chain whose declared draw order is not the tree’s
 (a far arm behind the torso it nests under). `None` = insertion order.
 
-### *class* an.adapters.cutout.PlacedClipJSON(\*\*data)
+### *class* an.adapters.cutout.PlacedClipJSON(, animation_id, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -727,7 +727,7 @@ An animation placed on a track at a specific time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.TimelineJSON(\*\*data)
+### *class* an.adapters.cutout.TimelineJSON(\*, duration, tracks=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -737,7 +737,7 @@ Top-level timeline: total duration + tracks.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.TrackJSON(\*\*data)
+### *class* an.adapters.cutout.TrackJSON(\*, target_root='', clips=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -747,7 +747,7 @@ A sequence of placed clips with optional target-prefix metadata.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.VisualJSON(\*\*data)
+### *class* an.adapters.cutout.VisualJSON(, kind='rect', fit='stretch', texture_id=None, asset_id=None, asset_sets=None, width=50.0, height=50.0, anchor_x=0.5, anchor_y=0.5, color='#888888', path=None, underlays=None, blend=None, asset_geometry=None, z_index=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -779,7 +779,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### blend *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply']]*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -1084,7 +1084,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -1198,7 +1198,7 @@ key — so 30 render-side entries still compare. It needs no
 `SCHEMA_VERSION` migration, and it MUST reach per-shot provenance, because
 a row that does not record it cannot be read back later.
 
-### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=<factory>, log='', provenance=<factory>)
+### *class* an.adapters.RenderResult(mp4_path, duration, frame_manifest=list(), log='', provenance=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -1544,15 +1544,15 @@ The smallest Manim preset that is at least as tall and as fast as the film.
 The picture is then resampled and scaled to exactly the film’s rate and size,
 so a smaller preset would be upscaled (blur) or frame-doubled (judder).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> choose_quality(fps=15, resolution=(640, 360)), choose_quality(fps=30, resolution=(1920, 1080))
 ('l', 'h')
 >>> choose_quality(fps=120, resolution=(8000, 4000))  # nothing is enough: the largest
 'k'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.adapters.manim_adapter.manim_environment()
 
@@ -1588,14 +1588,14 @@ Raises what the render would for a bad shot.
 
 The default resolver: `options.source` is a key of the mall’s `store`.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`ManimShotSpec`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimShotSpec), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`SourceFile`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.SourceFile)]
-
 ```pycon
 >>> resolve = store_source_resolver()
 >>> resolve(ManimShotSpec("chart"), {"sources": {"chart": b"x = 1"}}).data
 b'x = 1'
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`ManimShotSpec`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimShotSpec), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`SourceFile`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.SourceFile)]
 
 
 # _autosummary/an.adapters.remotion_adapter.html.md
@@ -1874,9 +1874,6 @@ Full level away from dialogue; `duck_db` down while a line plays; a linear
 ramp over `attack` seconds BEFORE each line (so its first syllable is
 already clear) and `release` seconds after.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> spans = [(1.0, 2.0)]
 >>> [round(duck_gain(t, spans, duck_db=-20, attack=0.5, release=0.5), 3)
@@ -1884,14 +1881,14 @@ already clear) and `release` seconds after.
 [1.0, 0.55, 0.1, 0.55, 1.0]
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.assemble.film_duration(scene, , fps=None)
 
 Seconds the delivered film runs: the shots’ durations, minus each
 dissolve’s overlap. Exactly `sum(durations)` for a scene without one, so
 every existing document’s arithmetic is unchanged.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Shot, Transition
@@ -1899,6 +1896,9 @@ every existing document’s arithmetic is unchanged.
 ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
 3.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.assemble.film_timeline(shots, , fps, closing=None)
 
@@ -1917,9 +1917,6 @@ Decided on FRAMES at the render’s rate (`fps`, default the scene’s): a
 transition that rounds to zero frames asks for nothing, and must not cost a
 scene its byte-identical concat.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> from an.ir.schema import Meta, SceneIR, Shot, Transition
 >>> needs_assembly(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]))
@@ -1929,6 +1926,9 @@ False
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.assemble.picture_segments(timeline, windows)
 
 The film’s picture as segments, in film order.
@@ -1937,9 +1937,6 @@ A film frame is part of a shot’s body when exactly one shot shows it and
 that frame is outside the shot’s window; every other frame (a blend, a
 fade, or a frame a window was widened over) is composed from PNGs.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Segment`](_autosummary/an.assemble.html.md#an.assemble.Segment)]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
@@ -1947,6 +1944,9 @@ fade, or a frame a window was widened over) is composed from PNGs.
 >>> [(s.kind, s.shot, s.start, s.stop) for s in picture_segments(tl, shot_windows(tl))]
 [('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Segment`](_autosummary/an.assemble.html.md#an.assemble.Segment)]
 
 ### an.assemble.shot_parts(frames, window, , fps, work_dir, pix_fmt=None)
 
@@ -1968,9 +1968,6 @@ A pure function of the timeline, so the render loop, the shot cache and
 the garbage collector all agree on what a shot’s film needs from it. A
 picture of one segment has no minimum (there is nothing to concatenate).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> d = Transition(kind="dissolve", duration=0.1)   # one frame at 10 fps
@@ -1980,20 +1977,23 @@ picture of one segment has no minimum (there is nothing to concatenate).
 [(0, 1), (3, 0)]
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
 ### an.assemble.transition_problems(shots, fps, , closing=None)
 
 Every reason these shots’ transitions cannot be assembled, as
 `(shot index, message)`. The ONE list `an validate` reports and
 [`film_timeline()`](_autosummary/an.assemble.html.md#an.assemble.film_timeline) raises on, so the two cannot disagree.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
 [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.assemble.write_film_frames(timeline, frame_of, out_dir, , pattern=None)
 
@@ -2025,6 +2025,8 @@ provider factories.
 > an voices list –provider mac_say
 > an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
 > an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
+> an voices design <project>                      # design options from each voice’s notes (billed)
+> an voices choose <project> jerry_voice B        # the writer’s pick becomes the voice_id
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
 `rescore` and `reroll` are the only ways a recorded best-of-N take is
@@ -2046,9 +2048,6 @@ A provider whose `list_voices` takes `search` (ElevenLabs) filters on
 its server; for the others the filter is a case-insensitive substring over
 the name, id and labels.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
-
 ```pycon
 >>> from an.audio.tts import VoiceMeta
 >>> class Fake:
@@ -2059,18 +2058,21 @@ the name, id and labels.
 ['Ada']
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
 ### an.audio.cli.format_voices(voices)
 
 One line per voice: `voice_id  name  (labels)`.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.audio.tts import VoiceMeta
 >>> print(format_voices([VoiceMeta("abc", "Ada", "x", extra={"labels": {"accent": "british"}})]))
 abc  Ada  (accent=british)
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>)
 
@@ -2347,9 +2349,6 @@ ffmpeg ([`trim_silence()`](_autosummary/an.audio.effects.html.md#an.audio.effect
 
 One stage when `factor` already fits (the pitch-only chain, always).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> atempo_stages(1.5)
 [1.5]
@@ -2358,6 +2357,9 @@ One stage when `factor` already fits (the pitch-only chain, always).
 >>> atempo_stages(0.3)
 [0.5, 0.6]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.audio.effects.decode_chain()
 
@@ -2372,9 +2374,6 @@ trim (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.e
 The argv that runs `chain` over audio on stdin into a bit-exact 16-bit
 PCM WAV at `out_path` (part of [`CHAIN_VERSION`](_autosummary/an.audio.effects.html.md#an.audio.effects.CHAIN_VERSION)).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 source_path: also write the input, decoded ([`decode_chain()`](_autosummary/an.audio.effects.html.md#an.audio.effects.decode_chain)) and
 : untouched, there — in the same run, so its length is known whatever
   container came in (an#350: a tempo chain’s output is cut to it)
@@ -2385,6 +2384,9 @@ source_path: also write the input, decoded ([`decode_chain()`](_autosummary/an.a
 >>> ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]
 's.wav'
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.effects.filter_chain(effects)
 
@@ -2414,9 +2416,6 @@ a take’s own trailing silence (a provider pads ~0.3 s) is not counted. A
 16-bit PCM WAV is read directly; any other container is decoded with ffmpeg
 when it is installed.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> import array, io, wave
 >>> rate = 8000
@@ -2427,6 +2426,9 @@ when it is installed.
 >>> round(speech_end(buf.getvalue()), 2)
 0.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.effects.trim_record(wav)
 
@@ -2446,9 +2448,6 @@ Speech is every `window_s` window whose RMS level is within
 between words. A clip with no sound at all is returned whole (with the
 record of a zero cut), and a pad is never longer than the silence it keeps.
 
-* **Return type:**
-  [`SilenceTrim`](_autosummary/an.audio.effects.html.md#an.audio.effects.SilenceTrim)
-
 ```pycon
 >>> import array, io, math, wave
 >>> rate = 8000
@@ -2467,6 +2466,9 @@ True
 ...     round(w.getnframes() / w.getframerate(), 2)
 0.8
 ```
+
+* **Return type:**
+  [`SilenceTrim`](_autosummary/an.audio.effects.html.md#an.audio.effects.SilenceTrim)
 
 ### an.audio.effects.voice_effects(mall, voice_id)
 
@@ -2562,13 +2564,13 @@ what may never run in memory).
 
 Characters one request bills: the text as sent, audio tags included.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 #### check_available()
 
@@ -2625,13 +2627,13 @@ it (every model but `eleven_v3`, measured) still returns different
 takes; without a seed the request is unchanged and the model’s own
 sampling varies the take.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsUnavailableError
 
@@ -2657,9 +2659,6 @@ The canonical `voice_settings` dict — only what was declared, key-sorted.
 Omit-when-unset: `None` and `{}` give `{}`. Unknown keys and values out
 of range raise, so a typo cannot silently fall back to the account default.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> normalize_voice_settings({"style": 1, "stability": 0.25})
 {'stability': 0.25, 'style': 1.0}
@@ -2668,6 +2667,9 @@ Traceback (most recent call last):
     ...
 an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['stabilty']; known: ['similarity_boost', 'speed', 'stability', 'style', 'use_speaker_boost']
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.elevenlabs_tts.tagged_text(text, tags)
 
@@ -2680,13 +2682,13 @@ an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['st
 
 Whether `model_id` reads inline audio tags.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.audio.html.md
@@ -2765,13 +2767,13 @@ what may never run in memory).
 
 Characters one request bills: the text as sent, audio tags included.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 #### check_available()
 
@@ -2828,13 +2830,13 @@ it (every model but `eleven_v3`, measured) still returns different
 takes; without a seed the request is unchanged and the model’s own
 sampling varies the take.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -2953,7 +2955,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
-### *class* an.audio.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
+### *class* an.audio.VisemeTrack(visemes=list(), convention='rhubarb', duration=0.0, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -2966,7 +2968,7 @@ is mouth cues only). Retained since an#96 rather than discarded after the
 viseme conversion: captions (Wave 8) and any consumer that wants to know
 *which word* a mouth shape belongs to read them from the IR.
 
-### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
+### *class* an.audio.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -2996,13 +2998,13 @@ The default lip-sync provider: the loaded genre’s `offline` one (the
 deterministic char-to-viseme provider of `cutan`), else
 [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
-* **Return type:**
-  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> default_lipsync().name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.default_tts()
 
@@ -3036,13 +3038,13 @@ The default name (`"offline"`) resolves to [`NullLipSync`](_autosummary/an.audio
 when no loaded genre provides it, so voicing a line needs no genre; any other
 name that nothing provides is an error that says how to get it.
 
-* **Return type:**
-  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> make_lipsync("offline").name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.make_tts(name)
 
@@ -3169,6 +3171,7 @@ audio’s actual length.
 | [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                     |
 | [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
 | [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                      |
+| [`voice_design`](_autosummary/an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.      |
 | [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
 
 
@@ -3259,7 +3262,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
-### *class* an.audio.lipsync.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
+### *class* an.audio.lipsync.VisemeTrack(visemes=list(), convention='rhubarb', duration=0.0, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -3508,13 +3511,13 @@ BYTES (not the request that made them: a take re-synthesised under the
 same request is other audio, an#315 review), the gain, the ceiling, the
 rate a non-WAV source is decoded at, and [`LEVEL_VERSION`](_autosummary/an.audio.loudness.html.md#an.audio.loudness.LEVEL_VERSION).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> leveled_key(b"a", gain_db=1.0, peak_db=-1.5) != leveled_key(b"a", gain_db=1.1, peak_db=-1.5)
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.loudness.limit_peaks(samples, , ceiling, window=1)
 
@@ -3689,13 +3692,13 @@ it to warn about a shot too short for its dialogue BEFORE anything is
 synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(estimate_speech_duration("It only takes exact change."), 3)
 1.43
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 
 # _autosummary/an.audio.pipeline.html.md
@@ -3871,9 +3874,6 @@ a best-of-N line; take 0 of roll 0 is the single-take request and keeps its
 key. `takes` ([`an.audio.takes.takes_choice_part()`](_autosummary/an.audio.takes.html.md#an.audio.takes.takes_choice_part)) keys the CHOICE
 among a line’s takes — the record in `mall["takes"]`, not an audio blob.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> audio_key("hi", "default", "offline") == audio_key(
 ...     "hi", "default", "offline", {}, provider_voice=None, options={},
@@ -3881,19 +3881,22 @@ among a line’s takes — the record in `mall["takes"]`, not an audio blob.
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.audio.pipeline.default_lipsync()
 
 The default lip-sync provider: the loaded genre’s `offline` one (the
 deterministic char-to-viseme provider of `cutan`), else
 [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
-* **Return type:**
-  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> default_lipsync().name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.pipeline.default_tts()
 
@@ -3914,9 +3917,6 @@ be lost silently. It is `an validate`’s own check
 ([`an.ir.validate.shot_dialogue_overruns()`](_autosummary/an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)), over the synthesized lines;
 `mall` lets its fix name the voice’s `trim_silence`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot
 >>> shot = Shot(id="s", duration=1.0, dialogue=[
@@ -3924,6 +3924,9 @@ be lost silently. It is `an validate`’s own check
 >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
 "shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.pipeline.free_and_repeatable(provider)
 
@@ -3934,14 +3937,14 @@ inferred from a missing method — and has no `billed_characters` hook.
 Re-running it reproduces exactly what a render stored; anything else would
 give new bytes, so new keys, or cost money.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> from an.audio.offline_tts import OfflineTTS
 >>> free_and_repeatable(OfflineTTS()), free_and_repeatable(object())
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.pipeline.in_memory_audio_mall(mall)
 
@@ -3957,13 +3960,13 @@ to whatever keys the stamped scene (an#311).
 Whether `tts` means “each voice’s own provider”: `None`, `""` or
 [`VOICE_TTS`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.VOICE_TTS).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> [is_voice_tts(t) for t in (None, "", "voice", " Voice ", "offline")]
 [True, True, True, True, False]
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
@@ -4080,9 +4083,6 @@ leaves a shot whose lines carry no `pause`/`at` exactly as stamped:
 a hand-built scene may stamp `start` itself (a test, a fixture), and
 without the pipeline there is no authority to say that stamp is stale.
 
-* **Return type:**
-  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
-
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot
 >>> shot = Shot(id="s", dialogue=[
@@ -4092,6 +4092,9 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None, free_in_memory=False)
 
@@ -4154,9 +4157,6 @@ document’s `provider` decides, and a voice that declares none — or one
 spoken by [`DEFAULT_TTS_NAME`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DEFAULT_TTS_NAME). One instance per provider name.
 `make` defaults to [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts).
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)]
-
 ```pycon
 >>> mall = {"voices": {"bob": {"provider": "mac_say"}, "ann": {}}}
 >>> choose = tts_chooser(None, mall)
@@ -4165,6 +4165,9 @@ spoken by [`DEFAULT_TTS_NAME`](_autosummary/an.audio.pipeline.html.md#an.audio.p
 >>> tts_chooser("offline", mall)("bob").name
 'offline'
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
@@ -4179,9 +4182,6 @@ One message per voice whose lines are spoken by another provider than its
 document declares; `lines` is `(voice_id, provider)` per line, and
 `overridden` says whether a `tts` was given for every line.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.audio.offline_tts import OfflineTTS
 >>> mall = {"voices": {"bob": {"provider": "elevenlabs"}}}
@@ -4190,6 +4190,9 @@ voice 'bob' declares provider 'elevenlabs', but its 2 line(s) are spoken by 'off
 >>> voice_stand_ins([("bob", OfflineTTS())], {}, overridden=True)
 []
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
 # _autosummary/an.audio.providers.html.md
@@ -4235,7 +4238,7 @@ Rhubarb reads it today (its recognizer follows the language, an#96).
 
 The provider `default_lipsync()` prefers when a genre registered it.
 
-### an.audio.providers.LIPSYNC_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[...], [LipSyncProvider](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]* *= {'none': <function <lambda>>}*
+### an.audio.providers.LIPSYNC_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[..., [LipSyncProvider](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]* *= {'none': <function <lambda>>}*
 
 The lip-sync providers the core itself offers. A genre adds its own through
 the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
@@ -4273,13 +4276,13 @@ The default name (`"offline"`) resolves to [`NullLipSync`](_autosummary/an.audio
 when no loaded genre provides it, so voicing a line needs no genre; any other
 name that nothing provides is an error that says how to get it.
 
-* **Return type:**
-  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> make_lipsync("offline").name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.providers.make_tts(name)
 
@@ -4477,9 +4480,6 @@ Whether a choice recorded by scorer `version` is the one this scorer
 would make for `text`: the same version, or an older one that scored
 a line like this one the same way (version 1, on a line that is not short).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4]})
 >>> old = s.version.replace("2+", "1+", 1)
@@ -4487,19 +4487,22 @@ a line like this one the same way (version 1, on a line that is not short).
 (True, False)
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 #### applicable(text)
 
 The targets `text` is scored on: all of them, or for a short line
 those it can show (an#404).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4], "pause_share": [0.1, 0.2]})
 >>> sorted(s.applicable("Hi!")), sorted(s.applicable("He did not do the job."))
 (['f0_sd_st'], ['f0_sd_st', 'pause_share'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 #### check_available()
 
@@ -4553,7 +4556,7 @@ A line’s recorded take is gone from the audio store and cannot be restored.
 
 Raised before any request: re-rolling an approved take is never implicit.
 
-### *class* an.audio.takes.TakeScore(value, detail=<factory>)
+### *class* an.audio.takes.TakeScore(value, detail=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -4581,7 +4584,7 @@ Bases: [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.Vo
 
 A `mall["takes"]` record cannot be read as a takes record.
 
-### *class* an.audio.takes.TakesSpec(n, scorer='prosody', targets=<factory>, reference_hz=None)
+### *class* an.audio.takes.TakesSpec(n, scorer='prosody', targets=dict(), reference_hz=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -4617,13 +4620,13 @@ same on every machine. Raises [`VoiceTakesError`](_autosummary/an.audio.takes.ht
 
 Whether `text` is too short to show pauses or a rate (an#404).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> is_short_line("Hi!"), is_short_line("[deadpan] No."), is_short_line("He did not do the job.")
 (True, True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.takes.make_take_scorer(spec)
 
@@ -4636,9 +4639,6 @@ The scorer `spec` names, from [`SCORERS`](_autosummary/an.audio.takes.html.md#an
 
 The canonical `takes` declaration of a voice document (`{}` for none).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> normalize_takes(3)
 {'n': 3}
@@ -4646,15 +4646,15 @@ The canonical `takes` declaration of a voice document (`{}` for none).
 {'cues': {'deadpan': {'n': 4}}}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.audio.takes.read_takes_record(store, key)
 
 The takes record under `key` in `store` (`mall["takes"]`), or `None`.
 
 Raises [`TakesRecordError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesRecordError) — naming the record and the remedy — for one
 that is not JSON, not a mapping, or whose `chosen` names no take.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> read_takes_record({}, "k") is None
@@ -4666,6 +4666,9 @@ Traceback (most recent call last):
     ...
 an.audio.takes.TakesRecordError: the takes record 'k' is not a takes record (a JSON object with `chosen` and `takes`): ...
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.takes.require_ffmpeg()
 
@@ -4691,9 +4694,6 @@ A style spec (`cutan.style_spec(name)`) declares
 copy whose `takes` (and each cue’s) hold the target VALUES, ready to merge
 beside a `voice_id`: `{**style_voice_role(spec, "narrator"), "voice_id": ...}`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> spec = {"live": {"voice": {"roles": {"narrator": {"model_id": "eleven_v3",
 ...     "takes": {"n": 2, "targets": "narrator", "cues": {"deadpan": {"targets": "punchline"}}}}}}},
@@ -4702,6 +4702,9 @@ beside a `voice_id`: `{**style_voice_role(spec, "narrator"), "voice_id": ...}`.
 >>> role["takes"]["targets"], role["takes"]["cues"]["deadpan"]["targets"]
 ({'f0_sd_st': [3.9, 5.2]}, {'f0_sd_st': [2.2, 3.4]})
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.takes.takes_choice_part(scorer, n)
 
@@ -4782,11 +4785,218 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 * **Return type:**
   [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
 
-### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
+### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Metadata for a TTS voice as exposed by a provider.
+
+
+# _autosummary/an.audio.voice_design.html.md
+
+# an.audio.voice_design
+
+Design a project’s voices from their written notes, then let the writer choose.
+
+A voice document (`assets/voices/<ref>.json`) may carry the voice in words:
+`notes` (age, accent, pitch, pace, attitude) and, optionally,
+`sample_text` (what the samples say). Voice design turns those words into
+candidate voices the writer can LISTEN to, and the writer’s choice becomes the
+document’s `voice_id`. That is how a regional accent gets cast by the one
+person who can hear it (a local ear for a local accent), with nobody else
+picking from a stock library.
+
+Two steps, both plain functions over injected stores:
+
+- [`design_voice_options()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.design_voice_options): per voice, ask a *designer* for previews of its
+  notes speaking its sample text, store each preview’s audio in `samples` and
+  return the options manifest (`{ref: {"notes", "sample_text", "design_model",
+  "options": [{"option": "A", "generated_voice_id", "voice_id", "sample",
+  "duration_s"}]}}`). With `persist=True` (the default) every preview is saved
+  as a durable provider voice at once, because a provider’s previews expire; with
+  `persist=False` only the chosen one is, later (fewer voices in the account,
+  but a choice must come before the previews expire).
+- [`choose_voice_option()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_voice_option): the `voice_id` of the chosen option (saving it
+  as a voice first when it was not persisted).
+
+The project-level forms, [`design_project_voices()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.design_project_voices) and
+[`choose_project_voice()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_project_voice), keep the manifest in
+`artifacts/voice_options/<ref>.json`, the samples in
+`artifacts/voice_samples/<ref>_<option>.mp3`, and write the chosen `voice_id`
+(and `provider`) into the voice document. `an voices design` and `an voices
+choose` are their CLI.
+
+The designer is a seam (`designer=`): by default
+[`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner) (ElevenLabs Voice Design through the
+`elevenlabs` SDK an’s ElevenLabs TTS already uses; key in `ELEVEN_API_KEY`).
+voxy’s `ElevenLabsSpeechModel` is a drop-in (`designer=voxy.get_speech_model("elevenlabs")`),
+not the default because voxy brings torch. Anything with these two methods works:
+
+```default
+design_voice_previews(description, *, text, model_id) -> [preview]   # preview.generated_voice_id, .audio, .duration_s
+design_voice(description, *, preview, name) -> profile                # profile.segment is the voice id
+```
+
+Designing is billed by the provider; nothing here is called by a render.
+
+```pycon
+>>> class Fake:
+...     def design_voice_previews(self, description, *, text=None, model_id=None):
+...         from types import SimpleNamespace as N
+...         return [N(generated_voice_id=f"g{i}", audio=b"ID3", duration_s=1.0) for i in range(2)]
+...     def design_voice(self, description, *, preview, name):
+...         from types import SimpleNamespace as N
+...         return N(segment="v-" + getattr(preview, "generated_voice_id", preview))
+>>> samples = {}
+>>> notes = "A man in his fifties from rural Yorkshire, warm and unhurried."
+>>> manifest = design_voice_options({"jerry": {"notes": notes}}, samples=samples, designer=Fake())
+>>> [(o["option"], o["voice_id"], o["sample"]) for o in manifest["jerry"]["options"]]
+[('A', 'v-g0', 'jerry_A'), ('B', 'v-g1', 'jerry_B')]
+>>> sorted(samples)
+['jerry_A', 'jerry_B']
+>>> choose_voice_option(manifest["jerry"], "B", designer=Fake())
+'v-g1'
+```
+
+### Functions
+
+| [`choose_project_voice`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*)   | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`; return the document.                                                |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`choose_voice_option`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...])   | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                      |
+| [`default_designer`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.default_designer)(\*[, api_key])                      | The designer used when none is given: [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner).                           |
+| [`design_project_voices`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.design_project_voices)(project_dir[, refs, ...])      | Design options for the project's voices; write manifests and samples; return the manifest.                                                |
+| [`design_voice_options`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.design_voice_options)(voices, \*, samples[, ...])     | Design options for each voice with notes; return the options manifest.                                                                    |
+| [`designable_voices`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.designable_voices)(voices[, refs])                    | The voice documents (of `refs`, else all) that carry `notes`.                                                                             |
+| [`sample_text_from_lines`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.sample_text_from_lines)(lines, \*[, limit])           | A sample text from a voice's own dialogue lines, or `None` when they are too short for a provider preview (then the provider writes one). |
+| [`sample_text_of`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.sample_text_of)(doc[, fallback])                      | The document's `sample_text` (clipped), else `fallback`.                                                                                  |
+
+### Classes
+
+| [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner)(\*[, api_key, ...])   | ElevenLabs Voice Design through the `elevenlabs` SDK (what an's ElevenLabs TTS already uses): the default designer, with voxy's two-method shape.   |
+|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`VoiceDesignError`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.VoiceDesignError)   | A voice that cannot be designed or chosen (no notes, an unknown option, ...).   |
+|---------------------------------------------------------------------|---------------------------------------------------------------------------------|
+
+### *class* an.audio.voice_design.ElevenLabsVoiceDesigner(, api_key=None, client_factory=None, timeout_s=120)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+ElevenLabs Voice Design through the `elevenlabs` SDK (what an’s ElevenLabs
+TTS already uses): the default designer, with voxy’s two-method shape.
+
+api_key: defaults to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`
+client_factory: `api_key -> client`; tests inject a fake so nothing is billed
+
+#### delete_voice(voice_id)
+
+Remove a saved voice from the account (a choice the writer replaced).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### design_voice(description, , preview, name)
+
+Save `preview` (or its `generated_voice_id`) as an account voice; `.segment` is its id.
+
+#### design_voice_previews(description, , text=None, model_id='eleven_ttv_v3')
+
+Previews (`generated_voice_id`, `audio` mp3 bytes, `duration_s`) of `description`.
+
+### *exception* an.audio.voice_design.VoiceDesignError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A voice that cannot be designed or chosen (no notes, an unknown option, …).
+
+### an.audio.voice_design.choose_project_voice(project_dir, ref, option, , designer=None)
+
+Write the chosen option’s `voice_id` into `assets/voices/<ref>.json`; return the document.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### an.audio.voice_design.choose_voice_option(entry, option, , ref='', designer=None)
+
+The provider `voice_id` of `option` in one voice’s manifest `entry`.
+
+An option that was not persisted is saved as a voice now (its preview must
+not have expired).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.voice_design.default_designer(, api_key=None)
+
+The designer used when none is given: [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner).
+
+* **Return type:**
+  [`ElevenLabsVoiceDesigner`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.ElevenLabsVoiceDesigner)
+
+### an.audio.voice_design.design_project_voices(project_dir, refs=None, , designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix=None)
+
+Design options for the project’s voices; write manifests and samples; return the manifest.
+
+A voice document without `sample_text` speaks its own lines from the scene.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
+### an.audio.voice_design.design_voice_options(voices, , samples, refs=None, designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix='an', lines_of=None)
+
+Design options for each voice with notes; return the options manifest.
+
+voices: `{ref: voice document}` (a project’s `voices` store)
+samples: where each option’s audio goes, keyed `<ref>_<option>` (mp3 bytes)
+refs: the voices to design (default: every one with `notes`)
+designer: a two-method designer (default: [`default_designer()`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.default_designer))
+model_id: the provider’s voice-design model
+persist: save every option as a durable voice now (else only the chosen one, later)
+name_prefix: prefix of the saved voices’ names in the provider account
+lines_of: `ref -> that voice's dialogue lines`, for a sample text when the
+
+> document has none (else the provider writes one)
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
+### an.audio.voice_design.designable_voices(voices, refs=None)
+
+The voice documents (of `refs`, else all) that carry `notes`.
+
+Raise [`VoiceDesignError`](_autosummary/an.audio.voice_design.html.md#an.audio.voice_design.VoiceDesignError) for a named ref that is missing or has no
+usable notes; skip the unnamed ones silently.
+
+```pycon
+>>> designable_voices({"a": {"notes": "x" * 30}, "b": {}})
+{'a': {'notes': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)]
+
+### an.audio.voice_design.sample_text_from_lines(lines, , limit=1000)
+
+A sample text from a voice’s own dialogue lines, or `None` when they are
+too short for a provider preview (then the provider writes one).
+
+```pycon
+>>> sample_text_from_lines(["Hi."]) is None
+True
+>>> len(sample_text_from_lines(["That's a big mountain over there, I'd say."] * 5)) >= 100
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.voice_design.sample_text_of(doc, fallback=None)
+
+The document’s `sample_text` (clipped), else `fallback`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.audio.voices.html.md
@@ -4883,15 +5093,15 @@ The key, in a voice document, naming the TTS provider’s own voice.
 The TTS provider `mall["voices"][voice_id]` is written for, lower-cased,
 or `None` when the voice declares none (or has no document).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> declared_provider({"voices": {"v": {"provider": " ElevenLabs "}}}, "v")
 'elevenlabs'
 >>> declared_provider({"voices": {"v": {"provider": ""}}}, "v") is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.line_voice_id(line, shot, mall, , default='default')
 
@@ -4932,15 +5142,15 @@ Whether `doc`’s provider-specific keys apply under the TTS `tts_name`.
 True when the document names no `provider`, or names this one (case
 ignored), or when the caller does not say which provider is speaking.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
 (True, True)
 >>> voice_applies({"provider": "elevenlabs"}, "offline")
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.voices.voice_document(mall, voice_id)
 
@@ -5247,9 +5457,6 @@ The ways a `wipe`’s edge can travel across the frame (an#390).
 
 Why `name` cannot be a swap-set name, or `None` if it can.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> swap_set_name_problem("hands") is None
 True
@@ -5258,6 +5465,9 @@ True
 >>> swap_set_name_problem("a::b")
 "'a::b' contains '::', which is reserved"
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.bench.capture.html.md
@@ -5322,7 +5532,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='', film=None)
+### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=dict(), capture='', film=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -5423,15 +5633,15 @@ The renderer’s own frame-count expression, reused rather than restated.
 banker’s rounding, so `math.ceil` or `int(x + 0.5)` silently disagrees
 on every half-frame duration.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> expected_frame_count(2.5, 24)
 60
 >>> expected_frame_count(0.0, 24)
 1
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 
 # _autosummary/an.bench.compare.html.md
@@ -5505,14 +5715,14 @@ than referencing the registry that happened to be installed.
 
 ### Functions
 
-| [`compare`](_autosummary/an.bench.compare.html.md#an.bench.compare.compare)(before, after, \*[, mutation])      | Compare two ledger rows.                                               |
-|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`direction_of`](_autosummary/an.bench.compare.html.md#an.bench.compare.direction_of)(before, after)                 | `increase` / `decrease` / `no_change` — exactly, with no tolerance.    |
-| [`format_comparison`](_autosummary/an.bench.compare.html.md#an.bench.compare.format_comparison)(report)                   | The human-readable digest.                                             |
-| [`latest_rows`](_autosummary/an.bench.compare.html.md#an.bench.compare.latest_rows)(\*[, root, count])              |                                                                        |
-| [`load_row`](_autosummary/an.bench.compare.html.md#an.bench.compare.load_row)(path)                              | Read one ledger row from disk.                                         |
-| [`readable_sweep`](_autosummary/an.bench.compare.html.md#an.bench.compare.readable_sweep)(sweep)                       | `sweep` if every cell is a possible `[counted, of]` pair, else `None`. |
-| [`sweep_verdict`](_autosummary/an.bench.compare.html.md#an.bench.compare.sweep_verdict)(before, after, \*[, shipped]) | Does a threshold counter's direction survive its own parameter grid?   |
+| [`compare`](_autosummary/an.bench.compare.html.md#an.bench.compare.compare)(before, after, \*[, mutation])      | Compare two ledger rows.                                                                                             |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| [`direction_of`](_autosummary/an.bench.compare.html.md#an.bench.compare.direction_of)(before, after)                 | `increase` / `decrease` / `no_change` — exactly, with no tolerance.                                                  |
+| [`format_comparison`](_autosummary/an.bench.compare.html.md#an.bench.compare.format_comparison)(report)                   | The human-readable digest.                                                                                           |
+| [`latest_rows`](_autosummary/an.bench.compare.html.md#an.bench.compare.latest_rows)(\*[, root, count])              | The most recent committed ledger rows, newest last — \*\*by <br/><br/>```<br/>`<br/>```<br/><br/>generated_at\`\*\*. |
+| [`load_row`](_autosummary/an.bench.compare.html.md#an.bench.compare.load_row)(path)                              | Read one ledger row from disk.                                                                                       |
+| [`readable_sweep`](_autosummary/an.bench.compare.html.md#an.bench.compare.readable_sweep)(sweep)                       | `sweep` if every cell is a possible `[counted, of]` pair, else `None`.                                               |
+| [`sweep_verdict`](_autosummary/an.bench.compare.html.md#an.bench.compare.sweep_verdict)(before, after, \*[, shipped]) | Does a threshold counter's direction survive its own parameter grid?                                                 |
 
 ### Exceptions
 
@@ -5616,15 +5826,15 @@ Two consecutive runs on one machine are bit-identical, so zero is the normal
 delta and any nonzero one is real. Booleans compare as booleans: a tripwire
 that went `True -> False` has not “decreased”.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> direction_of(1.0, 1.0)
 'no_change'
 >>> direction_of(True, False)
 'decrease'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.format_comparison(report)
 
@@ -5634,9 +5844,6 @@ The human-readable digest. Refusals first, because they are the verdict.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.latest_rows(, root=None, count=2)
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 The most recent committed ledger rows, newest last — \*\*by 
 
@@ -5662,6 +5869,9 @@ all lack the key ordered by date.
 describes no commit, and comparing one is comparing against nothing
 nameable. `an bench --out` still lets a caller point at one explicitly.
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
 ### an.bench.compare.load_row(path)
 
 Read one ledger row from disk.
@@ -5677,9 +5887,6 @@ Possible means integers (a bool is not a count), `of > 0` and
 `0 <= counted <= of` — a cell no measurement could have produced is an
 edited row, and reading it would let the edit choose the verdict.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> readable_sweep({"t=1": [3, 10]})
 {'t=1': [3, 10]}
@@ -5688,6 +5895,9 @@ True
 >>> readable_sweep({"t=1": [True, 10]}) is None
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.compare.sweep_verdict(before, after, , shipped=None)
 
@@ -5715,9 +5925,6 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 (A row that DECLARES a sweep and carries none is refused upstream, in
 `_compare_scene`.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]
 'unstable'
@@ -5728,6 +5935,9 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 >>> sweep_verdict(None, None) is None
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.bench.contract.html.md
@@ -5766,25 +5976,25 @@ IR’s `shot.entities` includes `voice` refs that configure
 the render rather than appearing in it, so the two numbers differ on every
 scene with dialogue. Both are recorded; only this one is inside the hash.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> count_drawable_entities({"scene": {"children": [{}, {}]}})
 2
 ```
 
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
 ### an.bench.contract.count_nodes(scene_json)
 
 Every node in the tree, root included.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> count_nodes({"scene": {"children": [{"children": [{}]}]}})
 3
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.contract.frames_sha256(frame_paths)
 
@@ -5815,9 +6025,6 @@ already free of both (every escaping set goes through `sorted()`, the
 palette hash is `sum(ord(c)) % 5` rather than Python’s `hash()`, and
 the staged JSON is written with `sort_keys=True`).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = scene_contract_sha256({"meta": {"fps": 24}, "scene": {"children": []}})
 >>> a == scene_contract_sha256({"scene": {"children": []}, "meta": {"fps": 24}})
@@ -5825,6 +6032,9 @@ True
 >>> len(a)
 64
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.contract.scenes_contract_sha256(scene_jsons)
 
@@ -5840,9 +6050,6 @@ A multi-shot scene hashes the ordered list of per-shot digests, because
 hashing only the first shot would let a change to the second one pass as
 “the same scene” — which is precisely the claim this digest exists to deny.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = {"scene": {"children": []}}
 >>> scenes_contract_sha256([a]) == scene_contract_sha256(a)
@@ -5850,6 +6057,9 @@ True
 >>> scenes_contract_sha256([a, a]) == scene_contract_sha256(a)
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.bench.core_corpus.html.md
@@ -5968,7 +6178,7 @@ layer) when it measures them as one segment — what the delivered mp4 shows.
 How a shot’s frames are named on disk. One constant rather than the literal
 repeated at each glob site.
 
-### *class* an.bench.core_corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=<factory>, golden_note='')
+### *class* an.bench.core_corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=tuple(), golden_note='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -5992,7 +6202,7 @@ One line saying what moves between the two golden times. Carried as data
 because “pick a time where something moved” is a rule that decays into a
 habit, and the reason is what a reviewer needs when a golden goes red.
 
-#### prepare *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### prepare *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)]]*
 
 Run against the throwaway copy before loading, to regenerate build
 products the repo does not track.
@@ -6057,13 +6267,13 @@ that is a plain concatenation of its shots.
 
 Where a render left the frames of `shot_id` (or of the composed film).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> frames_dir_for(Path("w"), "film").as_posix(), frames_dir_for(Path("w"), "a").as_posix()
 ('w/film_frames', 'w/shot_a/frames')
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.core_corpus.golden_agreement(name, work_dir, , chromium_build, root=None)
 
@@ -6179,9 +6389,6 @@ not, every encode-side metric pairs source frame *i* of one shot against
 decoded frame *i* of another. The `multi_shot` fixture’s ids (`intro`
 then `beat`) are chosen so they disagree.
 
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
-
 ```pycon
 >>> import tempfile
 >>> from pathlib import Path
@@ -6190,6 +6397,9 @@ then `beat`) are chosen so they disagree.
 >>> [i for i, _ in iter_shot_dirs(d, order=["intro", "beat"])]
 ['intro', 'beat']
 ```
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
 
 ### an.bench.corpus.staged_scene(shot_dir)
 
@@ -6211,15 +6421,15 @@ also collects an#33’s `asset_resolution` entries, whose `kind` is
 `"character"` / `"environment"`. Those are entity kinds, not visual
 kinds, and mixing them makes the field mean two things at once.
 
-* **Return type:**
-  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> sorted(visual_kinds({"scene": {"visual": {"kind": "rect"},
 ...                                "children": [{"visual": {"kind": "eye"}}]},
 ...                      "asset_resolution": [{"kind": "character"}]}))
 ['eye', 'rect']
 ```
+
+* **Return type:**
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
 # _autosummary/an.bench.environment.html.md
@@ -6336,15 +6546,15 @@ Ledger rows are committed to a public repository, so a row must not carry
 the absolute path of the machine that wrote it. Provenance only: nothing
 compares on this field. POSIX-spelled on every platform.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
 '~/.cache/ms-playwright/chrome'
 >>> home_relative("/opt/chrome", home=Path("/home/u"))
 '/opt/chrome'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.environment.probe_browser()
 
@@ -6552,15 +6762,15 @@ The frame a pinned time names, snapped to the nearest one.
 `int(time * fps)` is the trap: `0.25 * 24` is `5.999999999999999` in
 binary floating point, so the obvious spelling silently picks frame 5.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> frame_index_for(0.25, fps=24, n_frames=12)
 6
 >>> frame_index_for(0.0, fps=24, n_frames=12)
 0
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.golden.frame_key(index)
 
@@ -6571,13 +6781,13 @@ the picture. A change to `fps` moves the index, which changes the path,
 which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> frame_key(7)
 'f0007'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.golden.frame_png_path(capture, ref)
 
@@ -6620,15 +6830,15 @@ corpus. [`an.bench.metrics.golden_comparison()`](_autosummary/an.bench.metrics.h
 its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.arange(24, dtype=np.uint8)
 >>> pixels_sha256(a.reshape(2, 4, 3)) == pixels_sha256(a.reshape(4, 2, 3))
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.golden.resolve_frames(capture, times)
 
@@ -6718,7 +6928,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A ledger row violates an invariant that would make it misreadable.
 
-### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
+### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=tuple(), sweep=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -6769,7 +6979,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A metric declaration violates one of the table’s invariants.
 
-### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=<factory>)
+### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -6836,9 +7046,6 @@ Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.array([[[1, 2, 3], [4, 5, 6]]], np.uint8)
@@ -6846,12 +7053,12 @@ interlaced images, naming what it found.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.encode_png(rgb, , level=9)
 
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -6862,6 +7069,9 @@ True
 (2, 3, 3)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.bench.frame_key(index)
 
 The filename stem for a frame, zero-padded so a directory listing sorts.
@@ -6871,13 +7081,13 @@ the picture. A change to `fps` moves the index, which changes the path,
 which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> frame_key(7)
 'f0007'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.pixels_sha256(rgb)
 
@@ -6892,15 +7102,15 @@ corpus. [`an.bench.metrics.golden_comparison()`](_autosummary/an.bench.metrics.h
 its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.arange(24, dtype=np.uint8)
 >>> pixels_sha256(a.reshape(2, 4, 3)) == pixels_sha256(a.reshape(4, 2, 3))
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.png_dimensions(data)
 
@@ -6915,14 +7125,14 @@ Cheap on purpose. The bench reads this for **every** frame on disk rather
 than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import numpy as np
 >>> png_dimensions(encode_png(np.zeros((240, 320, 3), np.uint8)))
 (320, 240)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.read_png(path)
 
@@ -6949,14 +7159,14 @@ Which metrics would count for `mutation`, grouped by family.
 Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
 ...     "under_mutation": {"high_crf": {"counts": True}}}}}, "high_crf")
 {'A': ['m']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.bench.write_png(path, rgb, , level=9)
 
@@ -7380,7 +7590,7 @@ A ledger row violates an invariant that would make it misreadable.
 Bumped when a reader could misinterpret an older row. `an bench --compare`
 (an#40) must refuse a version it does not understand rather than guess.
 
-### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=<factory>)
+### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -7448,14 +7658,14 @@ Which metrics would count for `mutation`, grouped by family.
 Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
 ...     "under_mutation": {"high_crf": {"counts": True}}}}}, "high_crf")
 {'A': ['m']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.bench.ledger.write_ledger(ledger, path)
 
@@ -7537,15 +7747,15 @@ Implemented as shifted ORs rather than a convolution: `k` is 2 or 3 here,
 so nine shifts beat pulling in scipy, and the package’s dependency
 perimeter is four names wide on purpose.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> m = np.zeros((1, 5, 5), bool); m[0, 2, 2] = True
 >>> int(dilate(m, 3)[0].sum())
 9
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.edge_mask(luma, , threshold=40)
 
@@ -7555,15 +7765,15 @@ Pixels straddling a hard luma step, from the reference plane only.
 two-apart difference is undefined there; excluding it is what keeps the
 operator string honest.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> y = np.zeros((1, 5, 6), np.uint8); y[0, :, 3:] = 255
 >>> int(edge_mask(y).sum())
 6
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.flat_mask(rgb, , k=3)
 
@@ -7572,9 +7782,6 @@ The interior of large flat colour fields, from the source frames.
 ~90% of a flat-cutout frame, and the part no edge metric touches. Banding
 and blocking live here, and without this mask they are invisible.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 9, 9, 3), np.uint8); a[0, :, 5:] = 255
@@ -7582,12 +7789,12 @@ and blocking live here, and without this mask they are invisible.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.masks.held_mask(rgb)
 
 `(N-1, H, W)`: pixels the animator held perfectly still between frames.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
@@ -7595,6 +7802,9 @@ True
 >>> int(held_mask(a).sum())
 8
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.masks.ring_mask(edge)
 
@@ -7604,15 +7814,15 @@ Where ringing and mosquito noise land. Excluding the edge is what makes it
 a different measurement from `coded_luma_edge_error` rather than a second
 name for it.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> e = np.zeros((1, 5, 5), bool); e[0, 2, 2] = True
 >>> int(ring_mask(e).sum())
 8
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.bench.metrics.html.md
@@ -7755,14 +7965,14 @@ or `None`). A row whose top off-palette colours are all blends is
 reporting anti-aliasing correctly. One that is not is a derivation bug, and
 now it says so in the ledger rather than waiting for someone to look.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
-
 ```pycon
 >>> classify_off_palette([{"hex": "#808080"}], [0x000000, 0xffffff])[0]["blend_of"]
 ['#000000', '#ffffff']
 >>> classify_off_palette([{"hex": "#ff00ff"}], [0x000000, 0xffffff])[0]["blend_of"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ### an.bench.metrics.edge_masked_distinct_colours(packed, edge)
 
@@ -7857,15 +8067,15 @@ went soft” indiscriminately.
 
 Returns `(trimmed_mean, median)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 4, 8, 3), np.uint8); a[0, :, 4:] = 255
 >>> round(edge_transition_width(a)[0], 3)   # one hard step = a 2px band
 2.0
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.bench.metrics.encode_flicker_on_held_pixels(src_rgb, dec_rgb, , tol=2)
 
@@ -7875,9 +8085,6 @@ Held-pose “boiling” — the worst artefact for limited-motion animation.
 Pooled over every frame pair rather than averaged per pair, so a pair with
 three held pixels does not weigh as much as one with seventy thousand.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((2, 1, 4, 3), np.uint8)
@@ -7885,6 +8092,9 @@ three held pixels does not weigh as much as one with seventy thousand.
 >>> encode_flicker_on_held_pixels(s, d)
 0.25
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.encode_flicker_sweep(src_rgb, dec_rgb, , tols=(1, 2, 3, 4))
 
@@ -7896,9 +8106,6 @@ the panel’s other hard-threshold counter, and measured under the same
 `single_character` (+25% -> -15%), and under `high_crf` between tol 1
 and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((2, 1, 4, 3), np.uint8)
@@ -7906,6 +8113,9 @@ and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 >>> encode_flicker_sweep(s, d, tols=(2, 3))
 {'tol=2': [1, 4], 'tol=3': [0, 4]}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ### an.bench.metrics.encode_ringing_excess(dec_luma, lossless_luma, src_luma, ring)
 
@@ -7920,9 +8130,6 @@ a CRF change raises only the lossy leg.
 question 4 — “does plain edge-band MAE beat this?” — is answered by the
 ledger rather than by nobody.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 1, 2), np.uint8)
@@ -7930,6 +8137,9 @@ ledger rather than by nobody.
 ...                       np.array([[[3, 0]]], np.uint8), s, np.ones((1, 1, 2), bool))
 3.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.flat_field_deviation(src_rgb, dec_rgb, flat, , tol=6)
 
@@ -7941,9 +8151,6 @@ orthogonal to the edge/AA axis: monotone over a 133x span on the CRF ladder
 
 Returns `(fraction_over_tol, p99_of_the_deviation)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 3, 3, 3), np.uint8)
@@ -7951,6 +8158,9 @@ Returns `(fraction_over_tol, p99_of_the_deviation)`.
 >>> flat_field_deviation(s, d, np.ones((1, 3, 3), bool))[0]
 0.1111111111111111
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.bench.metrics.flat_field_deviation_sweep(src_rgb, dec_rgb, , mask_rgb, tols=(4, 5, 6, 7, 8), ks=(1, 3, 5))
 
@@ -7968,9 +8178,6 @@ tell a verdict from a threshold accident (an#140): the shipped cell IS the
 metric, and the others say whether anywhere else on the declared grid of
 its own two parameters the direction reverses.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 9, 9, 3), np.uint8)
@@ -7980,6 +8187,9 @@ its own two parameters the direction reverses.
 {'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
 ### an.bench.metrics.frame_distinct_colours(packed)
 
 Mean number of distinct colours per frame.
@@ -7988,14 +8198,14 @@ A flatness / palette-discipline **guard**, with no predicted direction on
 an AA change. Do not count it alongside `off_palette_pixel_fraction`; they
 are the same family.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> frame_distinct_colours(np.array([[[1, 1, 2]], [[3, 4, 5]]], np.uint32))
 2.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.golden_comparison(today_rgb, golden_rgb)
 
@@ -8008,9 +8218,6 @@ for this look the flat fields are most of the picture.
 `changed_px` and `max_delta` belong in a failure message, not in the
 metrics block; they are returned here so the caller can put them there.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((4, 4, 3), np.uint8)
@@ -8018,18 +8225,21 @@ metrics block; they are returned here so the caller can put them there.
 True
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
 ### an.bench.metrics.luma709(rgb)
 
 `(H,W,3)` uint8 -> `(H,W)` float in [0,1]. PIL-free.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
 >>> round(float(luma709(np.full((1, 1, 3), 255, np.uint8))[0, 0]), 6)
 1.0
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.luma_u8(rgb)
 
@@ -8051,9 +8261,6 @@ measured: a 45-code-value step selects 4 pixels here and 0 there — which is
 why the row records it under its own operator string rather than reusing
 `an.bench.masks.EDGE_OPERATOR`.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 1, 2, 3), np.uint8); a[0, 0, 1] = 255
@@ -8061,12 +8268,12 @@ why the row records it under its own operator string rather than reusing
 [[[0, 255]]]
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.metrics.masked_mean_abs(a, b, mask)
 
 `|a - b|` averaged over `mask`, with the cast that makes it correct.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8075,12 +8282,12 @@ why the row records it under its own operator string rather than reusing
 6.0
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.bench.metrics.off_palette_pixel_fraction(packed, palette)
 
 Fraction of the frame whose colour is not one the compiler declared.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8088,6 +8295,9 @@ Fraction of the frame whose colour is not one the compiler declared.
 >>> round(off_palette_pixel_fraction(p, [0x000000, 0xffffff]), 4)
 0.3333
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.off_palette_top_colours(packed, palette, , top=10)
 
@@ -8100,9 +8310,6 @@ literals from the staged art, the derivation missed them; if they are
 blends sitting between two palette entries, that is anti-aliasing and the
 number is right.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
-
 ```pycon
 >>> import numpy as np
 >>> p = np.array([[[1, 1, 2]]], np.uint32)
@@ -8110,12 +8317,12 @@ number is right.
 [{'hex': '#000001', 'count': 2}]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
 ### an.bench.metrics.overshoot_mean(dec_luma, src_luma, ring)
 
 Mean positive excursion above the source, over the ring band.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -8124,18 +8331,21 @@ Mean positive excursion above the source, over the ring band.
 2.5
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.bench.metrics.pack_rgb(rgb)
 
 `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
 >>> hex(int(pack_rgb(np.array([[[[0x12, 0x34, 0x56]]]], np.uint8))[0, 0, 0]))
 '0x123456'
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.ssim_map(a, b, , r=3)
 
@@ -8156,15 +8366,15 @@ Do not cross-check against ffmpeg’s `ssim` filter: it uses overlapped 8x8
 block sums at 4-pixel stride, disagrees by up to 0.0201, and the
 disagreement *grows* with degradation.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> x = np.linspace(0, 1, 64).reshape(8, 8)
 >>> round(float(ssim_map(x, x).min()), 6)
 1.0
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.sweep_cell_key(\*\*params)
 
@@ -8173,13 +8383,13 @@ The label of one cell of a parameter sweep, stable across rows.
 Keyword order is irrelevant — the key is sorted — so two rows written by
 code that spells the call differently still match cell for cell.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> sweep_cell_key(tol=6, dilate_k=3)
 'dilate_k=3,tol=6'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.bench.mutants.html.md
@@ -8612,7 +8822,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One deliberate, declared change to the pipeline, with the evidence that it took.
 
-#### verify_row *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### verify_row *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)]]*
 
 Given the ledger row the mutated run produced, raise unless the lever’s
 fingerprint is in it. `None` when the row cannot carry one — see the
@@ -8782,9 +8992,6 @@ function parseColor(s) {
 Note what that is **not**: a 3-digit CSS shorthand expander. `"#222"`
 pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> hex(parse_color("#222"))
 '0x222000'
@@ -8793,6 +9000,9 @@ pads to `"222000"`, so the runtime paints `0x222000` and so must this.
 >>> hex(parse_color(None))
 '0x888888'
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.palette.runtime_literal_colours(runtime_js)
 
@@ -8904,13 +9114,13 @@ information. What the convention keeps is its real benefit: a Playwright
 bump becomes a **new path requiring a deliberate re-bless** rather than a
 red test with no explanation.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> golden_path("s", "f0", "140.0.7339.16").name
 'f0-chromium140.0.7339.16.png'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.ledger_dir(root=None)
 
@@ -8927,13 +9137,13 @@ The `-dirty` suffix is not decoration: a row measured against uncommitted
 edits describes no commit, and a filename that claims one would be read by
 an#40 as that commit’s evidence.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> ledger_path(git={"sha": "abc1234def", "dirty": True}).name.endswith("-dirty.json")
 True
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.repo_root()
 
@@ -8947,13 +9157,13 @@ symptom would be a missing-fixture error three frames deep.
 The checkout’s folder name is not asserted: a git worktree or a clone
 under another name is still a source checkout.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> (repo_root() / "an" / "bench" / "paths.py").is_file()
 True
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.bench.png.html.md
@@ -9063,9 +9273,6 @@ Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.array([[[1, 2, 3], [4, 5, 6]]], np.uint8)
@@ -9073,12 +9280,12 @@ interlaced images, naming what it found.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.png.encode_png(rgb, , level=9)
 
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -9088,6 +9295,9 @@ True
 >>> decode_png(data).shape
 (2, 3, 3)
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.bench.png.png_dimensions(data)
 
@@ -9102,14 +9312,14 @@ Cheap on purpose. The bench reads this for **every** frame on disk rather
 than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import numpy as np
 >>> png_dimensions(encode_png(np.zeros((240, 320, 3), np.uint8)))
 (320, 240)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.png.read_png(path)
 
@@ -9138,14 +9348,14 @@ takes three channels). Dropping alpha unconditionally would make a
 transparency regression invisible to the one gate that exists to see
 changes, so a non-opaque alpha is an error rather than a silent narrowing.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> to_rgb(np.full((1, 1, 4), 255, np.uint8)).shape
 (1, 1, 3)
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.png.write_png(path, rgb, , level=9)
 
@@ -9249,7 +9459,7 @@ that gets found before it is believed.
 * **Type:**
   The levers an#41 and an#56 use. At least one per SIDE is mandatory
 
-### *class* an.bench.registry.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
+### *class* an.bench.registry.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=tuple(), sweep=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -9599,15 +9809,15 @@ condenser it can rise, because that loop was cheaper only by dropping
 shapes. Recorded as provenance rather than a panel metric because no lever
 in the registry moves it.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> viseme_keyframes_per_second({"animations": {}})
 >>> viseme_keyframes_per_second({"animations": {"__viseme__s_0_m": {"duration": 2.0,
 ...     "channels": [{"keyframes": [{"time": 0}, {"time": 0.5}, {"time": 1.0}, {"time": 2.0}]}]}}})
 1.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.bench.stage.html.md
@@ -9768,15 +9978,15 @@ This is the number the ledger row reports and the tripwire guards. Zero
 means two planes moved together, which on a stage that declares distinct
 depths means the parallax flattened.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> min_ratio_gap({"far": 0.25, "mid": 1.0, "near": 2.0})
 0.75
 >>> min_ratio_gap({"far": 1.0, "mid": 1.0})
 0.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.stage.plane_centroids(frame, colours)
 
@@ -10071,7 +10281,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>, derived=<factory>)
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=dict(), reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=list(), reachability_error='', skipped=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10089,7 +10299,7 @@ voice’s own provider (an#305). Always among the profiles the current scene
 is keyed under, so a cache written before roots existed keeps what a plain
 render of the current scene reads.
 
-### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None, deleted_derived=<factory>, derived_freed=0, kept_derived=0)
+### *class* an.build.gc.GcReport(dry_run, deleted=list(), deleted_blobs=dict(), kept_reachable=0, kept_protected=list(), kept_retained=0, failed=list(), bytes_before=0, reach=None, deleted_derived=dict(), derived_freed=0, kept_derived=0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10113,7 +10323,7 @@ offline — what a cache written before roots existed was rendered with.
 * **Type:**
   The knob sets a plain render used or uses, recorded by a root or not
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>, derived=<factory>)
+### *class* an.build.gc.Reachability(from_scene=set(), from_roots=set(), profiles=list(), roots=list(), skipped=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10166,25 +10376,25 @@ listed with role `"unreadable"` and, on disk, its file’s mtime.
 
 `"7d"`, `"36h"`, `"90m"`, `"2w"`, `"30s"` → seconds.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> parse_age("90m")
 5400.0
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.build.gc.parse_size(text)
 
 `"2G"`, `"500MB"`, `"1.5GB"`, `"1048576"` → bytes (1024-based).
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> parse_size("1.5k")
 1536
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.build.gc.reachable_entries(project, store, , entries=None, engine=None, root_max_age=None, now=None, force=False)
 
@@ -10282,7 +10492,7 @@ True
 |-------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`ShotCacheWarning`](_autosummary/an.build.html.md#an.build.ShotCacheWarning) | The shot cache could not do something it should have; the render still stands. |
 
-### *class* an.build.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
+### *class* an.build.BuildReport(outcomes=list(), store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10296,13 +10506,13 @@ The shot cache’s size after the render, when the engine measured it.
 
 How big the shot cache is after the render, or `""` if unmeasured.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
 '3.0 MB in 4 entries'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### summary()
 
@@ -10310,13 +10520,13 @@ One line: what was rendered, what reused, and WHY each rendered shot
 was not reused — a cache that silently re-renders everything reads as
 a broken cache (an#243 review, R2-1).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
 '1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### timing_table()
 
@@ -10442,7 +10652,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 The shot cache could not do something it should have; the render still stands.
 
-### *class* an.build.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+### *class* an.build.ShotKeyInputs(parts, compile_s=None, details=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10468,7 +10678,7 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=dict(), reads=dict(), code=dict(), cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10559,13 +10769,13 @@ Every asset in the project (decision 3’s fallback), without the root
 files — those are [`project_dependencies()`](_autosummary/an.build.html.md#an.build.project_dependencies)’. The `assets` part of a
 shot whose keyer cannot vouch for its reads.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.in_memory_shot_cache_store()
 
@@ -10587,9 +10797,6 @@ With `project_root`, the files in `root_files` (the library lockfile)
 are hashed by PATH as well — so a re-pin moves every key whether or not
 the mall has a store for the file yet.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
 >>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
@@ -10597,19 +10804,22 @@ the mall has a store for the file yet.
 False
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.project_dependencies(mall, , project_root=None)
 
 What every shot depends on project-wide: the project-root files
 (`PROJECT_ROOT_FILES`, the library lockfile), read by path. A re-pin
 changes what is checked out, so it moves every key, conservatively.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.read_digests(mall, reads)
 
@@ -10618,13 +10828,13 @@ True
 A read of a store the mall does not have is recorded as `ABSENT`, so
 the day the store appears the key moves.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> read_digests({}, [("props", "logo")])
 {'props/logo': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.build.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, records_reads=False, replace=False)
 
@@ -10651,13 +10861,13 @@ A keyer registers beside its renderer, and a backend behind the import
 firewall registers when the renderer registry first loads it (an#247), so
 this loads the registry first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "cutout" in registered_shot_keyers()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.build.resolve_incremental(incremental)
 
@@ -10666,15 +10876,15 @@ True
 `True` is a fresh [`ShotCache`](_autosummary/an.build.html.md#an.build.ShotCache) over the mall’s store; `False` or
 `None` is off; anything else must be an [`IncrementalEngine`](_autosummary/an.build.html.md#an.build.IncrementalEngine).
 
-* **Return type:**
-  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_incremental(False) is None
 True
 >>> isinstance(resolve_incremental(True), ShotCache)
 True
 ```
+
+* **Return type:**
+  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.build.shot_artifact_type()
 
@@ -10830,7 +11040,7 @@ one someone forgets — that is each keyer’s `code` part, a digest of the
 render path’s source. Bumping it orphans every entry; nothing is deleted
 (decision 6).
 
-### *class* an.build.keys.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+### *class* an.build.keys.ShotKeyInputs(parts, compile_s=None, details=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -10875,25 +11085,25 @@ A shot keyer or key part was registered twice, or collides with another.
 
 The hex sha256 of `data`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> bytes_digest(b"")[:8]
 'e3b0c442'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.callable_identity(obj)
 
 `module.qualname` of a function or class (of an instance: of its type).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> callable_identity(callable_identity)
 'an.build.keys.callable_identity'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.canonical_digest(obj)
 
@@ -10906,13 +11116,13 @@ The hex sha256 of [`canonical_json()`](_autosummary/an.build.keys.html.md#an.bui
 
 `obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> canonical_json({"b": (1, 2), "a": None})
 '{"a":null,"b":[1,2]}'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.compose_shot_key(parts)
 
@@ -10931,13 +11141,13 @@ Every asset in the project (decision 3’s fallback), without the root
 files — those are [`project_dependencies()`](_autosummary/an.build.keys.html.md#an.build.keys.project_dependencies)’. The `assets` part of a
 shot whose keyer cannot vouch for its reads.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.file_digest(path)
 
@@ -10966,9 +11176,6 @@ With `project_root`, the files in `root_files` (the library lockfile)
 are hashed by PATH as well — so a re-pin moves every key whether or not
 the mall has a store for the file yet.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
 >>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
@@ -10976,26 +11183,26 @@ the mall has a store for the file yet.
 False
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.project_dependencies(mall, , project_root=None)
 
 What every shot depends on project-wide: the project-root files
 ([`PROJECT_ROOT_FILES`](_autosummary/an.build.keys.html.md#an.build.keys.PROJECT_ROOT_FILES), the library lockfile), read by path. A re-pin
 changes what is checked out, so it moves every key, conservatively.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.project_root_files_digest(project_root, , files=('assets.lock.json',))
 
 `{name: sha256 or ABSENT}` for the project-root files every shot depends on.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> import tempfile
@@ -11003,6 +11210,9 @@ True
 ...     project_root_files_digest(d, files=["assets.lock.json"])
 {'assets.lock.json': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.build.keys.register_shot_key_part(renderer_name, part_name, part)
 
@@ -11046,13 +11256,13 @@ A keyer registers beside its renderer, and a backend behind the import
 firewall registers when the renderer registry first loads it (an#247), so
 this loads the registry first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "cutout" in registered_shot_keyers()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.build.keys.shot_keyer_for(renderer)
 
@@ -11076,15 +11286,15 @@ once art is read through the stores (the asset library, ADR 0005), a
 read-recording view replaces it with the keys a shot actually read. Any
 other mapping is digested from its items.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 1}})
 True
 >>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 2}})
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.build.reads.html.md
@@ -11175,9 +11385,6 @@ the shot depends on every entry, present and future.
 
 One entry’s digest: what the mapping returns, plus its files on disk.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> entry_digest({"a": 1}, "a") == entry_digest({"a": 1}, "a")
 True
@@ -11186,6 +11393,9 @@ False
 >>> entry_digest({}, "a") == entry_digest({}, "a")  # absent is a value too
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.reads.entry_files(store, key)
 
@@ -11207,13 +11417,13 @@ never an asset (`an.stores._common.is_os_junk()`).
 A read of a store the mall does not have is recorded as `ABSENT`, so
 the day the store appears the key moves.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> read_digests({}, [("props", "logo")])
 {'props/logo': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 
 # _autosummary/an.build.shot_cache.html.md
@@ -11300,7 +11510,7 @@ unreachable entries is a separate, explicit command: `an cache gc`
 | [`ShotCacheWarning`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
 |---------------------------------------------------------------------|----------------------------------------------------------------------------------|
 
-### *class* an.build.shot_cache.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
+### *class* an.build.shot_cache.BuildReport(outcomes=list(), store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -11314,13 +11524,13 @@ The shot cache’s size after the render, when the engine measured it.
 
 How big the shot cache is after the render, or `""` if unmeasured.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
 '3.0 MB in 4 entries'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### summary()
 
@@ -11328,13 +11538,13 @@ One line: what was rendered, what reused, and WHY each rendered shot
 was not reused — a cache that silently re-renders everything reads as
 a broken cache (an#243 review, R2-1).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
 '1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### timing_table()
 
@@ -11473,7 +11683,7 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=dict(), reads=dict(), code=dict(), cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -11526,9 +11736,6 @@ asset (`FOLLOWS_ASSETS`) are left out when one is named. Both keys
 are of one composition: a different `key_version` is
 `KEY_FORMAT_CHANGED`, decided before this is called.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> explain_change({"compiled": "a", "assets": "x"}, {"props/logo": "1"},
 ...                {"compiled": "b", "assets": "y"}, {"props/logo": "2"})
@@ -11544,17 +11751,20 @@ are of one composition: a different `key_version` is
 "an's render code (an.motion) changed"
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.human_bytes(n)
 
 `n` bytes for a person: 1024-based, one decimal.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> human_bytes(0), human_bytes(1536), human_bytes(5 * 1024**3)
 ('0 B', '1.5 KB', '5.0 GB')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.shot_cache.in_memory_shot_cache_store()
 
@@ -11569,13 +11779,13 @@ A short digest naming this machine (its host name and hardware
 address), so each machine’s renders of a synced project keep a root of
 their own. A digest, never the names themselves.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> len(machine_id())
 16
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.shot_cache.parts_entry_id(key, window)
 
@@ -11586,22 +11796,19 @@ different entry) and the digest of the code that cuts and encodes the parts
 (`parts_code_digest()`): a parts entry is produced by `an.assemble`, not
 by the renderer, so the renderer’s own `code` key part does not cover it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.assemble import ShotWindow
 >>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.project_id(project_root)
 
 A short digest naming a project by its resolved directory, so two
 projects sharing one cache store keep a root each (`""` for none).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> project_id(None)
@@ -11610,6 +11817,9 @@ projects sharing one cache store keep a root each (`""` for none).
 16
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.resolve_incremental(incremental)
 
 `incremental=` → an engine, or `None` for “render every shot cold”.
@@ -11617,15 +11827,15 @@ projects sharing one cache store keep a root each (`""` for none).
 `True` is a fresh [`ShotCache`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.ShotCache) over the mall’s store; `False` or
 `None` is off; anything else must be an [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine).
 
-* **Return type:**
-  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_incremental(False) is None
 True
 >>> isinstance(resolve_incremental(True), ShotCache)
 True
 ```
+
+* **Return type:**
+  [`IncrementalEngine`](_autosummary/an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.build.shot_cache.shot_artifact_type()
 
@@ -11846,7 +12056,7 @@ Every capability name this term mentions.
 
 The three subjects a capability can belong to (core study §2.13).
 
-### *class* an.capabilities.Subjects(asset=<factory>, engine=<factory>, environment=<factory>)
+### *class* an.capabilities.Subjects(asset=dict(), engine=dict(), environment=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -11859,7 +12069,7 @@ A bare profile passed where `Subjects` is expected is the asset’s.
 {'limbs.legs': {}}
 ```
 
-### *class* an.capabilities.Substitution(aspect, entity, requested, chosen, reason, requested_version=None, chosen_version='', missing=(), remedies=<factory>)
+### *class* an.capabilities.Substitution(aspect, entity, requested, chosen, reason, requested_version=None, chosen_version='', missing=(), remedies=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -11901,22 +12111,19 @@ registered analyser decides; with none, nothing is afforded.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.capabilities.art_in_dir(directory, , exclude=())
 
 The art an asset folder holds, as an analyser reads it: `{relative path: True}`.
 
 `exclude` drops the document files themselves (`character.json`).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
 
 ```pycon
 >>> import tempfile, pathlib
@@ -11925,6 +12132,9 @@ The art an asset folder holds, as an analyser reads it: `{relative path: True}`.
 ...     sorted(art_in_dir(d))
 ['parts/head.svg']
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
 
 ### an.capabilities.capability_names(, subject=None, owner=None)
 
@@ -11937,13 +12147,13 @@ The registered capability names, sorted; filtered by `subject`/`owner`.
 
 `(capability, key)` of a query term (the library’s `find` form).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
-
 ```pycon
 >>> capability_of("swap.view:side"), capability_of("limbs.legs")
 (('swap.view', 'side'), ('limbs.legs', None))
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### an.capabilities.current_affordances(kind, doc, art, , stored, stored_analysers)
 
@@ -11969,20 +12179,17 @@ The requirement terms `profile` does not meet, spelled, in the order asked.
 THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
 `resolve` and the library’s `find(…, near=True)` all call it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
 (['env.ffmpeg'], [])
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.capabilities.parse_requirement(spec)
 
 A [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement) from its spelling (`cap`, `cap:key`, `cap>=N`, `a|b`).
-
-* **Return type:**
-  [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement)
 
 ```pycon
 >>> parse_requirement("rig.slots>=2").at_least
@@ -11992,6 +12199,9 @@ Traceback (most recent call last):
 ...
 an.capabilities.CapabilityError: requirement 'limbs.legs(hips)': ...
 ```
+
+* **Return type:**
+  [`Requirement`](_autosummary/an.capabilities.html.md#an.capabilities.Requirement)
 
 ### an.capabilities.register_analyser(kind, , version='', subject='asset', owner='an')
 
@@ -12013,9 +12223,6 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
@@ -12023,17 +12230,20 @@ True
 >>> _ = drop_owner("demo")
 ```
 
+* **Return type:**
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
+
 ### an.capabilities.remedy_for(term)
 
 What would add the capability a requirement term asks for.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> remedy_for("no.such.capability")
 'no registered capability no.such.capability; see vocabulary() for the known names'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.capabilities.subject_of(term)
 
@@ -12042,13 +12252,13 @@ The subject whose profile a requirement term is matched against.
 An unregistered capability is matched against the asset (and reported
 missing there): [`an.semantic.check_registry()`](_autosummary/an.semantic.html.md#an.semantic.check_registry) is what refuses it.
 
-* **Return type:**
-  str
-
 ```pycon
 >>> subject_of("env.latex") == subject_of("limbs.legs")
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### Modules
 
@@ -12147,9 +12357,6 @@ importable (an import spec only: the module is never imported to find out).
 
 What a renderer (or a registered renderer’s name) affords, from its members.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> class Fake:
 ...     supported_renderers = ("toy",)
@@ -12158,6 +12365,9 @@ What a renderer (or a registered renderer’s name) affords, from its members.
 >>> engine_affordances(Fake())
 {'engine.render': {'keys': ['toy']}, 'engine.preview': {}}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.capabilities.subjects.environment_affordances(, probe=None)
 
@@ -12384,9 +12594,6 @@ from inside a shot’s compile after others have rendered.
 
 Serialize cues to SubRip text, renumbering from 1.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> print(dump_srt([Cue(7, 1.0, 2.5, "Hello\nthere")]))
 1
@@ -12395,37 +12602,37 @@ Hello
 there
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.paginate(words, , max_chars, max_lines)
 
 Split `words` into pages of at most `max_lines` wrapped lines, a new
 page starting after each sentence end. Returns index ranges.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
 
 ```pycon
 >>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
 [range(0, 2), range(2, 4), range(4, 6)]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
+
 ### an.captions.seconds_to_srt_time(seconds)
 
 `HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)
 ('00:43:12,187', '00:00:00,000')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.srt_for_scene(scene, , fps, pages=None)
 
 The SubRip sidecar of `scene` rendered at `fps`.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR
@@ -12444,18 +12651,21 @@ Hi.
 Hi.
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.wrap_words(words, max_chars)
 
 Greedy line breaks at `max_chars` characters (spaces counted); a word
 longer than a line gets a line of its own and is never split.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> wrap_words("the quick brown fox jumps".split(), 10)
 [['the', 'quick'], ['brown', 'fox'], ['jumps']]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 
 # _autosummary/an.conftest.html.md
@@ -12526,7 +12736,7 @@ parts carved out of several clips credits each clip, part by part.
 | [`PrivateStudyWarning`](_autosummary/an.credits.html.md#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
-### *class* an.credits.CreditsReport(entries=<factory>, conflicts=<factory>)
+### *class* an.credits.CreditsReport(entries=list(), conflicts=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -12655,15 +12865,15 @@ character would bury the one carved head.
 
 Whether a descriptor’s source was written by a generator rather than a person.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> is_generated_source({"provider": "dicebear", "license": "cc0-1.0"})
 True
 >>> is_generated_source({"provider": "a-film", "license": "all-rights-reserved"})
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.credits.speech_credits(mall, scene)
 
@@ -12687,9 +12897,6 @@ nothing (an#307). A voice
 whose document names no provider (the offline default) is not listed:
 which provider spoke it is not recorded anywhere.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`CreditEntry`]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> line = NS(voice_ref="bob", speaker="bob", audio_ref="k1")
@@ -12702,6 +12909,9 @@ which provider spoke it is not recorded anywhere.
 >>> [e.license_class for e in speech_credits(mall, scene)]
 ['free']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`CreditEntry`]
 
 ### an.credits.warn_if_private_study(report, , output=None)
 
@@ -12815,22 +13025,19 @@ carry a field cannot testify that the field is fine, and silently reading
 `report.get("shared_ticker_started", False)` would turn a stale runtime
 into a clean bill of health.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> capture_violations({})[0].startswith("the determinism report is missing")
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.determinism.determinism_enforced()
 
 Whether to refuse a render whose determinism perimeter has been breached.
 
 True unless [`AN_DETERMINISTIC_ENV_VAR`](_autosummary/an.determinism.html.md#an.determinism.AN_DETERMINISTIC_ENV_VAR) is explicitly falsey.
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> import os
@@ -12842,6 +13049,9 @@ True
 False
 >>> del os.environ["AN_DETERMINISTIC"]
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.engines.capture.html.md
@@ -13021,13 +13231,13 @@ A state in the vectors’ spelling: `"target:property"` keys.
 Accepts the kernel’s pose keys (`(target, property)` tuples) and the
 runtime’s (`"target::property"`).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> as_contract_state({("a", "x"): 1.0, "b::y": 2})
 {'a:x': 1.0, 'b:y': 2}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.engines.conformance.case_document(case)
 
@@ -13036,9 +13246,6 @@ document does (an#287): `meta.entity_spaces` names the space for every
 entity the case animates and `meta.spaces` defines it, so an engine that
 reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case
 in the case’s space. A case in the default space is returned as it is.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> case = {"space": {"name": "inline", "fields": []}, "document": {
@@ -13051,6 +13258,9 @@ in the case’s space. A case in the default space is returned as it is.
 >>> "meta" in case_document({"space": "stage.node", "document": case["document"]})
 False
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.engines.conformance.conformance_report(open_case, cases)
 
@@ -13142,7 +13352,7 @@ intact, so a cut-out render still fails with `CutoutRenderError`.
 |--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | [`StateDrivenAdapter`](_autosummary/an.engines.frame_stage.html.md#an.engines.frame_stage.StateDrivenAdapter)(session)               | A state-driven session seen as a time-driven one: the core evaluates `at(t)`.                                                    |
 
-### *class* an.engines.frame_stage.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=<factory>)
+### *class* an.engines.frame_stage.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -13239,15 +13449,15 @@ the renderer raises at its boundary for every core error.
 
 Refuse an object that is not an engine, saying what is missing.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_engine(object())
 Traceback (most recent call last):
   ...
 TypeError: an Engine needs `name` and `open(job)`; object lacks: name, open
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.engines.frame_stage.shot_workspace(work_dir, shot_id)
 
@@ -13363,9 +13573,6 @@ instant at `i / fps`.
 
 Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> from types import SimpleNamespace
 >>> job = FrameJob(None, SimpleNamespace(fps=4, resolution=(2, 2)), Path("."),
@@ -13373,6 +13580,9 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 >>> [r.times for r in job.requests()]
 [(0.0,), (0.25,), (0.5,)]
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 #### *property* size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
@@ -13413,7 +13623,7 @@ The frame stage could not produce a frame directory it can vouch for.
 A renderer built by `frame_stage_renderer(..., error=...)` re-raises it as
 its own typed error at its boundary.
 
-### *class* an.engines.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=<factory>)
+### *class* an.engines.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -13591,9 +13801,6 @@ Requests as plain dicts, the shape a page or a subprocess takes.
 
 Refuse an object that is not an engine, saying what is missing.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_engine(object())
 Traceback (most recent call last):
@@ -13601,12 +13808,12 @@ Traceback (most recent call last):
 TypeError: an Engine needs `name` and `open(job)`; object lacks: name, open
 ```
 
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.engines.require_seekable(session)
 
 The session’s drive mode, or a refusal that says what to add.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> require_seekable(object())
@@ -13614,6 +13821,9 @@ Traceback (most recent call last):
   ...
 an.engines.protocol.UnseekableEngineError: this engine session cannot be captured: it has no frame(t) (time-driven), and no render(state) with a timeline (state-driven). Add frame(t) and state(t) if the engine evaluates the timeline itself, or timeline and render(state) if the core should evaluate it.
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.engines.shot_workspace(work_dir, shot_id)
 
@@ -13758,9 +13968,6 @@ instant at `i / fps`.
 
 Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> from types import SimpleNamespace
 >>> job = FrameJob(None, SimpleNamespace(fps=4, resolution=(2, 2)), Path("."),
@@ -13768,6 +13975,9 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 >>> [r.times for r in job.requests()]
 [(0.0,), (0.25,), (0.5,)]
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](_autosummary/an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 #### *property* size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
@@ -13883,15 +14093,15 @@ Requests as plain dicts, the shape a page or a subprocess takes.
 
 The session’s drive mode, or a refusal that says what to add.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> require_seekable(object())
 Traceback (most recent call last):
   ...
 an.engines.protocol.UnseekableEngineError: this engine session cannot be captured: it has no frame(t) (time-driven), and no render(state) with a timeline (state-driven). Add frame(t) and state(t) if the engine evaluates the timeline itself, or timeline and render(state) if the core should evaluate it.
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.environments.html.md
@@ -13995,9 +14205,6 @@ A parsed format: literal `prefix`, the specifier, literal `suffix`.
 
 `value` drawn as `fmt` says (see the module docstring).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> [format_number(v, "{d}") for v in (2.5, 3.5, -0.4, 29.5)]
 ['2', '4', '0', '30']
@@ -14005,12 +14212,12 @@ A parsed format: literal `prefix`, the specifier, literal `suffix`.
 '-1,234'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.formats.parse_format(fmt)
 
 Parse `fmt`: literal text around exactly one `{specifier}`.
-
-* **Return type:**
-  [`NumberFormat`](_autosummary/an.formats.html.md#an.formats.NumberFormat)
 
 ```pycon
 >>> parse_format("Day {d}").prefix
@@ -14020,6 +14227,9 @@ Traceback (most recent call last):
 ...
 an.formats.CounterFormatError: counter format '{.3d}': `d` takes no precision (it is an integer); the subset is d, ,d, .Nf, .N%, s, .Ns
 ```
+
+* **Return type:**
+  [`NumberFormat`](_autosummary/an.formats.html.md#an.formats.NumberFormat)
 
 
 # _autosummary/an.frame_clock.html.md
@@ -14208,13 +14418,13 @@ two neighbouring reported timestamps can never cross on a regular grid.
 
 Frames in a render of `duration` seconds — the renderer’s own rule.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> frame_count(2.0, 30), frame_count(0.01, 30)
 (60, 1)
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 
 # _autosummary/an.genres.html.md
@@ -14437,13 +14647,13 @@ recorded in the compiled document (review of an#270, S3).
 
 The callable `run` names.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> CompilePass("p", "math:sqrt").resolve()(4.0)
 2.0
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='', fields=())
 
@@ -14528,7 +14738,7 @@ kind declares nothing (its built nodes’ sets ARE its declaration).
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](_autosummary/an.genres.html.md#an.genres.ActionKind.version).
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=<factory>)
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -14567,13 +14777,13 @@ entity kinds ([`CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePa
 
 What this genre registers, by registry, as names — without registering it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
-
 ```pycon
 >>> Genre("g", action_kinds=()).provides()["action kinds"]
 ()
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 #### runtime_scripts *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[RuntimeScript](_autosummary/an.genres.registry.html.md#an.genres.registry.RuntimeScript), ...]* *= ()*
 
@@ -14636,13 +14846,13 @@ in the genre’s wheel. The staged code is part of the shot cache’s key.
 
 The script’s code (UTF-8).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### *class* an.genres.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
@@ -14714,13 +14924,13 @@ The in-distribution genres (`builtin`; none since the cut-out genre moved to
 `cutan`, an#225) merged with `entry_points` (default: the installed ones),
 de-duplicated by name — the in-distribution declaration first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> [ep.name for ep in discovered_entry_points(entry_points=())]
 []
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.entity_space_resolver(entities, , default=None)
 
@@ -14759,13 +14969,13 @@ The package whose data root holds genre `name`’s library and projects.
 that declares none. Reads the genres installed in this process (call
 [`load()`](_autosummary/an.genres.html.md#an.genres.load) first, as every entry point does).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> genre_library(None)
 'an'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.genres.genres_declaring(test)
 
@@ -14787,13 +14997,13 @@ renderer already). The shot cache’s code key starts its walk here for the
 packages outside `an`, so a change to a genre’s code changes the key
 (an#294): the genre is reached by REGISTRATION, not by an import from `an`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> isinstance(hook_modules(), tuple)
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.installed()
 
@@ -14860,9 +15070,6 @@ Refuse, with an upgrade hint, when this `an` is older than `package` needs.
 
 A genre package calls it at import (`require_api_level(3, package="cutan")`).
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_api_level(1, package="demo")
 >>> try:
@@ -14871,6 +15078,9 @@ A genre package calls it at import (`require_api_level(3, package="cutan")`).
 ...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))
 True
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.genres.require_service(name, , what='', extra='cutout')
 
@@ -14883,38 +15093,38 @@ The registered service `name`; a typed error naming the install when absent.
 
 The registered service `name`, resolved, or `default` when none is.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> service("no.such.service") is None
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.services(prefix)
 
 `{name without the prefix: resolved service}` for every service under `prefix`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> services("no.such.")
 {}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.genres.without_genres()
 
 Run a block with no genre registered (the core alone), then restore.
-
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ```pycon
 >>> with without_genres():
 ...     action_kind("play") is None
 True
 ```
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### Modules
 
@@ -15097,13 +15307,13 @@ recorded in the compiled document (review of an#270, S3).
 
 The callable `run` names.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> CompilePass("p", "math:sqrt").resolve()(4.0)
 2.0
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.DIALOGUE_BRACKETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'[': ']'}*
 
@@ -15225,13 +15435,13 @@ in the genre’s wheel. The staged code is part of the shot cache’s key.
 
 The script’s code (UTF-8).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### *class* an.genres.registry.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
@@ -15338,13 +15548,13 @@ renderer already). The shot cache’s code key starts its walk here for the
 packages outside `an`, so a change to a genre’s code changes the key
 (an#294): the genre is reached by REGISTRATION, not by an import from `an`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> isinstance(hook_modules(), tuple)
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.registry.owners()
 
@@ -15357,9 +15567,6 @@ Every owner with at least one entry, the core first.
 
 Register an action kind. Its model’s `kind` must default to its name.
 
-* **Return type:**
-  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
-
 ```pycon
 >>> from pydantic import BaseModel
 >>> class Bad(BaseModel):
@@ -15369,6 +15576,9 @@ Traceback (most recent call last):
 ...
 an.genres.registry.RegistryError: action kind 'wave': ...
 ```
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
 
 ### an.genres.registry.register_check(check, , owner='an', replace=False)
 
@@ -15437,25 +15647,25 @@ The scripts registered for `engine`, by name (a stable order).
 
 The registered service `name`, resolved, or `default` when none is.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> service("no.such.service") is None
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.registry.services(prefix)
 
 `{name without the prefix: resolved service}` for every service under `prefix`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> services("no.such.")
 {}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.snapshot()
 
@@ -15513,18 +15723,18 @@ True
 
 ### Classes
 
-| [`SceneIR`](_autosummary/an.html.md#an.SceneIR)(\*\*data)              | Top-level Scene IR document.                             |
-|---------------------------------------------------------------------------------|----------------------------------------------------------|
-| [`Meta`](_autosummary/an.html.md#an.Meta)(\*\*data)                 | Scene metadata.                                          |
-| [`AssetRef`](_autosummary/an.html.md#an.AssetRef)(\*\*data)             | Reference to an entry in a project store.                |
-| [`Shot`](_autosummary/an.html.md#an.Shot)(\*\*data)                 | A single rendered unit.                                  |
-| [`Dialogue`](_autosummary/an.html.md#an.Dialogue)(\*\*data)             | One line of spoken dialogue.                             |
-| [`Camera`](_autosummary/an.html.md#an.Camera)(\*\*data)               | Camera state for a shot: a named move, or explicit keys. |
-| [`Resolution`](_autosummary/an.html.md#an.Resolution)(\*\*data)           | Pixel dimensions of the rendered output.                 |
-| [`FlatAction`](_autosummary/an.html.md#an.FlatAction)(start, end, action) | A leaf action with its absolute start and end times.     |
-| [`Project`](_autosummary/an.html.md#an.Project)(root, mall, scene)     | A loaded an project: directory + mall + current scene.   |
+| [`SceneIR`](_autosummary/an.html.md#an.SceneIR)(\*[, version, compatible_version, ...])   | Top-level Scene IR document.                             |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| [`Meta`](_autosummary/an.html.md#an.Meta)(\*[, title, author, duration, fps, ...])     | Scene metadata.                                          |
+| [`AssetRef`](_autosummary/an.html.md#an.AssetRef)(\*, kind, id, store, ref[, ...])         | Reference to an entry in a project store.                |
+| [`Shot`](_autosummary/an.html.md#an.Shot)(\*, id[, renderer, duration, camera, ...])   | A single rendered unit.                                  |
+| [`Dialogue`](_autosummary/an.html.md#an.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                             |
+| [`Camera`](_autosummary/an.html.md#an.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys. |
+| [`Resolution`](_autosummary/an.html.md#an.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                 |
+| [`FlatAction`](_autosummary/an.html.md#an.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.     |
+| [`Project`](_autosummary/an.html.md#an.Project)(root, mall, scene)                        | A loaded an project: directory + mall + current scene.   |
 
-### *class* an.AssetRef(\*\*data)
+### *class* an.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15585,7 +15795,7 @@ which for characters is the evenly-spaced row the compiler computes.
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
 
-### *class* an.Camera(\*\*data)
+### *class* an.Camera(, shake=None, follow=None, move=None, keys=None, \*\*extra_data)
 
 Bases: `_CameraShakes`
 
@@ -15627,7 +15837,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.Dialogue(\*\*data)
+### *class* an.Dialogue(, speaker, text, voice_ref=None, start=None, duration=None, emotion=None, emotion_intensity=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, leveled=None, spoken=None, pause=None, at=None, direction=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15695,9 +15905,6 @@ on a line never synthesized (no `audio_ref`) was authored — the
 spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
 2.3
@@ -15706,6 +15913,9 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -15737,7 +15947,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.Meta(\*\*data)
+### *class* an.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15830,7 +16040,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A loaded an project: directory + mall + current scene.
 
-### *class* an.Resolution(\*\*data)
+### *class* an.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15840,7 +16050,7 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.SceneIR(\*\*data)
+### *class* an.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15863,7 +16073,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.Shot(\*\*data)
+### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -15971,9 +16181,6 @@ An empty span that consumes time. Useful inside `sequence`.
 
 A copy of `action` per member, its targets moved from the crowd to the member.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 action: any action, leaf or composite; every target naming the crowd
 : (`army`, or a node of it, `army/arm_l`) is rewritten
 
@@ -15990,6 +16197,9 @@ or [`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel) for
 >>> [a.target for a in fan_out(tween("army/arm_l", "rotation", to=1.0, duration=0.5), ["army_0", "army_1"])]
 ['army_0/arm_l', 'army_1/arm_l']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.flatten(action, , start=0.0, play_extent=None)
 
@@ -16027,9 +16237,6 @@ project’s `.gitignore` gains `PROJECT_GITIGNORE` (lines it lacks).
 
 Render a SceneIR back into the structured Markdown form.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
 >>> scene = SceneIR(meta=Meta(title="Demo", duration=5.0),
@@ -16045,6 +16252,9 @@ This writes the WHOLE document in the writer’s own formatting, and keeps no
 prose but `meta.notes`. Updating an existing `scene.md` goes through
 `merge_markdown()`, which keeps the author’s text wherever the content
 did not change.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.load(project_dir, , check_kinds=True)
 
@@ -16076,9 +16286,6 @@ Repeat `action` `count` times.
 
 Parse the structured Markdown form of a scene into a SceneIR.
 
-* **Return type:**
-  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
-
 ```pycon
 >>> md = '''# Demo
 ...
@@ -16105,6 +16312,9 @@ Parse the structured Markdown form of a scene into a SceneIR.
 >>> scene.timeline[0].dialogue[0].text
 'hi'
 ```
+
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.parallel(\*actions)
 
@@ -16148,9 +16358,6 @@ Total duration: the latest child’s end. `scene.md` holds it verbatim (a
 `an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
-* **Return type:**
-  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
 ```pycon
 >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
 ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -16167,15 +16374,15 @@ Traceback (most recent call last):
 ValueError: stagger lag must be >= 0, got -1.0
 ```
 
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
 ### an.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
 `easing` left out inherits the scene’s `meta.default_easing` (else
 `"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
-
-* **Return type:**
-  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
 
 ```pycon
 >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
@@ -16184,12 +16391,12 @@ False
 'linear'
 ```
 
+* **Return type:**
+  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
+
 ### an.validate_schema(doc)
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
-
-* **Return type:**
-  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ```pycon
 >>> validate_schema({"meta": {"title": "x"}, "timeline": []}).passed
@@ -16198,6 +16405,9 @@ True
 >>> r.passed
 False
 ```
+
+* **Return type:**
+  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
@@ -16365,8 +16575,8 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Classes
 
-| [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
-|--------------------------------------------------------------------------|----------------------------------------------------|
+| [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource)(\*, provider[, id, url, license, ...])   | Provenance and rights for one third-party asset.   |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------------------|
 
 ### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
@@ -16378,7 +16588,7 @@ a legal answer, and a regex that guesses is worse than a list that admits what
 it does not know. An unrecognised licence is reported as UNKNOWN, which is
 not the same as “no obligation”.
 
-### *class* an.ir.assets.AssetSource(\*\*data)
+### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -16458,9 +16668,6 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 
 What this asset’s licence means for shipping the video (an#211).
 
-* **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
-
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
 'free'
@@ -16483,12 +16690,12 @@ A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 'unknown'
 ```
 
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
+
 ### an.ir.assets.license_restriction(source)
 
 What a licence restricts beyond its class’s credit, for a report line (an#373).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]
@@ -16497,15 +16704,15 @@ What a licence restricts beyond its class’s credit, for a report line (an#373)
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.ir.assets.normalise_license(code)
 
 A licence code folded to lowercase words joined by `-`.
 
 Free text is what people actually write in a licence field, so the
 classifier reads through punctuation and spacing:
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> normalise_license("All rights reserved - private study only; never publish")
@@ -16514,12 +16721,12 @@ classifier reads through punctuation and spacing:
 'cc-by-4-0'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.ir.assets.provider_terms_restriction(source)
 
 The restriction a provider-terms licence carries beyond its class, if any.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]
@@ -16527,6 +16734,9 @@ The restriction a provider-terms licence carries beyond its class, if any.
 >>> provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.assets.requires_attribution(source)
 
@@ -16621,9 +16831,6 @@ and so does the compiler\*\*, which is what makes “a move that validates
 cannot then raise” true by construction rather than by two tables agreeing
 — the arrangement it replaced (an#109 review, H-1).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
-
 ```pycon
 >>> from an.ir.schema import Camera, Shot
 >>> push = Shot(id="s", renderer="cutout", duration=2.0, camera=Camera(move="push_in"))
@@ -16633,6 +16840,9 @@ cannot then raise” true by construction rather than by two tables agreeing
 >>> [(k.at, round(k.x, 3)) for k in camera_keys(pan, width=320, height=240)]
 [(0.0, 0.0), (2.0, -106.667)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ### an.ir.camera.camera_shake_offsets(shot, , width, height)
 
@@ -16645,15 +16855,15 @@ down linearly to rest when `decay`. Validate and the compiler both call
 this, so a shake that validates cannot then raise (as with
 [`camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys)).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> from an.ir.schema import Camera, CameraShake, Shot
 >>> s = Shot(id="s", duration=2.0, camera=Camera(shake=[CameraShake(at=1.0, duration=0.25, frequency=8)]))
 >>> [(t, round(dx, 2), round(dy, 2)) for t, dx, dy in camera_shake_offsets(s, width=1280, height=720)]
 [(1.0, 0.0, 0.0), (1.125, 3.72, 2.79), (1.25, 0.0, 0.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
 # _autosummary/an.ir.compose.html.md
@@ -16779,9 +16989,6 @@ Compute the total duration of an action tree without evaluating it.
 
 `play_extent` resolves a duration-less `play` (see [`PlayExtent`](_autosummary/an.ir.compose.html.md#an.ir.compose.PlayExtent)).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> duration_of(tween("a", "x", to=1.0, duration=2.0))
 2.0
@@ -16794,6 +17001,9 @@ Compute the total duration of an action tree without evaluating it.
 >>> duration_of(set_("a", "x", 1.0))
 0.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.ir.compose.flatten(action, , start=0.0, play_extent=None)
 
@@ -16834,13 +17044,13 @@ The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKin
 Raises [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError), naming the genre that
 provides it, for a kind nobody registered.
 
-* **Return type:**
-  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
-
 ```pycon
 >>> kind_of(delay(1.0)).name
 'delay'
 ```
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
 
 ### an.ir.compose.loop(action, count)
 
@@ -16856,15 +17066,15 @@ around them (whatever field a composite keeps its children in: its kind’s
 `children` hook says which values are children, the model’s fields say
 where they live, so `loop.child` and a genre’s composite are reached).
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> act = sequence(delay(1.0), loop(set_("a", "x", 1.0), 2))
 >>> renamed = map_leaves(act, lambda a: a.model_copy(update={"target": "b"}) if a.kind == "set" else a)
 >>> [a.target for a in iter_actions(renamed) if a.kind == "set"]
 ['b']
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.ir.compose.parallel(\*actions)
 
@@ -16878,13 +17088,13 @@ Run all children at once. Total duration = max of child durations.
 `action` as its registered model (an `ExtensionAction` left open
 by a document read before its genre loaded is validated now).
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> resolve_action(delay(0.5)).duration
 0.5
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.ir.compose.sequence(\*actions)
 
@@ -16914,9 +17124,6 @@ Total duration: the latest child’s end. `scene.md` holds it verbatim (a
 `an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
-* **Return type:**
-  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
 ```pycon
 >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
 ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -16933,6 +17140,9 @@ Traceback (most recent call last):
 ValueError: stagger lag must be >= 0, got -1.0
 ```
 
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
 ### an.ir.compose.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
@@ -16940,15 +17150,15 @@ Animate a property from `from_` (or its current value) to `to`.
 `easing` left out inherits the scene’s `meta.default_easing` (else
 `"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
 
-* **Return type:**
-  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
-
 ```pycon
 >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
 False
 >>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
 'linear'
 ```
+
+* **Return type:**
+  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
 
 
 # _autosummary/an.ir.html.md
@@ -16993,20 +17203,20 @@ authoring-time DSL to canonical-form actions.
 
 ### Classes
 
-| [`SceneIR`](_autosummary/an.ir.html.md#an.ir.SceneIR)(\*\*data)                                 | Top-level Scene IR document.                             |
+| [`SceneIR`](_autosummary/an.ir.html.md#an.ir.SceneIR)(\*[, version, compatible_version, ...])   | Top-level Scene IR document.                             |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| [`Meta`](_autosummary/an.ir.html.md#an.ir.Meta)(\*\*data)                                    | Scene metadata.                                          |
-| [`AssetRef`](_autosummary/an.ir.html.md#an.ir.AssetRef)(\*\*data)                                | Reference to an entry in a project store.                |
-| [`Shot`](_autosummary/an.ir.html.md#an.ir.Shot)(\*\*data)                                    | A single rendered unit.                                  |
-| [`Dialogue`](_autosummary/an.ir.html.md#an.ir.Dialogue)(\*\*data)                                | One line of spoken dialogue.                             |
-| [`Camera`](_autosummary/an.ir.html.md#an.ir.Camera)(\*\*data)                                  | Camera state for a shot: a named move, or explicit keys. |
-| [`Resolution`](_autosummary/an.ir.html.md#an.ir.Resolution)(\*\*data)                              | Pixel dimensions of the rendered output.                 |
+| [`Meta`](_autosummary/an.ir.html.md#an.ir.Meta)(\*[, title, author, duration, fps, ...])     | Scene metadata.                                          |
+| [`AssetRef`](_autosummary/an.ir.html.md#an.ir.AssetRef)(\*, kind, id, store, ref[, ...])         | Reference to an entry in a project store.                |
+| [`Shot`](_autosummary/an.ir.html.md#an.ir.Shot)(\*, id[, renderer, duration, camera, ...])   | A single rendered unit.                                  |
+| [`Dialogue`](_autosummary/an.ir.html.md#an.ir.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                             |
+| [`Camera`](_autosummary/an.ir.html.md#an.ir.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys. |
+| [`Resolution`](_autosummary/an.ir.html.md#an.ir.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                 |
 | [`FlatAction`](_autosummary/an.ir.html.md#an.ir.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.     |
 | [`ValidationReport`](_autosummary/an.ir.html.md#an.ir.ValidationReport)([passed, findings])              | Result of running one or more validators.                |
 | [`ValidationFinding`](_autosummary/an.ir.html.md#an.ir.ValidationFinding)(severity, ir_path, description) | A single validation issue with a path into the IR.       |
 | [`DocumentKind`](_autosummary/an.ir.html.md#an.ir.DocumentKind)(name, version_field, ...)            | A schema-versioned document kind.                        |
 
-### *class* an.ir.AssetRef(\*\*data)
+### *class* an.ir.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17067,7 +17277,7 @@ which for characters is the evenly-spaced row the compiler computes.
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
 
-### *class* an.ir.Camera(\*\*data)
+### *class* an.ir.Camera(, shake=None, follow=None, move=None, keys=None, \*\*extra_data)
 
 Bases: `_CameraShakes`
 
@@ -17109,7 +17319,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.ir.Dialogue(\*\*data)
+### *class* an.ir.Dialogue(, speaker, text, voice_ref=None, start=None, duration=None, emotion=None, emotion_intensity=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, leveled=None, spoken=None, pause=None, at=None, direction=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17177,9 +17387,6 @@ on a line never synthesized (no `audio_ref`) was authored — the
 spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
 2.3
@@ -17188,6 +17395,9 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -17236,7 +17446,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.ir.Meta(\*\*data)
+### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17323,7 +17533,7 @@ cannot reach is WARNED about by name at compile.
 One loudness for every voice (`VoiceLoudness`, an#315); `None`
 — the default — levels nothing, and is omitted from JSON.
 
-### *class* an.ir.Resolution(\*\*data)
+### *class* an.ir.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17333,7 +17543,7 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.SceneIR(\*\*data)
+### *class* an.ir.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17356,7 +17566,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.Shot(\*\*data)
+### *class* an.ir.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17412,7 +17622,7 @@ A single validation issue with a path into the IR.
 `"<file>:<line>"` when the thing to fix is an opaque source a shot runs
 (a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
-### *class* an.ir.ValidationReport(passed=True, findings=<factory>)
+### *class* an.ir.ValidationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -17462,9 +17672,6 @@ An empty span that consumes time. Useful inside `sequence`.
 
 A copy of `action` per member, its targets moved from the crowd to the member.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 action: any action, leaf or composite; every target naming the crowd
 : (`army`, or a node of it, `army/arm_l`) is rewritten
 
@@ -17481,6 +17688,9 @@ or [`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel) for
 >>> [a.target for a in fan_out(tween("army/arm_l", "rotation", to=1.0, duration=0.5), ["army_0", "army_1"])]
 ['army_0/arm_l', 'army_1/arm_l']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.ir.flatten(action, , start=0.0, play_extent=None)
 
@@ -17507,9 +17717,6 @@ loaded is validated by the registered model on the way through.
 
 Render a SceneIR back into the structured Markdown form.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
 >>> scene = SceneIR(meta=Meta(title="Demo", duration=5.0),
@@ -17525,6 +17732,9 @@ This writes the WHOLE document in the writer’s own formatting, and keeps no
 prose but `meta.notes`. Updating an existing `scene.md` goes through
 `merge_markdown()`, which keeps the author’s text wherever the content
 did not change.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.ir.kind_of(doc, , kind=None)
 
@@ -17547,9 +17757,6 @@ Repeat `action` `count` times.
 ### an.ir.markdown_to_ir(md_text)
 
 Parse the structured Markdown form of a scene into a SceneIR.
-
-* **Return type:**
-  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ```pycon
 >>> md = '''# Demo
@@ -17578,6 +17785,9 @@ Parse the structured Markdown form of a scene into a SceneIR.
 'hi'
 ```
 
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
 ### an.ir.migrate(doc, target_version=None, , kind=None)
 
 Migrate a document to `target_version` (default: its kind’s current).
@@ -17586,9 +17796,6 @@ Walks the migration registry one step at a time, considering only the
 migrations registered for this document’s kind. Raises `ValueError` if no
 path exists between the source and target versions.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> from an.base import SCHEMA_VERSION
 >>> migrate({"version": SCHEMA_VERSION, "kind": "SceneIR"})["version"] == SCHEMA_VERSION
@@ -17596,6 +17803,9 @@ True
 >>> migrate({"version": "0.1.0", "kind": "SceneIR"})["version"] == SCHEMA_VERSION
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.ir.parallel(\*actions)
 
@@ -17621,9 +17831,6 @@ step for a REAL kind would leave a second path through the ladder for every
 test that ran afterwards — which is exactly what happened once, and it
 presented as one unrelated test failing only in a full run (an#106).
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
-
 ```pycon
 >>> @register_migration("Widget", "1.0", "2.0")
 ... def _bump(doc):
@@ -17632,6 +17839,9 @@ presented as one unrelated test failing only in a full run (an#106).
 >>> ("Widget", "1.0", "2.0") in MIGRATIONS
 True
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
 ### an.ir.sequence(\*actions)
 
@@ -17661,9 +17871,6 @@ Total duration: the latest child’s end. `scene.md` holds it verbatim (a
 `an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
-* **Return type:**
-  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
 ```pycon
 >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
 ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -17679,6 +17886,9 @@ Traceback (most recent call last):
 ...
 ValueError: stagger lag must be >= 0, got -1.0
 ```
+
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
 ### an.ir.sync(project_dir)
 
@@ -17698,9 +17908,6 @@ Animate a property from `from_` (or its current value) to `to`.
 `easing` left out inherits the scene’s `meta.default_easing` (else
 `"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
 
-* **Return type:**
-  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
-
 ```pycon
 >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
 False
@@ -17708,12 +17915,12 @@ False
 'linear'
 ```
 
+* **Return type:**
+  [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
+
 ### an.ir.validate_schema(doc)
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
-
-* **Return type:**
-  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ```pycon
 >>> validate_schema({"meta": {"title": "x"}, "timeline": []}).passed
@@ -17722,6 +17929,9 @@ True
 >>> r.passed
 False
 ```
+
+* **Return type:**
+  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
@@ -17839,35 +18049,35 @@ True
 
 ### Classes
 
-| [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef)(\*\*data)        | Reference to an entry in a project store.                                                                                                                           |
-|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*\*data)          | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
-| [`CameraFollow`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraFollow)(\*\*data)    | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
-| [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*\*data)       | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
-| [`CameraShake`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraShake)(\*\*data)     | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
-| [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*\*data)        | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
-| [`CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)(\*\*data)       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
-| [`CueUntil`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueUntil)(\*\*data)        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
-| [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*\*data)     | Composition: an empty span that consumes time.                                                                                                                      |
-| [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*\*data)        | One line of spoken dialogue.                                                                                                                                        |
-| [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)(\*\*data) | An action of a kind the core does not define: the IR's one open member.                                                                                             |
-| [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)(\*\*data)      | Composition: repeat `child` `count` times.                                                                                                                          |
-| [`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta)(\*\*data)            | Scene metadata.                                                                                                                                                     |
-| [`Narration`](_autosummary/an.ir.schema.html.md#an.ir.schema.Narration)(\*\*data)       | Off-screen narration.                                                                                                                                               |
-| [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)(\*\*data)  | Composition: run all children simultaneously starting at the same time.                                                                                             |
-| [`Resolution`](_autosummary/an.ir.schema.html.md#an.ir.schema.Resolution)(\*\*data)      | Pixel dimensions of the rendered output.                                                                                                                            |
-| [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)(\*\*data)         | Top-level Scene IR document.                                                                                                                                        |
-| [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction)(\*\*data)  | Composition: run children one after the other.                                                                                                                      |
-| [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)(\*\*data)       | Set a property to a value at a specific time.                                                                                                                       |
-| [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)(\*\*data)            | A single rendered unit.                                                                                                                                             |
-| [`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)(\*\*data)        | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
-| [`StagePlacement`](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement)(\*\*data)  | Where an entity stands on the stage, and how big it is.                                                                                                             |
-| [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)(\*\*data)      | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)(\*\*data)     | Animate a property from a start value to an end value over a duration.                                                                                              |
-| [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe)(\*\*data)  | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
-| [`VisemeTrack`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeTrack)(\*\*data)     | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
-| [`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness)(\*\*data)   | One loudness for every voice of the film (an#315).                                                                                                                  |
-| [`WordTimingIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)(\*\*data)    | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe), never absolute). |
+| [`AssetRef`](_autosummary/an.ir.schema.html.md#an.ir.schema.AssetRef)(\*, kind, id, store, ref[, ...])          | Reference to an entry in a project store.                                                                                                                           |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
+| [`CameraFollow`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraFollow)(\*, target[, axes])                   | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
+| [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`CameraShake`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                             |
+| [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
+| [`CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                     |
+| [`CueUntil`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                             |
+| [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                      |
+| [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                        |
+| [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
+| [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
+| [`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                     |
+| [`Narration`](_autosummary/an.ir.schema.html.md#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                               |
+| [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)(\*[, name, kind, children])         | Composition: run all children simultaneously starting at the same time.                                                                                             |
+| [`Resolution`](_autosummary/an.ir.schema.html.md#an.ir.schema.Resolution)(\*[, width, height])                    | Pixel dimensions of the rendered output.                                                                                                                            |
+| [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)(\*[, version, compatible_version, ...])    | Top-level Scene IR document.                                                                                                                                        |
+| [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                      |
+| [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                       |
+| [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
+| [`StagePlacement`](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)(\*[, kind, duration, color, direction]) | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
+| [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
+| [`VisemeTrack`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
+| [`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
+| [`WordTimingIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe), never absolute). |
 
 ### an.ir.schema.Action
 
@@ -17881,7 +18091,7 @@ with its own fields rather than the open member’s.
 
 alias of `Annotated`[`Annotated`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), `Tag`(tag=set)] | `Annotated`[[`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), `Tag`(tag=tween)] | `Annotated`[[`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), `Tag`(tag=sequence)] | `Annotated`[[`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), `Tag`(tag=parallel)] | `Annotated`[[`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), `Tag`(tag=delay)] | `Annotated`[[`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), `Tag`(tag=loop)] | `Annotated`[[`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), `SerializeAsAny`(), `Tag`(tag=extension)], `Discriminator`(discriminator=`_action_tag`, custom_error_type=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[`None`](https://docs.python.org/3/builtins/constants.html#None))]
 
-### *class* an.ir.schema.AssetRef(\*\*data)
+### *class* an.ir.schema.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -17946,7 +18156,7 @@ it. So this field can grow without retiring a single ledger row.
 
 The `kind` of every action the core defines (the static union members).
 
-### *class* an.ir.schema.Camera(\*\*data)
+### *class* an.ir.schema.Camera(, shake=None, follow=None, move=None, keys=None, \*\*extra_data)
 
 Bases: `_CameraShakes`
 
@@ -17988,7 +18198,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.ir.schema.CameraFollow(\*\*data)
+### *class* an.ir.schema.CameraFollow(, target, axes='x', \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18009,7 +18219,7 @@ every frame), so planes parallax with it like any camera move.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.CameraKey(\*\*data)
+### *class* an.ir.schema.CameraKey(, at=0.0, x=0.0, y=0.0, zoom=1.0, rotation=0.0, easing=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18050,7 +18260,7 @@ Camera position in scene pixels. `+x` moves the camera right.
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
 
-### *class* an.ir.schema.CameraShake(\*\*data)
+### *class* an.ir.schema.CameraShake(, at=0.0, duration=0.4, amplitude=0.015, frequency=24.0, decay=True, seed=0, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18099,7 +18309,7 @@ the same seed draws the same jolt on every machine.
 * **Type:**
   Which jitter
 
-### *class* an.ir.schema.Captions(\*\*data)
+### *class* an.ir.schema.Captions(, burn=True, sidecar=True, max_chars=42, max_lines=2, size=0.05, color='#1a1a1a', highlight=None, anchor='bottom', font=None, strict=False, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18157,7 +18367,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### *class* an.ir.schema.CueAnchor(\*\*data)
+### *class* an.ir.schema.CueAnchor(, when, reaches, offset=0.0, shot=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18185,7 +18395,7 @@ added after. `shot` names the shot to look in, for a cue in
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.CueUntil(\*\*data)
+### *class* an.ir.schema.CueUntil(, cue, offset=0.0, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18221,7 +18431,7 @@ jumps. Art direction, chosen to read as an impact rather than a tremor.
 * **Type:**
   A camera shake’s defaults (an#429)
 
-### *class* an.ir.schema.DelayAction(\*\*data)
+### *class* an.ir.schema.DelayAction(, name=None, kind='delay', duration, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18231,7 +18441,7 @@ Composition: an empty span that consumes time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Dialogue(\*\*data)
+### *class* an.ir.schema.Dialogue(, speaker, text, voice_ref=None, start=None, duration=None, emotion=None, emotion_intensity=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, leveled=None, spoken=None, pause=None, at=None, direction=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18299,9 +18509,6 @@ on a line never synthesized (no `audio_ref`) was authored — the
 spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
 2.3
@@ -18310,6 +18517,9 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -18335,7 +18545,7 @@ has none (offline, Rhubarb) or the line was stamped before an#96.
 
 The union tag of the open member.
 
-### *class* an.ir.schema.ExtensionAction(\*\*data)
+### *class* an.ir.schema.ExtensionAction(, name=None, kind, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18374,7 +18584,7 @@ comes back unchanged (`strict=False`).
 * **Return type:**
   [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
-### *class* an.ir.schema.LoopAction(\*\*data)
+### *class* an.ir.schema.LoopAction(, name=None, kind='loop', child, count=1, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18384,7 +18594,7 @@ Composition: repeat `child` `count` times.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Meta(\*\*data)
+### *class* an.ir.schema.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18471,7 +18681,7 @@ cannot reach is WARNED about by name at compile.
 One loudness for every voice ([`VoiceLoudness`](_autosummary/an.ir.schema.html.md#an.ir.schema.VoiceLoudness), an#315); `None`
 — the default — levels nothing, and is omitted from JSON.
 
-### *class* an.ir.schema.Narration(\*\*data)
+### *class* an.ir.schema.Narration(, text, voice_ref=None, start=None, duration=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18481,7 +18691,7 @@ Off-screen narration. Same shape as Dialogue minus the speaker pin.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.ParallelAction(\*\*data)
+### *class* an.ir.schema.ParallelAction(\*, name=None, kind='parallel', children=<factory>, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18491,7 +18701,7 @@ Composition: run all children simultaneously starting at the same time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Resolution(\*\*data)
+### *class* an.ir.schema.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18513,7 +18723,7 @@ The id of a specimen shot.
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).
 
-### *class* an.ir.schema.SceneIR(\*\*data)
+### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18536,7 +18746,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.SequenceAction(\*\*data)
+### *class* an.ir.schema.SequenceAction(\*, name=None, kind='sequence', children=<factory>, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18546,7 +18756,7 @@ Composition: run children one after the other.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.SetAction(\*\*data)
+### *class* an.ir.schema.SetAction(, name=None, kind='set', target, property, value, at=0.0, \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18556,7 +18766,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*\*data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18601,7 +18811,7 @@ Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.schema.html.md#an.ir.sc
 
 How this shot is entered ([`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)); `None` is a hard cut.
 
-### *class* an.ir.schema.SoundCue(\*\*data)
+### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18622,7 +18832,7 @@ whole thing).
 -12.0
 ```
 
-#### at *: [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[Ge(ge=0)])] | [CueAnchor](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)*
+#### at *: [Union](https://docs.python.org/3/library/typing.html#typing.Union)[[float](https://docs.python.org/3/builtins/functions.html#float), [CueAnchor](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)]*
 
 Seconds, or a [`CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor) resolved from the picture when the film
 is laid out (an#317).
@@ -18649,7 +18859,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Ends the cue at another cue’s start ([`CueUntil`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueUntil)), instead of a
 fixed `duration`.
 
-### *class* an.ir.schema.StagePlacement(\*\*data)
+### *class* an.ir.schema.StagePlacement(, at=None, scale=1.0, after=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18710,7 +18920,7 @@ after it; an entity placed after an entity rides the default depth.
 * **Type:**
   What this entity is drawn immediately after (an#344)
 
-#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### at *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `(x, y)` in scene pixels from the stage centre. `None` = default layout.
 
@@ -18729,7 +18939,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
 
-### *class* an.ir.schema.Transition(\*\*data)
+### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18769,7 +18979,7 @@ A `wipe`’s direction; omitted from a dump for every other kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.TweenAction(\*\*data)
+### *class* an.ir.schema.TweenAction(, name=None, kind='tween', target, property, to_value, from_value=None, duration=1.0, easing='ease_in_out', \*\*extra_data)
 
 Bases: `_ActionBase`
 
@@ -18836,7 +19046,7 @@ The easing this tween draws with under a scene default of
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### *class* an.ir.schema.VisemeKeyframe(\*\*data)
+### *class* an.ir.schema.VisemeKeyframe(, time, viseme, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18846,7 +19056,7 @@ A single mouth-shape keyframe in a viseme track.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.VisemeTrack(\*\*data)
+### *class* an.ir.schema.VisemeTrack(\*, fps_hint=None, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18856,7 +19066,7 @@ Aligned viseme track produced by the lip-sync stage. Optional in P1.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.VoiceLoudness(\*\*data)
+### *class* an.ir.schema.VoiceLoudness(, target_lufs=-16.0, peak_db=-1.5, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18892,7 +19102,7 @@ speech for the web;
 * **Type:**
   The level every voice is brought to, LUFS (-16
 
-### *class* an.ir.schema.WordTimingIR(\*\*data)
+### *class* an.ir.schema.WordTimingIR(, text, start, end, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -18912,9 +19122,6 @@ when it declares one, else the scene’s, else `None` (smooth). The ONE
 statement of the shot-over-scene rule — the cutout renderer, the preview
 and the project renderer all call it (an#89 review: three copies).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_step_hz(Shot(id="s", step_hz=10.0), 15.0)
 10.0
@@ -18924,17 +19131,20 @@ and the project renderer all call it (an#89 review: three copies).
 True
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.ir.schema.stage_specimen(ref)
 
 A short shot showing the one stage entity `ref` casts, on its own (an#347).
-
-* **Return type:**
-  [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)
 
 ```pycon
 >>> stage_specimen(AssetRef(kind="prop", id="lamp", store="props", ref="lamp")).entities[0].id
 'lamp'
 ```
+
+* **Return type:**
+  [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)
 
 ### an.ir.schema.unregistered_action_kind(kind, , where='')
 
@@ -19064,7 +19274,7 @@ Raised by [`require_registered_kinds()`](_autosummary/an.ir.validate.html.md#an.
 longer render silently wrong now that the schema holds them as `str`
 (review-244 S2). `findings` keeps each one with its IR path.
 
-### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=<factory>)
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19084,7 +19294,7 @@ two checks that need the same derived fact compute it once
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-#### library_lock *: [Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+#### library_lock *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]* *= None*
 
 The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
 `None` means the pin checks did not run.
@@ -19104,7 +19314,7 @@ A single validation issue with a path into the IR.
 `"<file>:<line>"` when the thing to fix is an opaque source a shot runs
 (a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
-### *class* an.ir.validate.ValidationReport(passed=True, findings=<factory>)
+### *class* an.ir.validate.ValidationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19162,13 +19372,13 @@ The core’s own (`prop`) plus the kinds genres register with a
 `descriptor_kind` (the cut-out genre’s `character`): derived from the
 registry, not a table the core edits (an#246).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> rig_stores()["prop"]
 ('props', 'PropDescriptor')
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.ir.validate.shot_dialogue_overruns(shot, , effects_of=None, synthesized_only=False, tolerance_s=0.016666666666666666)
 
@@ -19218,9 +19428,6 @@ not trim — the fix of trimming the silence a real voice pads a line with.
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
 
-* **Return type:**
-  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
-
 ```pycon
 >>> validate_schema({"meta": {"title": "x"}, "timeline": []}).passed
 True
@@ -19228,6 +19435,9 @@ True
 >>> r.passed
 False
 ```
+
+* **Return type:**
+  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 
@@ -19314,10 +19524,10 @@ agent can review what changed across runs.
 
 ### Classes
 
-| [`IterateResponse`](_autosummary/an.iterate.html.md#an.iterate.IterateResponse)(\*\*data)                       | Structured reply from Claude for a single iterate() call.   |
+| [`IterateResponse`](_autosummary/an.iterate.html.md#an.iterate.IterateResponse)(\*, summary[, patches, ...])    | Structured reply from Claude for a single iterate() call.   |
 |--------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | [`IterateResult`](_autosummary/an.iterate.html.md#an.iterate.IterateResult)([success, summary, patches, ...]) | Outcome of an iterate() call.                               |
-| [`Patch`](_autosummary/an.iterate.html.md#an.iterate.Patch)(\*\*data)                                 | A single mutation against the SceneIR JSON tree.            |
+| [`Patch`](_autosummary/an.iterate.html.md#an.iterate.Patch)(\*, op, path[, value])                    | A single mutation against the SceneIR JSON tree.            |
 
 ### Exceptions
 
@@ -19330,7 +19540,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when an iterate call cannot apply its proposed patches.
 
-### *class* an.iterate.IterateResponse(\*\*data)
+### *class* an.iterate.IterateResponse(\*, summary, patches=<factory>, affected_shots=<factory>)
 
 Bases: `BaseModel`
 
@@ -19340,13 +19550,13 @@ Structured reply from Claude for a single iterate() call.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.iterate.IterateResult(success=True, summary='', patches=<factory>, affected_shots=<factory>, new_scene=None, validation=None, error=None)
+### *class* an.iterate.IterateResult(success=True, summary='', patches=list(), affected_shots=list(), new_scene=None, validation=None, error=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Outcome of an iterate() call.
 
-### *class* an.iterate.Patch(\*\*data)
+### *class* an.iterate.Patch(, op, path, value=None)
 
 Bases: `BaseModel`
 
@@ -19385,14 +19595,14 @@ Loads the installed genres first (their presets and methods are part of
 the vocabulary). Stable for a given registry, so it caches as well as the
 hand-written one did.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> text = system_prompt()
 >>> "walk" in text and "Rules:" in text
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.library.affordances.html.md
@@ -19491,25 +19701,25 @@ The capability as the generated docs and the MCP surface list it.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.library.affordances.capability_of(query)
 
 `(capability, key)` of a query term (the library’s `find` form).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ```pycon
 >>> capability_of("swap.view:side"), capability_of("limbs.legs")
 (('swap.view', 'side'), ('limbs.legs', None))
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### an.library.affordances.current_affordances(kind, doc, art, , stored, stored_analysers)
 
@@ -19535,13 +19745,13 @@ The requirement terms `profile` does not meet, spelled, in the order asked.
 THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
 `resolve` and the library’s `find(…, near=True)` all call it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
 (['env.ffmpeg'], [])
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.library.affordances.register_analyser(kind, , version='', subject='asset', owner='an')
 
@@ -19563,9 +19773,6 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
@@ -19573,17 +19780,20 @@ True
 >>> _ = drop_owner("demo")
 ```
 
+* **Return type:**
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
+
 ### an.library.affordances.remedy_for(term)
 
 What would add the capability a requirement term asks for.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> remedy_for("no.such.capability")
 'no registered capability no.such.capability; see vocabulary() for the known names'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.library.api.html.md
@@ -19680,7 +19890,7 @@ A JSON-ready view.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.api.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+### *class* an.library.api.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=list(), remedies=dict(), federated=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19700,7 +19910,7 @@ A JSON-ready view (CLI `--json`, MCP).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.api.IndexEntry(library, asset_id, version, kind, record, rights, affordances, art, document=<factory>)
+### *class* an.library.api.IndexEntry(library, asset_id, version, kind, record, rights, affordances, art, document=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -19781,9 +19991,6 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 owner: the library holding `version` (see [`version_sources()`](_autosummary/an.library.api.html.md#an.library.api.version_sources))
 rule: a `_PerFileRule` to share with the caller (one per operation)
 
-* **Return type:**
-  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
@@ -19792,12 +19999,12 @@ rule: a `_PerFileRule` to share with the caller (one per operation)
 'private'
 ```
 
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
 ### an.library.api.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
 
 Assets matching every facet given (AND across facets, OR within one facet’s values).
-
-* **Return type:**
-  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
 
 affords: capabilities the asset must ALL have — `limbs.legs`, or
 : `swap.view:side` for a capability with a given key. Each capability is
@@ -19829,6 +20036,9 @@ index: the index to read (default: a scan of the stores)
 >>> len(find(lib, kind="prop", rights="publishable"))  # no source: unknown
 0
 ```
+
+* **Return type:**
+  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
 
 ### an.library.api.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False, strict_assets=False)
 
@@ -20001,9 +20211,6 @@ and validates — and its rights statements still bind the floor (retiring
 is curation, not a relabel). `find(status="retired")` lists it; a publish
 into it is refused unless it passes `status=` to revive it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.dead", {"name": "dead"})
@@ -20011,6 +20218,9 @@ into it is refused unless it passes `status=` to revive it.
 >>> len(find(lib)), [h.asset_id for h in find(lib, status="retired")]
 (0, ['prop.dead'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.api.scan_index(library)
 
@@ -20031,9 +20241,6 @@ Set an asset’s curation status, recording who and why; return the record.
 The record’s `status_history` is appended to, never rewritten, and no
 version is touched: a project pinned to one keeps reading it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
@@ -20041,12 +20248,12 @@ version is touched: a project pinned to one keeps reading it.
 'approved'
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.api.show(libraries, ref)
 
 The record, the resolved version, its recomputed rights and the list of versions.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -20055,6 +20262,9 @@ The record, the resolved version, its recomputed rights and the list of versions
 >>> s["ref"], s["record"]["title"], s["versions"]
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.api.unknown_advice(libraries, version, \*, owner=None, floor=<object object>)
 
@@ -20068,15 +20278,15 @@ relabel here cannot speak for another asset), or by dropping the file; and
 anything stated (a licence nobody recognises, an unverified stamp, a
 parent not on the path) relaxes only by a relicence.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> r = publish(lib, "prop.vase", {"name": "vase"})
 >>> r.rights.license_class, "--relabel-by" in r.advice[0]
 ('unknown', True)
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.library.api.version_labels(library, version)
 
@@ -20150,9 +20360,6 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 `find` offers by default — the same recomputed rights, and no asset of a
 hidden status (`retired`), whose numbers are under `hidden`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
@@ -20161,6 +20368,9 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.library.cli.html.md
@@ -20454,9 +20664,6 @@ Normalise one library or a search path to a list.
 
 The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)).
 
-* **Return type:**
-  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
-
 overrides: stores to inject (`records`, `versions`, `blobs`), as in
 : [`an.library.stores.build_library_mall()`](_autosummary/an.library.stores.html.md#an.library.stores.build_library_mall)
 
@@ -20465,6 +20672,9 @@ overrides: stores to inject (`records`, `versions`, `blobs`), as in
 >>> (lib.name, lib.root)
 ('an', None)
 ```
+
+* **Return type:**
+  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
 
 ### an.library.federation.resolve(libraries, ref)
 
@@ -20483,9 +20693,6 @@ it resolved in.
 
 The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
-
 extra: further libraries, by package name (resolved like any root) or as
 : [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library) objects (a team share, a seed library)
 
@@ -20493,6 +20700,9 @@ roots: an explicit root per package name (tests, a non-default layout);
 : unnamed packages resolve as usual (`<PKG>_HOME`, then the data folder)
 
 A name appears once, at its first position.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
 
 
 # _autosummary/an.library.floor.html.md
@@ -20586,9 +20796,6 @@ caller can tell a version it read itself from a same-named library’s.
 
 `{asset_key: statement}` about `digest` from every library.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 exclude: `(origin, manifest)` of versions whose statements to leave
 : out — the versions a rights walk reads in full itself
   ([`an.library.api.version_sources()`](_autosummary/an.library.api.html.md#an.library.api.version_sources)), each in the library it
@@ -20597,6 +20804,9 @@ exclude: `(origin, manifest)` of versions whose statements to leave
   resolves in ITS library), so it is never left out; and the
   exclusion runs before statements under one asset key are merged,
   so it can hide nothing else.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 #### strictest(digests)
 
@@ -20767,8 +20977,8 @@ What lives where:
 | [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](_autosummary/an.library.html.md#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
 | [`Hit`](_autosummary/an.library.html.md#an.library.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).               |
-| [`Kit`](_autosummary/an.library.html.md#an.library.Kit)(\*\*data)                                     | The kit document: a name, its pinned members, and a note saying what it is for.      |
-| [`KitMember`](_autosummary/an.library.html.md#an.library.KitMember)(\*\*data)                               | One member of a kit: a pinned reference and the project key it lands under.          |
+| [`Kit`](_autosummary/an.library.html.md#an.library.Kit)(\*[, kind, schema_version, note])             | The kit document: a name, its pinned members, and a note saying what it is for.      |
+| [`KitMember`](_autosummary/an.library.html.md#an.library.KitMember)(\*, ref[, key])                         | One member of a kit: a pinned reference and the project key it lands under.          |
 | [`Library`](_autosummary/an.library.html.md#an.library.Library)(name, mall[, root])                       | One library: its name (the namespace of its ids), its mall, and its root if on disk. |
 | [`LibraryRef`](_autosummary/an.library.html.md#an.library.LibraryRef)(asset_id[, version, namespace])        | A parsed `[<namespace>:]<asset_id>[@<version>]`.                                     |
 | [`ProjectLock`](_autosummary/an.library.html.md#an.library.ProjectLock)(project_dir)                          | `<store>/<key> -> pin` over a project's `assets.lock.json`.                          |
@@ -20848,7 +21058,7 @@ A JSON-ready view.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+### *class* an.library.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=list(), remedies=dict(), federated=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -20874,7 +21084,7 @@ Bases: [`LibraryError`](_autosummary/an.library.api.html.md#an.library.api.Libra
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
-### *class* an.library.Kit(\*\*data)
+### *class* an.library.Kit(, kind='Kit', schema_version='0.1.0', name, members, note=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -20884,7 +21094,7 @@ The kit document: a name, its pinned members, and a note saying what it is for.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.library.KitMember(\*\*data)
+### *class* an.library.KitMember(, ref, key=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -21005,7 +21215,7 @@ Bases: [`OSError`](https://docs.python.org/3/builtins/exceptions.html#OSError)
 
 The machine’s registry or statement memory cannot be read or written; nothing proceeds.
 
-### *class* an.library.Rights(license_class, reasons=<factory>)
+### *class* an.library.Rights(license_class, reasons=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -21052,20 +21262,17 @@ A write-once key was written twice, or deleted. Versions are immutable.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.library.build_library_mall(root=None, , package='an', \*\*overrides)
 
 The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
 
 root: the package’s data root (default: resolved by
 : [`an.library.root.library_root()`](_autosummary/an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
@@ -21080,6 +21287,9 @@ overrides: a store per name to inject instead of the folder default — a
 
 Nothing is created until the first write: opening a library (or mistyping
 one on a search path) leaves the disk as it was.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
 
 ### an.library.check_pins(scene, lock)
 
@@ -21097,9 +21307,6 @@ validate` runs this on every project (an#240). Each disagreement, and each
 ### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False, upgrade=False, for_kit=False)
 
 Materialise a library version into a project, carry its rights, pin it.
-
-* **Return type:**
-  [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)
 
 project_dir: the project to check out into
 ref: `[<library>:]<asset_id>[@<version>]`; `latest` (or no version) is
@@ -21133,6 +21340,9 @@ Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+* **Return type:**
+  [`CheckoutResult`](_autosummary/an.library.html.md#an.library.CheckoutResult)
 
 ### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, only=None, skip=(), mall=None, lock=None)
 
@@ -21197,9 +21407,6 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 owner: the library holding `version` (see `version_sources()`)
 rule: a `_PerFileRule` to share with the caller (one per operation)
 
-* **Return type:**
-  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
@@ -21208,12 +21415,12 @@ rule: a `_PerFileRule` to share with the caller (one per operation)
 'private'
 ```
 
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
 ### an.library.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
 
 Assets matching every facet given (AND across facets, OR within one facet’s values).
-
-* **Return type:**
-  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
 
 affords: capabilities the asset must ALL have — `limbs.legs`, or
 : `swap.view:side` for a capability with a given key. Each capability is
@@ -21246,12 +21453,12 @@ index: the index to read (default: a scan of the stores)
 0
 ```
 
+* **Return type:**
+  [`FindResult`](_autosummary/an.library.api.html.md#an.library.api.FindResult)
+
 ### an.library.library_root(root=None, , package='an', environ=None, platform=None)
 
 The data root of `package` — its library and its projects live under it.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 root: an explicit root; wins over everything
 package: the package whose root this is (`an` for the core library, a
@@ -21266,12 +21473,12 @@ platform: `sys.platform` value to resolve for (default: this one)
 'x'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.open_library(package='an', root=None, \*\*overrides)
 
 The library of `package`, at `root` (resolved as in [`an.library.root`](_autosummary/an.library.root.html.md#module-an.library.root)).
-
-* **Return type:**
-  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
 
 overrides: stores to inject (`records`, `versions`, `blobs`), as in
 : [`an.library.stores.build_library_mall()`](_autosummary/an.library.stores.html.md#an.library.stores.build_library_mall)
@@ -21282,6 +21489,9 @@ overrides: stores to inject (`records`, `versions`, `blobs`), as in
 ('an', None)
 ```
 
+* **Return type:**
+  [`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)
+
 ### an.library.parse_ref(text, , require_version=False, require_pin=False)
 
 Parse a library reference.
@@ -21290,9 +21500,6 @@ Parse a library reference.
 `require_pin=True` also refuses `@latest` — the grammar of
 `AssetRef.library`, where a floating reference would make a render depend
 on whatever the library’s head is that day.
-
-* **Return type:**
-  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
 
 ```pycon
 >>> parse_ref("character.alice")
@@ -21303,6 +21510,9 @@ LibraryRef(asset_id='character.alice', version=None, namespace=None)
 Traceback (most recent call last):
 AssetIdError: ...
 ```
+
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
 
 ### an.library.project_dir(project_id, root=None, , package='an', environ=None)
 
@@ -21315,9 +21525,6 @@ the library package of the genre the video is made in
 ([`an.genres.genre_library()`](_autosummary/an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
 names no genre).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> project_dir("alice-and-bob", "/lib").as_posix()
 '/lib/projects/alice-and-bob'
@@ -21326,17 +21533,20 @@ Traceback (most recent call last):
 ValueError: ...
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.projects_root(root=None, , package='an', environ=None)
 
 Where agent-made projects go by default: `<root>/projects/`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> projects_root("/lib", package="cutan").as_posix()
 '/lib/projects'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.library.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False, strict_assets=False)
 
@@ -21541,15 +21751,15 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
 True
 >>> _ = drop_owner("demo")
 ```
+
+* **Return type:**
+  [`Capability`](_autosummary/an.capabilities.html.md#an.capabilities.Capability)
 
 ### an.library.register_root(package, root, , registry=None)
 
@@ -21617,9 +21827,6 @@ and validates — and its rights statements still bind the floor (retiring
 is curation, not a relabel). `find(status="retired")` lists it; a publish
 into it is refused unless it passes `status=` to revive it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.dead", {"name": "dead"})
@@ -21628,6 +21835,9 @@ into it is refused unless it passes `status=` to revive it.
 (0, ['prop.dead'])
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.roll_up(sources, , inherited=())
 
 Roll labelled sources (and parents’ rights) up to one [`Rights`](_autosummary/an.library.html.md#an.library.Rights).
@@ -21635,13 +21845,13 @@ Roll labelled sources (and parents’ rights) up to one [`Rights`](_autosummary/
 A `None` source is `unknown`. The reasons name every contributor of the
 winning class, so a reader sees *why* a version is restricted.
 
-* **Return type:**
-  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> roll_up([("asset", None)]).to_dict()
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
+
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
 
 ### an.library.scan_index(library)
 
@@ -21659,9 +21869,6 @@ search.
 
 The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
-
 extra: further libraries, by package name (resolved like any root) or as
 : [`Library`](_autosummary/an.library.html.md#an.library.Library) objects (a team share, a seed library)
 
@@ -21670,6 +21877,9 @@ roots: an explicit root per package name (tests, a non-default layout);
 
 A name appears once, at its first position.
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](_autosummary/an.library.federation.html.md#an.library.federation.Library)]
+
 ### an.library.set_status(library, asset_id, status, , by, reason)
 
 Set an asset’s curation status, recording who and why; return the record.
@@ -21677,15 +21887,15 @@ Set an asset’s curation status, recording who and why; return the record.
 The record’s `status_history` is appended to, never rewritten, and no
 version is touched: a project pinned to one keeps reading it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
 >>> set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]
 'approved'
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.sheet(refs, , libraries=None, package=None, out=None, cell=256, columns=None, parts=False, allow_private_here=False)
 
@@ -21704,9 +21914,6 @@ allow_private_here: write a not-publishable sheet inside a git work tree
 
 The record, the resolved version, its recomputed rights and the list of versions.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, title="A lamp")
@@ -21715,12 +21922,12 @@ The record, the resolved version, its recomputed rights and the list of versions
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.verify_checkout(libraries, project_dir, , mall=None, lock=None)
 
 `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 libraries: where the pinned versions resolve (`None`: the library each
 : pin names, at its default root — `pinned_libraries()`)
@@ -21730,6 +21937,9 @@ differences is byte-for-byte the version its pin names. An entry whose
 pinned version cannot be found, or is found with another manifest (a
 same-named asset in another library), reads `["cannot verify: …"]` —
 never as an edit.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.library.version_labels(library, version)
 
@@ -21756,9 +21966,6 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 `find` offers by default — the same recomputed rights, and no asset of a
 hidden status (`retired`), whose numbers are under `hidden`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
@@ -21767,6 +21974,9 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### Modules
 
@@ -21899,20 +22109,17 @@ The prefix of a content-addressed version selector (`sha256:<hex prefix>`).
 
 The kind an asset id declares by its prefix.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> asset_kind("environment.palace-hall")
 'environment'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.ids.check_asset_id(asset_id)
 
 Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](_autosummary/an.library.ids.html.md#an.library.ids.AssetIdError).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> check_asset_id("prop.teacup-victorian")
@@ -21921,6 +22128,9 @@ Return `asset_id` if it is `<kind>.<slug>`, else raise [`AssetIdError`](_autosum
 Traceback (most recent call last):
 AssetIdError: ...
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.library.ids.check_namespace(name)
 
@@ -21945,9 +22155,6 @@ Parse a library reference.
 `AssetRef.library`, where a floating reference would make a render depend
 on whatever the library’s head is that day.
 
-* **Return type:**
-  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
-
 ```pycon
 >>> parse_ref("character.alice")
 LibraryRef(asset_id='character.alice', version=None, namespace=None)
@@ -21958,29 +22165,32 @@ Traceback (most recent call last):
 AssetIdError: ...
 ```
 
+* **Return type:**
+  [`LibraryRef`](_autosummary/an.library.ids.html.md#an.library.ids.LibraryRef)
+
 ### an.library.ids.version_label(number)
 
 The label of the `number`-th version (1-based).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> version_label(1), version_label(1000)
 ('v001', 'v1000')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.ids.version_number(label)
 
 The number of a version label.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> version_number("v012")
 12
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 
 # _autosummary/an.library.kinds.html.md
@@ -22138,15 +22348,15 @@ the whole kit and leaves the project as it was.
 
 ### Classes
 
-| [`Kit`](_autosummary/an.library.kits.html.md#an.library.kits.Kit)(\*\*data)       | The kit document: a name, its pinned members, and a note saying what it is for.   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`KitMember`](_autosummary/an.library.kits.html.md#an.library.kits.KitMember)(\*\*data) | One member of a kit: a pinned reference and the project key it lands under.       |
+| [`Kit`](_autosummary/an.library.kits.html.md#an.library.kits.Kit)(\*[, kind, schema_version, note])   | The kit document: a name, its pinned members, and a note saying what it is for.   |
+|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`KitMember`](_autosummary/an.library.kits.html.md#an.library.kits.KitMember)(\*, ref[, key])               | One member of a kit: a pinned reference and the project key it lands under.       |
 
 ### an.library.kits.KIT_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
 
 Schema version of the kit document (its own document kind).
 
-### *class* an.library.kits.Kit(\*\*data)
+### *class* an.library.kits.Kit(, kind='Kit', schema_version='0.1.0', name, members, note=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -22156,7 +22366,7 @@ The kit document: a name, its pinned members, and a note saying what it is for.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.library.kits.KitMember(\*\*data)
+### *class* an.library.kits.KitMember(, ref, key=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -22289,13 +22499,13 @@ cleanly under version control. The mapping is the `assets` section;
 
 The lockfile key of one project store entry.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> lock_key("characters", "alice")
 'characters/alice'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.library.registry.html.md
@@ -22438,25 +22648,25 @@ the stamp it would verify is not verified (the stricter reading).
 
 The folder holding the registry and the statement memory (independent of the environment).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> machine_registry_dir().name
 'registry'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.registry.machine_registry_path()
 
 Where this machine’s registry of library roots lives.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> machine_registry_path().name
 'library_roots.jsonl'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.library.registry.register_root(package, root, , registry=None)
 
@@ -22592,7 +22802,7 @@ The classes a video may ship with (`attribution` and `noncommercial`
 with their credit displayed; `noncommercial` only in a video nobody earns
 from — an#373: flagged for commercial use, never blocked).
 
-### *class* an.library.rights.Rights(license_class, reasons=<factory>)
+### *class* an.library.rights.Rights(license_class, reasons=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -22637,13 +22847,13 @@ The source the descriptor itself declares (or `an credits` reconstructs), if any
 
 The most restrictive of `classes`; `free` for none.
 
-* **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
-
 ```pycon
 >>> most_restrictive(["free", "attribution"]), most_restrictive([])
 ('attribution', 'free')
 ```
+
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
 
 ### an.library.rights.roll_up(sources, , inherited=())
 
@@ -22652,20 +22862,17 @@ Roll labelled sources (and parents’ rights) up to one [`Rights`](_autosummary/
 A `None` source is `unknown`. The reasons name every contributor of the
 winning class, so a reader sees *why* a version is restricted.
 
-* **Return type:**
-  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> roll_up([("asset", None)]).to_dict()
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
 
+* **Return type:**
+  [`Rights`](_autosummary/an.library.rights.html.md#an.library.rights.Rights)
+
 ### an.library.rights.sources_in(doc, , store, source=None, files=None)
 
 Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
 
 store: the project store this kind of document lives in (`characters`,
 : `props`, `environments`, `sounds`) — its sources are read by
@@ -22692,6 +22899,9 @@ With no source anywhere the asset contributes `None`: `unknown`.
 ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]
 ['asset', 'descriptor']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]]
 
 
 # _autosummary/an.library.root.html.md
@@ -22775,9 +22985,6 @@ The sub-folder of a root that holds agent-made projects (design §7.5).
 
 The git work tree containing `path` (or its nearest existing ancestor), if any.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> import tempfile
 >>> with tempfile.TemporaryDirectory() as d:
@@ -22785,24 +22992,24 @@ The git work tree containing `path` (or its nearest existing ancestor), if any.
 True
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.library.root.home_env_var(package)
 
 The override variable for `package`’s root.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> home_env_var("an"), home_env_var("my-genre")
 ('AN_HOME', 'MY_GENRE_HOME')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.root.library_root(root=None, , package='an', environ=None, platform=None)
 
 The data root of `package` — its library and its projects live under it.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 root: an explicit root; wins over everything
 package: the package whose root this is (`an` for the core library, a
@@ -22817,6 +23024,9 @@ platform: `sys.platform` value to resolve for (default: this one)
 'x'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.root.project_dir(project_id, root=None, , package='an', environ=None)
 
 The default directory of the agent-made project `project_id` (design §7.5).
@@ -22828,9 +23038,6 @@ the library package of the genre the video is made in
 ([`an.genres.genre_library()`](_autosummary/an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
 names no genre).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> project_dir("alice-and-bob", "/lib").as_posix()
 '/lib/projects/alice-and-bob'
@@ -22839,17 +23046,20 @@ Traceback (most recent call last):
 ValueError: ...
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.root.projects_root(root=None, , package='an', environ=None)
 
 Where agent-made projects go by default: `<root>/projects/`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> projects_root("/lib", package="cutan").as_posix()
 '/lib/projects'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.library.sheets.html.md
@@ -23071,9 +23281,6 @@ VersionExistsError: ...
 
 The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
-
 root: the package’s data root (default: resolved by
 : [`an.library.root.library_root()`](_autosummary/an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
   platform data folder); the stores live under `<root>/library/`
@@ -23088,6 +23295,9 @@ overrides: a store per name to inject instead of the folder default — a
 Nothing is created until the first write: opening a library (or mistyping
 one on a search path) leaves the disk as it was.
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
+
 ### an.library.stores.canonical_json(obj, , indent=None)
 
 JSON with sorted keys and no locale or platform dependence.
@@ -23095,61 +23305,61 @@ JSON with sorted keys and no locale or platform dependence.
 With `indent=None` it is the compact form hashed for a manifest; with an
 indent it is the on-disk form (same content, readable).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> canonical_json({"b": 1, "a": [1, 2]})
 '{"a":[1,2],"b":1}'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.stores.label_key(asset_id, version, label_id)
 
 The `labels` key of one statement about a version.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> label_key("character.alice", "v002", "0123456789abcdef")
 'character.alice@v002/0123456789abcdef'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.stores.split_label_key(key)
 
 `(asset_id, version, label_id)` of a `labels` key, validated.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> split_label_key("character.alice@v002/0123456789abcdef")
 ('character.alice', 'v002', '0123456789abcdef')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.library.stores.split_version_key(key)
 
 `(asset_id, version)` of a `versions` key, validated.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> split_version_key("character.alice@v002")
 ('character.alice', 'v002')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.library.stores.version_key(asset_id, version)
 
 The `versions` key of one version.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> version_key("character.alice", "v002")
 'character.alice@v002'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.live_api.html.md
@@ -23230,9 +23440,6 @@ Typed `Mapping`, not `dict`: the default IS `os.environ`, an
 annotation was false about the function’s own primary argument and pushed
 callers into copying the whole environment to satisfy it.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> live_api_enabled({})
 False
@@ -23244,19 +23451,22 @@ True
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.live_api.paid_provider_key_vars()
 
 Every environment variable a paid provider reads its API key from — the
 `env.key.*` capabilities’ ([`an.capabilities.subjects.ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)), so a
 new paid provider is listed once.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} <= set(paid_provider_key_vars())
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 
 # _autosummary/an.mcp.html.md
@@ -23652,9 +23862,6 @@ The frame indices in `[0, total_frames)` that have no file on disk.
 Checked on DISK rather than on a capture loop’s bookkeeping, because the
 mux reads the directory: the directory is what must hold every frame.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import tempfile
 >>> d = Path(tempfile.mkdtemp())
@@ -23662,6 +23869,9 @@ mux reads the directory: the directory is what must hold every frame.
 >>> missing_frames(d, 3)
 [1, 2]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 
 # _autosummary/an.media.gif.html.md
@@ -23772,9 +23982,6 @@ The caption that fits `room` (in `measure`’s units): a long one is
 shortened with `…`; a `(head, tail)` pair keeps its tail whole and
 shortens only the head (an#460), unless not even the tail fits.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> fit_caption(("cutan:prop.desk-oversimplified", " [free]"), 20, len)
 'cutan:prop.d… [free]'
@@ -23782,17 +23989,19 @@ shortens only the head (an#460), unless not even the tail fits.
 'cutan:prop.desk-ove…'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.media.grid.tile(images, , cell=256, columns=None, labels=None, gap=4, background=(255, 255, 255))
 
 One PNG holding every image of `images` (PNG bytes), each in a `cell` square.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 columns: cells per row (default: the smallest square grid that holds them)
 labels: one caption per image, drawn under its cell; a `(head, tail)`
 
 > pair is shortened in its head only, so the tail always shows
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.media.grid.trim(image, , tolerance=8, margin=0.06)
 
@@ -23800,15 +24009,15 @@ labels: one caption per image, drawn under its cell; a `(head, tail)`
 
 An image that is all background is returned unchanged.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.full((20, 20, 3), 255, np.uint8); a[5:9, 10:12] = 0
 >>> decode_png(trim(encode_png(a), margin=0)).shape
 (4, 2, 3)
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 
 # _autosummary/an.media.html.md
@@ -23941,9 +24150,6 @@ rounding, so a block averaging exactly `.5` goes to the EVEN neighbour.
 Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> f = np.array([[0, 0, 1, 2], [0, 4, 1, 2]], np.uint8)[..., None].repeat(3, -1)
@@ -23953,12 +24159,12 @@ invisible in a picture and moves every golden.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.media.check_factor(factor)
 
 Validate a supersample factor, or refuse with the reason.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -23969,15 +24175,15 @@ Traceback (most recent call last):
 an.media.supersample.SupersampleError: supersample must be >= 1, got 0
 ```
 
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
 ### an.media.check_frame_samples(frame_samples, , total_frames, duration)
 
 Validate `frame_samples` against the render it is for; normalise to tuples.
 
 Checked before a browser launches, for `check_factor`’s reason: the render
 costs minutes and this costs microseconds.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> check_frame_samples(None, total_frames=3, duration=0.1) is None
@@ -23989,6 +24195,9 @@ Traceback (most recent call last):
   ...
 an.media.shutter.ShutterError: frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.media.frame_path(frames_dir, index)
 
@@ -24021,9 +24230,6 @@ The frame indices in `[0, total_frames)` that have no file on disk.
 Checked on DISK rather than on a capture loop’s bookkeeping, because the
 mux reads the directory: the directory is what must hold every frame.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import tempfile
 >>> d = Path(tempfile.mkdtemp())
@@ -24031,6 +24237,9 @@ mux reads the directory: the directory is what must hold every frame.
 >>> missing_frames(d, 3)
 [1, 2]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.media.register_sink(name, factory, , replace=False)
 
@@ -24057,9 +24266,6 @@ a smear’s profile is not exactly a physical sensor’s. The centroid of what
 is drawn is still the average of the sampled positions, which is the
 property the impact ground truth relies on.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a, b = np.full((1, 2, 3), 1, np.uint8), np.full((1, 2, 3), 2, np.uint8)
@@ -24070,6 +24276,9 @@ property the impact ground truth relies on.
 >>> temporal_mean([a]) is a
 True
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### Modules
 
@@ -24353,9 +24562,6 @@ Validate `frame_samples` against the render it is for; normalise to tuples.
 Checked before a browser launches, for `check_factor`’s reason: the render
 costs minutes and this costs microseconds.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> check_frame_samples(None, total_frames=3, duration=0.1) is None
 True
@@ -24366,6 +24572,9 @@ Traceback (most recent call last):
   ...
 an.media.shutter.ShutterError: frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.media.shutter.mean_png_bytes(shots, , factor)
 
@@ -24388,9 +24597,6 @@ a smear’s profile is not exactly a physical sensor’s. The centroid of what
 is drawn is still the average of the sampled positions, which is the
 property the impact ground truth relies on.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a, b = np.full((1, 2, 3), 1, np.uint8), np.full((1, 2, 3), 2, np.uint8)
@@ -24401,6 +24607,9 @@ property the impact ground truth relies on.
 >>> temporal_mean([a]) is a
 True
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.media.sinks.html.md
@@ -24604,9 +24813,6 @@ rounding, so a block averaging exactly `.5` goes to the EVEN neighbour.
 Getting that wrong changes one code value on every half-block, which is
 invisible in a picture and moves every golden.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> f = np.array([[0, 0, 1, 2], [0, 4, 1, 2]], np.uint8)[..., None].repeat(3, -1)
@@ -24616,12 +24822,12 @@ invisible in a picture and moves every golden.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.media.supersample.check_factor(factor)
 
 Validate a supersample factor, or refuse with the reason.
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> check_factor(1), check_factor(2)
@@ -24631,6 +24837,9 @@ Traceback (most recent call last):
   ...
 an.media.supersample.SupersampleError: supersample must be >= 1, got 0
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.media.supersample.resolve_png_bytes(data, , factor)
 
@@ -24758,7 +24967,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'crawl': <function crawl>, 'hop': <function hop>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[..., [Union](https://docs.python.org/3/library/typing.html#typing.Union)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]]* *= {'crawl': <function crawl>, 'hop': <function hop>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>}*
 
 the moves that need no rig. A genre’s presets
 (the cut-out ones: `cutan.motion.PRESETS`, an#322) are listed beside these
@@ -24790,9 +24999,6 @@ absolute times, which is what a person editing `scene.md` wants.
 
 A `set` keeps its absolute time in `at` instead of a wrapper.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]
-
 ```pycon
 >>> leaves = as_leaves(hop("charlie"), start=1.0)
 >>> [type(a).__name__ for a in leaves]
@@ -24800,6 +25006,9 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
 [1.0, 1.25, 1.5]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]
 
 ### an.motion.crawl(target, , distance=2400.0, duration=30.0, start=None, tilt=0.96, perspective=1.0, fade=(700.0, 1500.0), y=None, easing='linear', rest=None)
 
@@ -24815,9 +25024,6 @@ the tween’s. A block centred on its origin starts with its middle on the
 hinge: a negative `start` (half the block’s height and more) has it
 enter from below. `fade=None` draws the plane to the horizon.
 
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> leaves = flatten(crawl("crawl", distance=1000, duration=20, start=-300, fade=None))
 >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
@@ -24828,17 +25034,20 @@ enter from below. `fade=None` draws the plane to the horizon.
 [(-300.0, 700.0, 20.0)]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
 
 Jump up by `height` scene pixels and land back where it started.
-
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
 [(0.0, -30.0), (-30.0, 0.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.pop_in(target, , duration=0.45, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
@@ -24849,14 +25058,14 @@ target shows at its rest pose: to keep it hidden until it pops, start the
 preset at the target’s first frame (or hold `scale_x`/`scale_y` at 0
 with a `set` before it).
 
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> [(f.action.property, f.action.from_value, f.action.to_value)
 ...  for f in _tweens(pop_in("charlie"))]
 [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.rest_pose(shot, target, , mall=None)
 
@@ -24870,9 +25079,6 @@ a descriptor rig is built from its character store.
 
 (These examples build character entities, the cut-out genre’s; they are not run here.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> from an.ir.schema import AssetRef
 >>> two = Shot(id="s", entities=[
@@ -24883,12 +25089,12 @@ a descriptor rig is built from its character store.
 -55.0
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
 
 Tremble side to side `cycles` times and come back to rest (on `x`).
-
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
@@ -24897,29 +25103,32 @@ Tremble side to side `cycles` times and come back to rest (on `x`).
 [-102.0, -118.0, -110.0]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
 Whip in from `distance` pixels off to one side, overshoot, and settle.
-
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
 [(-400.0, 0.0)]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.slide_out(target, , to_side='right', distance=600.0, duration=0.35, easing='ease_in', rest=None)
 
 Exit `distance` pixels off to one side, accelerating (an exit).
-
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
 [(0.0, -600.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.squash_stretch(target, , amount=0.2, duration=0.36, rest=None)
 
@@ -24928,14 +25137,14 @@ Squash (wide and short), stretch (narrow and tall), then settle.
 Scales about the target’s own origin (for the procedural rig, the torso’s
 centre). Volume is roughly kept: one axis grows by what the other loses.
 
-* **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
 ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
 [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.stage_poses(shot, , mall=None, width=None, height=None)
 
@@ -24947,9 +25156,6 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 
 (These examples build character entities, the cut-out genre’s; they are not run here.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef
 >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
@@ -24957,6 +25163,9 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 >>> "c/right_arm" in poses, poses["c/head"]["y"]
 (True, -55.0)
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
 # _autosummary/an.orchestrate.html.md
@@ -24991,7 +25200,7 @@ True
 | [`OrchestratorReport`](_autosummary/an.orchestrate.html.md#an.orchestrate.OrchestratorReport)([success, output_path, ...])   | Outcome of an end-to-end orchestrated run.   |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------|
 
-### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=<factory>, error=None, root=None)
+### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=list(), error=None, root=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -25150,9 +25359,9 @@ This is genre-neutral core vocabulary: a plane of the 2D stage draws one
 
 ### Classes
 
-| [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient)(\*\*data)     | A linear or radial gradient between colour stops (see the module docstring).   |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`GradientStop`](_autosummary/an.paint.html.md#an.paint.GradientStop)(\*\*data) | A colour at an offset along the gradient (`0` start, `1` end).                 |
+| [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient)(\*[, type, angle, center, radius])   | A linear or radial gradient between colour stops (see the module docstring).   |
+|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`GradientStop`](_autosummary/an.paint.html.md#an.paint.GradientStop)(\*, offset, color)               | A colour at an offset along the gradient (`0` start, `1` end).                 |
 
 ### an.paint.DFLT_GRADIENT_ANGLE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 180.0*
 
@@ -25161,7 +25370,7 @@ top to bottom.
 * **Type:**
   CSS’s default gradient direction
 
-### *class* an.paint.Gradient(\*\*data)
+### *class* an.paint.Gradient(, type='linear', stops, angle=180.0, center=(0.5, 0.5), radius=0.5)
 
 Bases: `BaseModel`
 
@@ -25193,7 +25402,7 @@ non-square box).
 * **Type:**
   Radial only
 
-### *class* an.paint.GradientStop(\*\*data)
+### *class* an.paint.GradientStop(, offset, color)
 
 Bases: `BaseModel`
 
@@ -25207,13 +25416,13 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 A hex colour as `(r, g, b, a)` in `0..1`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> rgba_of("#ff000080")
 (1.0, 0.0, 0.0, 0.5019607843137255)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.paths.html.md
@@ -25298,13 +25507,12 @@ PNG bytes of shot `shot`’s film frame at `t` seconds (see [`frames()`](_autosu
 
 PNG bytes of shot `shot`’s film frame at each of `times` (seconds into the shot).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
-
 project: a loaded [`Project`](_autosummary/an.project.html.md#an.project.Project) or its folder
 supersample: as `an render --supersample` (the frame is the film’s only
 
 > if it matches the render’s)
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
 
 ### an.probe.probe(project_dir, shot, at, , out=None, columns=None, supersample=1, allow_private_here=False)
 
@@ -25480,13 +25688,13 @@ Print what a prop folder must hold, generated from the schema and the rig rules.
 
 Check a prop’s folder (prop.json + parts/) against the rig contract, offline.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 name: the prop’s key (its folder name under out_dir), or a path to its
 : folder or to its prop.json
 
 out_dir: parent directory of the keys; defaults to ./assets/props
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.raster.html.md
@@ -25548,7 +25756,7 @@ adapters and the same flow handles them.
 | [`RenderError`](_autosummary/an.render.html.md#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
-### *class* an.render.CacheReach(ids=<factory>, derived=<factory>)
+### *class* an.render.CacheReach(ids=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -25645,9 +25853,6 @@ message — the message carries its fix — at most `max_per_group` per kind.
 `info` findings are counted in the report, not listed. `[]` when the
 render found nothing to warn about.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> recs = {"findings": [{"severity": "warning", "ir_path": "timeline/0/dialogue/1",
 ...     "description": "line 1 (bob) ends at 3.64s as synthesized, past the shot's "
@@ -25660,6 +25865,9 @@ findings: 1 warning (all in artifacts/render_reports/main.json)
   dialogue that does not fit its shot (1):
     timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.render.live_runs(project_root)
 
@@ -25681,9 +25889,6 @@ folder or temp dir. Only WHOLE path components are replaced, at both ends
 `/data/p`) is left as it is. A Windows path matches with either
 separator and in any case.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
 ...               root="/u/me/p", home="/u/me", tmp="/t")
@@ -25696,6 +25901,9 @@ separator and in any case.
 >>> portable_text("c:/users/me/p/a.png", root=r"C:\Users\me\p", home=r"C:\Users\me", tmp="/t")
 'a.png'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 
@@ -25983,13 +26191,13 @@ called again, it leaves the registered part alone. The cut-out adapter
 calls it right after registering its keyer (`an.stage.render`, loaded
 lazily by the renderer registry, which `shot_keyer_for` consults first).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.semantic.digest.vocabulary_digest(shot)
 
@@ -26050,13 +26258,13 @@ True
 
 `text` with the block between the markers replaced by `section`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> replace_section(f"a\n{BEGIN_MARKER}\nold\n{END_MARKER}\nb", "new").splitlines()[2]
 'new'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.semantic.docs.skill_vocabulary_section(, owner='an')
 
@@ -26254,7 +26462,7 @@ Record falling down the chain even when nothing was requested (reason
 fallback is a behaviour the asset never had before — speech’s pulse on a
 baked face — rather than today’s long-standing default (a legless walk).
 
-### *class* an.semantic.Choice(method, args=<factory>, version=None)
+### *class* an.semantic.Choice(method, args=dict(), version=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -26267,7 +26475,7 @@ One method choice in a policy or a request: `previz`’s `FormulaCall` plus a pi
 'loco.rock'
 ```
 
-### *class* an.semantic.Entry(id, kind, version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None)
+### *class* an.semantic.Entry(id, kind, version='1', name='', title='', description='', usage='', params=dict(), examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -26299,14 +26507,14 @@ An entry from its JSON form (what [`to_json()`](_autosummary/an.semantic.html.md
 package exports — previz’s formulas): the explicit loader, a `method`
 kind giving a [`Method`](_autosummary/an.semantic.html.md#an.semantic.Method).
 
-* **Return type:**
-  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
-
 ```pycon
 >>> e = Entry("camera.demo", "camera_move", name="demo", description="d")
 >>> Entry.from_json(e.to_json()) == e
 True
 ```
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
 
 #### *property* term *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -26319,7 +26527,7 @@ The entry as data (no `expand`): what the MCP surface and the docs list.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.semantic.Method(id, kind='method', version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None, aspect='', remedies=<factory>)
+### *class* an.semantic.Method(id, kind='method', version='1', name='', title='', description='', usage='', params=dict(), examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None, aspect='', remedies=dict())
 
 Bases: [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
 
@@ -26352,7 +26560,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.Policy(order=<factory>)
+### *class* an.semantic.Policy(order=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -26375,7 +26583,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](_autosummary/an.semantic.html.md#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
+### *class* an.semantic.Resolution(aspect, method, args=dict(), source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -26478,9 +26686,6 @@ a taken `(kind, name)` (within an aspect, for methods) raises, unless
 `replace=True` is passed explicitly, and then the replacement is recorded
 (`replacements()`). Re-registering the same entry is a no-op.
 
-* **Return type:**
-  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
-
 ```pycon
 >>> from an.semantic.entries import Entry
 >>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
@@ -26488,6 +26693,9 @@ Traceback (most recent call last):
 ...
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
 
 ### an.semantic.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 
@@ -26607,7 +26815,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
+### *class* an.semantic.matcher.Resolution(aspect, method, args=dict(), source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -26824,9 +27032,6 @@ a taken `(kind, name)` (within an aspect, for methods) raises, unless
 `replace=True` is passed explicitly, and then the replacement is recorded
 ([`replacements()`](_autosummary/an.semantic.registry.html.md#an.semantic.registry.replacements)). Re-registering the same entry is a no-op.
 
-* **Return type:**
-  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
-
 ```pycon
 >>> from an.semantic.entries import Entry
 >>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
@@ -26834,6 +27039,9 @@ Traceback (most recent call last):
 ...
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
+
+* **Return type:**
+  [`Entry`](_autosummary/an.semantic.html.md#an.semantic.Entry)
 
 ### an.semantic.registry.register_view(name, view)
 
@@ -26925,14 +27133,14 @@ A JSON Schema object for `fn`’s keyword parameters, defaults included.
 Positional-only and `skip``ped parameters are left out (``target`,
 `rest`, `parts` are the compiler’s, not the author’s).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> def f(target, *, height: float = 30.0, label: str = "x", n: int | None = None): ...
 >>> schema_of_callable(f, skip=("target",))["properties"]["height"]
 {'type': 'number', 'default': 30.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.semantic.views.html.md
@@ -27145,15 +27353,15 @@ alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#col
 
 Fetch `url`, cut it, and put it in the sounds `store` under `key` with its provenance.
 
-* **Return type:**
-  [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
-
 license: the licence code the caller vouches for — required, never
 : guessed; `"unknown"` (or `None`) records that nobody has said
 
 fetcher: `(url) -> Fetched` (default [`yb_fetcher()`](_autosummary/an.sound_fetch.html.md#an.sound_fetch.yb_fetcher))
 start, duration, fade_out: the cut, in seconds of the fetched media
 provider, author: override what the fetcher reported
+
+* **Return type:**
+  [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
 
 ### an.sound_fetch.cut_to_wav(audio, , start=None, duration=None, fade_out=None)
 
@@ -27223,8 +27431,8 @@ numpy, seeded, so the same call writes the same bytes.
 
 ### Classes
 
-| [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)(\*\*data)   | The `sound.json` of one entry in the `sounds` store.   |
-|-------------------------------------------------------------------------|--------------------------------------------------------|
+| [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)(\*, source, sha256, sample_rate, ...)   | The `sound.json` of one entry in the `sounds` store.   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
 
 ### Exceptions
 
@@ -27237,7 +27445,7 @@ The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.
 [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
 numbers, so no third party’s work is in it.
 
-### *class* an.sounds.SoundAsset(\*\*data)
+### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -27292,62 +27500,62 @@ A music bed: a sustained chord with a gentle pulse, loopable end to end.
 The pulse is a whole number of cycles over `duration` when
 `duration * pulse_hz` is whole, so a looped bed does not bump at the seam.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> len(synth_bed(1.0)) > 44 and synth_bed(1.0) == synth_bed(1.0)
 True
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.synth_hit(duration=0.35, , seed=0, thump_hz=90.0, decay=0.06, sample_rate=44100, amplitude=0.6)
 
 A percussive hit: a seeded noise burst over a low thump, decaying fast.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_hit(seed=1) == synth_hit(seed=1), synth_hit(seed=1) == synth_hit(seed=2)
 (True, False)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.synth_tone(freq, duration, , sample_rate=44100, amplitude=0.3, attack=0.005, release=0.02)
 
 A sine at `freq` Hz, with short linear ramps so it does not click.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_tone(440.0, 0.1) == synth_tone(440.0, 0.1)
 True
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.wav_duration(data)
 
 Seconds of audio in a PCM WAV ([`wav_info()`](_autosummary/an.sounds.html.md#an.sounds.wav_info): the bytes, not the header).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))
 0.5
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.sounds.wav_info(data)
 
 `(sample_rate, channels, frames)` of a PCM WAV: its format from the
 header, its length from the audio bytes actually present (an#330).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
 (8000, 1, 4000)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.sounds.well_formed_wav(data)
 
@@ -27359,14 +27567,14 @@ as a file every reader agrees on: only its two size fields are patched and
 anything past its audio dropped, the format chunk untouched
 (WAVE_FORMAT_EXTENSIBLE and its channel mask included).
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> wav = synth_tone(440.0, 0.1, sample_rate=8000)
 >>> well_formed_wav(wav) is wav
 True
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 
 # _autosummary/an.sounds_cli.html.md
@@ -27558,15 +27766,15 @@ A parametrised spec (`cubic-bezier(...)`) or a control-point list carries
 its meaning in the document itself and has no version; a name the registry
 does not know is left to the compiler, which refuses it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> easing_versions({"animations": {"a": {"channels": [{"keyframes": [
 ...     {"time": 0, "value": 0, "easing": "ease_in_out"},
 ...     {"time": 1, "value": 1, "easing": [0.1, 0.2, 0.3, 0.4]}]}]}}})
 {'ease_in_out': 1}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.stage.cache_key.ffmpeg_build()
 
@@ -27589,13 +27797,13 @@ which is over-inclusive on purpose: a stale shot-cache hit after a genre
 upgrade is the failure (an#294), and a genre’s edit to a module that cannot
 reach a pixel costs one re-render. `an` itself is walked from the renderer.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
 ```pycon
 >>> isinstance(genre_code_modules(), dict)
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.stage.cache_key.muxed_audio(shot, ctx)
 
@@ -27650,9 +27858,6 @@ path’s shim file is keyed too (an edit to it changes what the name serves).
 So a module that leaves for `cutan` (P8, an#225) stays in the key, under
 any warnings filter (review of an#298, S2; an#294).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
 ```pycon
 >>> mods = render_path_modules()
 >>> "an.stage.canvas_capture" in mods and "an.stage.compile" not in mods
@@ -27660,6 +27865,9 @@ True
 >>> {"an.engines.capture", "an.media.mp4"} <= set(mods)
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.stage.cache_key.render_path_roots(renderer_type=None)
 
@@ -27671,13 +27879,13 @@ engine’s module – so moving the renderer (an#247 PR B) or turning its old
 module into a pure shim moves the roots with it. `None` is the cut-out
 renderer, plus [`RENDER_PATH_ROOT`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.RENDER_PATH_ROOT).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "an.engines.frame_stage" in render_path_roots()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.stage.cache_key.system_fonts_digest()
 
@@ -27808,9 +28016,6 @@ given, is the DECLARED size the resolved frame must have: a canvas that is
 not `factor` times it is refused here, not muxed. `compress_level=None`
 reads `DEFAULT_PNG_COMPRESS_LEVEL` at call time.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import numpy as np
 >>> from PIL import Image
@@ -27827,12 +28032,12 @@ Traceback (most recent call last):
 an.stage.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, declared 3x2 (supersample 1)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.stage.canvas_capture.decode_data_url(url, , frame)
 
 A `toDataURL('image/png')` result -> the PNG’s bytes, or refuse.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> decode_data_url(DATA_URL_PREFIX + "iVBORw==", frame=0)[:4]
@@ -27842,6 +28047,9 @@ Traceback (most recent call last):
   ...
 an.stage.canvas_capture.CanvasCaptureError: frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.stage.canvas_capture.opaque_rgb(png, , frame)
 
@@ -27858,9 +28066,6 @@ drop is `convert("RGB")`, both in C. Slicing `[..., :3]` out of a numpy
 view and copying it contiguous measured ~5x slower at 1080p, on a path whose
 whole point is time.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> from PIL import Image
@@ -27876,6 +28081,9 @@ Traceback (most recent call last):
   ...
 an.stage.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 
 # _autosummary/an.stage.compile.html.md
@@ -28047,7 +28255,7 @@ Bases: [`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.com
 
 A genre registered a pass (or a builder) the stage already has, without `replace=True`.
 
-### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=<factory>, resolutions=<factory>, overlay_children=<factory>, fonts=<factory>, scene_root=None, vocab=None, animations=<factory>, tracks=<factory>, entity_swaps=<factory>, extra_actions=<factory>, no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=<factory>, gaze_seeds=<factory>, products=<factory>, meta_extensions=<factory>)
+### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -28183,7 +28391,7 @@ phase 0 the backdrop, phase 1 the cast.
 
 What a synthetic node’s name may contain and an entity id may not (an#344).
 
-### *class* an.stage.compile.SceneBuild(shot, mall, textures, resolutions, style_pack, overlay, fonts, width, height, children=<factory>, in_front=<factory>, reached=<factory>, skipped=<factory>, raster=<factory>)
+### *class* an.stage.compile.SceneBuild(shot, mall, textures, resolutions, style_pack, overlay, fonts, width, height, children=list(), in_front=list(), reached=set(), skipped=set(), raster=set())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -28200,9 +28408,6 @@ by hand.
 refuse (an#344): an anchor the shot does not have, the entity itself, a
 cycle. The one statement both `compile_shot` and `an validate` read.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, StagePlacement
 >>> shot = Shot(id="s", renderer="stage", duration=1.0, entities=[
@@ -28211,6 +28416,9 @@ cycle. The one statement both `compile_shot` and `an validate` read.
 >>> [why.split(":")[0] for _, why in after_problems(shot, {})]
 ["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.stage.compile.camera_follow_keys(state)
 
@@ -28287,13 +28495,13 @@ Paths the runtime would index twice (its `nodeIndex` is later-wins,
 so the first node would silently stop answering). Over the FINISHED tree,
 scoped containers included (an#344).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> duplicate_paths(NodeJSON(name="root", children=[NodeJSON(name="a"), NodeJSON(name="a")]))
 ['a']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.compile.entity_spaces_of(shot)
 
@@ -28301,26 +28509,26 @@ scoped containers included (an#344).
 than the kernel default – what the compiled document records so the
 default evaluator agrees with validate and compile (an#245).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, Shot
 >>> entity_spaces_of(Shot(id="s", entities=[AssetRef(kind="prop", id="p", store="props", ref="p")]))
 {}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.compile.foreground_node_name(entity_id)
 
 The node name an environment’s foreground planes live under.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> foreground_node_name("street")
 'street__front'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.compile.node_path_suggestions(target, paths, , n=3)
 
@@ -28329,9 +28537,6 @@ The built node paths a mistyped `target` most plausibly meant.
 The paths of the SAME entity that end in the same part name — the usual
 mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 — or, when there are none, the closest spellings.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
@@ -28342,6 +28547,9 @@ mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 >>> node_path_suggestions("zzz", built)
 []
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.compile.note_raster_rig(entity, desc_data, pack, raster)
 
@@ -28373,9 +28581,6 @@ One rule, computed the same way by the builder and by the parallax pass —
 the alternative is two places deciding which container a plane ended up in,
 which is the class of drift this wave keeps closing.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.stage.environments import EnvironmentDescriptor, Plane
 >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
@@ -28391,6 +28596,9 @@ depends on where the environment was cut:
 {'a': 'street', 'b': 'street'}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.compile.retire_front_spelling(shot)
 
 `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`,
@@ -28402,9 +28610,6 @@ would be the an#110 collision. For one cycle the compiler (and `an
 validate`) rewrites it with a warning naming the new spelling; a later
 issue retires the rewrite.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, SetAction
 >>> shot = Shot(id="s", renderer="stage", duration=1.0,
@@ -28414,6 +28619,9 @@ issue retires the rewrite.
 >>> new.actions[0].target, pairs
 ('set/wall', [('set__front/wall', 'set/wall')])
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
 
 ### an.stage.compile.scene_builders()
 
@@ -28433,15 +28641,15 @@ its prose (a reworded description must not move a contract hash; a
 space’s `version` does). A space using a field kind the runtime does not
 implement is refused here ([`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileError)).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> space_definitions({})
 {}
 >>> space_definitions({"cam": "stage.camera"})["stage.camera"]["fields"][0]
 {'pattern': 'x', 'spec': {'kind': 'number'}, 'unit': 'px'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.compile.stage_replacements()
 
@@ -28466,9 +28674,6 @@ a tween shorter than one step is a single step to its end value.
 `step_hz` must be positive: with a non-positive rate the walk below never
 reaches `duration` — an infinite loop, not an error — so it is refused.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> step_times(0.0, 0.3, 10)
 [0.0, 0.1, 0.2, 0.3]
@@ -28477,6 +28682,9 @@ reaches `duration` — an infinite loop, not an error — so it is refused.
 >>> step_times(0.0, 0.02, 10)
 [0.0, 0.02]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.compile.style_pack_for(scene_meta, styles_store)
 
@@ -28501,13 +28709,13 @@ One sentence saying `target` is not a built node, with suggestions.
 Shared by the compiler (which raises it) and `an validate` (which
 reports it), so the two say the same thing about the same path.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
 'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stage.counters.html.md
@@ -28678,15 +28886,15 @@ It does NOT agree with the CSS solver (`css_cubic_bezier()`) to 1e-9
 for every control point, which is why it stays a named legacy solver until
 the pixel goldens are re-blessed under the stricter one.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
 0.5
 >>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
 (0.0, 1.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 
 # _autosummary/an.stage.environments.html.md
@@ -28754,10 +28962,10 @@ that share a depth.
 
 ### Classes
 
-| [`EnvironmentDescriptor`](_autosummary/an.stage.environments.html.md#an.stage.environments.EnvironmentDescriptor)(\*\*data)   | A stage made of planes.               |
-|------------------------------------------------------------------------------------|---------------------------------------|
-| [`Plane`](_autosummary/an.stage.environments.html.md#an.stage.environments.Plane)(\*\*data)                   | One layer of the stage, at one depth. |
-| [`PlaneArt`](_autosummary/an.stage.environments.html.md#an.stage.environments.PlaneArt)(\*\*data)                | What a plane is made of.              |
+| [`EnvironmentDescriptor`](_autosummary/an.stage.environments.html.md#an.stage.environments.EnvironmentDescriptor)(\*[, schema_version, ...])   | A stage made of planes.               |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------|
+| [`Plane`](_autosummary/an.stage.environments.html.md#an.stage.environments.Plane)(\*, name[, art, depth, parallax, ...])       | One layer of the stage, at one depth. |
+| [`PlaneArt`](_autosummary/an.stage.environments.html.md#an.stage.environments.PlaneArt)(\*[, kind, color, src, gradient, role])   | What a plane is made of.              |
 
 ### an.stage.environments.ENVIRONMENT_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='EnvironmentDescriptor', version_field='schema_version', current_version='0.1.0')*
 
@@ -28780,7 +28988,7 @@ a migration without a read path that runs it” rule exists to prevent. The
 KIND stays registered: it declares where the version field lives, which is
 what a future real migration will need.
 
-### *class* an.stage.environments.EnvironmentDescriptor(\*\*data)
+### *class* an.stage.environments.EnvironmentDescriptor(\*, schema_version='0.1.0', kind='EnvironmentDescriptor', name, planes=<factory>, characters_after=None, anchors=<factory>, source=None, metadata=<factory>, \*\*extra_data)
 
 Bases: `_EnvModel`
 
@@ -28810,7 +29018,7 @@ Named stage marks — a horizon is one of them. A dedicated `horizon`
 field would be two fields for one fact, which is how the intersecting
 override arrived.
 
-#### characters_after *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### characters_after *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 The plane the characters are drawn in FRONT of. `None` = all planes
 behind all characters.
@@ -28842,7 +29050,7 @@ centres `root` and applies camera scale, so a huge rect always covers. Lives
 here (the schema) so the IR layer’s framing check and the compiler read one
 number; `an.stage.compile` re-exports it.
 
-### *class* an.stage.environments.Plane(\*\*data)
+### *class* an.stage.environments.Plane(\*, name, art=<factory>, depth=1.0, parallax=None, offset=(0.0, 0.0), anchor=(0.5, 0.5), size=None, fit='contain', source=None)
 
 Bases: `BaseModel`
 
@@ -28878,15 +29086,15 @@ module’s docstring for the table and for the Unity sign trap.
 
 The per-axis parallax factors this plane actually moves by.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> Plane(name="p", depth=0.4).factors()
 (0.4, 0.4)
 >>> Plane(name="p", depth=0.4, parallax=(0.2, 0.0)).factors()
 (0.2, 0.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
@@ -28900,12 +29108,12 @@ Becomes the scene node’s name, under the environment entity’s id.
 
 Where the plane sits, in scene pixels from the stage centre.
 
-#### parallax *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### parallax *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Per-axis override of `depth`, for a plane that scrolls horizontally but
 not vertically. `None` means `(depth, depth)`.
 
-#### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### size *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
 The box the art is fitted into, in scene pixels. **A declared size wins**
@@ -28919,7 +29127,7 @@ a composite stage of a carved plate and a CC0 prop credits both
 (an#211). `None` = the environment’s `source` covers it. Omitted from
 the stored document when unset.
 
-### *class* an.stage.environments.PlaneArt(\*\*data)
+### *class* an.stage.environments.PlaneArt(, kind='fill', color='#888888', src=None, gradient=None, role=None)
 
 Bases: `BaseModel`
 
@@ -28970,7 +29178,7 @@ a CSS colour.
 * **Type:**
   `fill` only
 
-#### gradient *: [Gradient](_autosummary/an.paint.html.md#an.paint.Gradient) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### gradient *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Gradient](_autosummary/an.paint.html.md#an.paint.Gradient)]*
 
 the gradient (an#275). Omitted from the stored document
 when unset.
@@ -28982,7 +29190,7 @@ when unset.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### role *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### role *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 the gradient role a StylePack may set for this
 plane (an#275). Omitted from the stored document when unset.
@@ -28990,7 +29198,7 @@ plane (an#275). Omitted from the stored document when unset.
 * **Type:**
   `fill` or `gradient`
 
-#### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### src *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 a path under the environment’s own folder in the store,
 exactly as a character attachment’s `path` is — `.svg`, `.png`,
@@ -29015,13 +29223,13 @@ not show, so a plate that covers a rolled view can still be flagged).
 `root.pivot` is the camera and `root.scale` the zoom, composed about the
 canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
 (-128.0, -96.0, 128.0, 96.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0))
 
@@ -29034,9 +29242,6 @@ compensation moves it by `(1 − f) · camera` per axis. `None` when the
 extent cannot be known (an image whose art cannot be measured and whose
 `fit` makes the drawn size depend on it) — an unknown, not a hole.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
 ...                  size=(100.0, 50.0), fit="stretch"), None)
@@ -29046,6 +29251,9 @@ extent cannot be known (an image whose art cannot be measured and whose
 (-60.0, -50.0, 140.0, 50.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.environments.uncovered_part(view, covers)
 
 The bounding box of the part of `view` no rect in `covers` covers.
@@ -29054,15 +29262,15 @@ The bounding box of the part of `view` no rect in `covers` covers.
 rects: the view is cut into cells at every cover edge, and a cell is
 covered or not as a whole.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
 (0, 8, 10, 10)
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 6, 10), (5, 0, 10, 10)]) is None
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.stage.fidelity.html.md
@@ -29239,13 +29447,13 @@ The longest side, in texture pixels, a gradient is rasterised at.
 
 A content-addressed texture alias: the same gradient, the same alias.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> gradient_alias("glass.sky", "data:x") == gradient_alias("glass.sky", "data:x")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.gradients.gradient_src(svg)
 
@@ -29261,9 +29469,6 @@ The SVG that paints `gradient` over `box`, laid out on the centred `frame`.
 Coordinates are scene pixels (the `viewBox`); `width`/`height` are the
 raster size, at most `raster_max` on the longer side.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.paint import Gradient
 >>> svg = gradient_svg(Gradient(type="radial", stops=["#fff", "#000"]),
@@ -29273,6 +29478,9 @@ True
 >>> 'gradientTransform="translate(2000 2000) scale(960 540)"' in svg
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stage.html.md
@@ -29425,13 +29633,13 @@ a hairpin turn does not throw a spike across the frame.
 
 Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
 [0.0, 5.0, 11.0]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.path_geometry.dash_spans(a, b, dash, gap, offset)
 
@@ -29442,9 +29650,6 @@ The pattern is anchored at arc length `0` — dash `k` covers
 window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 `+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
 [(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]
@@ -29453,6 +29658,9 @@ window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 >>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
 [(5.0, 15.0), (25.0, 30.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.flatten_curve(points, , curve='polyline', samples=24, sampling='parameter')
 
@@ -29465,9 +29673,6 @@ uniformly in each curve’s parameter, so points crowd where the curve is
 slow; `"arclength"` (an#161) steps uniformly along its length, so the
 points are evenly spaced (a smoother bend for the same count).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> flatten_curve([(0, 0), (10, 0)])
 [(0.0, 0.0), (10.0, 0.0)]
@@ -29475,6 +29680,9 @@ points are evenly spaced (a smoother bend for the same count).
 >>> pts
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, width=0.0, width_profile=None)
 
@@ -29500,13 +29708,13 @@ a draw-on grows it in rather than popping a full-size triangle at frame
 one. The stroke stops [`HEAD_STROKE_INSET`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.HEAD_STROKE_INSET) of the head’s length back
 from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
-
 ```pycon
 >>> path_geometry([(0.0, 0.0), (10.0, 0.0)], 0.3, 0.3)
 {'stroke': [], 'head': None}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.stage.path_geometry.point_at(points, cum, s)
 
@@ -29521,13 +29729,13 @@ The stroke width at fraction `u` of the WHOLE path’s length (an#161):
 `width` times the profile’s factor, linear between its stops.
 Mirror of `runtime.js::pathProfileWidth`.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)
 6.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.stage.path_geometry.stroke_outline(line, start, total, width, profile)
 
@@ -29541,13 +29749,13 @@ lengthened to keep the stroke’s width through the corner (capped at
 [`OUTLINE_MITER_LIMIT`](_autosummary/an.stage.path_geometry.html.md#an.stage.path_geometry.OUTLINE_MITER_LIMIT)). Butt ends. Left side forward, then the
 right side back. Mirror of `runtime.js::pathOutline`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])
 [(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.trim_polyline(points, cum, a, b)
 
@@ -29714,8 +29922,8 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### Classes
 
-| [`PathDescriptor`](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor)(\*\*data)   | The on-disk path schema, saved as a prop's `prop.json`.   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------|
+| [`PathDescriptor`](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor)(\*[, kind, schema_version, ...])   | The on-disk path schema, saved as a prop's `prop.json`.   |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
 
 ### an.stage.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
 
@@ -29736,7 +29944,7 @@ thousand pixels long is a few thousand dashes at most.
 Its own versioned document kind, registered from the module that owns the
 schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.
 
-### *class* an.stage.paths.PathDescriptor(\*\*data)
+### *class* an.stage.paths.PathDescriptor(\*, kind='PathDescriptor', schema_version='0.1.0', name, points, curve='polyline', samples_per_segment=24, sampling='parameter', color='#c0392b', width=8.0, width_profile=None, cap='round', join='round', trim_start=0.0, trim_end=1.0, dash=None, gap=None, dash_offset=0.0, arrowhead=False, tail_arrowhead=False, head_length=None, head_width=None, closed=False, fill=None, fill_alpha=1.0, wobble=0.0, wobble_wavelength=None, wobble_seed=0, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -29909,15 +30117,15 @@ the point), each eased by `easing`, preceded by a `set` of
 Returns a list of top-level actions for `shot.actions.extend(...)`, as
 [`an.stage.text.reveal_units()`](_autosummary/an.stage.text.html.md#an.stage.text.reveal_units) does.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
-
 ```pycon
 >>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
 ...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
 >>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
 [('set', 0.0), ('tween', 0.75), ('sequence', None)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.stage.paths.drawn_polyline(desc, entity_id)
 
@@ -29927,14 +30135,14 @@ the entity) — and the index in it of each AUTHORED on-path point: every
 point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls),
 and the closing return to the first point when `closed` added one.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
 >>> pts[anchors[-1]], anchors
 ((0.0, 0.0), [0, 1, 2, 3])
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ### an.stage.paths.resolve_path(document, overrides=None)
 
@@ -29943,9 +30151,6 @@ The path an entity draws: its stored document with `overrides` on top.
 Validated strictly after the merge, so an override key the schema does not
 know raises instead of vanishing (an environment override silently drops
 unknown keys; a path’s does not).
-
-* **Return type:**
-  [`PathDescriptor`](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor)
 
 ```pycon
 >>> doc = {"kind": "PathDescriptor", "name": "a", "points": [[0, 0], [10, 0]]}
@@ -29957,6 +30162,9 @@ unknown keys; a path’s does not).
 ...     print(str(e).split("Value error, ")[1].split(". The fields")[0])
 unknown PathDescriptor field(s): 'colour' (did you mean 'color', 'curve', 'source'?)
 ```
+
+* **Return type:**
+  [`PathDescriptor`](_autosummary/an.stage.paths.html.md#an.stage.paths.PathDescriptor)
 
 
 # _autosummary/an.stage.preview.html.md
@@ -30076,13 +30284,13 @@ The descriptor file a prop folder holds (the props store’s sidecar name).
 
 What a prop folder must hold, read off the schema and the rig rules (never retyped).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> "nesting" in render_prop_contract()
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.prop_validate.validate_prop(prop_dir, , name=None)
 
@@ -30157,8 +30365,8 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 
 ### Classes
 
-| [`PropDescriptor`](_autosummary/an.stage.props.html.md#an.stage.props.PropDescriptor)(\*\*data)   | The on-disk prop schema.   |
-|-----------------------------------------------------------------------------|----------------------------|
+| [`PropDescriptor`](_autosummary/an.stage.props.html.md#an.stage.props.PropDescriptor)(\*[, origin, rest_rotation, ...])   | The on-disk prop schema.   |
+|-----------------------------------------------------------------------------------------------------|----------------------------|
 
 ### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.2.0')*
 
@@ -30175,7 +30383,7 @@ the built parts; the migration protects a 0.1.0 rig that carried one.
 * **Type:**
   0.2.0 (an#339)
 
-### *class* an.stage.props.PropDescriptor(\*\*data)
+### *class* an.stage.props.PropDescriptor(\*, origin=None, rest_rotation=None, nesting=None, schema_version='0.2.0', kind='PropDescriptor', name, display_name=None, view_box=(0, 0, 1024, 1024), source_svg=None, bones=<factory>, slots=<factory>, skins=<factory>, asset_sets=<factory>, animations=<factory>, face_overlay=True, source=None, metadata=<factory>, \*\*extra_data)
 
 Bases: [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument)
 
@@ -30265,7 +30473,7 @@ Where this art came from and what its licence obliges. `None` means
 “we made this” — not “unknown”. Same field as `CharacterDescriptor`,
 because `an credits` should not need to know which store it came from.
 
-#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source_svg *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Optional source SVG the `parts/` folder was sliced from.
 
@@ -30280,25 +30488,25 @@ Before an#408 the bone sat at `(0, 0)` and an origin had to be measured
 from the art’s centre. Nothing moves for a prop without an `origin`: it
 is placed by its bones’ extent centre, which is this bone wherever it is.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)]
-
 ```pycon
 >>> [(b.name, b.x, b.y) for b in default_prop_bones()]
 [('root', 512.0, 512.0)]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)]
+
 ### an.stage.props.default_prop_slots()
 
 One slot on that bone.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]
 [('body', 'root', 0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)]
 
 
 # _autosummary/an.stage.raster.html.md
@@ -30429,9 +30637,6 @@ uses this for.
 
 `source` is a path or the file’s bytes.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import struct, zlib
 >>> ihdr = struct.pack(">IIBBBBB", 3, 2, 8, 6, 0, 0, 0)
@@ -30441,12 +30646,12 @@ uses this for.
 (3.0, 2.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.raster.is_raster(src)
 
 Whether `src` names raster art, by its suffix (case-insensitive).
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> is_raster("plates/Street.JPG")
@@ -30455,29 +30660,32 @@ True
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.stage.raster.strip_version(src)
 
 The file path a (possibly versioned) texture `src` names.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> strip_version("props/lamp/parts/on.png?v=abc123")
 'props/lamp/parts/on.png'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.raster.versioned_src(src, digest)
 
 `src` with its content digest as a query string.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> versioned_src("props/lamp/parts/on.png", "abc123")
 'props/lamp/parts/on.png?v=abc123'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stage.render.html.md
@@ -30610,7 +30818,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.stage.render.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
+### *class* an.stage.render.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](_autosummary/an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -30770,9 +30978,6 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 `step_hz` when it declares one, else the scene’s (`ctx.step_hz`), else
 `None` — smooth. The compiler stamps whatever this returns.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from pathlib import Path
 >>> ctx = RenderContext(mall={}, work_dir=Path("."), step_hz=15.0)
@@ -30783,6 +30988,9 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 >>> effective_step_hz(Shot(id="s"), RenderContext(mall={}, work_dir=Path("."))) is None
 True
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.render.runtime_extensions()
 
@@ -30884,13 +31092,13 @@ Two layers live here:
 
 ### Classes
 
-| [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)(\*\*data)   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                   |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)(\*\*data)         | A skeleton joint with a local transform relative to its parent.                    |
-| [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument)(\*\*data)  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`. |
-| [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*data)     | Common config: forward-compatible reads, strict writes.                            |
-| [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*\*data)         | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
-| [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*\*data)         | A draw-order slot bound to a bone, displaying one attachment at a time.            |
+| [`Attachment`](_autosummary/an.stage.rig.html.md#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                   |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`Bone`](_autosummary/an.stage.rig.html.md#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                    |
+| [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`. |
+| [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                            |
+| [`Skin`](_autosummary/an.stage.rig.html.md#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
+| [`Slot`](_autosummary/an.stage.rig.html.md#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.            |
 
 ### Exceptions
 
@@ -30898,7 +31106,7 @@ Two layers live here:
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`RigError`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigError)          | A rig cannot be built as declared (a cycle, or a chain the stage cannot draw). |
 
-### *class* an.stage.rig.Attachment(\*\*data)
+### *class* an.stage.rig.Attachment(, path, anchor=(0.5, 0.5), x=0.0, y=0.0, width=None, height=None, source=None, \*\*extra_data)
 
 Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
@@ -30927,7 +31135,7 @@ on a CC0 body, credits each (an#220). `None` = the descriptor’s
 reserved part makes the render NOT PUBLISHABLE like any other.
 Omitted from the stored document when unset.
 
-#### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### width *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 The size the part draws at, in **view_box units** — the rig’s units,
 the ones `x`/`y` and the bones use (an#220). \*\*A declared size
@@ -30954,7 +31162,7 @@ parts share one `head` bone and still land in different places — before
 this field they all stacked on the bone, because the descriptor had no
 way to say otherwise and the compiler used hardcoded literals instead.
 
-### *class* an.stage.rig.Bone(\*\*data)
+### *class* an.stage.rig.Bone(, name, parent=None, x=0.0, y=0.0, rotation_deg=0.0, scale_x=1.0, scale_y=1.0, pivot=None, \*\*extra_data)
 
 Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
@@ -30970,7 +31178,7 @@ A skeleton joint with a local transform relative to its parent.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### pivot *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### pivot *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
 
@@ -31031,7 +31239,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A rig’s bone rest pose was NOT applied, because the document may predate it.
 
-### *class* an.stage.rig.RigDocument(\*\*data)
+### *class* an.stage.rig.RigDocument(, origin=None, rest_rotation=None, nesting=None, \*\*extra_data)
 
 Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
@@ -31057,7 +31265,7 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for RigDocument
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### nesting *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### nesting *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['flat', 'bones']]*
 
 a slot nests under its
 OWN bone’s primary slot only, so limbs are siblings of the torso (the
@@ -31069,7 +31277,7 @@ kinematics). [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.
 * **Type:**
   How slots nest (an#340). Unset or `"flat"`
 
-#### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[float](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### origin *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The point of the art that the entity’s placement (`stage.at`) refers
 to, in view_box units (an#338). Unset, the rig is placed by the centre
@@ -31093,7 +31301,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A rig cannot be built as declared (a cycle, or a chain the stage cannot draw).
 
-### *class* an.stage.rig.RigModel(\*\*data)
+### *class* an.stage.rig.RigModel(\*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -31119,7 +31327,7 @@ legs 37.7x118.6 against 38x120. The constants were an approximation of
 exactly this product, which is the evidence that the rig should have been
 driving it all along.
 
-### *class* an.stage.rig.Skin(\*\*data)
+### *class* an.stage.rig.Skin(\*, name='default', slots=<factory>, \*\*extra_data)
 
 Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
@@ -31135,7 +31343,7 @@ A named outfit/variant: maps slot → {attachment_name → Attachment}.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.rig.Slot(\*\*data)
+### *class* an.stage.rig.Slot(, name, bone, draw_order=0, attachment=None, \*\*extra_data)
 
 Bases: [`RigModel`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigModel)
 
@@ -31147,7 +31355,7 @@ A draw-order slot bound to a bone, displaying one attachment at a time.
 'mouth_x'
 ```
 
-#### attachment *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### attachment *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Default attachment name; the active attachment can change at runtime
 via animation tracks targeting `slot:<name>.attachment`.
@@ -31160,9 +31368,6 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Path used inside the runtime dir, relative to `index.html`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> art_src("maya", "parts/head.svg")
 'characters/maya/parts/head.svg'
@@ -31170,13 +31375,13 @@ Path used inside the runtime dir, relative to `index.html`.
 'props/lamp/parts/body.svg'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.rig.attachment_box(width, height, art)
 
 The box a part draws in, in view_box units: the declared size wins, the
 art’s aspect is kept (an#220).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> attachment_box(None, None, (40, 20))       # the art's own extent
@@ -31193,13 +31398,13 @@ art’s aspect is kept (an#220).
 True
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.rig.bone_extent_centre(bones)
 
 The DEFAULT point in view_box space that the entity’s placement refers
 to, when the rig declares no [`RigDocument.origin`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument.origin) ([`rig_origin()`](_autosummary/an.stage.rig.html.md#an.stage.rig.rig_origin)).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> bone_extent_centre({"root": (512.0, 980.0), "head": (512.0, 420.0)})
@@ -31218,6 +31423,9 @@ one. On the default rig it lands at y=700, within 20 units of the torso
 bone — i.e. it reproduces the convention the deleted `torso_y = 0.0`
 literal encoded, without hardcoding a bone name.
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.rig.bone_positions(desc)
 
 Absolute `(x, y)` per bone, in view_box units.
@@ -31234,15 +31442,15 @@ looping — a malformed rig is #78’s business, not this function’s.
 Whether any bone of a (raw or model) rig document has a non-zero
 `rotation_deg` or a non-unit `scale_x`/`scale_y`.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> bones_carry_a_rest_pose({"bones": [{"name": "a"}, {"name": "b", "rotation_deg": 22}]})
 True
 >>> bones_carry_a_rest_pose({"bones": [{"name": "a", "scale_x": 1.0}]})
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.stage.rig.build_rig_subtree(entity, desc_data, , textures, probe=None, resolutions=None, art_prefix='characters/', descriptor_model, document_kind, texture_srcs=None, digest=None, skip_slots=None)
 
@@ -31317,9 +31525,6 @@ painted together, so an unrelated part ordered between a chain’s members
 stage compiler; the asset validators only warn. Nothing in `flat`
 nesting.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -31329,6 +31534,9 @@ nesting.
 >>> chain_draw_order_problems(rig)[0].startswith("the stage paints each chain's parts together")
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.chain_paint_order(desc, , built=None)
 
@@ -31345,9 +31553,6 @@ builder’s own order ([`natural_paint_order()`](_autosummary/an.stage.rig.html.
 their tree order and a chain already painted in declared order is not
 reordered. `built` limits it to the slots the builder drew.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -31356,6 +31561,9 @@ reordered. `built` limits it to the slots the builder drew.
 >>> chain_paint_order(rig)
 {None: ['torso'], 'torso': ['arm', 'torso']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.stage.rig.chain_pose_problems(desc)
 
@@ -31367,9 +31575,6 @@ scale, so its `rotation_deg`/`scale_*` would be lost (its `x`/`y`
 are kept: positions sum along the chain). Refused at compile, like the
 draw order; give the bone a slot or move its pose to the bone below it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones", slots=[NS(name="arm", bone="arm"), NS(name="hand", bone="hand")],
@@ -31379,6 +31584,9 @@ draw order; give the bone a slot or move its pose to the bone below it.
 True
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.rig.declared_origin(desc)
 
 The rig’s DECLARED origin as two floats, or `None` when it declares none.
@@ -31387,9 +31595,6 @@ The rig’s DECLARED origin as two floats, or `None` when it declares none.
 it); a descriptor model that predates [`RigDocument`](_autosummary/an.stage.rig.html.md#an.stage.rig.RigDocument), where
 `origin` is an `extra` key (a list), is read the same way.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> declared_origin(NS(origin=[512, 1010])), declared_origin(NS())
@@ -31397,6 +31602,9 @@ it); a descriptor model that predates [`RigDocument`](_autosummary/an.stage.rig.
 >>> declared_origin({"origin": [0, 5]})
 (0.0, 5.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.drawn_attachment(desc, skin, slot)
 
@@ -31414,9 +31622,6 @@ can give ([`chain_draw_order_problems()`](_autosummary/an.stage.rig.html.md#an.s
 each part follows its bone’s world transform, and the list says who
 paints over whom. `built` limits it to the slots the builder drew.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones",
@@ -31426,6 +31631,9 @@ paints over whom. `built` limits it to the slots the builder drew.
 >>> global_paint_order(rig)
 ['arm', 'cord', 'arm/hand']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.legacy_rest_pose_unknown(raw, kind, , since)
 
@@ -31439,9 +31647,6 @@ that whose bones carry a pose, and which says nothing about
 about. A version older than `since` is caught too, should a read skip
 the migration.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> k = DocumentKind("Demo", "schema_version", "0.2.0")
 >>> legacy_rest_pose_unknown({"bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
@@ -31449,6 +31654,9 @@ True
 >>> legacy_rest_pose_unknown({"schema_version": "0.2.0", "bones": [{"name": "a", "rotation_deg": 9}]}, k, since="0.2.0")
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.stage.rig.natural_paint_order(order, keys)
 
@@ -31462,13 +31670,13 @@ first, then its children by their own `(draw_order, name)`.
 
 `"flat"` or `"bones"` (an#340); unset is flat.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> nesting_of({"nesting": "bones"}), nesting_of({})
 ('bones', 'flat')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.rig.omit_unset_rig_fields(data)
 
@@ -31478,15 +31686,15 @@ A subclass that declares its own `model_serializer` REPLACES the base’s
 (pydantic keeps one per model), so it must call this on its output, or an
 unset `origin` reaches every stored descriptor as `null`.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> omit_unset_rig_fields({"name": "lamp", "origin": None})
 {'name': 'lamp'}
 >>> omit_unset_rig_fields({"origin": [512.0, 1010.0]})
 {'origin': [512.0, 1010.0]}
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.stage.rig.part_probe(characters_store, , art_prefix='characters/')
 
@@ -31524,14 +31732,14 @@ slot itself, which puts eyes and mouth under `head` and leaves every limb
 a direct child of the entity. `nesting: bones` (an#340) follows the bone
 hierarchy to the nearest ancestor’s primary slot instead.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> primary_slot_per_bone(NS(slots=[NS(name="head", bone="head"), NS(name="mouth", bone="head")]))["head"]
 'head'
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.protect_legacy_rest_pose(doc)
 
@@ -31544,9 +31752,6 @@ whose bones carry none gets nothing (and every document on the
 maintainer’s machine was of that kind when this shipped). Returns `doc`,
 edited in place; the caller sets the version.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": -22}]})["rest_rotation"]
 False
@@ -31555,6 +31760,9 @@ False
 >>> protect_legacy_rest_pose({"bones": [{"name": "leg", "rotation_deg": 5}], "rest_rotation": True})["rest_rotation"]
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.rig.raster_digest(store, , art_prefix='characters/')
 
@@ -31579,9 +31787,6 @@ for `PropDescriptor`, `cutan` for `CharacterDescriptor`): it registers
 [`protect_legacy_rest_pose()`](_autosummary/an.stage.rig.html.md#an.stage.rig.protect_legacy_rest_pose) as that kind’s `from -> to` migration and
 records `to` as the version the builder applies the rest pose from.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> register_rest_pose_migration("DemoRig", "1.0", "2.0")
 >>> REST_POSE_SINCE["DemoRig"]
@@ -31590,6 +31795,9 @@ records `to` as the version the builder applies the rest pose from.
 >>> MIGRATIONS[("DemoRig", "1.0", "2.0")]({"version": "1.0", "bones": []})
 {'version': '1.0', 'bones': []}
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.rest_pose_protection(raw, migrated, , kind='rig document')
 
@@ -31601,9 +31809,6 @@ its pixels. An author who added a rotation to such a file is the other
 case, and nothing else would tell them why the part did not move. A flag
 the AUTHOR wrote (present in the stored document) is a choice, and silent.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> old = {"schema_version": "0.1.0", "bones": [{"name": "leg", "rotation_deg": 20}]}
 >>> rest_pose_protection(old, {**old, "rest_rotation": False}).startswith("its bones carry")
@@ -31611,6 +31816,9 @@ True
 >>> rest_pose_protection({**old, "rest_rotation": False}, {**old, "rest_rotation": False}) is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.rig.rest_transform(bone)
 
@@ -31622,15 +31830,15 @@ swap poses, the face solver, presets, a from-less tween, the runtime’s
 load), so this is the whole change. An authored `rotation` tween stays
 ABSOLUTE: `to: 0` straightens a part whose rest is splayed.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> rest_transform(Bone(name="leg", rotation_deg=-22))["rotation"]
 -0.3839724354387525
 >>> rest_transform(Bone(name="leg", rotation_deg=-0.0))
 {'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.rig.rig_affordances(desc)
 
@@ -31645,9 +31853,6 @@ one bone (a head with its face) add no depth, and a flat rig affords
 nothing here: that nesting is a drawing convention, not a joint. The core registers it as the `prop`
 analyser; a genre’s analyser composes it for its own kinds.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig = NS(nesting="bones", bones=[NS(name="arm", parent=None), NS(name="hand", parent="arm")],
@@ -31655,6 +31860,9 @@ analyser; a genre’s analyser composes it for its own kinds.
 >>> rig_affordances(rig)
 {'rig.hierarchy': {'keys': ['arm', 'hand', 'sword'], 'count': 2, 'chains': [['arm', 'hand', 'sword']]}}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.rig.rig_origin(desc)
 
@@ -31666,9 +31874,6 @@ has one, else the centre of its bones’ extent ([`bone_extent_centre()`](_autos
 reports where a rig’s art reaches from its stage point (`cutan`’s
 `stage_extent`) reads it too, so the two agree by construction.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> bones = [NS(name="root", parent=None, x=512, y=980), NS(name="top", parent="root", x=0, y=-560)]
@@ -31677,6 +31882,9 @@ reports where a rig’s art reaches from its stage point (`cutan`’s
 >>> rig_origin(NS(bones=bones, origin=(512, 980)))
 (512.0, 980.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.rig.rig_origin_problems(desc)
 
@@ -31688,9 +31896,6 @@ whole rig nowhere; one outside the `view_box` is legal (a hanging sign’s
 hook can sit above its art) but is far more often a unit slip (scene pixels
 written where view_box units belong), so it is said, not refused.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig_origin_problems(NS(origin=(512, 1010), view_box=(0, 0, 1024, 1024)))
@@ -31700,6 +31905,9 @@ True
 >>> rig_origin_problems(NS(origin=(float("nan"), 0), view_box=(0, 0, 1024, 1024)))[0][:30]
 'origin (nan, 0.0) is not finit'
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.rig_problems(desc)
 
@@ -31711,15 +31919,15 @@ parent: forward kinematics only, so it is refused); a slot whose `bone`
 names no bone (it used to land at the origin, silently). Shared by the
 asset validators (`an character validate`, `an.stage.props.validate_prop()`).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from types import SimpleNamespace as NS
 >>> rig_problems(NS(bones=[NS(name="a", parent="b"), NS(name="b", parent="a")],
 ...                 slots=[NS(name="s", bone="nope")]))
 ['bones form a cycle (a closed linkage): a -> b -> a; a rig is a tree (forward kinematics only)', "slot 's' is bound to bone 'nope', which the rig does not declare"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.rig_rest_problems(desc)
 
@@ -31733,9 +31941,6 @@ part about its joint is `x: 0, y: 0` on the attachment and the art’s
 `anchor` at the joint. Nothing is said about a rig that keeps its legacy
 pose (`rest_rotation: false`), since its bones pose nothing.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> doc = {"bones": [{"name": "leg", "rotation_deg": 20}],
 ...        "slots": [{"name": "leg", "bone": "leg"}],
@@ -31747,13 +31952,13 @@ True
 []
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.rig.slot_node_paths(desc)
 
 `{slot: its node path relative to the entity}` (`torso/arm/hand`), by
 [`slot_parent_chain()`](_autosummary/an.stage.rig.html.md#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> from types import SimpleNamespace as NS
@@ -31762,6 +31967,9 @@ True
 >>> slot_node_paths(rig)
 {'a': 'a', 'b': 'a/b'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.rig.slot_parent_chain(desc)
 
@@ -31901,25 +32109,25 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                                                                          |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| [`AssetJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                                                                     |
-| [`AssetResolutionJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.                                                  |
-| [`AssetsJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                                                                |
-| [`ChannelJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                                                                       |
-| [`CutoutSceneJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
-| [`CutoutSceneMetaJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                                                                         |
-| [`KeyframeJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                                                                   |
-| [`NodeJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                                                                |
-| [`PathJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
-| [`PlacedClipJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                                                                         |
-| [`TimelineJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                                                                               |
-| [`TrackJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.                                                           |
-| [`TransformJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                                                                    |
-| [`UnderlayJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.UnderlayJSON)(\*\*data)        | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
-| [`VisualJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                                                                       |
+| [`AnimationClipJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AnimationClipJSON)(\*, name, duration[, ...])       | A named, reusable animation clip.                                                                                          |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`AssetJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetJSON)(\*, src[, width, height, duration])      | A single asset (texture / audio file).                                                                                     |
+| [`AssetResolutionJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetResolutionJSON)(\*, id, kind, store, ref, ...) | How one scene entity's store reference actually resolved at compile time.                                                  |
+| [`AssetsJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.AssetsJSON)(\*[, textures, audio])                  | Map of asset id → AssetJSON, split by kind.                                                                                |
+| [`ChannelJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.ChannelJSON)(\*, target, property[, keyframes])     | One animated property of one target.                                                                                       |
+| [`CutoutSceneJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.CutoutSceneJSON)(\*[, version, meta, ...])          | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
+| [`CutoutSceneMetaJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.CutoutSceneMetaJSON)(\*[, fps, width, height, ...]) | Per-shot metadata.                                                                                                         |
+| [`KeyframeJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.KeyframeJSON)(\*, time, value[, easing])            | Single keyframe in an animation channel.                                                                                   |
+| [`NodeJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.NodeJSON)(\*, name[, transform, visual, ...])       | One node in the scene tree.                                                                                                |
+| [`PathJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.PathJSON)(\*, points, stroke_width, color[, ...])   | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
+| [`PlacedClipJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.PlacedClipJSON)(\*, animation_id[, ...])            | An animation placed on a track at a specific time.                                                                         |
+| [`TimelineJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TimelineJSON)(\*, duration[, tracks])               | Top-level timeline: total duration + tracks.                                                                               |
+| [`TrackJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TrackJSON)(\*[, target_root, clips])                | A sequence of placed clips with optional target-prefix metadata.                                                           |
+| [`TransformJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.TransformJSON)(\*[, x, y, rotation, scale_x, ...])  | Local transform of a scene-graph node (authoring form).                                                                    |
+| [`UnderlayJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.UnderlayJSON)(\*, color[, alpha, offsets, grow])    | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
+| [`VisualJSON`](_autosummary/an.stage.serialize.html.md#an.stage.serialize.VisualJSON)(\*[, kind, fit, texture_id, ...])       | Drawable content attached to a node.                                                                                       |
 
-### *class* an.stage.serialize.AnimationClipJSON(\*\*data)
+### *class* an.stage.serialize.AnimationClipJSON(\*, name, duration, loop_mode='once', channels=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -31929,7 +32137,7 @@ A named, reusable animation clip.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.AssetJSON(\*\*data)
+### *class* an.stage.serialize.AssetJSON(, src, width=None, height=None, duration=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -31939,7 +32147,7 @@ A single asset (texture / audio file).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.AssetResolutionJSON(\*\*data)
+### *class* an.stage.serialize.AssetResolutionJSON(, id, kind, store, ref, resolved, fallback=False, detail='', \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -31984,7 +32192,7 @@ Environments: “store” | “preset” | “default”.
 * **Type:**
   What was built. Characters
 
-### *class* an.stage.serialize.AssetsJSON(\*\*data)
+### *class* an.stage.serialize.AssetsJSON(\*, textures=<factory>, audio=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -31999,7 +32207,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 The visual kinds `runtime.js` draws itself. Any other kind must be
 registered by a genre’s runtime script (an#247), or it draws as a rect.
 
-### *class* an.stage.serialize.ChannelJSON(\*\*data)
+### *class* an.stage.serialize.ChannelJSON(\*, target, property, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32009,7 +32217,7 @@ One animated property of one target.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.CutoutSceneJSON(\*\*data)
+### *class* an.stage.serialize.CutoutSceneJSON(\*, version='0.1.0', meta=<factory>, scene, animations=<factory>, timeline, assets=<factory>, asset_resolution=<factory>, overlay=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32039,7 +32247,7 @@ has no overlay, and then omitted from the serialized document.
 * **Type:**
   The camera-immune layer (an#155)
 
-### *class* an.stage.serialize.CutoutSceneMetaJSON(\*\*data)
+### *class* an.stage.serialize.CutoutSceneMetaJSON(\*, fps=30, width=1920, height=1080, duration=0.0, background='#ffffff', blink_phases=<factory>, step_hz=None, style_pack=None, gaze_seeds=<factory>, fonts=<factory>, entity_spaces=<factory>, spaces=<factory>, extensions=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32120,7 +32328,7 @@ the pack’s COLOURS are already resolved into the nodes, so this is
 provenance rather than an instruction. Omitted from the serialized
 document when unset (see the wrap serializer below).
 
-### *class* an.stage.serialize.KeyframeJSON(\*\*data)
+### *class* an.stage.serialize.KeyframeJSON(, time, value, easing=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32130,7 +32338,7 @@ Single keyframe in an animation channel.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.NodeJSON(\*\*data)
+### *class* an.stage.serialize.NodeJSON(\*, name, transform=<factory>, visual=None, children=<factory>, scope=None, z_index=None, paint_order=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32166,7 +32374,7 @@ This node’s place among its siblings when its parent sorts them
 (an#403): a nested chain whose declared draw order is not the tree’s
 (a far arm behind the torso it nests under). `None` = insertion order.
 
-### *class* an.stage.serialize.PathJSON(\*\*data)
+### *class* an.stage.serialize.PathJSON(, points, stroke_width, color, cap='round', join='round', trim_start=0.0, trim_end=1.0, head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, closed=False, fill=None, fill_alpha=1.0, width_profile=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32216,7 +32424,7 @@ Omitted when unset.
 * **Type:**
   A variable-width stroke (an#161)
 
-### *class* an.stage.serialize.PlacedClipJSON(\*\*data)
+### *class* an.stage.serialize.PlacedClipJSON(, animation_id, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32226,7 +32434,7 @@ An animation placed on a track at a specific time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TimelineJSON(\*\*data)
+### *class* an.stage.serialize.TimelineJSON(\*, duration, tracks=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32236,7 +32444,7 @@ Top-level timeline: total duration + tracks.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TrackJSON(\*\*data)
+### *class* an.stage.serialize.TrackJSON(\*, target_root='', clips=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32246,7 +32454,7 @@ A sequence of placed clips with optional target-prefix metadata.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TransformJSON(\*\*data)
+### *class* an.stage.serialize.TransformJSON(, x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, skew_x=0.0, skew_y=0.0, pivot_x=0.0, pivot_y=0.0, alpha=1.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32271,7 +32479,7 @@ which is derived from them rather than restated.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.UnderlayJSON(\*\*data)
+### *class* an.stage.serialize.UnderlayJSON(\*, color, alpha=1.0, offsets=<factory>, grow=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32292,7 +32500,7 @@ and the `tint` (a multiply) of a sprite copy. Compiled by
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.VisualJSON(\*\*data)
+### *class* an.stage.serialize.VisualJSON(, kind='rect', fit='stretch', texture_id=None, asset_id=None, asset_sets=None, width=50.0, height=50.0, anchor_x=0.5, anchor_y=0.5, color='#888888', path=None, underlays=None, blend=None, asset_geometry=None, z_index=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -32324,7 +32532,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### blend *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply']]*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
@@ -32496,9 +32704,6 @@ direct children, and deeper parts too when the treatment is `nested`.
 The glow is added after the parts are walked, so it never gets an outline
 of its own.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.styles import SurfaceTreatment
 >>> part = NodeJSON(name="torso", visual=VisualJSON(kind="rect", width=40, height=60))
@@ -32508,6 +32713,9 @@ of its own.
 >>> [(u.grow, u.offsets) for u in part.visual.underlays]
 [(2.0, [(4.0, 4.0)]), (2.0, [(0.0, 0.0)])]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.surface.drawn_box(node)
 
@@ -32519,15 +32727,15 @@ scales are not applied: the compiled rigs have none below the entity
 root. That is an assumption about the rigs this compiler builds, not
 about arbitrary documents.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> head = NodeJSON(name="h", transform=TransformJSON(y=-50),
 ...                 visual=VisualJSON(kind="ellipse", width=40, height=40))
 >>> drawn_box(NodeJSON(name="e", children=[head]))
 (-20.0, -70.0, 20.0, -30.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.surface.faded_treated_targets(scene, animations)
 
@@ -32548,33 +32756,30 @@ The glow’s texture: an elliptical radial gradient filling its box.
 It holds `intensity` out to `core` (a fraction of the radius) and
 fades to nothing at the edge.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> glow_svg(10, 10, color="#ffffff", intensity=0.5, core=0.4)[:52]
 '<svg xmlns="http://www.w3.org/2000/svg" width="10" h'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.surface.grain_greys(amount)
 
 The palette: level `n` multiplies the frame by `grey/255`, from
 white (level 0) down to `1 − amount` (the last level).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> grain_greys(0.06)[:3], grain_greys(0.06)[-1]
 ([255, 254, 253], 240)
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
 ### an.stage.surface.grain_indices(seed, tile)
 
 `tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_indices(0, 4)
@@ -32582,6 +32787,9 @@ white (level 0) down to `1 − amount` (the last level).
 >>> grain_indices(0, 4) == grain_indices(0, 4) != grain_indices(1, 4)
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.stage.surface.grain_node(grain, , width, height, textures)
 
@@ -32610,15 +32818,15 @@ step on load that could differ between engines.
 
 The outline ring’s copy offsets at `radius` pixels.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> ring_offsets(2.0)[:3]
 [(2.0, 0.0), (1.414214, 1.414214), (0.0, 2.0)]
 >>> len(ring_offsets(3.0)) == OUTLINE_RING
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
 # _autosummary/an.stage.text.html.md
@@ -32704,12 +32912,12 @@ recorded in the compiled document.
 
 ### Classes
 
-| [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)(\*\*data)                      | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Counter`](_autosummary/an.stage.text.html.md#an.stage.text.Counter)(\*\*data)                             | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](_autosummary/an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
-| [`TextUnit`](_autosummary/an.stage.text.html.md#an.stage.text.TextUnit)(name, text, box, d)                  | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
-| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font[, bounds])     | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
-| [`FontIdentity`](_autosummary/an.stage.text.html.md#an.stage.text.FontIdentity)(family, style, sha256, embedded) | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
+| [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)(\*[, kind, schema_version, ...])   | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Counter`](_autosummary/an.stage.text.html.md#an.stage.text.Counter)(\*[, format, start])                      | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](_autosummary/an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
+| [`TextUnit`](_autosummary/an.stage.text.html.md#an.stage.text.TextUnit)(name, text, box, d)                      | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)(units, origin, font[, bounds])         | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
+| [`FontIdentity`](_autosummary/an.stage.text.html.md#an.stage.text.FontIdentity)(family, style, sha256, embedded)     | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -32724,7 +32932,7 @@ The unit that typesets the whole string as ONE node, `block_0` (an#341):
 what a replacement set swaps, since per-word units of different strings do
 not line up.
 
-### *class* an.stage.text.Counter(\*\*data)
+### *class* an.stage.text.Counter(, format='{d}', start=None)
 
 Bases: `BaseModel`
 
@@ -32811,7 +33019,7 @@ schema (the rule `PathDescriptor` and `PropDescriptor` follow).
 
 The swap set a text block with `texts` declares (an#341).
 
-### *class* an.stage.text.TextDescriptor(\*\*data)
+### *class* an.stage.text.TextDescriptor(\*, kind='TextDescriptor', schema_version='0.1.0', name, text=None, texts=None, rest=None, counter=None, layer='world', unit='word', size=0.06, color='#1a1a1a', stroke_width=0.0, stroke_color='#1a1a1a', font=None, features=None, align='center', max_width=None, leading=1.2, tracking=0.0, anchor=None, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -33031,9 +33239,6 @@ Set `desc` on a `width` x `height` frame and take each unit’s contours.
 document’s own directory in the props store. A block with `texts` is set
 with its rest string ([`layout_text_set()`](_autosummary/an.stage.text.html.md#an.stage.text.layout_text_set) sets every one).
 
-* **Return type:**
-  [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)
-
 ```pycon
 >>> lay = layout_text(TextDescriptor(name="t", text="Hello big world"), width=1920, height=1080)
 >>> [u.name for u in lay.units]
@@ -33046,6 +33251,9 @@ with its rest string ([`layout_text_set()`](_autosummary/an.stage.text.html.md#a
 ['block_0']
 ```
 
+* **Return type:**
+  [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)
+
 ### an.stage.text.layout_text_set(desc, , width, height, base_dir=None)
 
 Every string of a block’s replacement set, set once: `{key: layout}`.
@@ -33055,14 +33263,14 @@ Each is set exactly as a single-string block would be, so each is centred
 builder’s job ([`an.stage.text_layout.build_text_subtree()`](_autosummary/an.stage.text_layout.html.md#an.stage.text_layout.build_text_subtree)). A block
 with no `texts` returns `{}`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)]
-
 ```pycon
 >>> lays = layout_text_set(TextDescriptor(name="t", texts={"a": "1", "b": "22"}, unit="block"), width=320, height=240)
 >>> sorted(lays), [lay.units[0].name for lay in lays.values()]
 (['a', 'b'], ['block_0', 'block_0'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`TextLayout`](_autosummary/an.stage.text.html.md#an.stage.text.TextLayout)]
 
 ### an.stage.text.resolve_text(document, overrides=None)
 
@@ -33071,14 +33279,14 @@ The text block an entity draws: its stored document with `overrides` on top.
 Validated strictly AFTER the merge, so a stored document may be a reusable
 style with no `text` of its own, and each entity supplies the words:
 
-* **Return type:**
-  [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)
-
 ```pycon
 >>> style = {"kind": "TextDescriptor", "name": "label", "size": 0.04}
 >>> resolve_text(style, {"text": "Paris"}).text
 'Paris'
 ```
+
+* **Return type:**
+  [`TextDescriptor`](_autosummary/an.stage.text.html.md#an.stage.text.TextDescriptor)
 
 ### an.stage.text.reveal_units(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
 
@@ -33101,13 +33309,13 @@ name ([`an.ir.compose.stagger()`](_autosummary/an.ir.compose.html.md#an.ir.compo
 `an.stage.text.stagger` stays as an alias of this function so old imports
 keep working.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
-
 ```pycon
 >>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
 ['tween', 'set', 'sequence']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.stage.text.text_entity_problem(entity, desc)
 
@@ -33128,13 +33336,13 @@ raises) and by `an validate` (which reports) so the two agree:
 `{key: key}` for a block’s replacement set — the `text` set as a
 swap declaration states it (`{}` for a single-string block).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> text_set_keys(TextDescriptor(name="t", texts={"a": "1", "b": "2"}, unit="block"))
 {'a': 'a', 'b': 'b'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.text.unit_names(desc, , width, height, base_dir=None)
 
@@ -33255,9 +33463,6 @@ on it, naming why.
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]
 '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'
@@ -33272,6 +33477,9 @@ the glyph once the fill covers the inner half: two paths rather than
 >>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stage.timeline.html.md
@@ -33320,7 +33528,7 @@ composing node transforms into canvas positions ([`screen_position()`](_autosumm
 | [`Timeline`](_autosummary/an.stage.timeline.html.md#an.stage.timeline.Timeline)(duration[, tracks, space])           | A duration + ordered list of tracks.                                    |
 | [`Transform2D`](_autosummary/an.stage.timeline.html.md#an.stage.timeline.Transform2D)([x, y, rotation, scale_x, ...])   | One node's local transform, in the runtime's own vocabulary.            |
 
-### *class* an.stage.timeline.Channel(target, property, keyframes=<factory>)
+### *class* an.stage.timeline.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -33328,7 +33536,7 @@ Sorted keyframes for one property of one target.
 
 Construction validates that `keyframes` is non-empty and sorted.
 
-### *class* an.stage.timeline.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.stage.timeline.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -33359,7 +33567,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.stage.timeline.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.stage.timeline.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -33372,7 +33580,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.stage.timeline.Track(target_root='', clips=<factory>)
+### *class* an.stage.timeline.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -33402,9 +33610,6 @@ This node’s local point, in its PARENT’s coordinates.
 performs, and the reason `root.pivot` is a 2D camera: moving the pivot
 moves everything the node contains, in the opposite direction.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> Transform2D(x=10.0).apply((0.0, 0.0))
 (10.0, 0.0)
@@ -33414,6 +33619,9 @@ moves everything the node contains, in the opposite direction.
 (10.0, 0.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### project(q)
 
 A plane point `q = local − pivot` as the tilted plane shows it.
@@ -33421,9 +33629,6 @@ A plane point `q = local − pivot` as the tilted plane shows it.
 `k = f / (f − q_y·sin θ)`, `P(q) = (k·q_x, k·q_y·cos θ)`: the hinge
 row (`q_y = 0`) is unmoved, and a row up a receding plane is pulled
 toward the horizon at `f·cot θ` above it.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> t = Transform2D(rotation_x=math.pi / 3, eye_distance=1000.0)
@@ -33444,6 +33649,9 @@ Traceback (most recent call last):
 ValueError: plane point (0.0, 5000.0) is not drawn: ...
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### rotation_x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The plane’s tilt (an#314, radians; positive = the top recedes) and the
@@ -33455,27 +33663,27 @@ transform, exactly as `runtime.js` “Planes” draws it.
 
 The inverse of [`apply()`](_autosummary/an.stage.timeline.html.md#an.stage.timeline.Transform2D.apply) — a parent-space point, in local space.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> t = Transform2D(x=10.0, pivot_x=3.0, scale_x=2.0, rotation=0.4)
 >>> round(t.unapply(t.apply((7.0, -2.0)))[0], 9)
 7.0
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### unproject(p)
 
 The inverse of [`project()`](_autosummary/an.stage.timeline.html.md#an.stage.timeline.Transform2D.project).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> t = Transform2D(rotation_x=1.0, eye_distance=800.0)
 >>> [round(v, 9) for v in t.unproject(t.project((40.0, -300.0)))]
 [40.0, -300.0]
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.timeline.clip_from_json(anim, , name=None)
 
@@ -33562,13 +33770,13 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.timeline.node_box(scene, path, , pose=None)
 
@@ -33586,9 +33794,6 @@ rectangle is an upper bound on what is painted: exact on the fitted axis,
 with the slack the art’s aspect leaves on the other. A stroked path’s box
 is its polyline’s, grown by half the stroke.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON, VisualJSON
 >>> scene = CutoutSceneJSON(
@@ -33604,6 +33809,9 @@ is its polyline’s, grown by half the stroke.
 (180.0, 115.0, 220.0, 125.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
 Where `point` in `path`’s local space lands on the canvas.
@@ -33614,9 +33822,6 @@ the root container.
 
 `pose` is keyed by the FULL path (`"street/hills"`), matching what
 `evaluate_timeline` returns, and each node reads only its own entry.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON
@@ -33638,6 +33843,9 @@ reason `root.pivot` is the camera:
 (175.0, 120.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.timeline.timeline_from_scene(scene)
 
 The compiled scene’s `timeline`/`animations` as an evaluable `Timeline`.
@@ -33650,9 +33858,6 @@ the executable spec `runtime.js` is tested against. The reading itself is the
 kernel’s ([`an.timing.timeline.timeline_from_compiled()`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled)), which carries
 `loop_mode` and keeps a list-valued `easing` a tuple.
 
-* **Return type:**
-  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
-
 ```pycon
 >>> from an.stage.compile import compile_shot
 >>> from an.ir.compose import tween
@@ -33663,6 +33868,9 @@ kernel’s ([`an.timing.timeline.timeline_from_compiled()`](_autosummary/an.timi
 >>> evaluate_timeline(timeline_from_scene(scene), 0.5)[("root", "x")]
 5.0
 ```
+
+* **Return type:**
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ### an.stage.timeline.transform_of(node, pose=None, , frame_height=1080.0)
 
@@ -33688,13 +33896,13 @@ can be showing: every swap set on a node swaps the one visual it carries
 (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
 itself.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
 ('x', 'rotation', '<swap>')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stage.tree.html.md
@@ -33776,9 +33984,6 @@ The prefix `node`’s children are indexed under: its own `path`, or,
 with `scope`, `scope` taken in the parent’s prefix (`""`: the
 parent’s prefix itself). Mirrors `childPrefix` in `runtime.js`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.stage.serialize import NodeJSON
 >>> child_prefix(NodeJSON(name="a"), "env/a", "env")
@@ -33789,17 +33994,20 @@ parent’s prefix itself). Mirrors `childPrefix` in `runtime.js`.
 'env'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.tree.join(prefix, name)
 
 `prefix/name`, or `name` at the top.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> join("", "set"), join("set", "sky")
 ('set', 'set/sky')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.tree.lineage(node, prefix='')
 
@@ -34481,13 +34689,13 @@ cleanly under version control. The mapping is the `assets` section;
 
 The lockfile key of one project store entry.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> lock_key("characters", "alice")
 'characters/alice'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stores.props.html.md
@@ -34588,9 +34796,6 @@ the authored scene (an#279).
 `markdown` with shot `shot_id`’s `duration:` set to `seconds`,
 every other line — prose, comments, formatting — untouched.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> md = "# T\n\nA note.\n\n## Shot a (manim)\n\n```yaml shot\noptions: {source: a}  # the chart\n```\n"
 >>> print(patch_shot_duration_md(md, "a", 3.1))
@@ -34608,6 +34813,9 @@ options: {source: a}  # the chart
 ```text
 <BLANKLINE>
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.stores.sounds.html.md
@@ -34798,15 +35006,15 @@ the rig’s own pixels, so a treatment scales with the character like paper woul
 
 ### Classes
 
-| [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*\*data)        | Art direction for a project.                                             |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`Outline`](_autosummary/an.styles.html.md#an.styles.Outline)(\*\*data)          | A darker, dilated copy drawn behind each part.                           |
-| [`PaperShadow`](_autosummary/an.styles.html.md#an.styles.PaperShadow)(\*\*data)      | The "no-platen" paper-gap shadow: an offset, darkened copy of each part. |
-| [`Glow`](_autosummary/an.styles.html.md#an.styles.Glow)(\*\*data)             | An additive radial-gradient sprite behind an entity.                     |
-| [`Grain`](_autosummary/an.styles.html.md#an.styles.Grain)(\*\*data)            | One static paper-grain texture over the whole frame.                     |
-| [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)(\*\*data) | Which treatments an entity gets.                                         |
+| [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*[, schema_version, kind, roles, ...])   | Art direction for a project.                                             |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`Outline`](_autosummary/an.styles.html.md#an.styles.Outline)(\*[, width, color, nested])                 | A darker, dilated copy drawn behind each part.                           |
+| [`PaperShadow`](_autosummary/an.styles.html.md#an.styles.PaperShadow)(\*[, dx, dy, color, alpha, nested])     | The "no-platen" paper-gap shadow: an offset, darkened copy of each part. |
+| [`Glow`](_autosummary/an.styles.html.md#an.styles.Glow)(\*[, color, radius, intensity])                | An additive radial-gradient sprite behind an entity.                     |
+| [`Grain`](_autosummary/an.styles.html.md#an.styles.Grain)(\*[, amount, seed, tile])                     | One static paper-grain texture over the whole frame.                     |
+| [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)(\*[, outline, shadow, glow])       | Which treatments an entity gets.                                         |
 
-### *class* an.styles.Glow(\*\*data)
+### *class* an.styles.Glow(, color='#fff4c2', radius=60.0, intensity=0.5)
 
 Bases: `_Treatment`
 
@@ -34824,7 +35032,7 @@ entity and lights the background around it, not the entity itself.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.Grain(\*\*data)
+### *class* an.styles.Grain(, amount=0.06, seed=0, tile=256)
 
 Bases: `_Treatment`
 
@@ -34840,7 +35048,7 @@ time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.Outline(\*\*data)
+### *class* an.styles.Outline(, width=3.0, color='#1a1a1a', nested=False)
 
 Bases: `_Treatment`
 
@@ -34871,7 +35079,7 @@ when an `alpha` channel reaches a treated part.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.PaperShadow(\*\*data)
+### *class* an.styles.PaperShadow(, dx=4.0, dy=4.0, color='#000000', alpha=0.35, nested=False)
 
 Bases: `_Treatment`
 
@@ -34914,7 +35122,7 @@ NOTHING (an#112 review) because the guard checked set membership against the
 set it was checking — a declared-reachable role that reaches nothing is the
 same defect as an unreachable one, and it needs the same kind of test.
 
-### *class* an.styles.StylePack(\*\*data)
+### *class* an.styles.StylePack(\*, schema_version='0.1.0', kind='StylePack', name, roles=<factory>, entities=<factory>, source=None, metadata=<factory>, surface=None, entity_surfaces=<factory>, grain=None, gradients=<factory>, policy=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -34971,15 +35179,15 @@ which is what keeps a scene with no pack byte-identical.
 
 The pack’s gradient for `role`, or `None` (the plane keeps its own paint).
 
-* **Return type:**
-  [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> pack = StylePack(name="reiniger", gradients={"glass": {
 ...     "type": "radial", "stops": ["#fff4d6", "#e0a050"]}})
 >>> pack.gradient_for("glass").type, pack.gradient_for("sky"), pack.gradient_for(None)
 ('radial', None, None)
 ```
+
+* **Return type:**
+  [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### gradients *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Gradient](_autosummary/an.paint.html.md#an.paint.Gradient)]*
 
@@ -35023,7 +35231,7 @@ docstring for why a second representation is a liability here.
 Surface treatments for every drawable entity (characters and props);
 `None` = none. See [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) and [`surface_for()`](_autosummary/an.styles.html.md#an.styles.surface_for).
 
-### *class* an.styles.SurfaceTreatment(\*\*data)
+### *class* an.styles.SurfaceTreatment(, outline=None, shadow=None, glow=None)
 
 Bases: `_Treatment`
 
@@ -35064,9 +35272,6 @@ A **lookup with a default**, not a rewrite: with no pack, or with a pack
 that mentions none of the three, the caller’s own literals come back
 unchanged and the compiled document does not move a byte.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> resolve_palette(None, "maya", ("#f4c89a", "#3a6ea5", "#3b2a1a"))
 ('#f4c89a', '#3a6ea5', '#3b2a1a')
@@ -35075,6 +35280,9 @@ unchanged and the compiled document does not move a byte.
 ('#f4c89a', '#202028', '#3b2a1a')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.styles.surface_for(pack, entity)
 
 The treatments `entity` gets under `pack`, or `None` for none.
@@ -35082,9 +35290,6 @@ The treatments `entity` gets under `pack`, or `None` for none.
 `None` is the answer for no pack, a pack without treatments, and an
 entity whose override switched everything off — which is what keeps every
 such scene’s compiled document byte-identical to before an#163.
-
-* **Return type:**
-  [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> pack = StylePack(name="sp", surface={"outline": {}},
@@ -35098,6 +35303,9 @@ True
 >>> surface_for(None, "maya") is None
 True
 ```
+
+* **Return type:**
+  [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.text.html.md
@@ -35228,9 +35436,6 @@ The address string of a compiled `(target, property)` pair, unvalidated
 
 `text` as an [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address); raises [`AddressError`](_autosummary/an.timing.address.html.md#an.timing.address.AddressError) naming the fault.
 
-* **Return type:**
-  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
-
 ```pycon
 >>> parse_address("charlie/left_arm:rotation").target
 'charlie/left_arm'
@@ -35239,6 +35444,9 @@ Traceback (most recent call last):
  ...
 an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
 ```
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
 
 
 # _autosummary/an.timing.channel.html.md
@@ -35313,7 +35521,7 @@ easing name stays loud on a swap channel too.
 |-------------------------------------------------------------------------------------------|---------------------------------------------------------|
 | [`Keyframe`](_autosummary/an.timing.channel.html.md#an.timing.channel.Keyframe)(time, value[, easing])          | One keyframe: time, value, optional per-segment easing. |
 
-### *class* an.timing.channel.Channel(target, property, keyframes=<factory>)
+### *class* an.timing.channel.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -35391,7 +35599,7 @@ Loop modes:
 |------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | [`LoopMode`](_autosummary/an.timing.clip.html.md#an.timing.clip.LoopMode)(\*values)                            | How a clip behaves past its natural duration.         |
 
-### *class* an.timing.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.timing.clip.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -35437,13 +35645,13 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.timing.clip.wrap_time(t, duration, loop_mode)
 
@@ -35638,13 +35846,13 @@ The sparse state of compiled document `doc` at `t`, keyed by address.
 
 The contract’s comparison (see the module docstring).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> values_close(1e9, 1e9 + 0.5), values_close([1, "a"], [1.0, "a"]), values_close(True, 1)
 (True, True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.timing.contract.write_contract(directory=PosixPath('/home/runner/work/an/an/an/data/timing'))
 
@@ -35772,7 +35980,7 @@ a genre adds its own
 * **Type:**
   The core families (see the module docstring). Open
 
-### *class* an.timing.easing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+### *class* an.timing.easing.EasingEntry(name, curve, family, solver, description, version=1, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -35831,9 +36039,6 @@ engine that implements only part of the registry passes (the stage runtime
 implements the legacy names; see `an.stage.easing`). Sequences
 always take the legacy Bézier solver.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> apply_easing(None, 0.25)
 0.25
@@ -35845,15 +36050,15 @@ Traceback (most recent call last):
 an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.timing.easing.css_cubic_bezier(x1, y1, x2, y2)
 
 The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.
 
 `x1` and `x2` must lie in `[0, 1]` (so the curve is a function of
 time); `y` may overshoot.
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> css = css_cubic_bezier(0.42, 0.0, 0.58, 1.0)
@@ -35865,12 +36070,12 @@ Traceback (most recent call last):
 ValueError: cubic-bezier x values must lie in [0, 1], got x1=1.5, x2=0
 ```
 
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.timing.easing.css_steps(n, position='jump-end')
 
 CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> f = css_steps(4)
@@ -35879,6 +36084,9 @@ CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.
 >>> css_steps(3, "jump-none")(0.5)
 0.5
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.timing.easing.easing_entries(, owner=None)
 
@@ -35891,13 +36099,13 @@ Every registered entry in registration order; only `owner`’s when given.
 
 The registered entry called `name`.
 
-* **Return type:**
-  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
-
 ```pycon
 >>> easing_entry("ease").family
 'legacy'
 ```
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
 
 ### an.timing.easing.legacy_cubic_bezier(cx1, cy1, cx2, cy2, t)
 
@@ -35925,15 +36133,15 @@ It does NOT agree with the CSS solver ([`css_cubic_bezier()`](_autosummary/an.ti
 for every control point, which is why it stays a named legacy solver until
 the pixel goldens are re-blessed under the stricter one.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
 0.5
 >>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
 (0.0, 1.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.easing.register_easing(entry, , replace=False, owner=None)
 
@@ -36211,7 +36419,7 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### *class* an.timing.Channel(target, property, keyframes=<factory>)
+### *class* an.timing.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36219,7 +36427,7 @@ Sorted keyframes for one property of one target.
 
 Construction validates that `keyframes` is non-empty and sorted.
 
-### *class* an.timing.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.timing.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36268,7 +36476,7 @@ The value between keys `a` and `b` at eased progress `u`.
 
 True when the value (or part of it) switches on TIME rather than moving.
 
-### *class* an.timing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+### *class* an.timing.EasingEntry(name, curve, family, solver, description, version=1, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36406,7 +36614,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.timing.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+### *class* an.timing.PropertySpace(name, fields=(), version=1, description='', undeclared=DiscreteKind())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36453,9 +36661,6 @@ Where an evaluation sits: time `t` inside the segment `[start, end)`.
 
 Whether a discrete value has switched to the segment’s second key.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
 (True, False)
@@ -36463,13 +36668,16 @@ Whether a discrete value has switched to the segment’s second key.
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### *exception* an.timing.SpaceError
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A property space is malformed, unknown, or already registered.
 
-### *class* an.timing.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.timing.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36482,7 +36690,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.timing.Track(target_root='', clips=<factory>)
+### *class* an.timing.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -36526,9 +36734,6 @@ engine that implements only part of the registry passes (the stage runtime
 implements the legacy names; see `an.stage.easing`). Sequences
 always take the legacy Bézier solver.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> apply_easing(None, 0.25)
 0.25
@@ -36539,6 +36744,9 @@ Traceback (most recent call last):
  ...
 an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.check_channel(channel, kind)
 
@@ -36573,13 +36781,13 @@ Every registered entry in registration order; only `owner`’s when given.
 
 The registered entry called `name`.
 
-* **Return type:**
-  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
-
 ```pycon
 >>> easing_entry("ease").family
 'legacy'
 ```
+
+* **Return type:**
+  [`EasingEntry`](_autosummary/an.timing.easing.html.md#an.timing.easing.EasingEntry)
 
 ### an.timing.evaluate_channel(channel, t, , kind=None)
 
@@ -36675,9 +36883,6 @@ The address string of a compiled `(target, property)` pair, unvalidated
 A kind instance from its contract spec (`{"kind": name, **params}`),
 a bare kind name, or an instance (returned as is).
 
-* **Return type:**
-  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
-
 ```pycon
 >>> kind_from_spec("discrete")
 DiscreteKind(switch_at=0.5)
@@ -36686,6 +36891,9 @@ Traceback (most recent call last):
  ...
 an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
 ```
+
+* **Return type:**
+  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
 
 ### an.timing.kind_names(, owner=None)
 
@@ -36700,20 +36908,17 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.timing.parse_address(text)
 
 `text` as an [`Address`](_autosummary/an.timing.html.md#an.timing.Address); raises [`AddressError`](_autosummary/an.timing.html.md#an.timing.AddressError) naming the fault.
-
-* **Return type:**
-  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
 
 ```pycon
 >>> parse_address("charlie/left_arm:rotation").target
@@ -36723,6 +36928,9 @@ Traceback (most recent call last):
  ...
 an.timing.address.AddressError: 'a::b': an address has exactly one ':', found 2
 ```
+
+* **Return type:**
+  [`Address`](_autosummary/an.timing.address.html.md#an.timing.address.Address)
 
 ### an.timing.register_easing(entry, , replace=False, owner=None)
 
@@ -36744,13 +36952,13 @@ Register a field kind under `name` (how a genre adds one).
 `owner` names who registered it; only `CORE_OWNER`’s kinds reach
 `an`’s contract files.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
-
 ```pycon
 >>> sorted(kind_names())[:3]
 ['angle', 'color', 'discrete']
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
 
 ### an.timing.register_space(space, , replace=False, owner=None)
 
@@ -36803,9 +37011,6 @@ the executable spec `runtime.js` is tested against.
 yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
 the evaluable form”.
 
-* **Return type:**
-  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
-
 ```pycon
 >>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
 ...     {"animation_id": "m", "start_time": 0.0}]}]},
@@ -36815,6 +37020,9 @@ the evaluable form”.
 >>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
 {('a', 'x'): 1.0}
 ```
+
+* **Return type:**
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ### an.timing.wrap_time(t, duration, loop_mode)
 
@@ -37122,15 +37330,15 @@ Where an evaluation sits: time `t` inside the segment `[start, end)`.
 
 Whether a discrete value has switched to the segment’s second key.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> Segment(0.5, 0.0, 1.0).switched(0.5), Segment(0.49, 0.0, 1.0).switched(0.5)
 (True, False)
 >>> Segment(0.9999999999, 0.0, 1.0).switched(1.0)  # only at b.time itself
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### *class* an.timing.kinds.VectorKind
 
@@ -37157,9 +37365,6 @@ The value between keys `a` and `b` at eased progress `u`.
 A kind instance from its contract spec (`{"kind": name, **params}`),
 a bare kind name, or an instance (returned as is).
 
-* **Return type:**
-  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
-
 ```pycon
 >>> kind_from_spec("discrete")
 DiscreteKind(switch_at=0.5)
@@ -37168,6 +37373,9 @@ Traceback (most recent call last):
  ...
 an.timing.kinds.FieldKindError: unknown field kind 'points'; known: ['number', 'angle', 'vector', 'quaternion', 'color', 'orbit', 'discrete']
 ```
+
+* **Return type:**
+  [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)
 
 ### an.timing.kinds.kind_names(, owner=None)
 
@@ -37183,13 +37391,13 @@ Register a field kind under `name` (how a genre adds one).
 `owner` names who registered it; only [`CORE_OWNER`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.CORE_OWNER)’s kinds reach
 `an`’s contract files.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
-
 ```pycon
 >>> sorted(kind_names())[:3]
 ['angle', 'color', 'discrete']
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`FieldKind`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.FieldKind)]
 
 ### an.timing.kinds.shortest_delta(a, b, period=360.0)
 
@@ -37198,13 +37406,13 @@ The signed shortest turn from `a` to `b`, in `[-period/2, period/2]`.
 An exact half turn goes in the direction of `b - a`, so a return trip
 retraces its path (0 -> 180 -> 0 goes there and back, not round).
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> shortest_delta(350, 10), shortest_delta(10, 350), shortest_delta(0, 180)
 (20.0, -20.0, 180.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.kinds.slerp(a, b, u)
 
@@ -37334,7 +37542,7 @@ One declaration of a property space: pattern -> kind, write group, unit.
 
 The write group this property belongs to; `None` means itself.
 
-### *class* an.timing.spaces.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+### *class* an.timing.spaces.PropertySpace(name, fields=(), version=1, description='', undeclared=DiscreteKind())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -37487,7 +37695,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.timing.timeline.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.timing.timeline.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -37500,7 +37708,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.timing.timeline.Track(target_root='', clips=<factory>)
+### *class* an.timing.timeline.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -37601,9 +37809,6 @@ the executable spec `runtime.js` is tested against.
 yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
 the evaluable form”.
 
-* **Return type:**
-  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
-
 ```pycon
 >>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
 ...     {"animation_id": "m", "start_time": 0.0}]}]},
@@ -37613,6 +37818,9 @@ the evaluable form”.
 >>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
 {('a', 'x'): 1.0}
 ```
+
+* **Return type:**
+  [`Timeline`](_autosummary/an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ### an.timing.timeline.write_group(prop)
 
@@ -37625,13 +37833,13 @@ can be showing: every swap set on a node swaps the one visual it carries
 (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
 itself.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
 ('x', 'rotation', '<swap>')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.tools.html.md
@@ -37840,13 +38048,13 @@ allow_private_here: write not-publishable frames where git would pick them up
 
 The sub-namespaces installed genres added (`cli.<namespace>` services).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
-
 ```pycon
 >>> registered_namespaces() == {} or all(isinstance(v, list) for v in registered_namespaces().values())
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
 
 ### an.tools.render(project_dir, output_name='main', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
@@ -38016,7 +38224,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
 
-### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
+### *class* an.verify.VerificationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -38190,15 +38398,15 @@ default orchestrate chain.
 Inputs are float arrays in [0, 1]. Returns a float in roughly `[-1, 1]`;
 1 means identical.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> x = np.zeros((8, 8), dtype=np.float32)
 >>> ssim(x, x)
 1.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.verify.media.ssim_image_files(path_a, path_b)
 
@@ -38420,15 +38628,15 @@ dropped, at least one per word; a number counts one per digit.
 
 Bracketed audio tags (`[sighs]`) are not words and are skipped.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> count_syllables("He did not do the job.")
 6
 >>> count_syllables("[deadpan] Forty-seven criteria.")  # truly 8: an estimate
 7
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.verify.prosody.decode_audio(path, , sr=16000, ffmpeg='ffmpeg')
 
@@ -38443,15 +38651,15 @@ Clips with their leading and trailing silence trimmed, joined with `gap_s`
 of silence — so a set of lines measures as one performance without the
 authored gaps between lines counting as the voice’s pauses.
 
-* **Return type:**
-  `ndarray`
-
 ```pycon
 >>> sr = 1000
 >>> c = np.concatenate([np.zeros(200), np.ones(300), np.zeros(200)])
 >>> 0.6 <= len(join_speech([c, c], sr)) / sr < 0.7  # edges blur by one window
 True
 ```
+
+* **Return type:**
+  `ndarray`
 
 ### an.verify.prosody.measure_lines(paths, , texts=None, sr=16000, \*\*knobs)
 
@@ -38490,9 +38698,6 @@ The per-field median of several clips’ stats (`nan` ignored); counts
 and durations are summed. How a set of lines is compared with targets
 measured per sentence.
 
-* **Return type:**
-  [`ProsodyStats`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyStats)
-
 ```pycon
 >>> a = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[1.0] * 13)
 >>> b = ProsodyStats(2.0, 2.0, 2.0, 5, 1, *[3.0] * 13)
@@ -38501,12 +38706,12 @@ measured per sentence.
 (2.0, 8, 3.0)
 ```
 
+* **Return type:**
+  [`ProsodyStats`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyStats)
+
 ### an.verify.prosody.pitch_track(samples, sr, , fmin=60.0, fmax=500.0, hop_s=0.01, window_s=0.025, threshold=0.1, voicing_threshold=0.35, chunk=4096)
 
 A YIN pitch track: Hz per hop, `nan` where no period is found.
-
-* **Return type:**
-  `ndarray`
 
 ```pycon
 >>> sr = 16000
@@ -38517,6 +38722,9 @@ A YIN pitch track: Hz per hop, `nan` where no period is found.
 >>> bool(np.isnan(pitch_track(np.zeros(sr // 4), sr)).all())
 True
 ```
+
+* **Return type:**
+  `ndarray`
 
 ### an.verify.prosody.prosody_lint(audio, targets, , text=None, miss_severity='warning')
 
@@ -38537,9 +38745,6 @@ having no number. `off_centre` sums each value’s distance from its range’s
 midpoint, in the same units — the tie-break between takes that are all on
 target. A zero-width range counts as one unit wide.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)
 >>> target_distance(s, {"f0_sd_st": [2, 4]})
@@ -38548,12 +38753,12 @@ target. A zero-width range counts as one unit wide.
 (0.5, 1.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.verify.prosody.validate_targets(targets)
 
 Raise [`ProsodyTargetError`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyTargetError) unless every target names a metric and is a `[low, high]` range.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> validate_targets({"f0_sd_st": [2, 4]})
@@ -38562,6 +38767,9 @@ Traceback (most recent call last):
 ...
 an.verify.prosody.ProsodyTargetError: prosody target 'f0_sd_st' must be [low, high], got [4, 2]
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.verify.vision.html.md
@@ -38612,8 +38820,8 @@ prompt. Roughly $0.005 with Haiku.
 | [`emotion_prompt`](_autosummary/an.verify.vision.html.md#an.verify.vision.emotion_prompt)(labels)                           | The name-the-emotion prompt over a closed label set.                                                       |
 |---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
 | [`judge_emotion`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_emotion)(frames, \*[, labels, judge, ...])  | Name the emotion a frame (or short strip) shows, or `None` if the reply named nothing in `labels` (an#98). |
-| [`judge_envelope`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_envelope)(frames, \*[, prompt, ...])        | Call the vision model and return a recordable envelope.                                                    |
-| [`judge_frames`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_frames)(frames, \*[, prompt, ...])          | The paid seam: frame bytes in, the model's raw text reply out.                                             |
+| [`judge_envelope`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_envelope)(frames, \*[, prompt, model, ...]) | Call the vision model and return a recordable envelope.                                                    |
+| [`judge_frames`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_frames)(frames, \*[, prompt, model, ...])   | The paid seam: frame bytes in, the model's raw text reply out.                                             |
 | [`judge_key`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_key)(\*args, \*\*kwargs)                    | The cache key for one [`judge_frames()`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_frames) call.                |
 | [`judge_legibility`](_autosummary/an.verify.vision.html.md#an.verify.vision.judge_legibility)(frames, text, \*[, judge, ...]) | Score a dense in-line frame strip for lip-sync legibility (an#97).                                         |
 | [`legibility_prompt`](_autosummary/an.verify.vision.html.md#an.verify.vision.legibility_prompt)(text)                          | The legibility prompt for one line.                                                                        |
@@ -38689,13 +38897,13 @@ object, differing only in what the store returns.
 The name-the-emotion prompt over a closed label set. The labels are part
 of the key, so a different set is a different recording.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> "happy" in emotion_prompt(["neutral", "happy"])
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.verify.vision.judge_emotion(frames, , labels=None, judge=None, model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -38709,7 +38917,7 @@ the `judge_frames`-shaped seam; parsing stays outside the recording.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.verify.vision.judge_envelope(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
+### an.verify.vision.judge_envelope(frames, , prompt='You are reviewing frames from a short animated cartoon. The character\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\ndesign. DO comment on:\\n\\n- Characters that are clipped off-screen or overlap badly.\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\n- Mouth shape that obviously doesn\\'t match active speech (e.g. closed lips\\n  during a long word).\\n- Background obscuring a character.\\n\\nReply in JSON only, with this shape:\\n\\n{\\n  "issues": [\\n    {"severity": "warning"|"error", "where": "<short location hint>", "what": "<one sentence>"}\\n  ]\\n}\\n\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
 Call the vision model and return a recordable envelope.
 
@@ -38721,7 +38929,7 @@ cassette auditable would be unwritable.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.verify.vision.judge_frames(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
+### an.verify.vision.judge_frames(frames, , prompt='You are reviewing frames from a short animated cartoon. The character\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\ndesign. DO comment on:\\n\\n- Characters that are clipped off-screen or overlap badly.\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\n- Mouth shape that obviously doesn\\'t match active speech (e.g. closed lips\\n  during a long word).\\n- Background obscuring a character.\\n\\nReply in JSON only, with this shape:\\n\\n{\\n  "issues": [\\n    {"severity": "warning"|"error", "where": "<short location hint>", "what": "<one sentence>"}\\n  ]\\n}\\n\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
 The paid seam: frame bytes in, the model’s raw text reply out.
 
@@ -38747,9 +38955,6 @@ unrecoverable, so the default has to be *include*.
 `apply_defaults()` matters too: without it `judge_frames(frames)` and
 the fully-spelled call are two different keys for one request.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> k = judge_key([b"a"], model="m", max_tokens=1, prompt="p")
 >>> k == judge_key([b"a"], model="m", max_tokens=1, prompt="p", api_key="secret")
@@ -38759,6 +38964,9 @@ True
 >>> k == judge_key([b"b"], model="m", max_tokens=1, prompt="p")
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.verify.vision.judge_legibility(frames, text, , judge=None, model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 
@@ -38785,20 +38993,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-14 05:06 UTC** from commit <a href="https://github.com/reeleehq/an/commit/521931784f348e169d84181956bc597f79749ea1"><code>5219317</code></a> on branch <code>main</code>, for **an 0.1.239** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 11:19 UTC** from commit <a href="https://github.com/reeleehq/an/commit/bc8639a6d89e5a20078fb7d8a143a4d5f83a347f"><code>bc8639a</code></a> on branch <code>main</code>, for **an 0.1.240** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.239) is ahead of the latest release on PyPI (0.1.238): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/521931784f348e169d84181956bc597f79749ea1"><code>521931784f348e169d84181956bc597f79749ea1</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/bc8639a6d89e5a20078fb7d8a143a4d5f83a347f"><code>bc8639a6d89e5a20078fb7d8a143a4d5f83a347f</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.239</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.240</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -38807,16 +39013,16 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/38514283420">38514283420</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/39413368931">39413368931</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>e32818a53c6d5d1e67b07dac51aaeb0501f5c133</code> (in the history of the built commit) |
+| Event commit | <code>c4b9fc3824cd2520e4cf1a79077d9ab25edccb0c</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.17  |
-| Sphinx   | 9.1.0   |
+| epythet  | 0.2.19  |
+| Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
 
@@ -38834,14 +39040,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.238/">0.1.238</a>, older than the documented version (0.1.239).
+Latest release: <a href="https://pypi.org/project/an/0.1.240/">0.1.240</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 521931784f348e169d84181956bc597f79749ea1
-pip install "epythet==0.2.17"
+git checkout bc8639a6d89e5a20078fb7d8a143a4d5f83a347f
+pip install "epythet==0.2.19"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

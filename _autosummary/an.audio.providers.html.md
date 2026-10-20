@@ -39,7 +39,7 @@ Rhubarb reads it today (its recognizer follows the language, an#96).
 
 The provider `default_lipsync()` prefers when a genre registered it.
 
-### an.audio.providers.LIPSYNC_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[...], [LipSyncProvider](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]* *= {'none': <function <lambda>>}*
+### an.audio.providers.LIPSYNC_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[..., [LipSyncProvider](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)]]* *= {'none': <function <lambda>>}*
 
 The lip-sync providers the core itself offers. A genre adds its own through
 the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
@@ -77,13 +77,13 @@ The default name (`"offline"`) resolves to [`NullLipSync`](an.audio.lipsync.html
 when no loaded genre provides it, so voicing a line needs no genre; any other
 name that nothing provides is an error that says how to get it.
 
-* **Return type:**
-  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> make_lipsync("offline").name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.providers.make_tts(name)
 

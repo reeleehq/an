@@ -182,10 +182,10 @@ two neighbouring reported timestamps can never cross on a regular grid.
 
 Frames in a render of `duration` seconds — the renderer’s own rule.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> frame_count(2.0, 30), frame_count(0.01, 30)
 (60, 1)
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)

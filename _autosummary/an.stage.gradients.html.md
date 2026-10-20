@@ -50,13 +50,13 @@ The longest side, in texture pixels, a gradient is rasterised at.
 
 A content-addressed texture alias: the same gradient, the same alias.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> gradient_alias("glass.sky", "data:x") == gradient_alias("glass.sky", "data:x")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.gradients.gradient_src(svg)
 
@@ -72,9 +72,6 @@ The SVG that paints `gradient` over `box`, laid out on the centred `frame`.
 Coordinates are scene pixels (the `viewBox`); `width`/`height` are the
 raster size, at most `raster_max` on the longer side.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.paint import Gradient
 >>> svg = gradient_svg(Gradient(type="radial", stops=["#fff", "#000"]),
@@ -84,3 +81,6 @@ True
 >>> 'gradientTransform="translate(2000 2000) scale(960 540)"' in svg
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

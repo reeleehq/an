@@ -29,13 +29,13 @@ True
 
 `text` with the block between the markers replaced by `section`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> replace_section(f"a\n{BEGIN_MARKER}\nold\n{END_MARKER}\nb", "new").splitlines()[2]
 'new'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.semantic.docs.skill_vocabulary_section(, owner='an')
 

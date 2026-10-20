@@ -110,15 +110,15 @@ Ledger rows are committed to a public repository, so a row must not carry
 the absolute path of the machine that wrote it. Provenance only: nothing
 compares on this field. POSIX-spelled on every platform.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
 '~/.cache/ms-playwright/chrome'
 >>> home_relative("/opt/chrome", home=Path("/home/u"))
 '/opt/chrome'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.environment.probe_browser()
 

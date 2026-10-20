@@ -124,9 +124,6 @@ uses this for.
 
 `source` is a path or the file’s bytes.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import struct, zlib
 >>> ihdr = struct.pack(">IIBBBBB", 3, 2, 8, 6, 0, 0, 0)
@@ -136,12 +133,12 @@ uses this for.
 (3.0, 2.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.raster.is_raster(src)
 
 Whether `src` names raster art, by its suffix (case-insensitive).
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> is_raster("plates/Street.JPG")
@@ -150,26 +147,29 @@ True
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.stage.raster.strip_version(src)
 
 The file path a (possibly versioned) texture `src` names.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> strip_version("props/lamp/parts/on.png?v=abc123")
 'props/lamp/parts/on.png'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.raster.versioned_src(src, digest)
 
 `src` with its content digest as a query string.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> versioned_src("props/lamp/parts/on.png", "abc123")
 'props/lamp/parts/on.png?v=abc123'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

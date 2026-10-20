@@ -35,7 +35,7 @@ Render `text` in `voice_id`’s voice. Returns an AudioClip.
 * **Return type:**
   [`AudioClip`](#an.audio.tts.AudioClip)
 
-### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=<factory>)
+### *class* an.audio.tts.VoiceMeta(voice_id, name, provider, language='en', gender=None, extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

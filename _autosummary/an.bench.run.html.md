@@ -231,12 +231,12 @@ condenser it can rise, because that loop was cheaper only by dropping
 shapes. Recorded as provenance rather than a panel metric because no lever
 in the registry moves it.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> viseme_keyframes_per_second({"animations": {}})
 >>> viseme_keyframes_per_second({"animations": {"__viseme__s_0_m": {"duration": 2.0,
 ...     "channels": [{"keyframes": [{"time": 0}, {"time": 0.5}, {"time": 1.0}, {"time": 2.0}]}]}}})
 1.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

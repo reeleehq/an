@@ -102,9 +102,6 @@ instant at `i / fps`.
 
 Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> from types import SimpleNamespace
 >>> job = FrameJob(None, SimpleNamespace(fps=4, resolution=(2, 2)), Path("."),
@@ -112,6 +109,9 @@ Every frame’s request, frame `i` at `i / fps` unless a clock says otherwise.
 >>> [r.times for r in job.requests()]
 [(0.0,), (0.25,), (0.5,)]
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`FrameRequest`](an.engines.protocol.html.md#an.engines.protocol.FrameRequest), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 #### *property* size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 
@@ -152,7 +152,7 @@ The frame stage could not produce a frame directory it can vouch for.
 A renderer built by `frame_stage_renderer(..., error=...)` re-raises it as
 its own typed error at its boundary.
 
-### *class* an.engines.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=<factory>)
+### *class* an.engines.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -330,9 +330,6 @@ Requests as plain dicts, the shape a page or a subprocess takes.
 
 Refuse an object that is not an engine, saying what is missing.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_engine(object())
 Traceback (most recent call last):
@@ -340,12 +337,12 @@ Traceback (most recent call last):
 TypeError: an Engine needs `name` and `open(job)`; object lacks: name, open
 ```
 
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.engines.require_seekable(session)
 
 The session’s drive mode, or a refusal that says what to add.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> require_seekable(object())
@@ -353,6 +350,9 @@ Traceback (most recent call last):
   ...
 an.engines.protocol.UnseekableEngineError: this engine session cannot be captured: it has no frame(t) (time-driven), and no render(state) with a timeline (state-driven). Add frame(t) and state(t) if the engine evaluates the timeline itself, or timeline and render(state) if the core should evaluate it.
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.engines.shot_workspace(work_dir, shot_id)
 

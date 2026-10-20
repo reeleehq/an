@@ -77,13 +77,13 @@ information. What the convention keeps is its real benefit: a Playwright
 bump becomes a **new path requiring a deliberate re-bless** rather than a
 red test with no explanation.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> golden_path("s", "f0", "140.0.7339.16").name
 'f0-chromium140.0.7339.16.png'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.ledger_dir(root=None)
 
@@ -100,13 +100,13 @@ The `-dirty` suffix is not decoration: a row measured against uncommitted
 edits describes no commit, and a filename that claims one would be read by
 an#40 as that commit’s evidence.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> ledger_path(git={"sha": "abc1234def", "dirty": True}).name.endswith("-dirty.json")
 True
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.paths.repo_root()
 
@@ -120,10 +120,10 @@ symptom would be a missing-fixture error three frames deep.
 The checkout’s folder name is not asserted: a git worktree or a clone
 under another name is still a source checkout.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> (repo_root() / "an" / "bench" / "paths.py").is_file()
 True
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

@@ -48,7 +48,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.timing.timeline.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.timing.timeline.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -61,7 +61,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.timing.timeline.Track(target_root='', clips=<factory>)
+### *class* an.timing.timeline.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -162,9 +162,6 @@ the executable spec `runtime.js` is tested against.
 yet: a reader that quietly drops a field it was handed is a lossy “rebuilds
 the evaluable form”.
 
-* **Return type:**
-  [`Timeline`](#an.timing.timeline.Timeline)
-
 ```pycon
 >>> doc = {"timeline": {"duration": 1.0, "tracks": [{"clips": [
 ...     {"animation_id": "m", "start_time": 0.0}]}]},
@@ -174,6 +171,9 @@ the evaluable form”.
 >>> evaluate_timeline(timeline_from_compiled(doc), 0.25)
 {('a', 'x'): 1.0}
 ```
+
+* **Return type:**
+  [`Timeline`](#an.timing.timeline.Timeline)
 
 ### an.timing.timeline.write_group(prop)
 
@@ -186,10 +186,10 @@ can be showing: every swap set on a node swaps the one visual it carries
 (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
 itself.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
 ('x', 'rotation', '<swap>')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

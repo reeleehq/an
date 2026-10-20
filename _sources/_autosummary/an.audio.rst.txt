@@ -54,5 +54,6 @@ an.audio
    rhubarb_lipsync
    takes
    tts
+   voice_design
    voices
    whisper_lipsync

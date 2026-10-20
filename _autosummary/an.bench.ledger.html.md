@@ -76,7 +76,7 @@ A ledger row violates an invariant that would make it misreadable.
 Bumped when a reader could misinterpret an older row. `an bench --compare`
 (an#40) must refuse a version it does not understand rather than guess.
 
-### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=<factory>)
+### *class* an.bench.ledger.Value(value, state='measured', gate=None, detail='', extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -144,14 +144,14 @@ Which metrics would count for `mutation`, grouped by family.
 Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
 ...     "under_mutation": {"high_crf": {"counts": True}}}}}, "high_crf")
 {'A': ['m']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.bench.ledger.write_ledger(ledger, path)
 

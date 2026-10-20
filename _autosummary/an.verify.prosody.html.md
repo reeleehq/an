@@ -166,15 +166,15 @@ dropped, at least one per word; a number counts one per digit.
 
 Bracketed audio tags (`[sighs]`) are not words and are skipped.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> count_syllables("He did not do the job.")
 6
 >>> count_syllables("[deadpan] Forty-seven criteria.")  # truly 8: an estimate
 7
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.verify.prosody.decode_audio(path, , sr=16000, ffmpeg='ffmpeg')
 
@@ -189,15 +189,15 @@ Clips with their leading and trailing silence trimmed, joined with `gap_s`
 of silence — so a set of lines measures as one performance without the
 authored gaps between lines counting as the voice’s pauses.
 
-* **Return type:**
-  `ndarray`
-
 ```pycon
 >>> sr = 1000
 >>> c = np.concatenate([np.zeros(200), np.ones(300), np.zeros(200)])
 >>> 0.6 <= len(join_speech([c, c], sr)) / sr < 0.7  # edges blur by one window
 True
 ```
+
+* **Return type:**
+  `ndarray`
 
 ### an.verify.prosody.measure_lines(paths, , texts=None, sr=16000, \*\*knobs)
 
@@ -236,9 +236,6 @@ The per-field median of several clips’ stats (`nan` ignored); counts
 and durations are summed. How a set of lines is compared with targets
 measured per sentence.
 
-* **Return type:**
-  [`ProsodyStats`](#an.verify.prosody.ProsodyStats)
-
 ```pycon
 >>> a = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[1.0] * 13)
 >>> b = ProsodyStats(2.0, 2.0, 2.0, 5, 1, *[3.0] * 13)
@@ -247,12 +244,12 @@ measured per sentence.
 (2.0, 8, 3.0)
 ```
 
+* **Return type:**
+  [`ProsodyStats`](#an.verify.prosody.ProsodyStats)
+
 ### an.verify.prosody.pitch_track(samples, sr, , fmin=60.0, fmax=500.0, hop_s=0.01, window_s=0.025, threshold=0.1, voicing_threshold=0.35, chunk=4096)
 
 A YIN pitch track: Hz per hop, `nan` where no period is found.
-
-* **Return type:**
-  `ndarray`
 
 ```pycon
 >>> sr = 16000
@@ -263,6 +260,9 @@ A YIN pitch track: Hz per hop, `nan` where no period is found.
 >>> bool(np.isnan(pitch_track(np.zeros(sr // 4), sr)).all())
 True
 ```
+
+* **Return type:**
+  `ndarray`
 
 ### an.verify.prosody.prosody_lint(audio, targets, , text=None, miss_severity='warning')
 
@@ -283,9 +283,6 @@ having no number. `off_centre` sums each value’s distance from its range’s
 midpoint, in the same units — the tie-break between takes that are all on
 target. A zero-width range counts as one unit wide.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)
 >>> target_distance(s, {"f0_sd_st": [2, 4]})
@@ -294,12 +291,12 @@ target. A zero-width range counts as one unit wide.
 (0.5, 1.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.verify.prosody.validate_targets(targets)
 
 Raise [`ProsodyTargetError`](#an.verify.prosody.ProsodyTargetError) unless every target names a metric and is a `[low, high]` range.
-
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> validate_targets({"f0_sd_st": [2, 4]})
@@ -308,3 +305,6 @@ Traceback (most recent call last):
 ...
 an.verify.prosody.ProsodyTargetError: prosody target 'f0_sd_st' must be [low, high], got [4, 2]
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)

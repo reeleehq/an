@@ -148,15 +148,15 @@ A parametrised spec (`cubic-bezier(...)`) or a control-point list carries
 its meaning in the document itself and has no version; a name the registry
 does not know is left to the compiler, which refuses it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> easing_versions({"animations": {"a": {"channels": [{"keyframes": [
 ...     {"time": 0, "value": 0, "easing": "ease_in_out"},
 ...     {"time": 1, "value": 1, "easing": [0.1, 0.2, 0.3, 0.4]}]}]}}})
 {'ease_in_out': 1}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.stage.cache_key.ffmpeg_build()
 
@@ -179,13 +179,13 @@ which is over-inclusive on purpose: a stale shot-cache hit after a genre
 upgrade is the failure (an#294), and a genre’s edit to a module that cannot
 reach a pixel costs one re-render. `an` itself is walked from the renderer.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
 ```pycon
 >>> isinstance(genre_code_modules(), dict)
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.stage.cache_key.muxed_audio(shot, ctx)
 
@@ -240,9 +240,6 @@ path’s shim file is keyed too (an edit to it changes what the name serves).
 So a module that leaves for `cutan` (P8, an#225) stays in the key, under
 any warnings filter (review of an#298, S2; an#294).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
-
 ```pycon
 >>> mods = render_path_modules()
 >>> "an.stage.canvas_capture" in mods and "an.stage.compile" not in mods
@@ -250,6 +247,9 @@ True
 >>> {"an.engines.capture", "an.media.mp4"} <= set(mods)
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 ### an.stage.cache_key.render_path_roots(renderer_type=None)
 
@@ -261,13 +261,13 @@ engine’s module – so moving the renderer (an#247 PR B) or turning its old
 module into a pure shim moves the roots with it. `None` is the cut-out
 renderer, plus [`RENDER_PATH_ROOT`](#an.stage.cache_key.RENDER_PATH_ROOT).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "an.engines.frame_stage" in render_path_roots()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.stage.cache_key.system_fonts_digest()
 

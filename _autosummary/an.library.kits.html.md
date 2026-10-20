@@ -57,15 +57,15 @@ the whole kit and leaves the project as it was.
 
 ### Classes
 
-| [`Kit`](#an.library.kits.Kit)(\*\*data)       | The kit document: a name, its pinned members, and a note saying what it is for.   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`KitMember`](#an.library.kits.KitMember)(\*\*data) | One member of a kit: a pinned reference and the project key it lands under.       |
+| [`Kit`](#an.library.kits.Kit)(\*[, kind, schema_version, note])   | The kit document: a name, its pinned members, and a note saying what it is for.   |
+|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`KitMember`](#an.library.kits.KitMember)(\*, ref[, key])               | One member of a kit: a pinned reference and the project key it lands under.       |
 
 ### an.library.kits.KIT_SCHEMA_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '0.1.0'*
 
 Schema version of the kit document (its own document kind).
 
-### *class* an.library.kits.Kit(\*\*data)
+### *class* an.library.kits.Kit(, kind='Kit', schema_version='0.1.0', name, members, note=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -75,7 +75,7 @@ The kit document: a name, its pinned members, and a note saying what it is for.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.library.kits.KitMember(\*\*data)
+### *class* an.library.kits.KitMember(, ref, key=None, \*\*extra_data)
 
 Bases: `BaseModel`
 

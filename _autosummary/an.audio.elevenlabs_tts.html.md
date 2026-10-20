@@ -79,13 +79,13 @@ what may never run in memory).
 
 Characters one request bills: the text as sent, audio tags included.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
 13
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 #### check_available()
 
@@ -142,13 +142,13 @@ it (every model but `eleven_v3`, measured) still returns different
 takes; without a seed the request is unchanged and the model’s own
 sampling varies the take.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
 {'seed': 13}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsUnavailableError
 
@@ -174,9 +174,6 @@ The canonical `voice_settings` dict — only what was declared, key-sorted.
 Omit-when-unset: `None` and `{}` give `{}`. Unknown keys and values out
 of range raise, so a typo cannot silently fall back to the account default.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> normalize_voice_settings({"style": 1, "stability": 0.25})
 {'stability': 0.25, 'style': 1.0}
@@ -185,6 +182,9 @@ Traceback (most recent call last):
     ...
 an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['stabilty']; known: ['similarity_boost', 'speed', 'stability', 'style', 'use_speaker_boost']
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.elevenlabs_tts.tagged_text(text, tags)
 
@@ -197,10 +197,10 @@ an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['st
 
 Whether `model_id` reads inline audio tags.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)

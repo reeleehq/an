@@ -92,9 +92,6 @@ given, is the DECLARED size the resolved frame must have: a canvas that is
 not `factor` times it is refused here, not muxed. `compress_level=None`
 reads `DEFAULT_PNG_COMPRESS_LEVEL` at call time.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> import numpy as np
 >>> from PIL import Image
@@ -111,12 +108,12 @@ Traceback (most recent call last):
 an.stage.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, declared 3x2 (supersample 1)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.stage.canvas_capture.decode_data_url(url, , frame)
 
 A `toDataURL('image/png')` result -> the PNG’s bytes, or refuse.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> decode_data_url(DATA_URL_PREFIX + "iVBORw==", frame=0)[:4]
@@ -126,6 +123,9 @@ Traceback (most recent call last):
   ...
 an.stage.canvas_capture.CanvasCaptureError: frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ### an.stage.canvas_capture.opaque_rgb(png, , frame)
 
@@ -142,9 +142,6 @@ drop is `convert("RGB")`, both in C. Slicing `[..., :3]` out of a numpy
 view and copying it contiguous measured ~5x slower at 1080p, on a path whose
 whole point is time.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> from PIL import Image
@@ -160,3 +157,6 @@ Traceback (most recent call last):
   ...
 an.stage.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)

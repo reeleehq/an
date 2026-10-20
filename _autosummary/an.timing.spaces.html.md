@@ -116,7 +116,7 @@ One declaration of a property space: pattern -> kind, write group, unit.
 
 The write group this property belongs to; `None` means itself.
 
-### *class* an.timing.spaces.PropertySpace(name, fields=(), version=1, description='', undeclared=<factory>)
+### *class* an.timing.spaces.PropertySpace(name, fields=(), version=1, description='', undeclared=DiscreteKind())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

@@ -165,7 +165,7 @@ Bases: [`CutoutCompileError`](#an.stage.compile.CutoutCompileError)
 
 A genre registered a pass (or a builder) the stage already has, without `replace=True`.
 
-### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=<factory>, resolutions=<factory>, overlay_children=<factory>, fonts=<factory>, scene_root=None, vocab=None, animations=<factory>, tracks=<factory>, entity_swaps=<factory>, extra_actions=<factory>, no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=<factory>, gaze_seeds=<factory>, products=<factory>, meta_extensions=<factory>)
+### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -301,7 +301,7 @@ phase 0 the backdrop, phase 1 the cast.
 
 What a synthetic node’s name may contain and an entity id may not (an#344).
 
-### *class* an.stage.compile.SceneBuild(shot, mall, textures, resolutions, style_pack, overlay, fonts, width, height, children=<factory>, in_front=<factory>, reached=<factory>, skipped=<factory>, raster=<factory>)
+### *class* an.stage.compile.SceneBuild(shot, mall, textures, resolutions, style_pack, overlay, fonts, width, height, children=list(), in_front=list(), reached=set(), skipped=set(), raster=set())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -318,9 +318,6 @@ by hand.
 refuse (an#344): an anchor the shot does not have, the entity itself, a
 cycle. The one statement both `compile_shot` and `an validate` read.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, StagePlacement
 >>> shot = Shot(id="s", renderer="stage", duration=1.0, entities=[
@@ -329,6 +326,9 @@ cycle. The one statement both `compile_shot` and `an validate` read.
 >>> [why.split(":")[0] for _, why in after_problems(shot, {})]
 ["entity 'a' is placed after 'b'", "entity 'b' is placed after 'a'"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.stage.compile.camera_follow_keys(state)
 
@@ -405,13 +405,13 @@ Paths the runtime would index twice (its `nodeIndex` is later-wins,
 so the first node would silently stop answering). Over the FINISHED tree,
 scoped containers included (an#344).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> duplicate_paths(NodeJSON(name="root", children=[NodeJSON(name="a"), NodeJSON(name="a")]))
 ['a']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.compile.entity_spaces_of(shot)
 
@@ -419,26 +419,26 @@ scoped containers included (an#344).
 than the kernel default – what the compiled document records so the
 default evaluator agrees with validate and compile (an#245).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, Shot
 >>> entity_spaces_of(Shot(id="s", entities=[AssetRef(kind="prop", id="p", store="props", ref="p")]))
 {}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.compile.foreground_node_name(entity_id)
 
 The node name an environment’s foreground planes live under.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> foreground_node_name("street")
 'street__front'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.compile.node_path_suggestions(target, paths, , n=3)
 
@@ -447,9 +447,6 @@ The built node paths a mistyped `target` most plausibly meant.
 The paths of the SAME entity that end in the same part name — the usual
 mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 — or, when there are none, the closest spellings.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
@@ -460,6 +457,9 @@ mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
 >>> node_path_suggestions("zzz", built)
 []
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.compile.note_raster_rig(entity, desc_data, pack, raster)
 
@@ -491,9 +491,6 @@ One rule, computed the same way by the builder and by the parallax pass —
 the alternative is two places deciding which container a plane ended up in,
 which is the class of drift this wave keeps closing.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.stage.environments import EnvironmentDescriptor, Plane
 >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
@@ -509,6 +506,9 @@ depends on where the environment was cut:
 {'a': 'street', 'b': 'street'}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.stage.compile.retire_front_spelling(shot)
 
 `shot` with every `<env>__front/<plane>` target spelled `<env>/<plane>`,
@@ -520,9 +520,6 @@ would be the an#110 collision. For one cycle the compiler (and `an
 validate`) rewrites it with a warning naming the new spelling; a later
 issue retires the rewrite.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](an.ir.schema.html.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef, SetAction
 >>> shot = Shot(id="s", renderer="stage", duration=1.0,
@@ -532,6 +529,9 @@ issue retires the rewrite.
 >>> new.actions[0].target, pairs
 ('set/wall', [('set__front/wall', 'set/wall')])
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](an.ir.schema.html.md#an.ir.schema.Shot), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
 
 ### an.stage.compile.scene_builders()
 
@@ -551,15 +551,15 @@ its prose (a reworded description must not move a contract hash; a
 space’s `version` does). A space using a field kind the runtime does not
 implement is refused here ([`CutoutCompileError`](#an.stage.compile.CutoutCompileError)).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> space_definitions({})
 {}
 >>> space_definitions({"cam": "stage.camera"})["stage.camera"]["fields"][0]
 {'pattern': 'x', 'spec': {'kind': 'number'}, 'unit': 'px'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.compile.stage_replacements()
 
@@ -584,9 +584,6 @@ a tween shorter than one step is a single step to its end value.
 `step_hz` must be positive: with a non-positive rate the walk below never
 reaches `duration` — an infinite loop, not an error — so it is refused.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> step_times(0.0, 0.3, 10)
 [0.0, 0.1, 0.2, 0.3]
@@ -595,6 +592,9 @@ reaches `duration` — an infinite loop, not an error — so it is refused.
 >>> step_times(0.0, 0.02, 10)
 [0.0, 0.02]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.compile.style_pack_for(scene_meta, styles_store)
 
@@ -619,10 +619,10 @@ One sentence saying `target` is not a built node, with suggestions.
 Shared by the compiler (which raises it) and `an validate` (which
 reports it), so the two say the same thing about the same path.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
 'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

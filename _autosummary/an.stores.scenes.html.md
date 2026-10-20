@@ -55,9 +55,6 @@ the authored scene (an#279).
 `markdown` with shot `shot_id`’s `duration:` set to `seconds`,
 every other line — prose, comments, formatting — untouched.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> md = "# T\n\nA note.\n\n## Shot a (manim)\n\n```yaml shot\noptions: {source: a}  # the chart\n```\n"
 >>> print(patch_shot_duration_md(md, "a", 3.1))
@@ -75,3 +72,6 @@ options: {source: a}  # the chart
 ```text
 <BLANKLINE>
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

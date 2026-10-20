@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -759,11 +761,6 @@ the address string.</p>
 <dt class="sig sig-object py" id="an.timing.address.parse_address">
 <span class="sig-prename descclassname"><span class="pre">an.timing.address.</span></span><span class="sig-name descname"><span class="pre">parse_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/address.html#parse_address"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.address.parse_address" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">text</span></code> as an <a class="reference internal" href="#an.timing.address.Address" title="an.timing.address.Address"><code class="xref py py-class docutils literal notranslate"><span class="pre">Address</span></code></a>; raises <a class="reference internal" href="#an.timing.address.AddressError" title="an.timing.address.AddressError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AddressError</span></code></a> naming the fault.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.timing.address.Address" title="an.timing.address.Address"><code class="xref py py-class docutils literal notranslate"><span class="pre">Address</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_address</span><span class="p">(</span><span class="s2">"charlie/left_arm:rotation"</span><span class="p">)</span><span class="o">.</span><span class="n">target</span>
 <span class="go">'charlie/left_arm'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_address</span><span class="p">(</span><span class="s2">"a::b"</span><span class="p">)</span>
@@ -772,6 +769,11 @@ the address string.</p>
 <span class="gr">an.timing.address.AddressError</span>: <span class="n">'a::b': an address has exactly one ':', found 2</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.timing.address.Address" title="an.timing.address.Address"><code class="xref py py-class docutils literal notranslate"><span class="pre">Address</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

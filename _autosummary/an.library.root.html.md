@@ -77,9 +77,6 @@ The sub-folder of a root that holds agent-made projects (design §7.5).
 
 The git work tree containing `path` (or its nearest existing ancestor), if any.
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> import tempfile
 >>> with tempfile.TemporaryDirectory() as d:
@@ -87,24 +84,24 @@ The git work tree containing `path` (or its nearest existing ancestor), if any.
 True
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.library.root.home_env_var(package)
 
 The override variable for `package`’s root.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> home_env_var("an"), home_env_var("my-genre")
 ('AN_HOME', 'MY_GENRE_HOME')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.root.library_root(root=None, , package='an', environ=None, platform=None)
 
 The data root of `package` — its library and its projects live under it.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 root: an explicit root; wins over everything
 package: the package whose root this is (`an` for the core library, a
@@ -119,6 +116,9 @@ platform: `sys.platform` value to resolve for (default: this one)
 'x'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.root.project_dir(project_id, root=None, , package='an', environ=None)
 
 The default directory of the agent-made project `project_id` (design §7.5).
@@ -130,9 +130,6 @@ the library package of the genre the video is made in
 ([`an.genres.genre_library()`](an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
 names no genre).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> project_dir("alice-and-bob", "/lib").as_posix()
 '/lib/projects/alice-and-bob'
@@ -141,14 +138,17 @@ Traceback (most recent call last):
 ValueError: ...
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.root.projects_root(root=None, , package='an', environ=None)
 
 Where agent-made projects go by default: `<root>/projects/`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> projects_root("/lib", package="cutan").as_posix()
 '/lib/projects'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

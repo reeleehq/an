@@ -47,8 +47,8 @@ numpy, seeded, so the same call writes the same bytes.
 
 ### Classes
 
-| [`SoundAsset`](#an.sounds.SoundAsset)(\*\*data)   | The `sound.json` of one entry in the `sounds` store.   |
-|-------------------------------------------------------------------------|--------------------------------------------------------|
+| [`SoundAsset`](#an.sounds.SoundAsset)(\*, source, sha256, sample_rate, ...)   | The `sound.json` of one entry in the `sounds` store.   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
 
 ### Exceptions
 
@@ -61,7 +61,7 @@ The provenance of everything [`synth_tone()`](#an.sounds.synth_tone) / [`synth_h
 [`synth_bed()`](#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
 numbers, so no third party’s work is in it.
 
-### *class* an.sounds.SoundAsset(\*\*data)
+### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -116,62 +116,62 @@ A music bed: a sustained chord with a gentle pulse, loopable end to end.
 The pulse is a whole number of cycles over `duration` when
 `duration * pulse_hz` is whole, so a looped bed does not bump at the seam.
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> len(synth_bed(1.0)) > 44 and synth_bed(1.0) == synth_bed(1.0)
 True
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.synth_hit(duration=0.35, , seed=0, thump_hz=90.0, decay=0.06, sample_rate=44100, amplitude=0.6)
 
 A percussive hit: a seeded noise burst over a low thump, decaying fast.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_hit(seed=1) == synth_hit(seed=1), synth_hit(seed=1) == synth_hit(seed=2)
 (True, False)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.synth_tone(freq, duration, , sample_rate=44100, amplitude=0.3, attack=0.005, release=0.02)
 
 A sine at `freq` Hz, with short linear ramps so it does not click.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> synth_tone(440.0, 0.1) == synth_tone(440.0, 0.1)
 True
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.sounds.wav_duration(data)
 
 Seconds of audio in a PCM WAV ([`wav_info()`](#an.sounds.wav_info): the bytes, not the header).
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> wav_duration(synth_tone(440.0, 0.5, sample_rate=8000))
 0.5
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.sounds.wav_info(data)
 
 `(sample_rate, channels, frames)` of a PCM WAV: its format from the
 header, its length from the audio bytes actually present (an#330).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
 (8000, 1, 4000)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.sounds.well_formed_wav(data)
 
@@ -183,11 +183,11 @@ as a file every reader agrees on: only its two size fields are patched and
 anything past its audio dropped, the format chunk untouched
 (WAVE_FORMAT_EXTENSIBLE and its channel mask included).
 
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
-
 ```pycon
 >>> wav = synth_tone(440.0, 0.1, sample_rate=8000)
 >>> well_formed_wav(wav) is wav
 True
 ```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)

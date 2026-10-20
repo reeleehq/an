@@ -106,10 +106,10 @@ cleanly under version control. The mapping is the `assets` section;
 
 The lockfile key of one project store entry.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> lock_key("characters", "alice")
 'characters/alice'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

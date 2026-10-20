@@ -182,9 +182,6 @@ Whether a choice recorded by scorer `version` is the one this scorer
 would make for `text`: the same version, or an older one that scored
 a line like this one the same way (version 1, on a line that is not short).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4]})
 >>> old = s.version.replace("2+", "1+", 1)
@@ -192,19 +189,22 @@ a line like this one the same way (version 1, on a line that is not short).
 (True, False)
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 #### applicable(text)
 
 The targets `text` is scored on: all of them, or for a short line
 those it can show (an#404).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ```pycon
 >>> s = ProsodyTakeScorer({"f0_sd_st": [2, 4], "pause_share": [0.1, 0.2]})
 >>> sorted(s.applicable("Hi!")), sorted(s.applicable("He did not do the job."))
 (['f0_sd_st'], ['f0_sd_st', 'pause_share'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 #### check_available()
 
@@ -258,7 +258,7 @@ A line’s recorded take is gone from the audio store and cannot be restored.
 
 Raised before any request: re-rolling an approved take is never implicit.
 
-### *class* an.audio.takes.TakeScore(value, detail=<factory>)
+### *class* an.audio.takes.TakeScore(value, detail=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -286,7 +286,7 @@ Bases: [`VoiceTakesError`](#an.audio.takes.VoiceTakesError)
 
 A `mall["takes"]` record cannot be read as a takes record.
 
-### *class* an.audio.takes.TakesSpec(n, scorer='prosody', targets=<factory>, reference_hz=None)
+### *class* an.audio.takes.TakesSpec(n, scorer='prosody', targets=dict(), reference_hz=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -322,13 +322,13 @@ same on every machine. Raises [`VoiceTakesError`](#an.audio.takes.VoiceTakesErro
 
 Whether `text` is too short to show pauses or a rate (an#404).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> is_short_line("Hi!"), is_short_line("[deadpan] No."), is_short_line("He did not do the job.")
 (True, True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.takes.make_take_scorer(spec)
 
@@ -341,9 +341,6 @@ The scorer `spec` names, from [`SCORERS`](#an.audio.takes.SCORERS) (the pipeline
 
 The canonical `takes` declaration of a voice document (`{}` for none).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> normalize_takes(3)
 {'n': 3}
@@ -351,15 +348,15 @@ The canonical `takes` declaration of a voice document (`{}` for none).
 {'cues': {'deadpan': {'n': 4}}}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.audio.takes.read_takes_record(store, key)
 
 The takes record under `key` in `store` (`mall["takes"]`), or `None`.
 
 Raises [`TakesRecordError`](#an.audio.takes.TakesRecordError) — naming the record and the remedy — for one
 that is not JSON, not a mapping, or whose `chosen` names no take.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> read_takes_record({}, "k") is None
@@ -371,6 +368,9 @@ Traceback (most recent call last):
     ...
 an.audio.takes.TakesRecordError: the takes record 'k' is not a takes record (a JSON object with `chosen` and `takes`): ...
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.takes.require_ffmpeg()
 
@@ -396,9 +396,6 @@ A style spec (`cutan.style_spec(name)`) declares
 copy whose `takes` (and each cue’s) hold the target VALUES, ready to merge
 beside a `voice_id`: `{**style_voice_role(spec, "narrator"), "voice_id": ...}`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> spec = {"live": {"voice": {"roles": {"narrator": {"model_id": "eleven_v3",
 ...     "takes": {"n": 2, "targets": "narrator", "cues": {"deadpan": {"targets": "punchline"}}}}}}},
@@ -407,6 +404,9 @@ beside a `voice_id`: `{**style_voice_role(spec, "narrator"), "voice_id": ...}`.
 >>> role["takes"]["targets"], role["takes"]["cues"]["deadpan"]["targets"]
 ({'f0_sd_st': [3.9, 5.2]}, {'f0_sd_st': [2.2, 3.4]})
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.takes.takes_choice_part(scorer, n)
 

@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -700,7 +702,7 @@ than referencing the registry that happened to be installed.</p>
 <td><p>The human-readable digest.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.bench.compare.latest_rows" title="an.bench.compare.latest_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">latest_rows</span></code></a>(*[, root, count])</p></td>
-<td><p></p></td>
+<td><p>The most recent committed ledger rows, newest last — **by <a href="#id1"><span class="problematic" id="id2">`</span></a>generated_at`**.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.compare.load_row" title="an.bench.compare.load_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_row</span></code></a>(path)</p></td>
 <td><p>Read one ledger row from disk.</p></td>
@@ -842,17 +844,17 @@ row worse”, which only the one-sided metrics can answer at all.</p>
 <p>Two consecutive runs on one machine are bit-identical, so zero is the normal
 delta and any nonzero one is real. Booleans compare as booleans: a tripwire
 that went <code class="docutils literal notranslate"><span class="pre">True</span> <span class="pre">-&gt;</span> <span class="pre">False</span></code> has not “decreased”.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">direction_of</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 <span class="go">'no_change'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">direction_of</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="go">'decrease'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -869,12 +871,7 @@ that went <code class="docutils literal notranslate"><span class="pre">True</spa
 <dl class="py function">
 <dt class="sig sig-object py" id="an.bench.compare.latest_rows">
 <span class="sig-prename descclassname"><span class="pre">an.bench.compare.</span></span><span class="sig-name descname"><span class="pre">latest_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/compare.html#latest_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.compare.latest_rows" title="Link to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span></p>
-</dd>
-</dl>
-<p>The most recent committed ledger rows, newest last — **by <a href="#id1"><span class="problematic" id="id2">`</span></a>generated_at`**.</p>
+<dd><p>The most recent committed ledger rows, newest last — **by <a href="#id3"><span class="problematic" id="id4">`</span></a>generated_at`**.</p>
 <p>Not by filename. Filenames are <code class="docutils literal notranslate"><span class="pre">&lt;date&gt;-&lt;sha7&gt;[-dirty].json</span></code>, so a filename
 sort orders same-day rows by <em>sha hex</em>. On a Wave 3 PR the re-baseline and
 the after-run are plausibly the same day, and when the after-commit’s sha
@@ -888,6 +885,11 @@ all lack the key ordered by date.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-dirty</span></code> rows are excluded: a row measured against uncommitted edits
 describes no commit, and comparing one is comparing against nothing
 nameable. <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span> <span class="pre">--out</span></code> still lets a caller point at one explicitly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -908,11 +910,6 @@ nameable. <code class="code docutils literal notranslate"><span class="pre">an</
 <p>Possible means integers (a bool is not a count), <code class="docutils literal notranslate"><span class="pre">of</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> and
 <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">counted</span> <span class="pre">&lt;=</span> <span class="pre">of</span></code> — a cell no measurement could have produced is an
 edited row, and reading it would let the edit choose the verdict.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">readable_sweep</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})</span>
 <span class="go">{'t=1': [3, 10]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">readable_sweep</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})</span> <span class="ow">is</span> <span class="kc">None</span>
@@ -921,6 +918,11 @@ edited row, and reading it would let the edit choose the verdict.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -946,11 +948,6 @@ has no readable sweep, or the <code class="docutils literal notranslate"><span c
 row written before an#140 has no sweep and is otherwise perfectly readable.
 (A row that DECLARES a sweep and carries none is refused upstream, in
 <code class="docutils literal notranslate"><span class="pre">_compare_scene</span></code>.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">"t=2"</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">"t=2"</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})[</span><span class="s2">"state"</span><span class="p">]</span>
 <span class="go">'unstable'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">]})[</span><span class="s2">"state"</span><span class="p">]</span>
@@ -961,6 +958,11 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

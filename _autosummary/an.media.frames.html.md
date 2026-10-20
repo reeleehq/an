@@ -47,9 +47,6 @@ The frame indices in `[0, total_frames)` that have no file on disk.
 Checked on DISK rather than on a capture loop’s bookkeeping, because the
 mux reads the directory: the directory is what must hold every frame.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import tempfile
 >>> d = Path(tempfile.mkdtemp())
@@ -57,3 +54,6 @@ mux reads the directory: the directory is what must hold every frame.
 >>> missing_frames(d, 3)
 [1, 2]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]

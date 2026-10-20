@@ -42,7 +42,7 @@ composing node transforms into canvas positions ([`screen_position()`](#an.stage
 | [`Timeline`](#an.stage.timeline.Timeline)(duration[, tracks, space])           | A duration + ordered list of tracks.                                    |
 | [`Transform2D`](#an.stage.timeline.Transform2D)([x, y, rotation, scale_x, ...])   | One node's local transform, in the runtime's own vocabulary.            |
 
-### *class* an.stage.timeline.Channel(target, property, keyframes=<factory>)
+### *class* an.stage.timeline.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -50,7 +50,7 @@ Sorted keyframes for one property of one target.
 
 Construction validates that `keyframes` is non-empty and sorted.
 
-### *class* an.stage.timeline.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.stage.timeline.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -81,7 +81,7 @@ A clip placed at an absolute time on a track.
 
 Duration this clip occupies on the timeline (after speed scaling).
 
-### *class* an.stage.timeline.Timeline(duration, tracks=<factory>, space=None)
+### *class* an.stage.timeline.Timeline(duration, tracks=list(), space=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -94,7 +94,7 @@ none, so every caller of the default evaluates a target in the space its
 entity’s kind declares. `None` (every document that declares nothing) is
 the kernel default, [`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE).
 
-### *class* an.stage.timeline.Track(target_root='', clips=<factory>)
+### *class* an.stage.timeline.Track(target_root='', clips=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -124,9 +124,6 @@ This node’s local point, in its PARENT’s coordinates.
 performs, and the reason `root.pivot` is a 2D camera: moving the pivot
 moves everything the node contains, in the opposite direction.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> Transform2D(x=10.0).apply((0.0, 0.0))
 (10.0, 0.0)
@@ -136,6 +133,9 @@ moves everything the node contains, in the opposite direction.
 (10.0, 0.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### project(q)
 
 A plane point `q = local − pivot` as the tilted plane shows it.
@@ -143,9 +143,6 @@ A plane point `q = local − pivot` as the tilted plane shows it.
 `k = f / (f − q_y·sin θ)`, `P(q) = (k·q_x, k·q_y·cos θ)`: the hinge
 row (`q_y = 0`) is unmoved, and a row up a receding plane is pulled
 toward the horizon at `f·cot θ` above it.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> t = Transform2D(rotation_x=math.pi / 3, eye_distance=1000.0)
@@ -166,6 +163,9 @@ Traceback (most recent call last):
 ValueError: plane point (0.0, 5000.0) is not drawn: ...
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### rotation_x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 The plane’s tilt (an#314, radians; positive = the top recedes) and the
@@ -177,27 +177,27 @@ transform, exactly as `runtime.js` “Planes” draws it.
 
 The inverse of [`apply()`](#an.stage.timeline.Transform2D.apply) — a parent-space point, in local space.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> t = Transform2D(x=10.0, pivot_x=3.0, scale_x=2.0, rotation=0.4)
 >>> round(t.unapply(t.apply((7.0, -2.0)))[0], 9)
 7.0
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### unproject(p)
 
 The inverse of [`project()`](#an.stage.timeline.Transform2D.project).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> t = Transform2D(rotation_x=1.0, eye_distance=800.0)
 >>> [round(v, 9) for v in t.unproject(t.project((40.0, -300.0)))]
 [40.0, -300.0]
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.timeline.clip_from_json(anim, , name=None)
 
@@ -284,13 +284,13 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.stage.timeline.node_box(scene, path, , pose=None)
 
@@ -308,9 +308,6 @@ rectangle is an upper bound on what is painted: exact on the fitted axis,
 with the slack the art’s aspect leaves on the other. A stroked path’s box
 is its polyline’s, grown by half the stroke.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON, VisualJSON
 >>> scene = CutoutSceneJSON(
@@ -326,6 +323,9 @@ is its polyline’s, grown by half the stroke.
 (180.0, 115.0, 220.0, 125.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.timeline.screen_position(scene, path, , pose=None, point=(0.0, 0.0))
 
 Where `point` in `path`’s local space lands on the canvas.
@@ -336,9 +336,6 @@ the root container.
 
 `pose` is keyed by the FULL path (`"street/hills"`), matching what
 `evaluate_timeline` returns, and each node reads only its own entry.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON, TransformJSON
@@ -360,6 +357,9 @@ reason `root.pivot` is the camera:
 (175.0, 120.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.stage.timeline.timeline_from_scene(scene)
 
 The compiled scene’s `timeline`/`animations` as an evaluable `Timeline`.
@@ -372,9 +372,6 @@ the executable spec `runtime.js` is tested against. The reading itself is the
 kernel’s ([`an.timing.timeline.timeline_from_compiled()`](an.timing.timeline.html.md#an.timing.timeline.timeline_from_compiled)), which carries
 `loop_mode` and keeps a list-valued `easing` a tuple.
 
-* **Return type:**
-  [`Timeline`](an.timing.timeline.html.md#an.timing.timeline.Timeline)
-
 ```pycon
 >>> from an.stage.compile import compile_shot
 >>> from an.ir.compose import tween
@@ -385,6 +382,9 @@ kernel’s ([`an.timing.timeline.timeline_from_compiled()`](an.timing.timeline.h
 >>> evaluate_timeline(timeline_from_scene(scene), 0.5)[("root", "x")]
 5.0
 ```
+
+* **Return type:**
+  [`Timeline`](an.timing.timeline.html.md#an.timing.timeline.Timeline)
 
 ### an.stage.timeline.transform_of(node, pose=None, , frame_height=1080.0)
 
@@ -410,10 +410,10 @@ can be showing: every swap set on a node swaps the one visual it carries
 (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own switch) writes only
 itself.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
 ('x', 'rotation', '<swap>')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

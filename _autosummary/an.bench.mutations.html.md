@@ -159,7 +159,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One deliberate, declared change to the pipeline, with the evidence that it took.
 
-#### verify_row *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### verify_row *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)], [None](https://docs.python.org/3/builtins/constants.html#None)]]*
 
 Given the ledger row the mutated run produced, raise unless the lever’s
 fingerprint is in it. `None` when the row cannot carry one — see the

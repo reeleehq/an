@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -719,7 +721,7 @@ from — an#373: flagged for commercial use, never blocked).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.rights.Rights">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">Rights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">license_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reasons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#Rights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.Rights" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">Rights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">license_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reasons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#Rights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.Rights" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The rolled-up rights of one version, as stored on it.</p>
 <dl class="field-list simple">
@@ -773,7 +775,7 @@ from — an#373: flagged for commercial use, never blocked).</p>
 <dd><p>The source the descriptor itself declares (or <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> reconstructs), if any.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -782,15 +784,15 @@ from — an#373: flagged for commercial use, never blocked).</p>
 <dt class="sig sig-object py" id="an.library.rights.most_restrictive">
 <span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">most_restrictive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#most_restrictive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.most_restrictive" title="Link to this definition">#</a></dt>
 <dd><p>The most restrictive of <code class="docutils literal notranslate"><span class="pre">classes</span></code>; <code class="docutils literal notranslate"><span class="pre">free</span></code> for none.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code></a>[<code class="docutils literal notranslate"><span class="pre">'attribution'</span></code>, <code class="docutils literal notranslate"><span class="pre">'free'</span></code>, <code class="docutils literal notranslate"><span class="pre">'noncommercial'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unknown'</span></code>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">most_restrictive</span><span class="p">([</span><span class="s2">"free"</span><span class="p">,</span> <span class="s2">"attribution"</span><span class="p">]),</span> <span class="n">most_restrictive</span><span class="p">([])</span>
 <span class="go">('attribution', 'free')</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Literal</span></code></a>[<span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="s1"><span class="pre">'attribution'</span></span></code></span>, <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="s1"><span class="pre">'free'</span></span></code></span>, <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="s1"><span class="pre">'noncommercial'</span></span></code></span>, <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="s1"><span class="pre">'private'</span></span></code></span>, <span class="highlight sphinx_autodoc_typehints-value"><code class="docutils literal notranslate"><span class="s1"><span class="pre">'unknown'</span></span></code></span>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -799,26 +801,21 @@ from — an#373: flagged for commercial use, never blocked).</p>
 <dd><p>Roll labelled sources (and parents’ rights) up to one <a class="reference internal" href="#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a>.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">None</span></code> source is <code class="docutils literal notranslate"><span class="pre">unknown</span></code>. The reasons name every contributor of the
 winning class, so a reader sees <em>why</em> a version is restricted.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roll_up</span><span class="p">([(</span><span class="s2">"asset"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="go">{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roll_up</span><span class="p">([(</span><span class="s2">"asset"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-<span class="go">{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.rights.sources_in">
 <span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">sources_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#sources_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.sources_in" title="Link to this definition">#</a></dt>
 <dd><p>Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]]</span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>store: the project store this kind of document lives in (<code class="docutils literal notranslate"><span class="pre">characters</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">props</span></code>, <code class="docutils literal notranslate"><span class="pre">environments</span></code>, <code class="docutils literal notranslate"><span class="pre">sounds</span></code>) — its sources are read by
 <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code>’ own walk; <code class="docutils literal notranslate"><span class="pre">None</span></code> reads the top-level <code class="docutils literal notranslate"><span class="pre">source</span></code> alone</p>
@@ -842,6 +839,11 @@ descriptor stamp does not pin, is <code class="docutils literal notranslate"><sp
 <span class="go">['asset', 'descriptor']</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

@@ -87,9 +87,6 @@ caller can tell a version it read itself from a same-named library’s.
 
 `{asset_key: statement}` about `digest` from every library.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 exclude: `(origin, manifest)` of versions whose statements to leave
 : out — the versions a rights walk reads in full itself
   ([`an.library.api.version_sources()`](an.library.api.html.md#an.library.api.version_sources)), each in the library it
@@ -98,6 +95,9 @@ exclude: `(origin, manifest)` of versions whose statements to leave
   resolves in ITS library), so it is never left out; and the
   exclusion runs before statements under one asset key are merged,
   so it can hide nothing else.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 #### strictest(digests)
 

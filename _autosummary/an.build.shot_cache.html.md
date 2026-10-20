@@ -80,7 +80,7 @@ unreachable entries is a separate, explicit command: `an cache gc`
 | [`ShotCacheWarning`](#an.build.shot_cache.ShotCacheWarning)   | The shot cache could not do something it should have; the render still stands.   |
 |---------------------------------------------------------------------|----------------------------------------------------------------------------------|
 
-### *class* an.build.shot_cache.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
+### *class* an.build.shot_cache.BuildReport(outcomes=list(), store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -94,13 +94,13 @@ The shot cache’s size after the render, when the engine measured it.
 
 How big the shot cache is after the render, or `""` if unmeasured.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
 '3.0 MB in 4 entries'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### summary()
 
@@ -108,13 +108,13 @@ One line: what was rendered, what reused, and WHY each rendered shot
 was not reused — a cache that silently re-renders everything reads as
 a broken cache (an#243 review, R2-1).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
 '1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### timing_table()
 
@@ -253,7 +253,7 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.shot_cache.ShotPlan(shot_id, renderer, key, inputs=dict(), reads=dict(), code=dict(), cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -306,9 +306,6 @@ asset (`FOLLOWS_ASSETS`) are left out when one is named. Both keys
 are of one composition: a different `key_version` is
 `KEY_FORMAT_CHANGED`, decided before this is called.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> explain_change({"compiled": "a", "assets": "x"}, {"props/logo": "1"},
 ...                {"compiled": "b", "assets": "y"}, {"props/logo": "2"})
@@ -324,17 +321,20 @@ are of one composition: a different `key_version` is
 "an's render code (an.motion) changed"
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.human_bytes(n)
 
 `n` bytes for a person: 1024-based, one decimal.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> human_bytes(0), human_bytes(1536), human_bytes(5 * 1024**3)
 ('0 B', '1.5 KB', '5.0 GB')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.shot_cache.in_memory_shot_cache_store()
 
@@ -349,13 +349,13 @@ A short digest naming this machine (its host name and hardware
 address), so each machine’s renders of a synced project keep a root of
 their own. A digest, never the names themselves.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> len(machine_id())
 16
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.shot_cache.parts_entry_id(key, window)
 
@@ -366,22 +366,19 @@ different entry) and the digest of the code that cuts and encodes the parts
 (`parts_code_digest()`): a parts entry is produced by `an.assemble`, not
 by the renderer, so the renderer’s own `code` key part does not cover it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.assemble import ShotWindow
 >>> parts_entry_id("k" * 64, ShotWindow(frames=30, head=0, tail=4)).endswith(".h0.t4")
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.project_id(project_root)
 
 A short digest naming a project by its resolved directory, so two
 projects sharing one cache store keep a root each (`""` for none).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> project_id(None)
@@ -390,6 +387,9 @@ projects sharing one cache store keep a root each (`""` for none).
 16
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.shot_cache.resolve_incremental(incremental)
 
 `incremental=` → an engine, or `None` for “render every shot cold”.
@@ -397,15 +397,15 @@ projects sharing one cache store keep a root each (`""` for none).
 `True` is a fresh [`ShotCache`](#an.build.shot_cache.ShotCache) over the mall’s store; `False` or
 `None` is off; anything else must be an [`IncrementalEngine`](#an.build.shot_cache.IncrementalEngine).
 
-* **Return type:**
-  [`IncrementalEngine`](#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_incremental(False) is None
 True
 >>> isinstance(resolve_incremental(True), ShotCache)
 True
 ```
+
+* **Return type:**
+  [`IncrementalEngine`](#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.build.shot_cache.shot_artifact_type()
 

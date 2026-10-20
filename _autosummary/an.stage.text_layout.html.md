@@ -107,9 +107,6 @@ on it, naming why.
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> unit_svg("M0 0L2 0L2 2Z", (0, 0, 4, 4), color="#123456")[:60]
 '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'
@@ -124,3 +121,6 @@ the glyph once the fill covers the inner half: two paths rather than
 >>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

@@ -68,7 +68,7 @@ easing name stays loud on a swap channel too.
 |-------------------------------------------------------------------------------------------|---------------------------------------------------------|
 | [`Keyframe`](#an.timing.channel.Keyframe)(time, value[, easing])          | One keyframe: time, value, optional per-segment easing. |
 
-### *class* an.timing.channel.Channel(target, property, keyframes=<factory>)
+### *class* an.timing.channel.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

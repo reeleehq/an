@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -772,11 +774,6 @@ open-ended length (the cut-out genre’s <code class="docutils literal notransla
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">duration_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">play_extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#duration_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.duration_of" title="Link to this definition">#</a></dt>
 <dd><p>Compute the total duration of an action tree without evaluating it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">play_extent</span></code> resolves a duration-less <code class="docutils literal notranslate"><span class="pre">play</span></code> (see <a class="reference internal" href="#an.ir.compose.PlayExtent" title="an.ir.compose.PlayExtent"><code class="xref py py-data docutils literal notranslate"><span class="pre">PlayExtent</span></code></a>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">duration_of</span><span class="p">(</span><span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
 <span class="go">2.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">duration_of</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">0.5</span><span class="p">),</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)))</span>
@@ -789,6 +786,11 @@ open-ended length (the cut-out genre’s <code class="docutils literal notransla
 <span class="go">0.0</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -833,15 +835,15 @@ a validator walks with this to REPORT them.</p>
 <dd><p>The registered <a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a> that governs <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
 <p>Raises <a class="reference internal" href="an.genres.html#an.genres.UnregisteredKindError" title="an.genres.UnregisteredKindError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredKindError</span></code></a>, naming the genre that
 provides it, for a kind nobody registered.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kind_of</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'delay'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.genres.registry.html#an.genres.registry.ActionKind" title="an.genres.registry.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kind_of</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
-<span class="go">'delay'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -862,17 +864,17 @@ provides it, for a kind nobody registered.</p>
 around them (whatever field a composite keeps its children in: its kind’s
 <code class="docutils literal notranslate"><span class="pre">children</span></code> hook says which values are children, the model’s fields say
 where they live, so <code class="docutils literal notranslate"><span class="pre">loop.child</span></code> and a genre’s composite are reached).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">act</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">loop</span><span class="p">(</span><span class="n">set_</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">renamed</span> <span class="o">=</span> <span class="n">map_leaves</span><span class="p">(</span><span class="n">act</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"target"</span><span class="p">:</span> <span class="s2">"b"</span><span class="p">})</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span> <span class="k">else</span> <span class="n">a</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">renamed</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span><span class="p">]</span>
 <span class="go">['b']</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -891,15 +893,15 @@ where they live, so <code class="docutils literal notranslate"><span class="pre"
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">resolve_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#resolve_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.resolve_action" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">action</span></code> as its registered model (an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> left open
 by a document read before its genre loaded is validated now).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_action</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">0.5</span><span class="p">))</span><span class="o">.</span><span class="n">duration</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_action</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">0.5</span><span class="p">))</span><span class="o">.</span><span class="n">duration</span>
-<span class="go">0.5</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -937,11 +939,6 @@ Total duration: the latest child’s end. <code class="docutils literal notransl
 <code class="docutils literal notranslate"><span class="pre">kind:</span> <span class="pre">parallel</span></code> entry), so it round-trips. (<code class="docutils literal notranslate"><span class="pre">an.stage.text.reveal_units</span></code> —
 <code class="docutils literal notranslate"><span class="pre">an.stage.text.stagger</span></code> before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAction</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flat</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
 <span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
 <span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"c"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)))</span>
@@ -957,6 +954,11 @@ per-unit actions with holds, not a combinator.)</p>
 <span class="gr">ValueError</span>: <span class="n">stagger lag must be &gt;= 0, got -1.0</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAction</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -965,17 +967,17 @@ per-unit actions with holds, not a combinator.)</p>
 <dd><p>Animate a property from <code class="docutils literal notranslate"><span class="pre">from_</span></code> (or its current value) to <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">easing</span></code> left out inherits the scene’s <code class="docutils literal notranslate"><span class="pre">meta.default_easing</span></code> (else
 <code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code>); naming one — <code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code> included — pins it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">TweenAction</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">model_fields_set</span>
 <span class="go">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">)</span><span class="o">.</span><span class="n">easing</span>
 <span class="go">'linear'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">TweenAction</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

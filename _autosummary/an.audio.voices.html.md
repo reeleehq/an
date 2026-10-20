@@ -90,15 +90,15 @@ The key, in a voice document, naming the TTS provider’s own voice.
 The TTS provider `mall["voices"][voice_id]` is written for, lower-cased,
 or `None` when the voice declares none (or has no document).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> declared_provider({"voices": {"v": {"provider": " ElevenLabs "}}}, "v")
 'elevenlabs'
 >>> declared_provider({"voices": {"v": {"provider": ""}}}, "v") is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.voices.line_voice_id(line, shot, mall, , default='default')
 
@@ -139,15 +139,15 @@ Whether `doc`’s provider-specific keys apply under the TTS `tts_name`.
 True when the document names no `provider`, or names this one (case
 ignored), or when the caller does not say which provider is speaking.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
 (True, True)
 >>> voice_applies({"provider": "elevenlabs"}, "offline")
 False
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.voices.voice_document(mall, voice_id)
 

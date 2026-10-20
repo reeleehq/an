@@ -216,13 +216,13 @@ recorded in the compiled document (review of an#270, S3).
 
 The callable `run` names.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> CompilePass("p", "math:sqrt").resolve()(4.0)
 2.0
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='', fields=())
 
@@ -307,7 +307,7 @@ kind declares nothing (its built nodes’ sets ARE its declaration).
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.ActionKind.version).
 
-### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=<factory>)
+### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -346,13 +346,13 @@ entity kinds ([`CompilePass`](#an.genres.CompilePass); an#247).
 
 What this genre registers, by registry, as names — without registering it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
-
 ```pycon
 >>> Genre("g", action_kinds=()).provides()["action kinds"]
 ()
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 #### runtime_scripts *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[RuntimeScript](an.genres.registry.html.md#an.genres.registry.RuntimeScript), ...]* *= ()*
 
@@ -415,13 +415,13 @@ in the genre’s wheel. The staged code is part of the shot cache’s key.
 
 The script’s code (UTF-8).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### *class* an.genres.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
@@ -493,13 +493,13 @@ The in-distribution genres (`builtin`; none since the cut-out genre moved to
 `cutan`, an#225) merged with `entry_points` (default: the installed ones),
 de-duplicated by name — the in-distribution declaration first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> [ep.name for ep in discovered_entry_points(entry_points=())]
 []
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.entity_space_resolver(entities, , default=None)
 
@@ -538,13 +538,13 @@ The package whose data root holds genre `name`’s library and projects.
 that declares none. Reads the genres installed in this process (call
 [`load()`](#an.genres.load) first, as every entry point does).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> genre_library(None)
 'an'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.genres.genres_declaring(test)
 
@@ -566,13 +566,13 @@ renderer already). The shot cache’s code key starts its walk here for the
 packages outside `an`, so a change to a genre’s code changes the key
 (an#294): the genre is reached by REGISTRATION, not by an import from `an`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> isinstance(hook_modules(), tuple)
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.installed()
 
@@ -639,9 +639,6 @@ Refuse, with an upgrade hint, when this `an` is older than `package` needs.
 
 A genre package calls it at import (`require_api_level(3, package="cutan")`).
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_api_level(1, package="demo")
 >>> try:
@@ -650,6 +647,9 @@ A genre package calls it at import (`require_api_level(3, package="cutan")`).
 ...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))
 True
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.genres.require_service(name, , what='', extra='cutout')
 
@@ -662,38 +662,38 @@ The registered service `name`; a typed error naming the install when absent.
 
 The registered service `name`, resolved, or `default` when none is.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> service("no.such.service") is None
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.services(prefix)
 
 `{name without the prefix: resolved service}` for every service under `prefix`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> services("no.such.")
 {}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.genres.without_genres()
 
 Run a block with no genre registered (the core alone), then restore.
-
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ```pycon
 >>> with without_genres():
 ...     action_kind("play") is None
 True
 ```
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### Modules
 

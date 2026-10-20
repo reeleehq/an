@@ -75,9 +75,6 @@ and so does the compiler\*\*, which is what makes “a move that validates
 cannot then raise” true by construction rather than by two tables agreeing
 — the arrangement it replaced (an#109 review, H-1).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
-
 ```pycon
 >>> from an.ir.schema import Camera, Shot
 >>> push = Shot(id="s", renderer="cutout", duration=2.0, camera=Camera(move="push_in"))
@@ -87,6 +84,9 @@ cannot then raise” true by construction rather than by two tables agreeing
 >>> [(k.at, round(k.x, 3)) for k in camera_keys(pan, width=320, height=240)]
 [(0.0, 0.0), (2.0, -106.667)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 ### an.ir.camera.camera_shake_offsets(shot, , width, height)
 
@@ -99,12 +99,12 @@ down linearly to rest when `decay`. Validate and the compiler both call
 this, so a shake that validates cannot then raise (as with
 [`camera_keys()`](#an.ir.camera.camera_keys)).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> from an.ir.schema import Camera, CameraShake, Shot
 >>> s = Shot(id="s", duration=2.0, camera=Camera(shake=[CameraShake(at=1.0, duration=0.25, frequency=8)]))
 >>> [(t, round(dx, 2), round(dy, 2)) for t, dx, dy in camera_shake_offsets(s, width=1280, height=720)]
 [(1.0, 0.0, 0.0), (1.125, 3.72, 2.79), (1.25, 0.0, 0.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]

@@ -218,15 +218,15 @@ The smallest Manim preset that is at least as tall and as fast as the film.
 The picture is then resampled and scaled to exactly the film’s rate and size,
 so a smaller preset would be upscaled (blur) or frame-doubled (judder).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> choose_quality(fps=15, resolution=(640, 360)), choose_quality(fps=30, resolution=(1920, 1080))
 ('l', 'h')
 >>> choose_quality(fps=120, resolution=(8000, 4000))  # nothing is enough: the largest
 'k'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.adapters.manim_adapter.manim_environment()
 
@@ -262,11 +262,11 @@ Raises what the render would for a bad shot.
 
 The default resolver: `options.source` is a key of the mall’s `store`.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`ManimShotSpec`](#an.adapters.manim_adapter.ManimShotSpec), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`SourceFile`](#an.adapters.manim_adapter.SourceFile)]
-
 ```pycon
 >>> resolve = store_source_resolver()
 >>> resolve(ManimShotSpec("chart"), {"sources": {"chart": b"x = 1"}}).data
 b'x = 1'
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`ManimShotSpec`](#an.adapters.manim_adapter.ManimShotSpec), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`SourceFile`](#an.adapters.manim_adapter.SourceFile)]

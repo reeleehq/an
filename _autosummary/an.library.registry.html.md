@@ -136,25 +136,25 @@ the stamp it would verify is not verified (the stricter reading).
 
 The folder holding the registry and the statement memory (independent of the environment).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> machine_registry_dir().name
 'registry'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.registry.machine_registry_path()
 
 Where this machine’s registry of library roots lives.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> machine_registry_path().name
 'library_roots.jsonl'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.library.registry.register_root(package, root, , registry=None)
 

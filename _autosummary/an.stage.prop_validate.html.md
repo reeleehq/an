@@ -47,13 +47,13 @@ The descriptor file a prop folder holds (the props store’s sidecar name).
 
 What a prop folder must hold, read off the schema and the rig rules (never retyped).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> "nesting" in render_prop_contract()
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.prop_validate.validate_prop(prop_dir, , name=None)
 

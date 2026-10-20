@@ -65,7 +65,7 @@ True
 |-------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`ShotCacheWarning`](#an.build.ShotCacheWarning) | The shot cache could not do something it should have; the render still stands. |
 
-### *class* an.build.BuildReport(outcomes=<factory>, store_bytes=None, store_entries=None)
+### *class* an.build.BuildReport(outcomes=list(), store_bytes=None, store_entries=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -79,13 +79,13 @@ The shot cache’s size after the render, when the engine measured it.
 
 How big the shot cache is after the render, or `""` if unmeasured.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport(store_bytes=3 * 1024**2, store_entries=4).store_line()
 '3.0 MB in 4 entries'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### summary()
 
@@ -93,13 +93,13 @@ One line: what was rendered, what reused, and WHY each rendered shot
 was not reused — a cache that silently re-renders everything reads as
 a broken cache (an#243 review, R2-1).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> BuildReport([ShotOutcome("a", "cutout", "uncached", reason=FRAMES_NOT_CACHED)]).summary()
 '1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### timing_table()
 
@@ -225,7 +225,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 The shot cache could not do something it should have; the render still stands.
 
-### *class* an.build.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+### *class* an.build.ShotKeyInputs(parts, compile_s=None, details=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -251,7 +251,7 @@ What happened to one shot in one render, with its wall times (seconds).
 compile; `render_s` is this render’s wall time (`None` when reused) and
 `cached_render_s` the wall time of the render being reused.
 
-### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=<factory>, reads=<factory>, code=<factory>, cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
+### *class* an.build.ShotPlan(shot_id, renderer, key, inputs=dict(), reads=dict(), code=dict(), cached=None, reason='', key_s=None, compile_s=None, cached_render_s=None, needs_frames=False, window=None, parts_id=None, parts=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -342,13 +342,13 @@ Every asset in the project (decision 3’s fallback), without the root
 files — those are [`project_dependencies()`](#an.build.project_dependencies)’. The `assets` part of a
 shot whose keyer cannot vouch for its reads.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.in_memory_shot_cache_store()
 
@@ -370,9 +370,6 @@ With `project_root`, the files in `root_files` (the library lockfile)
 are hashed by PATH as well — so a re-pin moves every key whether or not
 the mall has a store for the file yet.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
 >>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
@@ -380,19 +377,22 @@ the mall has a store for the file yet.
 False
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.project_dependencies(mall, , project_root=None)
 
 What every shot depends on project-wide: the project-root files
 (`PROJECT_ROOT_FILES`, the library lockfile), read by path. A re-pin
 changes what is checked out, so it moves every key, conservatively.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.read_digests(mall, reads)
 
@@ -401,13 +401,13 @@ True
 A read of a store the mall does not have is recorded as `ABSENT`, so
 the day the store appears the key moves.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> read_digests({}, [("props", "logo")])
 {'props/logo': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.build.register_shot_keyer(renderer_name, keyer, , environment=None, renderer_type=None, records_reads=False, replace=False)
 
@@ -434,13 +434,13 @@ A keyer registers beside its renderer, and a backend behind the import
 firewall registers when the renderer registry first loads it (an#247), so
 this loads the registry first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "cutout" in registered_shot_keyers()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.build.resolve_incremental(incremental)
 
@@ -449,15 +449,15 @@ True
 `True` is a fresh [`ShotCache`](#an.build.ShotCache) over the mall’s store; `False` or
 `None` is off; anything else must be an [`IncrementalEngine`](#an.build.IncrementalEngine).
 
-* **Return type:**
-  [`IncrementalEngine`](an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> resolve_incremental(False) is None
 True
 >>> isinstance(resolve_incremental(True), ShotCache)
 True
 ```
+
+* **Return type:**
+  [`IncrementalEngine`](an.build.shot_cache.html.md#an.build.shot_cache.IncrementalEngine) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.build.shot_artifact_type()
 

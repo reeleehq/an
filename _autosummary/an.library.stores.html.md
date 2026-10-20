@@ -167,9 +167,6 @@ VersionExistsError: ...
 
 The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
-
 root: the package’s data root (default: resolved by
 : [`an.library.root.library_root()`](an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
   platform data folder); the stores live under `<root>/library/`
@@ -184,6 +181,9 @@ overrides: a store per name to inject instead of the folder default — a
 Nothing is created until the first write: opening a library (or mistyping
 one on a search path) leaves the disk as it was.
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
+
 ### an.library.stores.canonical_json(obj, , indent=None)
 
 JSON with sorted keys and no locale or platform dependence.
@@ -191,58 +191,58 @@ JSON with sorted keys and no locale or platform dependence.
 With `indent=None` it is the compact form hashed for a manifest; with an
 indent it is the on-disk form (same content, readable).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> canonical_json({"b": 1, "a": [1, 2]})
 '{"a":[1,2],"b":1}'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.stores.label_key(asset_id, version, label_id)
 
 The `labels` key of one statement about a version.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> label_key("character.alice", "v002", "0123456789abcdef")
 'character.alice@v002/0123456789abcdef'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.library.stores.split_label_key(key)
 
 `(asset_id, version, label_id)` of a `labels` key, validated.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> split_label_key("character.alice@v002/0123456789abcdef")
 ('character.alice', 'v002', '0123456789abcdef')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.library.stores.split_version_key(key)
 
 `(asset_id, version)` of a `versions` key, validated.
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> split_version_key("character.alice@v002")
 ('character.alice', 'v002')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.library.stores.version_key(asset_id, version)
 
 The `versions` key of one version.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> version_key("character.alice", "v002")
 'character.alice@v002'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

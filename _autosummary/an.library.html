@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -776,10 +778,10 @@ the lockfile’s <code class="docutils literal notranslate"><span class="pre">ki
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.Hit" title="an.library.Hit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hit</span></code></a>(library, asset_id, version, score[, ...])</p></td>
 <td><p>One asset that answers a query — or nearly does (<code class="docutils literal notranslate"><span class="pre">missing</span></code> non-empty).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.Kit" title="an.library.Kit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kit</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.Kit" title="an.library.Kit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kit</span></code></a>(*[, kind, schema_version, note])</p></td>
 <td><p>The kit document: a name, its pinned members, and a note saying what it is for.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.KitMember" title="an.library.KitMember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KitMember</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.KitMember" title="an.library.KitMember"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KitMember</span></code></a>(*, ref[, key])</p></td>
 <td><p>One member of a kit: a pinned reference and the project key it lands under.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.Library" title="an.library.Library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Library</span></code></a>(name, mall[, root])</p></td>
@@ -916,7 +918,7 @@ persisted name is never redefined in place).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.Hit">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Hit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remedies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">federated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#Hit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Hit" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Hit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remedies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">federated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#Hit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Hit" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One asset that answers a query — or nearly does (<code class="docutils literal notranslate"><span class="pre">missing</span></code> non-empty).</p>
 <dl class="field-list simple">
@@ -954,7 +956,7 @@ persisted name is never redefined in place).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.Kit">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#Kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Kit" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Kit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Kit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">schema_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.1.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">members</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#Kit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Kit" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>The kit document: a name, its pinned members, and a note saying what it is for.</p>
 <dl class="field-list simple">
@@ -969,7 +971,7 @@ persisted name is never redefined in place).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.KitMember">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">KitMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#KitMember"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.KitMember" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">KitMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/kits.html#KitMember"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.KitMember" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>One member of a kit: a pinned reference and the project key it lands under.</p>
 <p><code class="docutils literal notranslate"><span class="pre">key=None</span></code> takes the check-out’s default (the asset id’s slug).</p>
@@ -1140,7 +1142,7 @@ than what binds their bytes, kept beside the stricter one that binds.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.Rights">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Rights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">license_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reasons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#Rights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Rights" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">Rights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">license_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reasons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#Rights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.Rights" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The rolled-up rights of one version, as stored on it.</p>
 <dl class="field-list simple">
@@ -1201,26 +1203,21 @@ than what binds their bytes, kept beside the stricter one that binds.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(profile,</span> <span class="pre">analysers)</span></code> of one subject: its capabilities and the analyser versions used.</p>
 <p>A kind with no registered analyser affords nothing <em>derived</em> and records no
 analyser — an honest empty answer, not a guess.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">analyse</span><span class="p">(</span><span class="s2">"no-such-kind"</span><span class="p">,</span> <span class="p">{})</span>
+<span class="go">({}, {})</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">analyse</span><span class="p">(</span><span class="s2">"no-such-kind"</span><span class="p">,</span> <span class="p">{})</span>
-<span class="go">({}, {})</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.build_library_mall">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">build_library_mall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/stores.html#build_library_mall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.build_library_mall" title="Link to this definition">#</a></dt>
 <dd><p>The library mall of <code class="docutils literal notranslate"><span class="pre">package</span></code>: <code class="docutils literal notranslate"><span class="pre">records</span></code>, <code class="docutils literal notranslate"><span class="pre">versions</span></code> (write-once), <code class="docutils literal notranslate"><span class="pre">blobs</span></code> (CAS).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a>]</span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>root: the package’s data root (default: resolved by</dt><dd><p><a class="reference internal" href="an.library.root.html#an.library.root.library_root" title="an.library.root.library_root"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.root.library_root()</span></code></a> — <code class="docutils literal notranslate"><span class="pre">root</span></code> → <code class="docutils literal notranslate"><span class="pre">&lt;PKG&gt;_HOME</span></code> → the
 platform data folder); the stores live under <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;/library/</span></code></p>
@@ -1235,6 +1232,11 @@ content-addressed and undeletable, so injection cannot drop an invariant.</p>
 </div></blockquote>
 <p>Nothing is created until the first write: opening a library (or mistyping
 one on a search path) leaves the disk as it was.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1257,11 +1259,6 @@ drift — a re-check-out updates the lockfile, not the scene — so <code class=
 <dt class="sig sig-object py" id="an.library.checkout">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">checkout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upgrade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">for_kit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/checkout.html#checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.checkout" title="Link to this definition">#</a></dt>
 <dd><p>Materialise a library version into a project, carry its rights, pin it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.CheckoutResult" title="an.library.checkout.CheckoutResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">CheckoutResult</span></code></a></span></p>
-</dd>
-</dl>
 <p>project_dir: the project to check out into
 ref: <code class="docutils literal notranslate"><span class="pre">[&lt;library&gt;:]&lt;asset_id&gt;[&#64;&lt;version&gt;]</span></code>; <code class="docutils literal notranslate"><span class="pre">latest</span></code> (or no version) is</p>
 <blockquote>
@@ -1292,6 +1289,11 @@ a project’s asset and checking it back out is the natural first round trip.</p
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; <code class="docutils literal notranslate"><span class="pre">publish</span></code> of the edited folder
 sends it back as a new version derived from this one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.CheckoutResult" title="an.library.checkout.CheckoutResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">CheckoutResult</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1361,11 +1363,6 @@ same-named other one.</p>
 <dd><p>The rights of a version, recomputed from its sources, its lineage and its bytes.</p>
 <p>owner: the library holding <code class="docutils literal notranslate"><span class="pre">version</span></code> (see <code class="xref py py-func docutils literal notranslate"><span class="pre">version_sources()</span></code>)
 rule: a <code class="xref py py-class docutils literal notranslate"><span class="pre">_PerFileRule</span></code> to share with the caller (one per operation)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.rights.html#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.vase"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"vase"</span><span class="p">},</span>
 <span class="gp">... </span>            <span class="n">source</span><span class="o">=</span><span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"film"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">:</span> <span class="s2">"all-rights-reserved"</span><span class="p">})</span>
@@ -1373,17 +1370,17 @@ rule: a <code class="xref py py-class docutils literal notranslate"><span class=
 <span class="go">'private'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.rights.html#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.find">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'any'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">art</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">near</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">scan_index&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#find"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.find" title="Link to this definition">#</a></dt>
 <dd><p>Assets matching every facet given (AND across facets, OR within one facet’s values).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.api.html#an.library.api.FindResult" title="an.library.api.FindResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">FindResult</span></code></a></span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>affords: capabilities the asset must ALL have — <code class="docutils literal notranslate"><span class="pre">limbs.legs</span></code>, or</dt><dd><p><code class="docutils literal notranslate"><span class="pre">swap.view:side</span></code> for a capability with a given key. Each capability is
 its own boolean facet, so a list of them is AND, as across facets. An
@@ -1411,17 +1408,17 @@ listed as <code class="docutils literal notranslate"><span class="pre">style:&lt
 <span class="go">0</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.api.html#an.library.api.FindResult" title="an.library.api.FindResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">FindResult</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.library_root">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">library_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/root.html#library_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.library_root" title="Link to this definition">#</a></dt>
 <dd><p>The data root of <code class="docutils literal notranslate"><span class="pre">package</span></code> — its library and its projects live under it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
-</dd>
-</dl>
 <p>root: an explicit root; wins over everything
 package: the package whose root this is (<code class="docutils literal notranslate"><span class="pre">an</span></code> for the core library, a</p>
 <blockquote>
@@ -1433,17 +1430,17 @@ platform: <code class="docutils literal notranslate"><span class="pre">sys.platf
 <span class="go">'x'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.open_library">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">open_library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/federation.html#open_library"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.open_library" title="Link to this definition">#</a></dt>
 <dd><p>The library of <code class="docutils literal notranslate"><span class="pre">package</span></code>, at <code class="docutils literal notranslate"><span class="pre">root</span></code> (resolved as in <a class="reference internal" href="an.library.root.html#module-an.library.root" title="an.library.root"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.library.root</span></code></a>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.federation.html#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a></span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>overrides: stores to inject (<code class="docutils literal notranslate"><span class="pre">records</span></code>, <code class="docutils literal notranslate"><span class="pre">versions</span></code>, <code class="docutils literal notranslate"><span class="pre">blobs</span></code>), as in</dt><dd><p><a class="reference internal" href="an.library.stores.html#an.library.stores.build_library_mall" title="an.library.stores.build_library_mall"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.stores.build_library_mall()</span></code></a></p>
 </dd>
@@ -1453,6 +1450,11 @@ platform: <code class="docutils literal notranslate"><span class="pre">sys.platf
 <span class="go">('an', None)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.federation.html#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1463,11 +1465,6 @@ platform: <code class="docutils literal notranslate"><span class="pre">sys.platf
 <code class="docutils literal notranslate"><span class="pre">require_pin=True</span></code> also refuses <code class="docutils literal notranslate"><span class="pre">&#64;latest</span></code> — the grammar of
 <code class="docutils literal notranslate"><span class="pre">AssetRef.library</span></code>, where a floating reference would make a render depend
 on whatever the library’s head is that day.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.ids.html#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_ref</span><span class="p">(</span><span class="s2">"character.alice"</span><span class="p">)</span>
 <span class="go">LibraryRef(asset_id='character.alice', version=None, namespace=None)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_ref</span><span class="p">(</span><span class="s2">"character.alice@sha256:0a1b2c3d"</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
@@ -1477,6 +1474,11 @@ on whatever the library’s head is that day.</p>
 <span class="gr">AssetIdError</span>: <span class="n">...</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.ids.html#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1489,11 +1491,6 @@ never land in a session’s working folder or a repository. <code class="docutil
 the library package of the genre the video is made in
 (<a class="reference internal" href="an.genres.html#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.genre_library()</span></code></a>; the core’s, <code class="docutils literal notranslate"><span class="pre">an</span></code>, by default — the core
 names no genre).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">project_dir</span><span class="p">(</span><span class="s2">"alice-and-bob"</span><span class="p">,</span> <span class="s2">"/lib"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
 <span class="go">'/lib/projects/alice-and-bob'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">project_dir</span><span class="p">(</span><span class="s2">"../escape"</span><span class="p">,</span> <span class="s2">"/lib"</span><span class="p">)</span>
@@ -1501,21 +1498,26 @@ names no genre).</p>
 <span class="gr">ValueError</span>: <span class="n">...</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.projects_root">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">projects_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/root.html#projects_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.projects_root" title="Link to this definition">#</a></dt>
 <dd><p>Where agent-made projects go by default: <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;/projects/</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">projects_root</span><span class="p">(</span><span class="s2">"/lib"</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="s2">"cutan"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+<span class="go">'/lib/projects'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">projects_root</span><span class="p">(</span><span class="s2">"/lib"</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="s2">"cutan"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-<span class="go">'/lib/projects'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1734,17 +1736,17 @@ registers the decorated derivation.</p>
 <p>Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.capabilities.html#an.capabilities.Capability" title="an.capabilities.Capability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Capability</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cap</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span><span class="s2">"demo.thing"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"a thing"</span><span class="p">,</span> <span class="n">remedy</span><span class="o">=</span><span class="s2">"add one"</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="s2">"demo"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CAPABILITIES</span><span class="p">[</span><span class="s2">"demo.thing"</span><span class="p">]</span> <span class="ow">is</span> <span class="n">cap</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">drop_owner</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.capabilities.html#an.capabilities.Capability" title="an.capabilities.Capability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Capability</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1822,11 +1824,6 @@ it resolved in.</p>
 and validates — and its rights statements still bind the floor (retiring
 is curation, not a relabel). <code class="docutils literal notranslate"><span class="pre">find(status=&quot;retired&quot;)</span></code> lists it; a publish
 into it is refused unless it passes <code class="docutils literal notranslate"><span class="pre">status=</span></code> to revive it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.dead"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"dead"</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">retire</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.dead"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"me"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"superseded"</span><span class="p">)</span>
@@ -1834,6 +1831,11 @@ into it is refused unless it passes <code class="docutils literal notranslate"><
 <span class="go">(0, ['prop.dead'])</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1842,15 +1844,15 @@ into it is refused unless it passes <code class="docutils literal notranslate"><
 <dd><p>Roll labelled sources (and parents’ rights) up to one <a class="reference internal" href="#an.library.Rights" title="an.library.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a>.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">None</span></code> source is <code class="docutils literal notranslate"><span class="pre">unknown</span></code>. The reasons name every contributor of the
 winning class, so a reader sees <em>why</em> a version is restricted.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roll_up</span><span class="p">([(</span><span class="s2">"asset"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="go">{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.library.rights.html#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roll_up</span><span class="p">([(</span><span class="s2">"asset"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-<span class="go">{'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1872,11 +1874,6 @@ search.</p>
 <dt class="sig sig-object py" id="an.library.search_path">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">search_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'an'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/federation.html#search_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.search_path" title="Link to this definition">#</a></dt>
 <dd><p>The ordered libraries <code class="docutils literal notranslate"><span class="pre">package</span></code> reads: its own, then the core <code class="docutils literal notranslate"><span class="pre">an</span></code>, then <code class="docutils literal notranslate"><span class="pre">extra</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.library.federation.html#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>extra: further libraries, by package name (resolved like any root) or as</dt><dd><p><a class="reference internal" href="#an.library.Library" title="an.library.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a> objects (a team share, a seed library)</p>
 </dd>
@@ -1884,6 +1881,11 @@ search.</p>
 </dd>
 </dl>
 <p>A name appears once, at its first position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.library.federation.html#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1892,17 +1894,17 @@ search.</p>
 <dd><p>Set an asset’s curation status, recording who and why; return the record.</p>
 <p>The record’s <code class="docutils literal notranslate"><span class="pre">status_history</span></code> is appended to, never rewritten, and no
 version is touched: a project pinned to one keeps reading it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"lamp"</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">set_status</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">,</span> <span class="s2">"approved"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"me"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"looks right"</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="go">'approved'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1927,11 +1929,6 @@ allow_private_here: write a not-publishable sheet inside a git work tree</p>
 <dt class="sig sig-object py" id="an.library.show">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.show" title="Link to this definition">#</a></dt>
 <dd><p>The record, the resolved version, its recomputed rights and the list of versions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"lamp"</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="s2">"A lamp"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">show</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">)</span>
@@ -1939,17 +1936,17 @@ allow_private_here: write a not-publishable sheet inside a git work tree</p>
 <span class="go">('an:prop.lamp@v001', 'A lamp', ['v001'])</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.verify_checkout">
 <span class="sig-prename descclassname"><span class="pre">an.library.</span></span><span class="sig-name descname"><span class="pre">verify_checkout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/checkout.html#verify_checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.verify_checkout" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{&lt;store&gt;/&lt;key&gt;:</span> <span class="pre">differences}</span></code> for every pinned entry; empty lists are intact copies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
-</dd>
-</dl>
 <dl class="simple">
 <dt>libraries: where the pinned versions resolve (<code class="docutils literal notranslate"><span class="pre">None</span></code>: the library each</dt><dd><p>pin names, at its default root — <code class="xref py py-func docutils literal notranslate"><span class="pre">pinned_libraries()</span></code>)</p>
 </dd>
@@ -1959,6 +1956,11 @@ differences is byte-for-byte the version its pin names. An entry whose
 pinned version cannot be found, or is found with another manifest (a
 same-named asset in another library), reads <code class="docutils literal notranslate"><span class="pre">[&quot;cannot</span> <span class="pre">verify:</span> <span class="pre">…&quot;]</span></code> —
 never as an edit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1988,11 +1990,6 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <code class="docutils literal notranslate"><span class="pre">affords=[&quot;limbs.legs&quot;,</span> <span class="pre">&quot;swap.view:side&quot;]</span></code>. The counts are over what
 <code class="docutils literal notranslate"><span class="pre">find</span></code> offers by default — the same recomputed rights, and no asset of a
 hidden status (<code class="docutils literal notranslate"><span class="pre">retired</span></code>), whose numbers are under <code class="docutils literal notranslate"><span class="pre">hidden</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">vocabulary</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
@@ -2001,6 +1998,11 @@ hidden status (<code class="docutils literal notranslate"><span class="pre">reti
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <p class="rubric">Modules</p>

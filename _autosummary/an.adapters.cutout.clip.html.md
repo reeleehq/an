@@ -25,7 +25,7 @@ This path keeps working for every existing caller; new code imports from
 |------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | [`LoopMode`](#an.adapters.cutout.clip.LoopMode)(\*values)                            | How a clip behaves past its natural duration.         |
 
-### *class* an.adapters.cutout.clip.Clip(name, duration, channels=<factory>, loop_mode=LoopMode.ONCE)
+### *class* an.adapters.cutout.clip.Clip(name, duration, channels=list(), loop_mode=LoopMode.ONCE)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -53,10 +53,10 @@ Merge multiple poses with **override semantics** (later wins per key).
 
 Used by the timeline to combine concurrent clips on the same target.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> merge_poses({("a", "x"): 1.0}, {("a", "x"): 2.0, ("a", "y"): 3.0})
 {('a', 'x'): 2.0, ('a', 'y'): 3.0}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

@@ -81,9 +81,6 @@ direct children, and deeper parts too when the treatment is `nested`.
 The glow is added after the parts are walked, so it never gets an outline
 of its own.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.styles import SurfaceTreatment
 >>> part = NodeJSON(name="torso", visual=VisualJSON(kind="rect", width=40, height=60))
@@ -93,6 +90,9 @@ of its own.
 >>> [(u.grow, u.offsets) for u in part.visual.underlays]
 [(2.0, [(4.0, 4.0)]), (2.0, [(0.0, 0.0)])]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.surface.drawn_box(node)
 
@@ -104,15 +104,15 @@ scales are not applied: the compiled rigs have none below the entity
 root. That is an assumption about the rigs this compiler builds, not
 about arbitrary documents.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> head = NodeJSON(name="h", transform=TransformJSON(y=-50),
 ...                 visual=VisualJSON(kind="ellipse", width=40, height=40))
 >>> drawn_box(NodeJSON(name="e", children=[head]))
 (-20.0, -70.0, 20.0, -30.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.surface.faded_treated_targets(scene, animations)
 
@@ -133,33 +133,30 @@ The glow’s texture: an elliptical radial gradient filling its box.
 It holds `intensity` out to `core` (a fraction of the radius) and
 fades to nothing at the edge.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> glow_svg(10, 10, color="#ffffff", intensity=0.5, core=0.4)[:52]
 '<svg xmlns="http://www.w3.org/2000/svg" width="10" h'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.surface.grain_greys(amount)
 
 The palette: level `n` multiplies the frame by `grey/255`, from
 white (level 0) down to `1 − amount` (the last level).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> grain_greys(0.06)[:3], grain_greys(0.06)[-1]
 ([255, 254, 253], 240)
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
 ### an.stage.surface.grain_indices(seed, tile)
 
 `tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ```pycon
 >>> grain_indices(0, 4)
@@ -167,6 +164,9 @@ white (level 0) down to `1 − amount` (the last level).
 >>> grain_indices(0, 4) == grain_indices(0, 4) != grain_indices(1, 4)
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.stage.surface.grain_node(grain, , width, height, textures)
 
@@ -195,12 +195,12 @@ step on load that could differ between engines.
 
 The outline ring’s copy offsets at `radius` pixels.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> ring_offsets(2.0)[:3]
 [(2.0, 0.0), (1.414214, 1.414214), (0.0, 2.0)]
 >>> len(ring_offsets(3.0)) == OUTLINE_RING
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]

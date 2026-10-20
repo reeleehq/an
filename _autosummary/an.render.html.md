@@ -43,7 +43,7 @@ adapters and the same flow handles them.
 | [`RenderError`](#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
 
-### *class* an.render.CacheReach(ids=<factory>, derived=<factory>)
+### *class* an.render.CacheReach(ids=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -140,9 +140,6 @@ message — the message carries its fix — at most `max_per_group` per kind.
 `info` findings are counted in the report, not listed. `[]` when the
 render found nothing to warn about.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> recs = {"findings": [{"severity": "warning", "ir_path": "timeline/0/dialogue/1",
 ...     "description": "line 1 (bob) ends at 3.64s as synthesized, past the shot's "
@@ -155,6 +152,9 @@ findings: 1 warning (all in artifacts/render_reports/main.json)
   dialogue that does not fit its shot (1):
     timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.render.live_runs(project_root)
 
@@ -176,9 +176,6 @@ folder or temp dir. Only WHOLE path components are replaced, at both ends
 `/data/p`) is left as it is. A Windows path matches with either
 separator and in any case.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
 ...               root="/u/me/p", home="/u/me", tmp="/t")
@@ -191,6 +188,9 @@ separator and in any case.
 >>> portable_text("c:/users/me/p/a.png", root=r"C:\Users\me\p", home=r"C:\Users\me", tmp="/t")
 'a.png'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts=None, lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 

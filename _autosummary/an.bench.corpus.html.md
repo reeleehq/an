@@ -70,9 +70,6 @@ not, every encode-side metric pairs source frame *i* of one shot against
 decoded frame *i* of another. The `multi_shot` fixture’s ids (`intro`
 then `beat`) are chosen so they disagree.
 
-* **Return type:**
-  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
-
 ```pycon
 >>> import tempfile
 >>> from pathlib import Path
@@ -81,6 +78,9 @@ then `beat`) are chosen so they disagree.
 >>> [i for i, _ in iter_shot_dirs(d, order=["intro", "beat"])]
 ['intro', 'beat']
 ```
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]]
 
 ### an.bench.corpus.staged_scene(shot_dir)
 
@@ -102,12 +102,12 @@ also collects an#33’s `asset_resolution` entries, whose `kind` is
 `"character"` / `"environment"`. Those are entity kinds, not visual
 kinds, and mixing them makes the field mean two things at once.
 
-* **Return type:**
-  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> sorted(visual_kinds({"scene": {"visual": {"kind": "rect"},
 ...                                "children": [{"visual": {"kind": "eye"}}]},
 ...                      "asset_resolution": [{"kind": "character"}]}))
 ['eye', 'rect']
 ```
+
+* **Return type:**
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

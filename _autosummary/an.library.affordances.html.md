@@ -92,25 +92,25 @@ The capability as the generated docs and the MCP surface list it.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.library.affordances.capability_of(query)
 
 `(capability, key)` of a query term (the library’s `find` form).
-
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ```pycon
 >>> capability_of("swap.view:side"), capability_of("limbs.legs")
 (('swap.view', 'side'), ('limbs.legs', None))
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### an.library.affordances.current_affordances(kind, doc, art, , stored, stored_analysers)
 
@@ -136,13 +136,13 @@ The requirement terms `profile` does not meet, spelled, in the order asked.
 THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
 `resolve` and the library’s `find(…, near=True)` all call it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
 (['env.ffmpeg'], [])
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.library.affordances.register_analyser(kind, , version='', subject='asset', owner='an')
 
@@ -164,9 +164,6 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](an.capabilities.html.md#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
@@ -174,14 +171,17 @@ True
 >>> _ = drop_owner("demo")
 ```
 
+* **Return type:**
+  [`Capability`](an.capabilities.html.md#an.capabilities.Capability)
+
 ### an.library.affordances.remedy_for(term)
 
 What would add the capability a requirement term asks for.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> remedy_for("no.such.capability")
 'no registered capability no.such.capability; see vocabulary() for the known names'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

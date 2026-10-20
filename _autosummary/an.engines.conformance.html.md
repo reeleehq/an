@@ -49,13 +49,13 @@ A state in the vectors’ spelling: `"target:property"` keys.
 Accepts the kernel’s pose keys (`(target, property)` tuples) and the
 runtime’s (`"target::property"`).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> as_contract_state({("a", "x"): 1.0, "b::y": 2})
 {'a:x': 1.0, 'b:y': 2}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.engines.conformance.case_document(case)
 
@@ -64,9 +64,6 @@ document does (an#287): `meta.entity_spaces` names the space for every
 entity the case animates and `meta.spaces` defines it, so an engine that
 reads only the DOCUMENT (`runtime.js` has no registry) evaluates the case
 in the case’s space. A case in the default space is returned as it is.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> case = {"space": {"name": "inline", "fields": []}, "document": {
@@ -79,6 +76,9 @@ in the case’s space. A case in the default space is returned as it is.
 >>> "meta" in case_document({"space": "stage.node", "document": case["document"]})
 False
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.engines.conformance.conformance_report(open_case, cases)
 

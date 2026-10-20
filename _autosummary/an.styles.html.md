@@ -61,15 +61,15 @@ the rig’s own pixels, so a treatment scales with the character like paper woul
 
 ### Classes
 
-| [`StylePack`](#an.styles.StylePack)(\*\*data)        | Art direction for a project.                                             |
-|-----------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`Outline`](#an.styles.Outline)(\*\*data)          | A darker, dilated copy drawn behind each part.                           |
-| [`PaperShadow`](#an.styles.PaperShadow)(\*\*data)      | The "no-platen" paper-gap shadow: an offset, darkened copy of each part. |
-| [`Glow`](#an.styles.Glow)(\*\*data)             | An additive radial-gradient sprite behind an entity.                     |
-| [`Grain`](#an.styles.Grain)(\*\*data)            | One static paper-grain texture over the whole frame.                     |
-| [`SurfaceTreatment`](#an.styles.SurfaceTreatment)(\*\*data) | Which treatments an entity gets.                                         |
+| [`StylePack`](#an.styles.StylePack)(\*[, schema_version, kind, roles, ...])   | Art direction for a project.                                             |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`Outline`](#an.styles.Outline)(\*[, width, color, nested])                 | A darker, dilated copy drawn behind each part.                           |
+| [`PaperShadow`](#an.styles.PaperShadow)(\*[, dx, dy, color, alpha, nested])     | The "no-platen" paper-gap shadow: an offset, darkened copy of each part. |
+| [`Glow`](#an.styles.Glow)(\*[, color, radius, intensity])                | An additive radial-gradient sprite behind an entity.                     |
+| [`Grain`](#an.styles.Grain)(\*[, amount, seed, tile])                     | One static paper-grain texture over the whole frame.                     |
+| [`SurfaceTreatment`](#an.styles.SurfaceTreatment)(\*[, outline, shadow, glow])       | Which treatments an entity gets.                                         |
 
-### *class* an.styles.Glow(\*\*data)
+### *class* an.styles.Glow(, color='#fff4c2', radius=60.0, intensity=0.5)
 
 Bases: `_Treatment`
 
@@ -87,7 +87,7 @@ entity and lights the background around it, not the entity itself.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.Grain(\*\*data)
+### *class* an.styles.Grain(, amount=0.06, seed=0, tile=256)
 
 Bases: `_Treatment`
 
@@ -103,7 +103,7 @@ time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.Outline(\*\*data)
+### *class* an.styles.Outline(, width=3.0, color='#1a1a1a', nested=False)
 
 Bases: `_Treatment`
 
@@ -134,7 +134,7 @@ when an `alpha` channel reaches a treated part.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.styles.PaperShadow(\*\*data)
+### *class* an.styles.PaperShadow(, dx=4.0, dy=4.0, color='#000000', alpha=0.35, nested=False)
 
 Bases: `_Treatment`
 
@@ -177,7 +177,7 @@ NOTHING (an#112 review) because the guard checked set membership against the
 set it was checking — a declared-reachable role that reaches nothing is the
 same defect as an unreachable one, and it needs the same kind of test.
 
-### *class* an.styles.StylePack(\*\*data)
+### *class* an.styles.StylePack(\*, schema_version='0.1.0', kind='StylePack', name, roles=<factory>, entities=<factory>, source=None, metadata=<factory>, surface=None, entity_surfaces=<factory>, grain=None, gradients=<factory>, policy=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -234,15 +234,15 @@ which is what keeps a scene with no pack byte-identical.
 
 The pack’s gradient for `role`, or `None` (the plane keeps its own paint).
 
-* **Return type:**
-  [`Gradient`](an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> pack = StylePack(name="reiniger", gradients={"glass": {
 ...     "type": "radial", "stops": ["#fff4d6", "#e0a050"]}})
 >>> pack.gradient_for("glass").type, pack.gradient_for("sky"), pack.gradient_for(None)
 ('radial', None, None)
 ```
+
+* **Return type:**
+  [`Gradient`](an.paint.html.md#an.paint.Gradient) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 #### gradients *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Gradient](an.paint.html.md#an.paint.Gradient)]*
 
@@ -286,7 +286,7 @@ docstring for why a second representation is a liability here.
 Surface treatments for every drawable entity (characters and props);
 `None` = none. See [`SurfaceTreatment`](#an.styles.SurfaceTreatment) and [`surface_for()`](#an.styles.surface_for).
 
-### *class* an.styles.SurfaceTreatment(\*\*data)
+### *class* an.styles.SurfaceTreatment(, outline=None, shadow=None, glow=None)
 
 Bases: `_Treatment`
 
@@ -327,9 +327,6 @@ A **lookup with a default**, not a rewrite: with no pack, or with a pack
 that mentions none of the three, the caller’s own literals come back
 unchanged and the compiled document does not move a byte.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> resolve_palette(None, "maya", ("#f4c89a", "#3a6ea5", "#3b2a1a"))
 ('#f4c89a', '#3a6ea5', '#3b2a1a')
@@ -338,6 +335,9 @@ unchanged and the compiled document does not move a byte.
 ('#f4c89a', '#202028', '#3b2a1a')
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.styles.surface_for(pack, entity)
 
 The treatments `entity` gets under `pack`, or `None` for none.
@@ -345,9 +345,6 @@ The treatments `entity` gets under `pack`, or `None` for none.
 `None` is the answer for no pack, a pack without treatments, and an
 entity whose override switched everything off — which is what keeps every
 such scene’s compiled document byte-identical to before an#163.
-
-* **Return type:**
-  [`SurfaceTreatment`](#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> pack = StylePack(name="sp", surface={"outline": {}},
@@ -361,3 +358,6 @@ True
 >>> surface_for(None, "maya") is None
 True
 ```
+
+* **Return type:**
+  [`SurfaceTreatment`](#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

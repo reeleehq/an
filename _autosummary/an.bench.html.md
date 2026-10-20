@@ -72,7 +72,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A ledger row violates an invariant that would make it misreadable.
 
-### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
+### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=tuple(), sweep=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -123,7 +123,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A metric declaration violates one of the table’s invariants.
 
-### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=<factory>)
+### *class* an.bench.Value(value, state='measured', gate=None, detail='', extra=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -190,9 +190,6 @@ Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.array([[[1, 2, 3], [4, 5, 6]]], np.uint8)
@@ -200,12 +197,12 @@ interlaced images, naming what it found.
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.encode_png(rgb, , level=9)
 
 Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.
-
-* **Return type:**
-  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
 
 ```pycon
 >>> import numpy as np
@@ -216,6 +213,9 @@ True
 (2, 3, 3)
 ```
 
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
 ### an.bench.frame_key(index)
 
 The filename stem for a frame, zero-padded so a directory listing sorts.
@@ -225,13 +225,13 @@ the picture. A change to `fps` moves the index, which changes the path,
 which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> frame_key(7)
 'f0007'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.pixels_sha256(rgb)
 
@@ -246,15 +246,15 @@ corpus. [`an.bench.metrics.golden_comparison()`](an.bench.metrics.html.md#an.ben
 its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.arange(24, dtype=np.uint8)
 >>> pixels_sha256(a.reshape(2, 4, 3)) == pixels_sha256(a.reshape(4, 2, 3))
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.png_dimensions(data)
 
@@ -269,14 +269,14 @@ Cheap on purpose. The bench reads this for **every** frame on disk rather
 than sampling one, because the failure it exists to catch — a render whose
 frame size changed partway through — is exactly the one sampling misses.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
-
 ```pycon
 >>> import numpy as np
 >>> png_dimensions(encode_png(np.zeros((240, 320, 3), np.uint8)))
 (320, 240)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
 ### an.bench.read_png(path)
 
@@ -303,14 +303,14 @@ Which metrics would count for `mutation`, grouped by family.
 Reads the row rather than the registry, so an#41’s criterion is evaluated
 against what was actually written down.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> witnesses({"metrics": {"m": {"family": "A",
 ...     "under_mutation": {"high_crf": {"counts": True}}}}}, "high_crf")
 {'A': ['m']}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.bench.write_png(path, rgb, , level=9)
 

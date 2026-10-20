@@ -25,7 +25,7 @@ type), pinned by `tests/test_cutout_channel_parity.py`.
 |-------------------------------------------------------------------------------------------|---------------------------------------------------------|
 | [`Keyframe`](#an.adapters.cutout.channel.Keyframe)(time, value[, easing])          | One keyframe: time, value, optional per-segment easing. |
 
-### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=<factory>)
+### *class* an.adapters.cutout.channel.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

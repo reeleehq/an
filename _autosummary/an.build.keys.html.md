@@ -118,7 +118,7 @@ one someone forgets — that is each keyer’s `code` part, a digest of the
 render path’s source. Bumping it orphans every entry; nothing is deleted
 (decision 6).
 
-### *class* an.build.keys.ShotKeyInputs(parts, compile_s=None, details=<factory>)
+### *class* an.build.keys.ShotKeyInputs(parts, compile_s=None, details=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -163,25 +163,25 @@ A shot keyer or key part was registered twice, or collides with another.
 
 The hex sha256 of `data`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> bytes_digest(b"")[:8]
 'e3b0c442'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.callable_identity(obj)
 
 `module.qualname` of a function or class (of an instance: of its type).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> callable_identity(callable_identity)
 'an.build.keys.callable_identity'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.canonical_digest(obj)
 
@@ -194,13 +194,13 @@ The hex sha256 of [`canonical_json()`](#an.build.keys.canonical_json) of `obj`.
 
 `obj` as sorted, whitespace-free JSON — the one spelling every digest hashes.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> canonical_json({"b": (1, 2), "a": None})
 '{"a":null,"b":[1,2]}'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.compose_shot_key(parts)
 
@@ -219,13 +219,13 @@ Every asset in the project (decision 3’s fallback), without the root
 files — those are [`project_dependencies()`](#an.build.keys.project_dependencies)’. The `assets` part of a
 shot whose keyer cannot vouch for its reads.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> every_asset_digest({"props": {"a": 1}}) != every_asset_digest({"props": {"a": 2}})
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.keys.file_digest(path)
 
@@ -254,9 +254,6 @@ With `project_root`, the files in `root_files` (the library lockfile)
 are hashed by PATH as well — so a re-pin moves every key whether or not
 the mall has a store for the file yet.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
 >>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
@@ -264,26 +261,26 @@ the mall has a store for the file yet.
 False
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.project_dependencies(mall, , project_root=None)
 
 What every shot depends on project-wide: the project-root files
 ([`PROJECT_ROOT_FILES`](#an.build.keys.PROJECT_ROOT_FILES), the library lockfile), read by path. A re-pin
 changes what is checked out, so it moves every key, conservatively.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> project_dependencies({}) == project_dependencies({"props": {"a": 1}})
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.build.keys.project_root_files_digest(project_root, , files=('assets.lock.json',))
 
 `{name: sha256 or ABSENT}` for the project-root files every shot depends on.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ```pycon
 >>> import tempfile
@@ -291,6 +288,9 @@ True
 ...     project_root_files_digest(d, files=["assets.lock.json"])
 {'assets.lock.json': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.build.keys.register_shot_key_part(renderer_name, part_name, part)
 
@@ -334,13 +334,13 @@ A keyer registers beside its renderer, and a backend behind the import
 firewall registers when the renderer registry first loads it (an#247), so
 this loads the registry first.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> "cutout" in registered_shot_keyers()
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.build.keys.shot_keyer_for(renderer)
 
@@ -364,12 +364,12 @@ once art is read through the stores (the asset library, ADR 0005), a
 read-recording view replaces it with the keys a shot actually read. Any
 other mapping is digested from its items.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 1}})
 True
 >>> store_digest({"a": {"x": 1}}) == store_digest({"a": {"x": 2}})
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

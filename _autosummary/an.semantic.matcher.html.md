@@ -70,7 +70,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.matcher.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
+### *class* an.semantic.matcher.Resolution(aspect, method, args=dict(), source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

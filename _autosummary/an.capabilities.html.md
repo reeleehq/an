@@ -192,7 +192,7 @@ Every capability name this term mentions.
 
 The three subjects a capability can belong to (core study §2.13).
 
-### *class* an.capabilities.Subjects(asset=<factory>, engine=<factory>, environment=<factory>)
+### *class* an.capabilities.Subjects(asset=dict(), engine=dict(), environment=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -205,7 +205,7 @@ A bare profile passed where `Subjects` is expected is the asset’s.
 {'limbs.legs': {}}
 ```
 
-### *class* an.capabilities.Substitution(aspect, entity, requested, chosen, reason, requested_version=None, chosen_version='', missing=(), remedies=<factory>)
+### *class* an.capabilities.Substitution(aspect, entity, requested, chosen, reason, requested_version=None, chosen_version='', missing=(), remedies=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -247,22 +247,19 @@ registered analyser decides; with none, nothing is afforded.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.capabilities.art_in_dir(directory, , exclude=())
 
 The art an asset folder holds, as an analyser reads it: `{relative path: True}`.
 
 `exclude` drops the document files themselves (`character.json`).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
 
 ```pycon
 >>> import tempfile, pathlib
@@ -271,6 +268,9 @@ The art an asset folder holds, as an analyser reads it: `{relative path: True}`.
 ...     sorted(art_in_dir(d))
 ['parts/head.svg']
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`bool`](https://docs.python.org/3/builtins/functions.html#bool)]
 
 ### an.capabilities.capability_names(, subject=None, owner=None)
 
@@ -283,13 +283,13 @@ The registered capability names, sorted; filtered by `subject`/`owner`.
 
 `(capability, key)` of a query term (the library’s `find` form).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
-
 ```pycon
 >>> capability_of("swap.view:side"), capability_of("limbs.legs")
 (('swap.view', 'side'), ('limbs.legs', None))
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
 
 ### an.capabilities.current_affordances(kind, doc, art, , stored, stored_analysers)
 
@@ -315,20 +315,17 @@ The requirement terms `profile` does not meet, spelled, in the order asked.
 THE matcher (ADR 0002 decision 4): `why_not`, `applicable`,
 `resolve` and the library’s `find(…, near=True)` all call it.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> missing({}, ["env.ffmpeg"]), missing(Subjects(environment={"env.ffmpeg": {}}), ["env.ffmpeg"])
 (['env.ffmpeg'], [])
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.capabilities.parse_requirement(spec)
 
 A [`Requirement`](#an.capabilities.Requirement) from its spelling (`cap`, `cap:key`, `cap>=N`, `a|b`).
-
-* **Return type:**
-  [`Requirement`](#an.capabilities.Requirement)
 
 ```pycon
 >>> parse_requirement("rig.slots>=2").at_least
@@ -338,6 +335,9 @@ Traceback (most recent call last):
 ...
 an.capabilities.CapabilityError: requirement 'limbs.legs(hips)': ...
 ```
+
+* **Return type:**
+  [`Requirement`](#an.capabilities.Requirement)
 
 ### an.capabilities.register_analyser(kind, , version='', subject='asset', owner='an')
 
@@ -359,9 +359,6 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
@@ -369,17 +366,20 @@ True
 >>> _ = drop_owner("demo")
 ```
 
+* **Return type:**
+  [`Capability`](#an.capabilities.Capability)
+
 ### an.capabilities.remedy_for(term)
 
 What would add the capability a requirement term asks for.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> remedy_for("no.such.capability")
 'no registered capability no.such.capability; see vocabulary() for the known names'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.capabilities.subject_of(term)
 
@@ -388,13 +388,13 @@ The subject whose profile a requirement term is matched against.
 An unregistered capability is matched against the asset (and reported
 missing there): [`an.semantic.check_registry()`](an.semantic.html.md#an.semantic.check_registry) is what refuses it.
 
-* **Return type:**
-  str
-
 ```pycon
 >>> subject_of("env.latex") == subject_of("limbs.legs")
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### Modules
 

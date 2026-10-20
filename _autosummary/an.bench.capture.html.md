@@ -58,7 +58,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='', film=None)
+### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=dict(), capture='', film=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -159,12 +159,12 @@ The renderer’s own frame-count expression, reused rather than restated.
 banker’s rounding, so `math.ceil` or `int(x + 0.5)` silently disagrees
 on every half-frame duration.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> expected_frame_count(2.5, 24)
 60
 >>> expected_frame_count(0.0, 24)
 1
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)

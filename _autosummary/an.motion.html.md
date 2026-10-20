@@ -105,7 +105,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'crawl': <function crawl>, 'hop': <function hop>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[..., [Union](https://docs.python.org/3/library/typing.html#typing.Union)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction), [TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction), [SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction), [ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction), [DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction), [LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), [ExtensionAction](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]]* *= {'crawl': <function crawl>, 'hop': <function hop>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>}*
 
 the moves that need no rig. A genre’s presets
 (the cut-out ones: `cutan.motion.PRESETS`, an#322) are listed beside these
@@ -137,9 +137,6 @@ absolute times, which is what a person editing `scene.md` wants.
 
 A `set` keeps its absolute time in `at` instead of a wrapper.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]
-
 ```pycon
 >>> leaves = as_leaves(hop("charlie"), start=1.0)
 >>> [type(a).__name__ for a in leaves]
@@ -147,6 +144,9 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
 [1.0, 1.25, 1.5]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]
 
 ### an.motion.crawl(target, , distance=2400.0, duration=30.0, start=None, tilt=0.96, perspective=1.0, fade=(700.0, 1500.0), y=None, easing='linear', rest=None)
 
@@ -162,9 +162,6 @@ the tween’s. A block centred on its origin starts with its middle on the
 hinge: a negative `start` (half the block’s height and more) has it
 enter from below. `fade=None` draws the plane to the horizon.
 
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> leaves = flatten(crawl("crawl", distance=1000, duration=20, start=-300, fade=None))
 >>> sorted((f.action.property, getattr(f.action, "value", None)) for f in leaves
@@ -175,17 +172,20 @@ enter from below. `fade=None` draws the plane to the horizon.
 [(-300.0, 700.0, 20.0)]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
 
 Jump up by `height` scene pixels and land back where it started.
-
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
 [(0.0, -30.0), (-30.0, 0.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.pop_in(target, , duration=0.45, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
@@ -196,14 +196,14 @@ target shows at its rest pose: to keep it hidden until it pops, start the
 preset at the target’s first frame (or hold `scale_x`/`scale_y` at 0
 with a `set` before it).
 
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> [(f.action.property, f.action.from_value, f.action.to_value)
 ...  for f in _tweens(pop_in("charlie"))]
 [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.rest_pose(shot, target, , mall=None)
 
@@ -217,9 +217,6 @@ a descriptor rig is built from its character store.
 
 (These examples build character entities, the cut-out genre’s; they are not run here.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> from an.ir.schema import AssetRef
 >>> two = Shot(id="s", entities=[
@@ -230,12 +227,12 @@ a descriptor rig is built from its character store.
 -55.0
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
 
 Tremble side to side `cycles` times and come back to rest (on `x`).
-
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
@@ -244,29 +241,32 @@ Tremble side to side `cycles` times and come back to rest (on `x`).
 [-102.0, -118.0, -110.0]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
 
 Whip in from `distance` pixels off to one side, overshoot, and settle.
-
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
 [(-400.0, 0.0)]
 ```
 
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
+
 ### an.motion.slide_out(target, , to_side='right', distance=600.0, duration=0.35, easing='ease_in', rest=None)
 
 Exit `distance` pixels off to one side, accelerating (an exit).
-
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
 [(0.0, -600.0)]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.squash_stretch(target, , amount=0.2, duration=0.36, rest=None)
 
@@ -275,14 +275,14 @@ Squash (wide and short), stretch (narrow and tall), then settle.
 Scales about the target’s own origin (for the procedural rig, the torso’s
 centre). Volume is roughly kept: one axis grows by what the other loses.
 
-* **Return type:**
-  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
-
 ```pycon
 >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
 ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
 [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
 ```
+
+* **Return type:**
+  [`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ### an.motion.stage_poses(shot, , mall=None, width=None, height=None)
 
@@ -294,9 +294,6 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 
 (These examples build character entities, the cut-out genre’s; they are not run here.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> from an.ir.schema import AssetRef
 >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
@@ -304,3 +301,6 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 >>> "c/right_arm" in poses, poses["c/head"]["y"]
 (True, -55.0)
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]

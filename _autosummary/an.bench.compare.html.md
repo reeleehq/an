@@ -67,14 +67,14 @@ than referencing the registry that happened to be installed.
 
 ### Functions
 
-| [`compare`](#an.bench.compare.compare)(before, after, \*[, mutation])      | Compare two ledger rows.                                               |
-|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`direction_of`](#an.bench.compare.direction_of)(before, after)                 | `increase` / `decrease` / `no_change` — exactly, with no tolerance.    |
-| [`format_comparison`](#an.bench.compare.format_comparison)(report)                   | The human-readable digest.                                             |
-| [`latest_rows`](#an.bench.compare.latest_rows)(\*[, root, count])              |                                                                        |
-| [`load_row`](#an.bench.compare.load_row)(path)                              | Read one ledger row from disk.                                         |
-| [`readable_sweep`](#an.bench.compare.readable_sweep)(sweep)                       | `sweep` if every cell is a possible `[counted, of]` pair, else `None`. |
-| [`sweep_verdict`](#an.bench.compare.sweep_verdict)(before, after, \*[, shipped]) | Does a threshold counter's direction survive its own parameter grid?   |
+| [`compare`](#an.bench.compare.compare)(before, after, \*[, mutation])      | Compare two ledger rows.                                                                                             |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| [`direction_of`](#an.bench.compare.direction_of)(before, after)                 | `increase` / `decrease` / `no_change` — exactly, with no tolerance.                                                  |
+| [`format_comparison`](#an.bench.compare.format_comparison)(report)                   | The human-readable digest.                                                                                           |
+| [`latest_rows`](#an.bench.compare.latest_rows)(\*[, root, count])              | The most recent committed ledger rows, newest last — \*\*by <br/><br/>```<br/>`<br/>```<br/><br/>generated_at\`\*\*. |
+| [`load_row`](#an.bench.compare.load_row)(path)                              | Read one ledger row from disk.                                                                                       |
+| [`readable_sweep`](#an.bench.compare.readable_sweep)(sweep)                       | `sweep` if every cell is a possible `[counted, of]` pair, else `None`.                                               |
+| [`sweep_verdict`](#an.bench.compare.sweep_verdict)(before, after, \*[, shipped]) | Does a threshold counter's direction survive its own parameter grid?                                                 |
 
 ### Exceptions
 
@@ -178,15 +178,15 @@ Two consecutive runs on one machine are bit-identical, so zero is the normal
 delta and any nonzero one is real. Booleans compare as booleans: a tripwire
 that went `True -> False` has not “decreased”.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> direction_of(1.0, 1.0)
 'no_change'
 >>> direction_of(True, False)
 'decrease'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.format_comparison(report)
 
@@ -196,9 +196,6 @@ The human-readable digest. Refusals first, because they are the verdict.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.compare.latest_rows(, root=None, count=2)
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 The most recent committed ledger rows, newest last — \*\*by 
 
@@ -224,6 +221,9 @@ all lack the key ordered by date.
 describes no commit, and comparing one is comparing against nothing
 nameable. `an bench --out` still lets a caller point at one explicitly.
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
 ### an.bench.compare.load_row(path)
 
 Read one ledger row from disk.
@@ -239,9 +239,6 @@ Possible means integers (a bool is not a count), `of > 0` and
 `0 <= counted <= of` — a cell no measurement could have produced is an
 edited row, and reading it would let the edit choose the verdict.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> readable_sweep({"t=1": [3, 10]})
 {'t=1': [3, 10]}
@@ -250,6 +247,9 @@ True
 >>> readable_sweep({"t=1": [True, 10]}) is None
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.bench.compare.sweep_verdict(before, after, , shipped=None)
 
@@ -277,9 +277,6 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 (A row that DECLARES a sweep and carries none is refused upstream, in
 `_compare_scene`.)
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]
 'unstable'
@@ -290,3 +287,6 @@ row written before an#140 has no sweep and is otherwise perfectly readable.
 >>> sweep_verdict(None, None) is None
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

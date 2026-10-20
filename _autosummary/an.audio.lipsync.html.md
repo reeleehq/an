@@ -83,7 +83,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single mouth-shape keyframe.
 
-### *class* an.audio.lipsync.VisemeTrack(visemes=<factory>, convention='rhubarb', duration=0.0, words=None)
+### *class* an.audio.lipsync.VisemeTrack(visemes=list(), convention='rhubarb', duration=0.0, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

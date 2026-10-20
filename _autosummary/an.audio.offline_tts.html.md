@@ -67,10 +67,10 @@ it to warn about a shot too short for its dialogue BEFORE anything is
 synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(estimate_speech_duration("It only takes exact change."), 3)
 1.43
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)

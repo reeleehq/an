@@ -165,15 +165,15 @@ The frame a pinned time names, snapped to the nearest one.
 `int(time * fps)` is the trap: `0.25 * 24` is `5.999999999999999` in
 binary floating point, so the obvious spelling silently picks frame 5.
 
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
-
 ```pycon
 >>> frame_index_for(0.25, fps=24, n_frames=12)
 6
 >>> frame_index_for(0.0, fps=24, n_frames=12)
 0
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.bench.golden.frame_key(index)
 
@@ -184,13 +184,13 @@ the picture. A change to `fps` moves the index, which changes the path,
 which makes the golden absent and therefore *gated* — loud, and pointing at
 the right cause.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> frame_key(7)
 'f0007'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.golden.frame_png_path(capture, ref)
 
@@ -233,15 +233,15 @@ corpus. [`an.bench.metrics.golden_comparison()`](an.bench.metrics.html.md#an.ben
 its `shape_mismatch` branch; this makes the digest agree with the gate
 rather than quietly disagreeing with it.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.arange(24, dtype=np.uint8)
 >>> pixels_sha256(a.reshape(2, 4, 3)) == pixels_sha256(a.reshape(4, 2, 3))
 False
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.golden.resolve_frames(capture, times)
 

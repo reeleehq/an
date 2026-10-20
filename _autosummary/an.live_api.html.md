@@ -74,9 +74,6 @@ Typed `Mapping`, not `dict`: the default IS `os.environ`, an
 annotation was false about the function’s own primary argument and pushed
 callers into copying the whole environment to satisfy it.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> live_api_enabled({})
 False
@@ -88,16 +85,19 @@ True
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.live_api.paid_provider_key_vars()
 
 Every environment variable a paid provider reads its API key from — the
 `env.key.*` capabilities’ ([`an.capabilities.subjects.ENV_KEYS`](an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)), so a
 new paid provider is listed once.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> {"ELEVEN_API_KEY", "ANTHROPIC_API_KEY"} <= set(paid_provider_key_vars())
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]

@@ -94,7 +94,7 @@ Record falling down the chain even when nothing was requested (reason
 fallback is a behaviour the asset never had before — speech’s pulse on a
 baked face — rather than today’s long-standing default (a legless walk).
 
-### *class* an.semantic.Choice(method, args=<factory>, version=None)
+### *class* an.semantic.Choice(method, args=dict(), version=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -107,7 +107,7 @@ One method choice in a policy or a request: `previz`’s `FormulaCall` plus a pi
 'loco.rock'
 ```
 
-### *class* an.semantic.Entry(id, kind, version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None)
+### *class* an.semantic.Entry(id, kind, version='1', name='', title='', description='', usage='', params=dict(), examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -139,14 +139,14 @@ An entry from its JSON form (what [`to_json()`](#an.semantic.Entry.to_json) writ
 package exports — previz’s formulas): the explicit loader, a `method`
 kind giving a [`Method`](#an.semantic.Method).
 
-* **Return type:**
-  [`Entry`](#an.semantic.Entry)
-
 ```pycon
 >>> e = Entry("camera.demo", "camera_move", name="demo", description="d")
 >>> Entry.from_json(e.to_json()) == e
 True
 ```
+
+* **Return type:**
+  [`Entry`](#an.semantic.Entry)
 
 #### *property* term *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -159,7 +159,7 @@ The entry as data (no `expand`): what the MCP surface and the docs list.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.semantic.Method(id, kind='method', version='1', name='', title='', description='', usage='', params=<factory>, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None, aspect='', remedies=<factory>)
+### *class* an.semantic.Method(id, kind='method', version='1', name='', title='', description='', usage='', params=dict(), examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), expand=None, aspect='', remedies=dict())
 
 Bases: [`Entry`](#an.semantic.Entry)
 
@@ -192,7 +192,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One unmet requirement term and what would meet it.
 
-### *class* an.semantic.Policy(order=<factory>)
+### *class* an.semantic.Policy(order=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -215,7 +215,7 @@ Policies in precedence order (shot before style): the first that names an aspect
 * **Return type:**
   [`Policy`](#an.semantic.Policy)
 
-### *class* an.semantic.Resolution(aspect, method, args=<factory>, source='chain', substitution=None, considered=(), skipped=(), choice=None)
+### *class* an.semantic.Resolution(aspect, method, args=dict(), source='chain', substitution=None, considered=(), skipped=(), choice=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -318,9 +318,6 @@ a taken `(kind, name)` (within an aspect, for methods) raises, unless
 `replace=True` is passed explicitly, and then the replacement is recorded
 (`replacements()`). Re-registering the same entry is a no-op.
 
-* **Return type:**
-  [`Entry`](#an.semantic.Entry)
-
 ```pycon
 >>> from an.semantic.entries import Entry
 >>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
@@ -328,6 +325,9 @@ Traceback (most recent call last):
 ...
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
+
+* **Return type:**
+  [`Entry`](#an.semantic.Entry)
 
 ### an.semantic.resolve(aspect_name, subjects, requested=None, , declared=None, policy=None, entity='', entity_kind=None)
 

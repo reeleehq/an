@@ -58,8 +58,8 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### Classes
 
-| [`PathDescriptor`](#an.stage.paths.PathDescriptor)(\*\*data)   | The on-disk path schema, saved as a prop's `prop.json`.   |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------|
+| [`PathDescriptor`](#an.stage.paths.PathDescriptor)(\*[, kind, schema_version, ...])   | The on-disk path schema, saved as a prop's `prop.json`.   |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
 
 ### an.stage.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
 
@@ -80,7 +80,7 @@ thousand pixels long is a few thousand dashes at most.
 Its own versioned document kind, registered from the module that owns the
 schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.
 
-### *class* an.stage.paths.PathDescriptor(\*\*data)
+### *class* an.stage.paths.PathDescriptor(\*, kind='PathDescriptor', schema_version='0.1.0', name, points, curve='polyline', samples_per_segment=24, sampling='parameter', color='#c0392b', width=8.0, width_profile=None, cap='round', join='round', trim_start=0.0, trim_end=1.0, dash=None, gap=None, dash_offset=0.0, arrowhead=False, tail_arrowhead=False, head_length=None, head_width=None, closed=False, fill=None, fill_alpha=1.0, wobble=0.0, wobble_wavelength=None, wobble_seed=0, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -253,15 +253,15 @@ the point), each eased by `easing`, preceded by a `set` of
 Returns a list of top-level actions for `shot.actions.extend(...)`, as
 [`an.stage.text.reveal_units()`](an.stage.text.html.md#an.stage.text.reveal_units) does.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
-
 ```pycon
 >>> acts = draw_on_through("r", {"kind": "PathDescriptor", "name": "r",
 ...     "points": [[0, 0], [30, 0], [30, 10]]}, [1.0, 3.0])
 >>> [(a.kind, getattr(a, "to_value", getattr(a, "value", None))) for a in acts]
 [('set', 0.0), ('tween', 0.75), ('sequence', None)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ### an.stage.paths.drawn_polyline(desc, entity_id)
 
@@ -271,14 +271,14 @@ the entity) — and the index in it of each AUTHORED on-path point: every
 point of a polyline, `p0 p1 p2 ...` of a cubic chain (not its controls),
 and the closing return to the first point when `closed` added one.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> pts, anchors = drawn_polyline(PathDescriptor(name="r", points=[(0, 0), (10, 0), (10, 10)], closed=True), "r")
 >>> pts[anchors[-1]], anchors
 ((0.0, 0.0), [0, 1, 2, 3])
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ### an.stage.paths.resolve_path(document, overrides=None)
 
@@ -287,9 +287,6 @@ The path an entity draws: its stored document with `overrides` on top.
 Validated strictly after the merge, so an override key the schema does not
 know raises instead of vanishing (an environment override silently drops
 unknown keys; a path’s does not).
-
-* **Return type:**
-  [`PathDescriptor`](#an.stage.paths.PathDescriptor)
 
 ```pycon
 >>> doc = {"kind": "PathDescriptor", "name": "a", "points": [[0, 0], [10, 0]]}
@@ -301,3 +298,6 @@ unknown keys; a path’s does not).
 ...     print(str(e).split("Value error, ")[1].split(". The fields")[0])
 unknown PathDescriptor field(s): 'colour' (did you mean 'color', 'curve', 'source'?)
 ```
+
+* **Return type:**
+  [`PathDescriptor`](#an.stage.paths.PathDescriptor)

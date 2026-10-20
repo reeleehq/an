@@ -114,7 +114,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The collection cannot be done safely; nothing was deleted.
 
-### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=<factory>, reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=<factory>, reachability_error='', skipped=<factory>, derived=<factory>)
+### *class* an.build.gc.CacheInfo(path, total_bytes=0, by_role=dict(), reachable=None, unreachable=None, orphan_blobs=(0, 0), roots=list(), reachability_error='', skipped=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -132,7 +132,7 @@ voice’s own provider (an#305). Always among the profiles the current scene
 is keyed under, so a cache written before roots existed keeps what a plain
 render of the current scene reads.
 
-### *class* an.build.gc.GcReport(dry_run, deleted=<factory>, deleted_blobs=<factory>, kept_reachable=0, kept_protected=<factory>, kept_retained=0, failed=<factory>, bytes_before=0, reach=None, deleted_derived=<factory>, derived_freed=0, kept_derived=0)
+### *class* an.build.gc.GcReport(dry_run, deleted=list(), deleted_blobs=dict(), kept_reachable=0, kept_protected=list(), kept_retained=0, failed=list(), bytes_before=0, reach=None, deleted_derived=dict(), derived_freed=0, kept_derived=0)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -156,7 +156,7 @@ offline — what a cache written before roots existed was rendered with.
 * **Type:**
   The knob sets a plain render used or uses, recorded by a root or not
 
-### *class* an.build.gc.Reachability(from_scene=<factory>, from_roots=<factory>, profiles=<factory>, roots=<factory>, skipped=<factory>, derived=<factory>)
+### *class* an.build.gc.Reachability(from_scene=set(), from_roots=set(), profiles=list(), roots=list(), skipped=list(), derived=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -209,25 +209,25 @@ listed with role `"unreadable"` and, on disk, its file’s mtime.
 
 `"7d"`, `"36h"`, `"90m"`, `"2w"`, `"30s"` → seconds.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> parse_age("90m")
 5400.0
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.build.gc.parse_size(text)
 
 `"2G"`, `"500MB"`, `"1.5GB"`, `"1048576"` → bytes (1024-based).
-
-* **Return type:**
-  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ```pycon
 >>> parse_size("1.5k")
 1536
 ```
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
 ### an.build.gc.reachable_entries(project, store, , entries=None, engine=None, root_max_age=None, now=None, force=False)
 

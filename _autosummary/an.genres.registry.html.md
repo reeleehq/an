@@ -171,13 +171,13 @@ recorded in the compiled document (review of an#270, S3).
 
 The callable `run` names.
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> CompilePass("p", "math:sqrt").resolve()(4.0)
 2.0
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.DIALOGUE_BRACKETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'[': ']'}*
 
@@ -299,13 +299,13 @@ in the genre’s wheel. The staged code is part of the shot cache’s key.
 
 The script’s code (UTF-8).
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### *class* an.genres.registry.SemanticCheck(name, run, stage='shot', order=0.0, description='')
 
@@ -412,13 +412,13 @@ renderer already). The shot cache’s code key starts its walk here for the
 packages outside `an`, so a change to a genre’s code changes the key
 (an#294): the genre is reached by REGISTRATION, not by an import from `an`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> isinstance(hook_modules(), tuple)
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
 ### an.genres.registry.owners()
 
@@ -431,9 +431,6 @@ Every owner with at least one entry, the core first.
 
 Register an action kind. Its model’s `kind` must default to its name.
 
-* **Return type:**
-  [`ActionKind`](#an.genres.registry.ActionKind)
-
 ```pycon
 >>> from pydantic import BaseModel
 >>> class Bad(BaseModel):
@@ -443,6 +440,9 @@ Traceback (most recent call last):
 ...
 an.genres.registry.RegistryError: action kind 'wave': ...
 ```
+
+* **Return type:**
+  [`ActionKind`](#an.genres.registry.ActionKind)
 
 ### an.genres.registry.register_check(check, , owner='an', replace=False)
 
@@ -511,25 +511,25 @@ The scripts registered for `engine`, by name (a stable order).
 
 The registered service `name`, resolved, or `default` when none is.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> service("no.such.service") is None
 True
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.genres.registry.services(prefix)
 
 `{name without the prefix: resolved service}` for every service under `prefix`.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> services("no.such.")
 {}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.genres.registry.snapshot()
 

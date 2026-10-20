@@ -91,8 +91,8 @@ What lives where:
 | [`CheckoutResult`](#an.library.CheckoutResult)(ref, store, key, ...)              | Where a checked-out version landed in the project, and its pin.                      |
 | [`FindResult`](#an.library.FindResult)(hits, near, counts)                    | Hits, near misses (with `near=True`), and per-facet value counts over the hits.      |
 | [`Hit`](#an.library.Hit)(library, asset_id, version, score[, ...])     | One asset that answers a query — or nearly does (`missing` non-empty).               |
-| [`Kit`](#an.library.Kit)(\*\*data)                                     | The kit document: a name, its pinned members, and a note saying what it is for.      |
-| [`KitMember`](#an.library.KitMember)(\*\*data)                               | One member of a kit: a pinned reference and the project key it lands under.          |
+| [`Kit`](#an.library.Kit)(\*[, kind, schema_version, note])             | The kit document: a name, its pinned members, and a note saying what it is for.      |
+| [`KitMember`](#an.library.KitMember)(\*, ref[, key])                         | One member of a kit: a pinned reference and the project key it lands under.          |
 | [`Library`](#an.library.Library)(name, mall[, root])                       | One library: its name (the namespace of its ids), its mall, and its root if on disk. |
 | [`LibraryRef`](#an.library.LibraryRef)(asset_id[, version, namespace])        | A parsed `[<namespace>:]<asset_id>[@<version>]`.                                     |
 | [`ProjectLock`](#an.library.ProjectLock)(project_dir)                          | `<store>/<key> -> pin` over a project's `assets.lock.json`.                          |
@@ -172,7 +172,7 @@ A JSON-ready view.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+### *class* an.library.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=list(), remedies=dict(), federated=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -198,7 +198,7 @@ Bases: [`LibraryError`](an.library.api.html.md#an.library.api.LibraryError)
 
 Stored bytes, paths or a stored manifest do not match what was recorded.
 
-### *class* an.library.Kit(\*\*data)
+### *class* an.library.Kit(, kind='Kit', schema_version='0.1.0', name, members, note=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -208,7 +208,7 @@ The kit document: a name, its pinned members, and a note saying what it is for.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.library.KitMember(\*\*data)
+### *class* an.library.KitMember(, ref, key=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -329,7 +329,7 @@ Bases: [`OSError`](https://docs.python.org/3/builtins/exceptions.html#OSError)
 
 The machine’s registry or statement memory cannot be read or written; nothing proceeds.
 
-### *class* an.library.Rights(license_class, reasons=<factory>)
+### *class* an.library.Rights(license_class, reasons=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -376,20 +376,17 @@ A write-once key was written twice, or deleted. Versions are immutable.
 A kind with no registered analyser affords nothing *derived* and records no
 analyser — an honest empty answer, not a guess.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> analyse("no-such-kind", {})
 ({}, {})
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
 ### an.library.build_library_mall(root=None, , package='an', \*\*overrides)
 
 The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
 
 root: the package’s data root (default: resolved by
 : [`an.library.root.library_root()`](an.library.root.html.md#an.library.root.library_root) — `root` → `<PKG>_HOME` → the
@@ -404,6 +401,9 @@ overrides: a store per name to inject instead of the folder default — a
 
 Nothing is created until the first write: opening a library (or mistyping
 one on a search path) leaves the disk as it was.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)]
 
 ### an.library.check_pins(scene, lock)
 
@@ -421,9 +421,6 @@ validate` runs this on every project (an#240). Each disagreement, and each
 ### an.library.checkout(libraries, project_dir, ref, , key=None, mall=None, lock=None, overwrite=False, upgrade=False, for_kit=False)
 
 Materialise a library version into a project, carry its rights, pin it.
-
-* **Return type:**
-  [`CheckoutResult`](#an.library.CheckoutResult)
 
 project_dir: the project to check out into
 ref: `[<library>:]<asset_id>[@<version>]`; `latest` (or no version) is
@@ -457,6 +454,9 @@ Every stored path, blob and the manifest are verified before anything is
 written, and every file is written inside the entry’s folder or not at all.
 Editing the checked-out copy forks it; `publish` of the edited folder
 sends it back as a new version derived from this one.
+
+* **Return type:**
+  [`CheckoutResult`](#an.library.CheckoutResult)
 
 ### an.library.checkout_kit(libraries, project_dir, ref, , overwrite=False, upgrade=False, only=None, skip=(), mall=None, lock=None)
 
@@ -521,9 +521,6 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 owner: the library holding `version` (see `version_sources()`)
 rule: a `_PerFileRule` to share with the caller (one per operation)
 
-* **Return type:**
-  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
@@ -532,12 +529,12 @@ rule: a `_PerFileRule` to share with the caller (one per operation)
 'private'
 ```
 
+* **Return type:**
+  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
+
 ### an.library.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
 
 Assets matching every facet given (AND across facets, OR within one facet’s values).
-
-* **Return type:**
-  [`FindResult`](an.library.api.html.md#an.library.api.FindResult)
 
 affords: capabilities the asset must ALL have — `limbs.legs`, or
 : `swap.view:side` for a capability with a given key. Each capability is
@@ -570,12 +567,12 @@ index: the index to read (default: a scan of the stores)
 0
 ```
 
+* **Return type:**
+  [`FindResult`](an.library.api.html.md#an.library.api.FindResult)
+
 ### an.library.library_root(root=None, , package='an', environ=None, platform=None)
 
 The data root of `package` — its library and its projects live under it.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 root: an explicit root; wins over everything
 package: the package whose root this is (`an` for the core library, a
@@ -590,12 +587,12 @@ platform: `sys.platform` value to resolve for (default: this one)
 'x'
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.open_library(package='an', root=None, \*\*overrides)
 
 The library of `package`, at `root` (resolved as in [`an.library.root`](an.library.root.html.md#module-an.library.root)).
-
-* **Return type:**
-  [`Library`](an.library.federation.html.md#an.library.federation.Library)
 
 overrides: stores to inject (`records`, `versions`, `blobs`), as in
 : [`an.library.stores.build_library_mall()`](an.library.stores.html.md#an.library.stores.build_library_mall)
@@ -606,6 +603,9 @@ overrides: stores to inject (`records`, `versions`, `blobs`), as in
 ('an', None)
 ```
 
+* **Return type:**
+  [`Library`](an.library.federation.html.md#an.library.federation.Library)
+
 ### an.library.parse_ref(text, , require_version=False, require_pin=False)
 
 Parse a library reference.
@@ -614,9 +614,6 @@ Parse a library reference.
 `require_pin=True` also refuses `@latest` — the grammar of
 `AssetRef.library`, where a floating reference would make a render depend
 on whatever the library’s head is that day.
-
-* **Return type:**
-  [`LibraryRef`](an.library.ids.html.md#an.library.ids.LibraryRef)
 
 ```pycon
 >>> parse_ref("character.alice")
@@ -627,6 +624,9 @@ LibraryRef(asset_id='character.alice', version=None, namespace=None)
 Traceback (most recent call last):
 AssetIdError: ...
 ```
+
+* **Return type:**
+  [`LibraryRef`](an.library.ids.html.md#an.library.ids.LibraryRef)
 
 ### an.library.project_dir(project_id, root=None, , package='an', environ=None)
 
@@ -639,9 +639,6 @@ the library package of the genre the video is made in
 ([`an.genres.genre_library()`](an.genres.html.md#an.genres.genre_library); the core’s, `an`, by default — the core
 names no genre).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> project_dir("alice-and-bob", "/lib").as_posix()
 '/lib/projects/alice-and-bob'
@@ -650,17 +647,20 @@ Traceback (most recent call last):
 ValueError: ...
 ```
 
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
 ### an.library.projects_root(root=None, , package='an', environ=None)
 
 Where agent-made projects go by default: `<root>/projects/`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
 >>> projects_root("/lib", package="cutan").as_posix()
 '/lib/projects'
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.library.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False, strict_assets=False)
 
@@ -865,15 +865,15 @@ Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.
 
-* **Return type:**
-  [`Capability`](an.capabilities.html.md#an.capabilities.Capability)
-
 ```pycon
 >>> cap = register_capability("demo.thing", description="a thing", remedy="add one", owner="demo")
 >>> CAPABILITIES["demo.thing"] is cap
 True
 >>> _ = drop_owner("demo")
 ```
+
+* **Return type:**
+  [`Capability`](an.capabilities.html.md#an.capabilities.Capability)
 
 ### an.library.register_root(package, root, , registry=None)
 
@@ -941,9 +941,6 @@ and validates — and its rights statements still bind the floor (retiring
 is curation, not a relabel). `find(status="retired")` lists it; a publish
 into it is refused unless it passes `status=` to revive it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.dead", {"name": "dead"})
@@ -952,6 +949,9 @@ into it is refused unless it passes `status=` to revive it.
 (0, ['prop.dead'])
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.roll_up(sources, , inherited=())
 
 Roll labelled sources (and parents’ rights) up to one [`Rights`](#an.library.Rights).
@@ -959,13 +959,13 @@ Roll labelled sources (and parents’ rights) up to one [`Rights`](#an.library.R
 A `None` source is `unknown`. The reasons name every contributor of the
 winning class, so a reader sees *why* a version is restricted.
 
-* **Return type:**
-  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> roll_up([("asset", None)]).to_dict()
 {'license_class': 'unknown', 'publishable': False, 'reasons': ['asset: no source recorded (unknown)']}
 ```
+
+* **Return type:**
+  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
 
 ### an.library.scan_index(library)
 
@@ -983,9 +983,6 @@ search.
 
 The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](an.library.federation.html.md#an.library.federation.Library)]
-
 extra: further libraries, by package name (resolved like any root) or as
 : [`Library`](#an.library.Library) objects (a team share, a seed library)
 
@@ -994,6 +991,9 @@ roots: an explicit root per package name (tests, a non-default layout);
 
 A name appears once, at its first position.
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](an.library.federation.html.md#an.library.federation.Library)]
+
 ### an.library.set_status(library, asset_id, status, , by, reason)
 
 Set an asset’s curation status, recording who and why; return the record.
@@ -1001,15 +1001,15 @@ Set an asset’s curation status, recording who and why; return the record.
 The record’s `status_history` is appended to, never rewritten, and no
 version is touched: a project pinned to one keeps reading it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
 >>> set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]
 'approved'
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.sheet(refs, , libraries=None, package=None, out=None, cell=256, columns=None, parts=False, allow_private_here=False)
 
@@ -1028,9 +1028,6 @@ allow_private_here: write a not-publishable sheet inside a git work tree
 
 The record, the resolved version, its recomputed rights and the list of versions.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"}, title="A lamp")
@@ -1039,12 +1036,12 @@ The record, the resolved version, its recomputed rights and the list of versions
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.verify_checkout(libraries, project_dir, , mall=None, lock=None)
 
 `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 libraries: where the pinned versions resolve (`None`: the library each
 : pin names, at its default root — `pinned_libraries()`)
@@ -1054,6 +1051,9 @@ differences is byte-for-byte the version its pin names. An entry whose
 pinned version cannot be found, or is found with another manifest (a
 same-named asset in another library), reads `["cannot verify: …"]` —
 never as an edit.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.library.version_labels(library, version)
 
@@ -1080,9 +1080,6 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 `find` offers by default — the same recomputed rights, and no asset of a
 hidden status (`retired`), whose numbers are under `hidden`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
@@ -1091,6 +1088,9 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### Modules
 

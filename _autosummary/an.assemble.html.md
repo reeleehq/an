@@ -204,9 +204,6 @@ Full level away from dialogue; `duck_db` down while a line plays; a linear
 ramp over `attack` seconds BEFORE each line (so its first syllable is
 already clear) and `release` seconds after.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> spans = [(1.0, 2.0)]
 >>> [round(duck_gain(t, spans, duck_db=-20, attack=0.5, release=0.5), 3)
@@ -214,14 +211,14 @@ already clear) and `release` seconds after.
 [1.0, 0.55, 0.1, 0.55, 1.0]
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.assemble.film_duration(scene, , fps=None)
 
 Seconds the delivered film runs: the shots’ durations, minus each
 dissolve’s overlap. Exactly `sum(durations)` for a scene without one, so
 every existing document’s arithmetic is unchanged.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> from an.ir.schema import SceneIR, Shot, Transition
@@ -229,6 +226,9 @@ every existing document’s arithmetic is unchanged.
 ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
 3.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.assemble.film_timeline(shots, , fps, closing=None)
 
@@ -247,9 +247,6 @@ Decided on FRAMES at the render’s rate (`fps`, default the scene’s): a
 transition that rounds to zero frames asks for nothing, and must not cost a
 scene its byte-identical concat.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> from an.ir.schema import Meta, SceneIR, Shot, Transition
 >>> needs_assembly(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]))
@@ -259,6 +256,9 @@ False
 False
 ```
 
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.assemble.picture_segments(timeline, windows)
 
 The film’s picture as segments, in film order.
@@ -267,9 +267,6 @@ A film frame is part of a shot’s body when exactly one shot shows it and
 that frame is outside the shot’s window; every other frame (a blend, a
 fade, or a frame a window was widened over) is composed from PNGs.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Segment`](#an.assemble.Segment)]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> tl = film_timeline([Shot(id="a", duration=1.0), Shot(id="b", duration=1.0,
@@ -277,6 +274,9 @@ fade, or a frame a window was widened over) is composed from PNGs.
 >>> [(s.kind, s.shot, s.start, s.stop) for s in picture_segments(tl, shot_windows(tl))]
 [('body', 0, 0, 6), ('frames', None, 6, 10), ('body', 1, 10, 16)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Segment`](#an.assemble.Segment)]
 
 ### an.assemble.shot_parts(frames, window, , fps, work_dir, pix_fmt=None)
 
@@ -298,9 +298,6 @@ A pure function of the timeline, so the render loop, the shot cache and
 the garbage collector all agree on what a shot’s film needs from it. A
 picture of one segment has no minimum (there is nothing to concatenate).
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ShotWindow`](#an.assemble.ShotWindow), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> d = Transition(kind="dissolve", duration=0.1)   # one frame at 10 fps
@@ -310,20 +307,23 @@ picture of one segment has no minimum (there is nothing to concatenate).
 [(0, 1), (3, 0)]
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ShotWindow`](#an.assemble.ShotWindow), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
 ### an.assemble.transition_problems(shots, fps, , closing=None)
 
 Every reason these shots’ transitions cannot be assembled, as
 `(shot index, message)`. The ONE list `an validate` reports and
 [`film_timeline()`](#an.assemble.film_timeline) raises on, so the two cannot disagree.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> from an.ir.schema import Shot, Transition
 >>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
 [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.assemble.write_film_frames(timeline, frame_of, out_dir, , pattern=None)
 

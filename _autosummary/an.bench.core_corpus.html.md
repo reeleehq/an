@@ -112,7 +112,7 @@ layer) when it measures them as one segment — what the delivered mp4 shows.
 How a shot’s frames are named on disk. One constant rather than the literal
 repeated at each glob site.
 
-### *class* an.bench.core_corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=<factory>, golden_note='')
+### *class* an.bench.core_corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=tuple(), golden_note='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -136,7 +136,7 @@ One line saying what moves between the two golden times. Carried as data
 because “pick a time where something moved” is a rule that decays into a
 habit, and the reason is what a reviewer needs when a golden goes red.
 
-#### prepare *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### prepare *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)]]*
 
 Run against the throwaway copy before loading, to regenerate build
 products the repo does not track.
@@ -201,13 +201,13 @@ that is a plain concatenation of its shots.
 
 Where a render left the frames of `shot_id` (or of the composed film).
 
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-
 ```pycon
 >>> frames_dir_for(Path("w"), "film").as_posix(), frames_dir_for(Path("w"), "a").as_posix()
 ('w/film_frames', 'w/shot_a/frames')
 ```
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ### an.bench.core_corpus.golden_agreement(name, work_dir, , chromium_build, root=None)
 

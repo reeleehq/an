@@ -60,7 +60,7 @@ intact, so a cut-out render still fails with `CutoutRenderError`.
 |--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | [`StateDrivenAdapter`](#an.engines.frame_stage.StateDrivenAdapter)(session)               | A state-driven session seen as a time-driven one: the core evaluates `at(t)`.                                                    |
 
-### *class* an.engines.frame_stage.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=<factory>)
+### *class* an.engines.frame_stage.FrameStageRenderer(engine, name='', supported_renderers=(), error=<class 'an.engines.capture.FrameStageError'>, capture_options=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -157,15 +157,15 @@ the renderer raises at its boundary for every core error.
 
 Refuse an object that is not an engine, saying what is missing.
 
-* **Return type:**
-  [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> require_engine(object())
 Traceback (most recent call last):
   ...
 TypeError: an Engine needs `name` and `open(job)`; object lacks: name, open
 ```
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.engines.frame_stage.shot_workspace(work_dir, shot_id)
 

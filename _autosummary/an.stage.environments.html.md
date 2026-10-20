@@ -61,10 +61,10 @@ that share a depth.
 
 ### Classes
 
-| [`EnvironmentDescriptor`](#an.stage.environments.EnvironmentDescriptor)(\*\*data)   | A stage made of planes.               |
-|------------------------------------------------------------------------------------|---------------------------------------|
-| [`Plane`](#an.stage.environments.Plane)(\*\*data)                   | One layer of the stage, at one depth. |
-| [`PlaneArt`](#an.stage.environments.PlaneArt)(\*\*data)                | What a plane is made of.              |
+| [`EnvironmentDescriptor`](#an.stage.environments.EnvironmentDescriptor)(\*[, schema_version, ...])   | A stage made of planes.               |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------|
+| [`Plane`](#an.stage.environments.Plane)(\*, name[, art, depth, parallax, ...])       | One layer of the stage, at one depth. |
+| [`PlaneArt`](#an.stage.environments.PlaneArt)(\*[, kind, color, src, gradient, role])   | What a plane is made of.              |
 
 ### an.stage.environments.ENVIRONMENT_DOCUMENT_KIND *: [DocumentKind](an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='EnvironmentDescriptor', version_field='schema_version', current_version='0.1.0')*
 
@@ -87,7 +87,7 @@ a migration without a read path that runs it” rule exists to prevent. The
 KIND stays registered: it declares where the version field lives, which is
 what a future real migration will need.
 
-### *class* an.stage.environments.EnvironmentDescriptor(\*\*data)
+### *class* an.stage.environments.EnvironmentDescriptor(\*, schema_version='0.1.0', kind='EnvironmentDescriptor', name, planes=<factory>, characters_after=None, anchors=<factory>, source=None, metadata=<factory>, \*\*extra_data)
 
 Bases: `_EnvModel`
 
@@ -117,7 +117,7 @@ Named stage marks — a horizon is one of them. A dedicated `horizon`
 field would be two fields for one fact, which is how the intersecting
 override arrived.
 
-#### characters_after *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### characters_after *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 The plane the characters are drawn in FRONT of. `None` = all planes
 behind all characters.
@@ -149,7 +149,7 @@ centres `root` and applies camera scale, so a huge rect always covers. Lives
 here (the schema) so the IR layer’s framing check and the compiler read one
 number; `an.stage.compile` re-exports it.
 
-### *class* an.stage.environments.Plane(\*\*data)
+### *class* an.stage.environments.Plane(\*, name, art=<factory>, depth=1.0, parallax=None, offset=(0.0, 0.0), anchor=(0.5, 0.5), size=None, fit='contain', source=None)
 
 Bases: `BaseModel`
 
@@ -185,15 +185,15 @@ module’s docstring for the table and for the Unity sign trap.
 
 The per-axis parallax factors this plane actually moves by.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> Plane(name="p", depth=0.4).factors()
 (0.4, 0.4)
 >>> Plane(name="p", depth=0.4, parallax=(0.2, 0.0)).factors()
 (0.2, 0.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
 
@@ -207,12 +207,12 @@ Becomes the scene node’s name, under the environment entity’s id.
 
 Where the plane sits, in scene pixels from the stage centre.
 
-#### parallax *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### parallax *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 Per-axis override of `depth`, for a plane that scrolls horizontally but
 not vertically. `None` means `(depth, depth)`.
 
-#### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### size *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
 The box the art is fitted into, in scene pixels. **A declared size wins**
@@ -226,7 +226,7 @@ a composite stage of a carved plate and a CC0 prop credits both
 (an#211). `None` = the environment’s `source` covers it. Omitted from
 the stored document when unset.
 
-### *class* an.stage.environments.PlaneArt(\*\*data)
+### *class* an.stage.environments.PlaneArt(, kind='fill', color='#888888', src=None, gradient=None, role=None)
 
 Bases: `BaseModel`
 
@@ -277,7 +277,7 @@ a CSS colour.
 * **Type:**
   `fill` only
 
-#### gradient *: [Gradient](an.paint.html.md#an.paint.Gradient) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### gradient *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Gradient](an.paint.html.md#an.paint.Gradient)]*
 
 the gradient (an#275). Omitted from the stored document
 when unset.
@@ -289,7 +289,7 @@ when unset.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### role *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### role *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 the gradient role a StylePack may set for this
 plane (an#275). Omitted from the stored document when unset.
@@ -297,7 +297,7 @@ plane (an#275). Omitted from the stored document when unset.
 * **Type:**
   `fill` or `gradient`
 
-#### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### src *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 a path under the environment’s own folder in the store,
 exactly as a character attachment’s `path` is — `.svg`, `.png`,
@@ -322,13 +322,13 @@ not show, so a plate that covers a rolled view can still be flagged).
 `root.pivot` is the camera and `root.scale` the zoom, composed about the
 canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
 (-128.0, -96.0, 128.0, 96.0)
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0))
 
@@ -341,9 +341,6 @@ compensation moves it by `(1 − f) · camera` per axis. `None` when the
 extent cannot be known (an image whose art cannot be measured and whose
 `fit` makes the drawn size depend on it) — an unknown, not a hole.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
 ...                  size=(100.0, 50.0), fit="stretch"), None)
@@ -353,6 +350,9 @@ extent cannot be known (an image whose art cannot be measured and whose
 (-60.0, -50.0, 140.0, 50.0)
 ```
 
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.stage.environments.uncovered_part(view, covers)
 
 The bounding box of the part of `view` no rect in `covers` covers.
@@ -361,12 +361,12 @@ The bounding box of the part of `view` no rect in `covers` covers.
 rects: the view is cut into cells at every cover edge, and a cell is
 covered or not as a whole.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
 (0, 8, 10, 10)
 >>> uncovered_part((0, 0, 10, 10), [(0, 0, 6, 10), (5, 0, 10, 10)]) is None
 True
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)

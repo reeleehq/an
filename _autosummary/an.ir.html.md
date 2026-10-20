@@ -38,20 +38,20 @@ authoring-time DSL to canonical-form actions.
 
 ### Classes
 
-| [`SceneIR`](#an.ir.SceneIR)(\*\*data)                                 | Top-level Scene IR document.                             |
+| [`SceneIR`](#an.ir.SceneIR)(\*[, version, compatible_version, ...])   | Top-level Scene IR document.                             |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| [`Meta`](#an.ir.Meta)(\*\*data)                                    | Scene metadata.                                          |
-| [`AssetRef`](#an.ir.AssetRef)(\*\*data)                                | Reference to an entry in a project store.                |
-| [`Shot`](#an.ir.Shot)(\*\*data)                                    | A single rendered unit.                                  |
-| [`Dialogue`](#an.ir.Dialogue)(\*\*data)                                | One line of spoken dialogue.                             |
-| [`Camera`](#an.ir.Camera)(\*\*data)                                  | Camera state for a shot: a named move, or explicit keys. |
-| [`Resolution`](#an.ir.Resolution)(\*\*data)                              | Pixel dimensions of the rendered output.                 |
+| [`Meta`](#an.ir.Meta)(\*[, title, author, duration, fps, ...])     | Scene metadata.                                          |
+| [`AssetRef`](#an.ir.AssetRef)(\*, kind, id, store, ref[, ...])         | Reference to an entry in a project store.                |
+| [`Shot`](#an.ir.Shot)(\*, id[, renderer, duration, camera, ...])   | A single rendered unit.                                  |
+| [`Dialogue`](#an.ir.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                             |
+| [`Camera`](#an.ir.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys. |
+| [`Resolution`](#an.ir.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                 |
 | [`FlatAction`](#an.ir.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.     |
 | [`ValidationReport`](#an.ir.ValidationReport)([passed, findings])              | Result of running one or more validators.                |
 | [`ValidationFinding`](#an.ir.ValidationFinding)(severity, ir_path, description) | A single validation issue with a path into the IR.       |
 | [`DocumentKind`](#an.ir.DocumentKind)(name, version_field, ...)            | A schema-versioned document kind.                        |
 
-### *class* an.ir.AssetRef(\*\*data)
+### *class* an.ir.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -112,7 +112,7 @@ which for characters is the evenly-spaced row the compiler computes.
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
 
-### *class* an.ir.Camera(\*\*data)
+### *class* an.ir.Camera(, shake=None, follow=None, move=None, keys=None, \*\*extra_data)
 
 Bases: `_CameraShakes`
 
@@ -154,7 +154,7 @@ A named preset — sugar for `keys`. The cutout renderer’s vocabulary is
 pinned to the same table by test, because a move that validates and then
 raises is the failure `_check_renderable` exists to prevent.
 
-### *class* an.ir.Dialogue(\*\*data)
+### *class* an.ir.Dialogue(, speaker, text, voice_ref=None, start=None, duration=None, emotion=None, emotion_intensity=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, leveled=None, spoken=None, pause=None, at=None, direction=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -222,9 +222,6 @@ on a line never synthesized (no `audio_ref`) was authored — the
 spelling of `at` before an#187 — and counts as one; a synthesized
 line’s `start` is the pipeline’s own stamp, re-derived here.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
 2.3
@@ -233,6 +230,9 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
 0.8
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 #### spoken *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -281,7 +281,7 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
-### *class* an.ir.Meta(\*\*data)
+### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -368,7 +368,7 @@ cannot reach is WARNED about by name at compile.
 One loudness for every voice (`VoiceLoudness`, an#315); `None`
 — the default — levels nothing, and is omitted from JSON.
 
-### *class* an.ir.Resolution(\*\*data)
+### *class* an.ir.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -378,7 +378,7 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.SceneIR(\*\*data)
+### *class* an.ir.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -401,7 +401,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.Shot(\*\*data)
+### *class* an.ir.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -457,7 +457,7 @@ A single validation issue with a path into the IR.
 `"<file>:<line>"` when the thing to fix is an opaque source a shot runs
 (a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
-### *class* an.ir.ValidationReport(passed=True, findings=<factory>)
+### *class* an.ir.ValidationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -507,9 +507,6 @@ An empty span that consumes time. Useful inside `sequence`.
 
 A copy of `action` per member, its targets moved from the crowd to the member.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 action: any action, leaf or composite; every target naming the crowd
 : (`army`, or a node of it, `army/arm_l`) is rewritten
 
@@ -526,6 +523,9 @@ or [`parallel()`](an.ir.compose.html.md#an.ir.compose.parallel) for the crowd mo
 >>> [a.target for a in fan_out(tween("army/arm_l", "rotation", to=1.0, duration=0.5), ["army_0", "army_1"])]
 ['army_0/arm_l', 'army_1/arm_l']
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.ir.flatten(action, , start=0.0, play_extent=None)
 
@@ -552,9 +552,6 @@ loaded is validated by the registered model on the way through.
 
 Render a SceneIR back into the structured Markdown form.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.ir.schema import SceneIR, Meta, Shot
 >>> scene = SceneIR(meta=Meta(title="Demo", duration=5.0),
@@ -570,6 +567,9 @@ This writes the WHOLE document in the writer’s own formatting, and keeps no
 prose but `meta.notes`. Updating an existing `scene.md` goes through
 `merge_markdown()`, which keeps the author’s text wherever the content
 did not change.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.ir.kind_of(doc, , kind=None)
 
@@ -592,9 +592,6 @@ Repeat `action` `count` times.
 ### an.ir.markdown_to_ir(md_text)
 
 Parse the structured Markdown form of a scene into a SceneIR.
-
-* **Return type:**
-  [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ```pycon
 >>> md = '''# Demo
@@ -623,6 +620,9 @@ Parse the structured Markdown form of a scene into a SceneIR.
 'hi'
 ```
 
+* **Return type:**
+  [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
 ### an.ir.migrate(doc, target_version=None, , kind=None)
 
 Migrate a document to `target_version` (default: its kind’s current).
@@ -631,9 +631,6 @@ Walks the migration registry one step at a time, considering only the
 migrations registered for this document’s kind. Raises `ValueError` if no
 path exists between the source and target versions.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> from an.base import SCHEMA_VERSION
 >>> migrate({"version": SCHEMA_VERSION, "kind": "SceneIR"})["version"] == SCHEMA_VERSION
@@ -641,6 +638,9 @@ True
 >>> migrate({"version": "0.1.0", "kind": "SceneIR"})["version"] == SCHEMA_VERSION
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.ir.parallel(\*actions)
 
@@ -666,9 +666,6 @@ step for a REAL kind would leave a second path through the ladder for every
 test that ran afterwards — which is exactly what happened once, and it
 presented as one unrelated test failing only in a full run (an#106).
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
-
 ```pycon
 >>> @register_migration("Widget", "1.0", "2.0")
 ... def _bump(doc):
@@ -677,6 +674,9 @@ presented as one unrelated test failing only in a full run (an#106).
 >>> ("Widget", "1.0", "2.0") in MIGRATIONS
 True
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
 ### an.ir.sequence(\*actions)
 
@@ -706,9 +706,6 @@ Total duration: the latest child’s end. `scene.md` holds it verbatim (a
 `an.stage.text.stagger` before an#241 — is the text-block preset: a LIST of
 per-unit actions with holds, not a combinator.)
 
-* **Return type:**
-  [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
-
 ```pycon
 >>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
 ...                              tween("b", "x", to=1.0, duration=1.0),
@@ -724,6 +721,9 @@ Traceback (most recent call last):
 ...
 ValueError: stagger lag must be >= 0, got -1.0
 ```
+
+* **Return type:**
+  [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
 ### an.ir.sync(project_dir)
 
@@ -743,9 +743,6 @@ Animate a property from `from_` (or its current value) to `to`.
 `easing` left out inherits the scene’s `meta.default_easing` (else
 `"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
 
-* **Return type:**
-  [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)
-
 ```pycon
 >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
 False
@@ -753,12 +750,12 @@ False
 'linear'
 ```
 
+* **Return type:**
+  [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)
+
 ### an.ir.validate_schema(doc)
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
-
-* **Return type:**
-  [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ```pycon
 >>> validate_schema({"meta": {"title": "x"}, "timeline": []}).passed
@@ -767,6 +764,9 @@ True
 >>> r.passed
 False
 ```
+
+* **Return type:**
+  [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 ### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 

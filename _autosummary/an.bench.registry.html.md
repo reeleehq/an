@@ -84,7 +84,7 @@ that gets found before it is believed.
 * **Type:**
   The levers an#41 and an#56 use. At least one per SIDE is mandatory
 
-### *class* an.bench.registry.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
+### *class* an.bench.registry.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=tuple(), sweep=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

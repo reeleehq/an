@@ -87,9 +87,6 @@ importable (an import spec only: the module is never imported to find out).
 
 What a renderer (or a registered renderer’s name) affords, from its members.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
-
 ```pycon
 >>> class Fake:
 ...     supported_renderers = ("toy",)
@@ -98,6 +95,9 @@ What a renderer (or a registered renderer’s name) affords, from its members.
 >>> engine_affordances(Fake())
 {'engine.render': {'keys': ['toy']}, 'engine.preview': {}}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.capabilities.subjects.environment_affordances(, probe=None)
 

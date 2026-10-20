@@ -67,8 +67,8 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Classes
 
-| [`AssetSource`](#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
-|--------------------------------------------------------------------------|----------------------------------------------------|
+| [`AssetSource`](#an.ir.assets.AssetSource)(\*, provider[, id, url, license, ...])   | Provenance and rights for one third-party asset.   |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------------------|
 
 ### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
 
@@ -80,7 +80,7 @@ a legal answer, and a regex that guesses is worse than a list that admits what
 it does not know. An unrecognised licence is reported as UNKNOWN, which is
 not the same as “no obligation”.
 
-### *class* an.ir.assets.AssetSource(\*\*data)
+### *class* an.ir.assets.AssetSource(\*, provider, id=None, url=None, license=None, license_url=None, attribution=None, source_page_url=None, author=None, author_url=None, cacheable=None, sha256=None, cost_usd=None, extra=<factory>, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -160,9 +160,6 @@ owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
 
 What this asset’s licence means for shipping the video (an#211).
 
-* **Return type:**
-  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
-
 ```pycon
 >>> license_class(AssetSource(provider="p", license="pd"))
 'free'
@@ -185,12 +182,12 @@ A provider’s terms count for what that provider made (`PROVIDER_TERMS`):
 'unknown'
 ```
 
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'noncommercial'`, `'private'`, `'unknown'`]
+
 ### an.ir.assets.license_restriction(source)
 
 What a licence restricts beyond its class’s credit, for a report line (an#373).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> license_restriction(AssetSource(provider="freesound", license="cc-by-nc-4.0"))[:24]
@@ -199,15 +196,15 @@ What a licence restricts beyond its class’s credit, for a report line (an#373)
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.ir.assets.normalise_license(code)
 
 A licence code folded to lowercase words joined by `-`.
 
 Free text is what people actually write in a licence field, so the
 classifier reads through punctuation and spacing:
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> normalise_license("All rights reserved - private study only; never publish")
@@ -216,12 +213,12 @@ classifier reads through punctuation and spacing:
 'cc-by-4-0'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.ir.assets.provider_terms_restriction(source)
 
 The restriction a provider-terms licence carries beyond its class, if any.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ```pycon
 >>> provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]
@@ -229,6 +226,9 @@ The restriction a provider-terms licence carries beyond its class, if any.
 >>> provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.assets.requires_attribution(source)
 

@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -875,11 +877,6 @@ from inside a shot’s compile after others have rendered.</p>
 <dt class="sig sig-object py" id="an.captions.dump_srt">
 <span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">dump_srt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#dump_srt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.dump_srt" title="Link to this definition">#</a></dt>
 <dd><p>Serialize cues to SubRip text, renumbering from 1.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dump_srt</span><span class="p">([</span><span class="n">Cue</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">"Hello</span><span class="se">\n</span><span class="s2">there"</span><span class="p">)]))</span>
 <span class="go">1</span>
 <span class="go">00:00:01,000 --&gt; 00:00:02,500</span>
@@ -887,6 +884,11 @@ from inside a shot’s compile after others have rendered.</p>
 <span class="go">there</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -894,41 +896,36 @@ from inside a shot’s compile after others have rendered.</p>
 <span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">paginate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_chars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_lines</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#paginate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.paginate" title="Link to this definition">#</a></dt>
 <dd><p>Split <code class="docutils literal notranslate"><span class="pre">words</span></code> into pages of at most <code class="docutils literal notranslate"><span class="pre">max_lines</span></code> wrapped lines, a new
 page starting after each sentence end. Returns index ranges.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">paginate</span><span class="p">(</span><span class="s2">"One two. Three four five six"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_lines</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">[range(0, 2), range(2, 4), range(4, 6)]</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#range" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">range</span></code></a>]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">paginate</span><span class="p">(</span><span class="s2">"One two. Three four five six"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_lines</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="go">[range(0, 2), range(2, 4), range(4, 6)]</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.captions.seconds_to_srt_time">
 <span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">seconds_to_srt_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#seconds_to_srt_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.seconds_to_srt_time" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">HH:MM:SS,mmm</span></code>, milliseconds ROUNDED with carry; negatives clamp to 0.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="mf">2592.187</span><span class="p">),</span> <span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">('00:43:12,187', '00:00:00,000')</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="mf">2592.187</span><span class="p">),</span> <span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
-<span class="go">('00:43:12,187', '00:00:00,000')</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.captions.srt_for_scene">
 <span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">srt_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#srt_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.srt_for_scene" title="Link to this definition">#</a></dt>
 <dd><p>The SubRip sidecar of <code class="docutils literal notranslate"><span class="pre">scene</span></code> rendered at <code class="docutils literal notranslate"><span class="pre">fps</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Transition</span><span class="p">,</span> <span class="n">WordTimingIR</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">shot</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">line</span> <span class="o">=</span> <span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Hi."</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
@@ -945,6 +942,11 @@ page starting after each sentence end. Returns index ranges.</p>
 <span class="go">Hi.</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -952,15 +954,15 @@ page starting after each sentence end. Returns index ranges.</p>
 <span class="sig-prename descclassname"><span class="pre">an.captions.</span></span><span class="sig-name descname"><span class="pre">wrap_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_chars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/captions.html#wrap_words"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.captions.wrap_words" title="Link to this definition">#</a></dt>
 <dd><p>Greedy line breaks at <code class="docutils literal notranslate"><span class="pre">max_chars</span></code> characters (spaces counted); a word
 longer than a line gets a line of its own and is never split.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wrap_words</span><span class="p">(</span><span class="s2">"the quick brown fox jumps"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[['the', 'quick'], ['brown', 'fox'], ['jumps']]</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wrap_words</span><span class="p">(</span><span class="s2">"the quick brown fox jumps"</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="mi">10</span><span class="p">)</span>
-<span class="go">[['the', 'quick'], ['brown', 'fox'], ['jumps']]</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </section>

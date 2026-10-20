@@ -27,27 +27,27 @@ load the stage back through this `__init__`.
 
 ### Classes
 
-| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)([engine, name, ...])   | The stage renderer: the stage engine through the core frame stage.        |
-|----------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*\*data)             | Top-level cutout scene JSON — the JS runtime's input contract.            |
-| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*\*data)                    | One node in the scene tree.                                               |
-| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*\*data)                  | Drawable content attached to a node.                                      |
-| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*\*data)           | A named, reusable animation clip.                                         |
-| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*\*data)                 | One animated property of one target.                                      |
-| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*\*data)                | Single keyframe in an animation channel.                                  |
-| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*\*data)                | Top-level timeline: total duration + tracks.                              |
-| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*\*data)                   | A sequence of placed clips with optional target-prefix metadata.          |
-| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*\*data)              | An animation placed on a track at a specific time.                        |
-| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*\*data)                  | Map of asset id → AssetJSON, split by kind.                               |
-| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*\*data)                   | A single asset (texture / audio file).                                    |
-| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*\*data)         | How one scene entity's store reference actually resolved at compile time. |
+| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)([engine, name, ...])                | The stage renderer: the stage engine through the core frame stage.        |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*[, version, meta, ...])          | Top-level cutout scene JSON — the JS runtime's input contract.            |
+| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*, name[, transform, visual, ...])       | One node in the scene tree.                                               |
+| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*[, kind, fit, texture_id, ...])       | Drawable content attached to a node.                                      |
+| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*, name, duration[, ...])       | A named, reusable animation clip.                                         |
+| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*, target, property[, keyframes])     | One animated property of one target.                                      |
+| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*, time, value[, easing])            | Single keyframe in an animation channel.                                  |
+| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*, duration[, tracks])               | Top-level timeline: total duration + tracks.                              |
+| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*[, target_root, clips])                | A sequence of placed clips with optional target-prefix metadata.          |
+| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*, animation_id[, ...])            | An animation placed on a track at a specific time.                        |
+| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*[, textures, audio])                  | Map of asset id → AssetJSON, split by kind.                               |
+| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*, src[, width, height, duration])      | A single asset (texture / audio file).                                    |
+| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*, id, kind, store, ref, ...) | How one scene entity's store reference actually resolved at compile time. |
 
 ### Exceptions
 
 | [`CutoutRenderError`](#an.adapters.cutout.CutoutRenderError)   | Raised when a cutout render fails.   |
 |----------------------------------------------------------------------|--------------------------------------|
 
-### *class* an.adapters.cutout.AnimationClipJSON(\*\*data)
+### *class* an.adapters.cutout.AnimationClipJSON(\*, name, duration, loop_mode='once', channels=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -57,7 +57,7 @@ A named, reusable animation clip.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.AssetJSON(\*\*data)
+### *class* an.adapters.cutout.AssetJSON(, src, width=None, height=None, duration=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -67,7 +67,7 @@ A single asset (texture / audio file).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.AssetResolutionJSON(\*\*data)
+### *class* an.adapters.cutout.AssetResolutionJSON(, id, kind, store, ref, resolved, fallback=False, detail='', \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -112,7 +112,7 @@ Environments: “store” | “preset” | “default”.
 * **Type:**
   What was built. Characters
 
-### *class* an.adapters.cutout.AssetsJSON(\*\*data)
+### *class* an.adapters.cutout.AssetsJSON(\*, textures=<factory>, audio=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -122,7 +122,7 @@ Map of asset id → AssetJSON, split by kind.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.ChannelJSON(\*\*data)
+### *class* an.adapters.cutout.ChannelJSON(\*, target, property, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -138,7 +138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
+### *class* an.adapters.cutout.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -174,7 +174,7 @@ items sorted (`applyPaintOrder`) and one list across containers
 
 The `Shot.renderer` values this renderer claims (the ONE place it names them).
 
-### *class* an.adapters.cutout.CutoutSceneJSON(\*\*data)
+### *class* an.adapters.cutout.CutoutSceneJSON(\*, version='0.1.0', meta=<factory>, scene, animations=<factory>, timeline, assets=<factory>, asset_resolution=<factory>, overlay=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -204,7 +204,7 @@ has no overlay, and then omitted from the serialized document.
 * **Type:**
   The camera-immune layer (an#155)
 
-### *class* an.adapters.cutout.KeyframeJSON(\*\*data)
+### *class* an.adapters.cutout.KeyframeJSON(, time, value, easing=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -214,7 +214,7 @@ Single keyframe in an animation channel.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.NodeJSON(\*\*data)
+### *class* an.adapters.cutout.NodeJSON(\*, name, transform=<factory>, visual=None, children=<factory>, scope=None, z_index=None, paint_order=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -250,7 +250,7 @@ This node’s place among its siblings when its parent sorts them
 (an#403): a nested chain whose declared draw order is not the tree’s
 (a far arm behind the torso it nests under). `None` = insertion order.
 
-### *class* an.adapters.cutout.PlacedClipJSON(\*\*data)
+### *class* an.adapters.cutout.PlacedClipJSON(, animation_id, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -260,7 +260,7 @@ An animation placed on a track at a specific time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.TimelineJSON(\*\*data)
+### *class* an.adapters.cutout.TimelineJSON(\*, duration, tracks=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -270,7 +270,7 @@ Top-level timeline: total duration + tracks.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.TrackJSON(\*\*data)
+### *class* an.adapters.cutout.TrackJSON(\*, target_root='', clips=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -280,7 +280,7 @@ A sequence of placed clips with optional target-prefix metadata.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.adapters.cutout.VisualJSON(\*\*data)
+### *class* an.adapters.cutout.VisualJSON(, kind='rect', fit='stretch', texture_id=None, asset_id=None, asset_sets=None, width=50.0, height=50.0, anchor_x=0.5, anchor_y=0.5, color='#888888', path=None, underlays=None, blend=None, asset_geometry=None, z_index=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -312,7 +312,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### blend *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply']]*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the

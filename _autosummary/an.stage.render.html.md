@@ -126,7 +126,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.stage.render.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=<factory>, paint_orders=('container', 'global'))
+### *class* an.stage.render.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'))
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -286,9 +286,6 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 `step_hz` when it declares one, else the scene’s (`ctx.step_hz`), else
 `None` — smooth. The compiler stamps whatever this returns.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> from pathlib import Path
 >>> ctx = RenderContext(mall={}, work_dir=Path("."), step_hz=15.0)
@@ -299,6 +296,9 @@ The stepped-timing policy a shot renders under (an#89): the shot’s own
 >>> effective_step_hz(Shot(id="s"), RenderContext(mall={}, work_dir=Path("."))) is None
 True
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.stage.render.runtime_extensions()
 

@@ -45,25 +45,25 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](#an.stage.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                                                                          |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| [`AssetJSON`](#an.stage.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                                                                     |
-| [`AssetResolutionJSON`](#an.stage.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.                                                  |
-| [`AssetsJSON`](#an.stage.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                                                                |
-| [`ChannelJSON`](#an.stage.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                                                                       |
-| [`CutoutSceneJSON`](#an.stage.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
-| [`CutoutSceneMetaJSON`](#an.stage.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                                                                         |
-| [`KeyframeJSON`](#an.stage.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                                                                   |
-| [`NodeJSON`](#an.stage.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                                                                |
-| [`PathJSON`](#an.stage.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
-| [`PlacedClipJSON`](#an.stage.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                                                                         |
-| [`TimelineJSON`](#an.stage.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                                                                               |
-| [`TrackJSON`](#an.stage.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.                                                           |
-| [`TransformJSON`](#an.stage.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                                                                    |
-| [`UnderlayJSON`](#an.stage.serialize.UnderlayJSON)(\*\*data)        | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
-| [`VisualJSON`](#an.stage.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                                                                       |
+| [`AnimationClipJSON`](#an.stage.serialize.AnimationClipJSON)(\*, name, duration[, ...])       | A named, reusable animation clip.                                                                                          |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`AssetJSON`](#an.stage.serialize.AssetJSON)(\*, src[, width, height, duration])      | A single asset (texture / audio file).                                                                                     |
+| [`AssetResolutionJSON`](#an.stage.serialize.AssetResolutionJSON)(\*, id, kind, store, ref, ...) | How one scene entity's store reference actually resolved at compile time.                                                  |
+| [`AssetsJSON`](#an.stage.serialize.AssetsJSON)(\*[, textures, audio])                  | Map of asset id → AssetJSON, split by kind.                                                                                |
+| [`ChannelJSON`](#an.stage.serialize.ChannelJSON)(\*, target, property[, keyframes])     | One animated property of one target.                                                                                       |
+| [`CutoutSceneJSON`](#an.stage.serialize.CutoutSceneJSON)(\*[, version, meta, ...])          | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
+| [`CutoutSceneMetaJSON`](#an.stage.serialize.CutoutSceneMetaJSON)(\*[, fps, width, height, ...]) | Per-shot metadata.                                                                                                         |
+| [`KeyframeJSON`](#an.stage.serialize.KeyframeJSON)(\*, time, value[, easing])            | Single keyframe in an animation channel.                                                                                   |
+| [`NodeJSON`](#an.stage.serialize.NodeJSON)(\*, name[, transform, visual, ...])       | One node in the scene tree.                                                                                                |
+| [`PathJSON`](#an.stage.serialize.PathJSON)(\*, points, stroke_width, color[, ...])   | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
+| [`PlacedClipJSON`](#an.stage.serialize.PlacedClipJSON)(\*, animation_id[, ...])            | An animation placed on a track at a specific time.                                                                         |
+| [`TimelineJSON`](#an.stage.serialize.TimelineJSON)(\*, duration[, tracks])               | Top-level timeline: total duration + tracks.                                                                               |
+| [`TrackJSON`](#an.stage.serialize.TrackJSON)(\*[, target_root, clips])                | A sequence of placed clips with optional target-prefix metadata.                                                           |
+| [`TransformJSON`](#an.stage.serialize.TransformJSON)(\*[, x, y, rotation, scale_x, ...])  | Local transform of a scene-graph node (authoring form).                                                                    |
+| [`UnderlayJSON`](#an.stage.serialize.UnderlayJSON)(\*, color[, alpha, offsets, grow])    | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
+| [`VisualJSON`](#an.stage.serialize.VisualJSON)(\*[, kind, fit, texture_id, ...])       | Drawable content attached to a node.                                                                                       |
 
-### *class* an.stage.serialize.AnimationClipJSON(\*\*data)
+### *class* an.stage.serialize.AnimationClipJSON(\*, name, duration, loop_mode='once', channels=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -73,7 +73,7 @@ A named, reusable animation clip.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.AssetJSON(\*\*data)
+### *class* an.stage.serialize.AssetJSON(, src, width=None, height=None, duration=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -83,7 +83,7 @@ A single asset (texture / audio file).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.AssetResolutionJSON(\*\*data)
+### *class* an.stage.serialize.AssetResolutionJSON(, id, kind, store, ref, resolved, fallback=False, detail='', \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -128,7 +128,7 @@ Environments: “store” | “preset” | “default”.
 * **Type:**
   What was built. Characters
 
-### *class* an.stage.serialize.AssetsJSON(\*\*data)
+### *class* an.stage.serialize.AssetsJSON(\*, textures=<factory>, audio=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -143,7 +143,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 The visual kinds `runtime.js` draws itself. Any other kind must be
 registered by a genre’s runtime script (an#247), or it draws as a rect.
 
-### *class* an.stage.serialize.ChannelJSON(\*\*data)
+### *class* an.stage.serialize.ChannelJSON(\*, target, property, keyframes=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -153,7 +153,7 @@ One animated property of one target.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.CutoutSceneJSON(\*\*data)
+### *class* an.stage.serialize.CutoutSceneJSON(\*, version='0.1.0', meta=<factory>, scene, animations=<factory>, timeline, assets=<factory>, asset_resolution=<factory>, overlay=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -183,7 +183,7 @@ has no overlay, and then omitted from the serialized document.
 * **Type:**
   The camera-immune layer (an#155)
 
-### *class* an.stage.serialize.CutoutSceneMetaJSON(\*\*data)
+### *class* an.stage.serialize.CutoutSceneMetaJSON(\*, fps=30, width=1920, height=1080, duration=0.0, background='#ffffff', blink_phases=<factory>, step_hz=None, style_pack=None, gaze_seeds=<factory>, fonts=<factory>, entity_spaces=<factory>, spaces=<factory>, extensions=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -264,7 +264,7 @@ the pack’s COLOURS are already resolved into the nodes, so this is
 provenance rather than an instruction. Omitted from the serialized
 document when unset (see the wrap serializer below).
 
-### *class* an.stage.serialize.KeyframeJSON(\*\*data)
+### *class* an.stage.serialize.KeyframeJSON(, time, value, easing=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -274,7 +274,7 @@ Single keyframe in an animation channel.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.NodeJSON(\*\*data)
+### *class* an.stage.serialize.NodeJSON(\*, name, transform=<factory>, visual=None, children=<factory>, scope=None, z_index=None, paint_order=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -310,7 +310,7 @@ This node’s place among its siblings when its parent sorts them
 (an#403): a nested chain whose declared draw order is not the tree’s
 (a far arm behind the torso it nests under). `None` = insertion order.
 
-### *class* an.stage.serialize.PathJSON(\*\*data)
+### *class* an.stage.serialize.PathJSON(, points, stroke_width, color, cap='round', join='round', trim_start=0.0, trim_end=1.0, head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, closed=False, fill=None, fill_alpha=1.0, width_profile=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -360,7 +360,7 @@ Omitted when unset.
 * **Type:**
   A variable-width stroke (an#161)
 
-### *class* an.stage.serialize.PlacedClipJSON(\*\*data)
+### *class* an.stage.serialize.PlacedClipJSON(, animation_id, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -370,7 +370,7 @@ An animation placed on a track at a specific time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TimelineJSON(\*\*data)
+### *class* an.stage.serialize.TimelineJSON(\*, duration, tracks=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -380,7 +380,7 @@ Top-level timeline: total duration + tracks.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TrackJSON(\*\*data)
+### *class* an.stage.serialize.TrackJSON(\*, target_root='', clips=<factory>, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -390,7 +390,7 @@ A sequence of placed clips with optional target-prefix metadata.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.TransformJSON(\*\*data)
+### *class* an.stage.serialize.TransformJSON(, x=0.0, y=0.0, rotation=0.0, scale_x=1.0, scale_y=1.0, skew_x=0.0, skew_y=0.0, pivot_x=0.0, pivot_y=0.0, alpha=1.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -415,7 +415,7 @@ which is derived from them rather than restated.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.UnderlayJSON(\*\*data)
+### *class* an.stage.serialize.UnderlayJSON(\*, color, alpha=1.0, offsets=<factory>, grow=0.0, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -436,7 +436,7 @@ and the `tint` (a multiply) of a sprite copy. Compiled by
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.stage.serialize.VisualJSON(\*\*data)
+### *class* an.stage.serialize.VisualJSON(, kind='rect', fit='stretch', texture_id=None, asset_id=None, asset_sets=None, width=50.0, height=50.0, anchor_x=0.5, anchor_y=0.5, color='#888888', path=None, underlays=None, blend=None, asset_geometry=None, z_index=None, \*\*extra_data)
 
 Bases: `_JSONModel`
 
@@ -468,7 +468,7 @@ only, so every key drew in the DEFAULT attachment’s box: a closed mouth
 on a thin canvas squashed every open mouth to a fraction of a pixel. Only
 keys whose geometry differs are listed; `None` = every key shares it.
 
-#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### blend *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply']]*
 
 `"add"` for a
 glow, `"multiply"` for the paper grain. PixiJS 7 does both in the

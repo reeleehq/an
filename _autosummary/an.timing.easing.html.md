@@ -114,7 +114,7 @@ a genre adds its own
 * **Type:**
   The core families (see the module docstring). Open
 
-### *class* an.timing.easing.EasingEntry(name, curve, family, solver, description, version=1, params=<factory>)
+### *class* an.timing.easing.EasingEntry(name, curve, family, solver, description, version=1, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -173,9 +173,6 @@ engine that implements only part of the registry passes (the stage runtime
 implements the legacy names; see `an.stage.easing`). Sequences
 always take the legacy Bézier solver.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> apply_easing(None, 0.25)
 0.25
@@ -187,15 +184,15 @@ Traceback (most recent call last):
 an.timing.easing.UnknownEasingError: unknown easing preset 'smooth'; known: ['linear']
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.timing.easing.css_cubic_bezier(x1, y1, x2, y2)
 
 The CSS `cubic-bezier(x1, y1, x2, y2)` curve, solved to well below 1e-9.
 
 `x1` and `x2` must lie in `[0, 1]` (so the curve is a function of
 time); `y` may overshoot.
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> css = css_cubic_bezier(0.42, 0.0, 0.58, 1.0)
@@ -207,12 +204,12 @@ Traceback (most recent call last):
 ValueError: cubic-bezier x values must lie in [0, 1], got x1=1.5, x2=0
 ```
 
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.timing.easing.css_steps(n, position='jump-end')
 
 CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.
-
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ```pycon
 >>> f = css_steps(4)
@@ -221,6 +218,9 @@ CSS `steps(n, position)`, following the CSS Easing Level 1 algorithm.
 >>> css_steps(3, "jump-none")(0.5)
 0.5
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.timing.easing.easing_entries(, owner=None)
 
@@ -233,13 +233,13 @@ Every registered entry in registration order; only `owner`’s when given.
 
 The registered entry called `name`.
 
-* **Return type:**
-  [`EasingEntry`](#an.timing.easing.EasingEntry)
-
 ```pycon
 >>> easing_entry("ease").family
 'legacy'
 ```
+
+* **Return type:**
+  [`EasingEntry`](#an.timing.easing.EasingEntry)
 
 ### an.timing.easing.legacy_cubic_bezier(cx1, cy1, cx2, cy2, t)
 
@@ -267,15 +267,15 @@ It does NOT agree with the CSS solver ([`css_cubic_bezier()`](#an.timing.easing.
 for every control point, which is why it stays a named legacy solver until
 the pixel goldens are re-blessed under the stricter one.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
 0.5
 >>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
 (0.0, 1.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.timing.easing.register_easing(entry, , replace=False, owner=None)
 

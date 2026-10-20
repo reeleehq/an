@@ -70,13 +70,13 @@ a hairpin turn does not throw a spike across the frame.
 
 Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
 [0.0, 5.0, 11.0]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.path_geometry.dash_spans(a, b, dash, gap, offset)
 
@@ -87,9 +87,6 @@ The pattern is anchored at arc length `0` — dash `k` covers
 window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 `+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
 [(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]
@@ -98,6 +95,9 @@ window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
 >>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
 [(5.0, 15.0), (25.0, 30.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.flatten_curve(points, , curve='polyline', samples=24, sampling='parameter')
 
@@ -110,9 +110,6 @@ uniformly in each curve’s parameter, so points crowd where the curve is
 slow; `"arclength"` (an#161) steps uniformly along its length, so the
 points are evenly spaced (a smoother bend for the same count).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> flatten_curve([(0, 0), (10, 0)])
 [(0.0, 0.0), (10.0, 0.0)]
@@ -120,6 +117,9 @@ points are evenly spaced (a smoother bend for the same count).
 >>> pts
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0, tail_head_length=0.0, tail_head_width=0.0, width=0.0, width_profile=None)
 
@@ -145,13 +145,13 @@ a draw-on grows it in rather than popping a full-size triangle at frame
 one. The stroke stops [`HEAD_STROKE_INSET`](#an.stage.path_geometry.HEAD_STROKE_INSET) of the head’s length back
 from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
-
 ```pycon
 >>> path_geometry([(0.0, 0.0), (10.0, 0.0)], 0.3, 0.3)
 {'stroke': [], 'head': None}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 ### an.stage.path_geometry.point_at(points, cum, s)
 
@@ -166,13 +166,13 @@ The stroke width at fraction `u` of the WHOLE path’s length (an#161):
 `width` times the profile’s factor, linear between its stops.
 Mirror of `runtime.js::pathProfileWidth`.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> profile_width([(0.0, 1.0), (1.0, 0.0)], 8.0, 0.25)
 6.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.stage.path_geometry.stroke_outline(line, start, total, width, profile)
 
@@ -186,13 +186,13 @@ lengthened to keep the stroke’s width through the corner (capped at
 [`OUTLINE_MITER_LIMIT`](#an.stage.path_geometry.OUTLINE_MITER_LIMIT)). Butt ends. Left side forward, then the
 right side back. Mirror of `runtime.js::pathOutline`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
-
 ```pycon
 >>> stroke_outline([(0.0, 0.0), (10.0, 0.0)], 0.0, 10.0, 4.0, [(0.0, 1.0), (1.0, 0.5)])
 [(0.0, 2.0), (10.0, 1.0), (10.0, -1.0), (0.0, -2.0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 ### an.stage.path_geometry.trim_polyline(points, cum, a, b)
 

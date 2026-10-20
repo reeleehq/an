@@ -54,7 +54,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
 
-### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
+### *class* an.verify.VerificationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 

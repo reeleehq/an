@@ -154,15 +154,15 @@ This is the number the ledger row reports and the tripwire guards. Zero
 means two planes moved together, which on a stage that declares distinct
 depths means the parallax flattened.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> min_ratio_gap({"far": 0.25, "mid": 1.0, "near": 2.0})
 0.75
 >>> min_ratio_gap({"far": 1.0, "mid": 1.0})
 0.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.stage.plane_centroids(frame, colours)
 

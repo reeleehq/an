@@ -293,9 +293,6 @@ The ways a `wipe`’s edge can travel across the frame (an#390).
 
 Why `name` cannot be a swap-set name, or `None` if it can.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> swap_set_name_problem("hands") is None
 True
@@ -304,3 +301,6 @@ True
 >>> swap_set_name_problem("a::b")
 "'a::b' contains '::', which is reserved"
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

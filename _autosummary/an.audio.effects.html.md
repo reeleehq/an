@@ -259,9 +259,6 @@ ffmpeg ([`trim_silence()`](#an.audio.effects.trim_silence)).
 
 One stage when `factor` already fits (the pitch-only chain, always).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> atempo_stages(1.5)
 [1.5]
@@ -270,6 +267,9 @@ One stage when `factor` already fits (the pitch-only chain, always).
 >>> atempo_stages(0.3)
 [0.5, 0.6]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.audio.effects.decode_chain()
 
@@ -284,9 +284,6 @@ trim (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
 The argv that runs `chain` over audio on stdin into a bit-exact 16-bit
 PCM WAV at `out_path` (part of [`CHAIN_VERSION`](#an.audio.effects.CHAIN_VERSION)).
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 source_path: also write the input, decoded ([`decode_chain()`](#an.audio.effects.decode_chain)) and
 : untouched, there — in the same run, so its length is known whatever
   container came in (an#350: a tempo chain’s output is cut to it)
@@ -297,6 +294,9 @@ source_path: also write the input, decoded ([`decode_chain()`](#an.audio.effects
 >>> ffmpeg_argv("atempo=2", "o.wav", source_path="s.wav")[-1]
 's.wav'
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.effects.filter_chain(effects)
 
@@ -326,9 +326,6 @@ a take’s own trailing silence (a provider pads ~0.3 s) is not counted. A
 16-bit PCM WAV is read directly; any other container is decoded with ffmpeg
 when it is installed.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
 ```pycon
 >>> import array, io, wave
 >>> rate = 8000
@@ -339,6 +336,9 @@ when it is installed.
 >>> round(speech_end(buf.getvalue()), 2)
 0.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.effects.trim_record(wav)
 
@@ -358,9 +358,6 @@ Speech is every `window_s` window whose RMS level is within
 between words. A clip with no sound at all is returned whole (with the
 record of a zero cut), and a pad is never longer than the silence it keeps.
 
-* **Return type:**
-  [`SilenceTrim`](#an.audio.effects.SilenceTrim)
-
 ```pycon
 >>> import array, io, math, wave
 >>> rate = 8000
@@ -379,6 +376,9 @@ True
 ...     round(w.getnframes() / w.getframerate(), 2)
 0.8
 ```
+
+* **Return type:**
+  [`SilenceTrim`](#an.audio.effects.SilenceTrim)
 
 ### an.audio.effects.voice_effects(mall, voice_id)
 

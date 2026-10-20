@@ -101,9 +101,6 @@ Normalise one library or a search path to a list.
 
 The library of `package`, at `root` (resolved as in [`an.library.root`](an.library.root.html.md#module-an.library.root)).
 
-* **Return type:**
-  [`Library`](#an.library.federation.Library)
-
 overrides: stores to inject (`records`, `versions`, `blobs`), as in
 : [`an.library.stores.build_library_mall()`](an.library.stores.html.md#an.library.stores.build_library_mall)
 
@@ -112,6 +109,9 @@ overrides: stores to inject (`records`, `versions`, `blobs`), as in
 >>> (lib.name, lib.root)
 ('an', None)
 ```
+
+* **Return type:**
+  [`Library`](#an.library.federation.Library)
 
 ### an.library.federation.resolve(libraries, ref)
 
@@ -130,9 +130,6 @@ it resolved in.
 
 The ordered libraries `package` reads: its own, then the core `an`, then `extra`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](#an.library.federation.Library)]
-
 extra: further libraries, by package name (resolved like any root) or as
 : [`Library`](#an.library.federation.Library) objects (a team share, a seed library)
 
@@ -140,3 +137,6 @@ roots: an explicit root per package name (tests, a non-default layout);
 : unnamed packages resolve as usual (`<PKG>_HOME`, then the data folder)
 
 A name appears once, at its first position.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Library`](#an.library.federation.Library)]

@@ -75,9 +75,6 @@ The prefix `node`’s children are indexed under: its own `path`, or,
 with `scope`, `scope` taken in the parent’s prefix (`""`: the
 parent’s prefix itself). Mirrors `childPrefix` in `runtime.js`.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> from an.stage.serialize import NodeJSON
 >>> child_prefix(NodeJSON(name="a"), "env/a", "env")
@@ -88,17 +85,20 @@ parent’s prefix itself). Mirrors `childPrefix` in `runtime.js`.
 'env'
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.stage.tree.join(prefix, name)
 
 `prefix/name`, or `name` at the top.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> join("", "set"), join("set", "sky")
 ('set', 'set/sky')
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.tree.lineage(node, prefix='')
 

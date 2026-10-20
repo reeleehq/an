@@ -169,9 +169,6 @@ a best-of-N line; take 0 of roll 0 is the single-take request and keeps its
 key. `takes` ([`an.audio.takes.takes_choice_part()`](an.audio.takes.html.md#an.audio.takes.takes_choice_part)) keys the CHOICE
 among a line’s takes — the record in `mall["takes"]`, not an audio blob.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> audio_key("hi", "default", "offline") == audio_key(
 ...     "hi", "default", "offline", {}, provider_voice=None, options={},
@@ -179,19 +176,22 @@ among a line’s takes — the record in `mall["takes"]`, not an audio blob.
 True
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.audio.pipeline.default_lipsync()
 
 The default lip-sync provider: the loaded genre’s `offline` one (the
 deterministic char-to-viseme provider of `cutan`), else
 [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).
 
-* **Return type:**
-  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
-
 ```pycon
 >>> default_lipsync().name in {"offline", "none"}
 True
 ```
+
+* **Return type:**
+  [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
 ### an.audio.pipeline.default_tts()
 
@@ -212,9 +212,6 @@ be lost silently. It is `an validate`’s own check
 ([`an.ir.validate.shot_dialogue_overruns()`](an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)), over the synthesized lines;
 `mall` lets its fix name the voice’s `trim_silence`.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot
 >>> shot = Shot(id="s", duration=1.0, dialogue=[
@@ -222,6 +219,9 @@ be lost silently. It is `an validate`’s own check
 >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
 "shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.pipeline.free_and_repeatable(provider)
 
@@ -232,14 +232,14 @@ inferred from a missing method — and has no `billed_characters` hook.
 Re-running it reproduces exactly what a render stored; anything else would
 give new bytes, so new keys, or cost money.
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> from an.audio.offline_tts import OfflineTTS
 >>> free_and_repeatable(OfflineTTS()), free_and_repeatable(object())
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.pipeline.in_memory_audio_mall(mall)
 
@@ -255,13 +255,13 @@ to whatever keys the stamped scene (an#311).
 Whether `tts` means “each voice’s own provider”: `None`, `""` or
 [`VOICE_TTS`](#an.audio.pipeline.VOICE_TTS).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> [is_voice_tts(t) for t in (None, "", "voice", " Voice ", "offline")]
 [True, True, True, True, False]
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
@@ -378,9 +378,6 @@ leaves a shot whose lines carry no `pause`/`at` exactly as stamped:
 a hand-built scene may stamp `start` itself (a test, a fixture), and
 without the pipeline there is no authority to say that stamp is stale.
 
-* **Return type:**
-  [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
-
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot
 >>> shot = Shot(id="s", dialogue=[
@@ -390,6 +387,9 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+* **Return type:**
+  [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None, free_in_memory=False)
 
@@ -452,9 +452,6 @@ document’s `provider` decides, and a voice that declares none — or one
 spoken by [`DEFAULT_TTS_NAME`](#an.audio.pipeline.DEFAULT_TTS_NAME). One instance per provider name.
 `make` defaults to [`an.audio.providers.make_tts()`](an.audio.providers.html.md#an.audio.providers.make_tts).
 
-* **Return type:**
-  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)]
-
 ```pycon
 >>> mall = {"voices": {"bob": {"provider": "mac_say"}, "ann": {}}}
 >>> choose = tts_chooser(None, mall)
@@ -463,6 +460,9 @@ spoken by [`DEFAULT_TTS_NAME`](#an.audio.pipeline.DEFAULT_TTS_NAME). One instanc
 >>> tts_chooser("offline", mall)("bob").name
 'offline'
 ```
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
@@ -477,9 +477,6 @@ One message per voice whose lines are spoken by another provider than its
 document declares; `lines` is `(voice_id, provider)` per line, and
 `overridden` says whether a `tts` was given for every line.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> from an.audio.offline_tts import OfflineTTS
 >>> mall = {"voices": {"bob": {"provider": "elevenlabs"}}}
@@ -488,3 +485,6 @@ voice 'bob' declares provider 'elevenlabs', but its 2 line(s) are spoken by 'off
 >>> voice_stand_ins([("bob", OfflineTTS())], {}, overridden=True)
 []
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -764,26 +766,21 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <dt class="sig sig-object py" id="an.library.ids.asset_kind">
 <span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">asset_kind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/ids.html#asset_kind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.asset_kind" title="Link to this definition">#</a></dt>
 <dd><p>The kind an asset id declares by its prefix.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_kind</span><span class="p">(</span><span class="s2">"environment.palace-hall"</span><span class="p">)</span>
+<span class="go">'environment'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">asset_kind</span><span class="p">(</span><span class="s2">"environment.palace-hall"</span><span class="p">)</span>
-<span class="go">'environment'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.ids.check_asset_id">
 <span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">check_asset_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/ids.html#check_asset_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.check_asset_id" title="Link to this definition">#</a></dt>
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">asset_id</span></code> if it is <code class="docutils literal notranslate"><span class="pre">&lt;kind&gt;.&lt;slug&gt;</span></code>, else raise <a class="reference internal" href="#an.library.ids.AssetIdError" title="an.library.ids.AssetIdError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetIdError</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_asset_id</span><span class="p">(</span><span class="s2">"prop.teacup-victorian"</span><span class="p">)</span>
 <span class="go">'prop.teacup-victorian'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">check_asset_id</span><span class="p">(</span><span class="s2">"Alice"</span><span class="p">)</span>
@@ -791,6 +788,11 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <span class="gr">AssetIdError</span>: <span class="n">...</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -823,11 +825,6 @@ readers; refused where a pin is required, e.g. <code class="docutils literal not
 <code class="docutils literal notranslate"><span class="pre">require_pin=True</span></code> also refuses <code class="docutils literal notranslate"><span class="pre">&#64;latest</span></code> — the grammar of
 <code class="docutils literal notranslate"><span class="pre">AssetRef.library</span></code>, where a floating reference would make a render depend
 on whatever the library’s head is that day.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_ref</span><span class="p">(</span><span class="s2">"character.alice"</span><span class="p">)</span>
 <span class="go">LibraryRef(asset_id='character.alice', version=None, namespace=None)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_ref</span><span class="p">(</span><span class="s2">"character.alice@sha256:0a1b2c3d"</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
@@ -837,36 +834,41 @@ on whatever the library’s head is that day.</p>
 <span class="gr">AssetIdError</span>: <span class="n">...</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.library.ids.LibraryRef" title="an.library.ids.LibraryRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryRef</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.ids.version_label">
 <span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">version_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/ids.html#version_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.version_label" title="Link to this definition">#</a></dt>
 <dd><p>The label of the <code class="docutils literal notranslate"><span class="pre">number</span></code>-th version (1-based).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_label</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">version_label</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="go">('v001', 'v1000')</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_label</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">version_label</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-<span class="go">('v001', 'v1000')</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.ids.version_number">
 <span class="sig-prename descclassname"><span class="pre">an.library.ids.</span></span><span class="sig-name descname"><span class="pre">version_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/ids.html#version_number"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.ids.version_number" title="Link to this definition">#</a></dt>
 <dd><p>The number of a version label.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span><span class="p">(</span><span class="s2">"v012"</span><span class="p">)</span>
+<span class="go">12</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span><span class="p">(</span><span class="s2">"v012"</span><span class="p">)</span>
-<span class="go">12</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </section>

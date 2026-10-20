@@ -136,14 +136,14 @@ or `None`). A row whose top off-palette colours are all blends is
 reporting anti-aliasing correctly. One that is not is a derivation bug, and
 now it says so in the ledger rather than waiting for someone to look.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
-
 ```pycon
 >>> classify_off_palette([{"hex": "#808080"}], [0x000000, 0xffffff])[0]["blend_of"]
 ['#000000', '#ffffff']
 >>> classify_off_palette([{"hex": "#ff00ff"}], [0x000000, 0xffffff])[0]["blend_of"]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 ### an.bench.metrics.edge_masked_distinct_colours(packed, edge)
 
@@ -238,15 +238,15 @@ went soft” indiscriminately.
 
 Returns `(trimmed_mean, median)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 4, 8, 3), np.uint8); a[0, :, 4:] = 255
 >>> round(edge_transition_width(a)[0], 3)   # one hard step = a 2px band
 2.0
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.bench.metrics.encode_flicker_on_held_pixels(src_rgb, dec_rgb, , tol=2)
 
@@ -256,9 +256,6 @@ Held-pose “boiling” — the worst artefact for limited-motion animation.
 Pooled over every frame pair rather than averaged per pair, so a pair with
 three held pixels does not weigh as much as one with seventy thousand.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((2, 1, 4, 3), np.uint8)
@@ -266,6 +263,9 @@ three held pixels does not weigh as much as one with seventy thousand.
 >>> encode_flicker_on_held_pixels(s, d)
 0.25
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.encode_flicker_sweep(src_rgb, dec_rgb, , tols=(1, 2, 3, 4))
 
@@ -277,9 +277,6 @@ the panel’s other hard-threshold counter, and measured under the same
 `single_character` (+25% -> -15%), and under `high_crf` between tol 1
 and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((2, 1, 4, 3), np.uint8)
@@ -287,6 +284,9 @@ and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
 >>> encode_flicker_sweep(s, d, tols=(2, 3))
 {'tol=2': [1, 4], 'tol=3': [0, 4]}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
 
 ### an.bench.metrics.encode_ringing_excess(dec_luma, lossless_luma, src_luma, ring)
 
@@ -301,9 +301,6 @@ a CRF change raises only the lossy leg.
 question 4 — “does plain edge-band MAE beat this?” — is answered by the
 ledger rather than by nobody.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 1, 2), np.uint8)
@@ -311,6 +308,9 @@ ledger rather than by nobody.
 ...                       np.array([[[3, 0]]], np.uint8), s, np.ones((1, 1, 2), bool))
 3.0
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.flat_field_deviation(src_rgb, dec_rgb, flat, , tol=6)
 
@@ -322,9 +322,6 @@ orthogonal to the edge/AA axis: monotone over a 133x span on the CRF ladder
 
 Returns `(fraction_over_tol, p99_of_the_deviation)`.
 
-* **Return type:**
-  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 3, 3, 3), np.uint8)
@@ -332,6 +329,9 @@ Returns `(fraction_over_tol, p99_of_the_deviation)`.
 >>> flat_field_deviation(s, d, np.ones((1, 3, 3), bool))[0]
 0.1111111111111111
 ```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.bench.metrics.flat_field_deviation_sweep(src_rgb, dec_rgb, , mask_rgb, tols=(4, 5, 6, 7, 8), ks=(1, 3, 5))
 
@@ -349,9 +349,6 @@ tell a verdict from a threshold accident (an#140): the shipped cell IS the
 metric, and the others say whether anywhere else on the declared grid of
 its own two parameters the direction reverses.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
-
 ```pycon
 >>> import numpy as np
 >>> s = np.zeros((1, 9, 9, 3), np.uint8)
@@ -361,6 +358,9 @@ its own two parameters the direction reverses.
 {'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
 ### an.bench.metrics.frame_distinct_colours(packed)
 
 Mean number of distinct colours per frame.
@@ -369,14 +369,14 @@ A flatness / palette-discipline **guard**, with no predicted direction on
 an AA change. Do not count it alongside `off_palette_pixel_fraction`; they
 are the same family.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> import numpy as np
 >>> frame_distinct_colours(np.array([[[1, 1, 2]], [[3, 4, 5]]], np.uint32))
 2.5
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.golden_comparison(today_rgb, golden_rgb)
 
@@ -389,9 +389,6 @@ for this look the flat fields are most of the picture.
 `changed_px` and `max_delta` belong in a failure message, not in the
 metrics block; they are returned here so the caller can put them there.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((4, 4, 3), np.uint8)
@@ -399,18 +396,21 @@ metrics block; they are returned here so the caller can put them there.
 True
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
 ### an.bench.metrics.luma709(rgb)
 
 `(H,W,3)` uint8 -> `(H,W)` float in [0,1]. PIL-free.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
 >>> round(float(luma709(np.full((1, 1, 3), 255, np.uint8))[0, 0]), 6)
 1.0
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.luma_u8(rgb)
 
@@ -432,9 +432,6 @@ measured: a 45-code-value step selects 4 pixels here and 0 there — which is
 why the row records it under its own operator string rather than reusing
 `an.bench.masks.EDGE_OPERATOR`.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> a = np.zeros((1, 1, 2, 3), np.uint8); a[0, 0, 1] = 255
@@ -442,12 +439,12 @@ why the row records it under its own operator string rather than reusing
 [[[0, 255]]]
 ```
 
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
 ### an.bench.metrics.masked_mean_abs(a, b, mask)
 
 `|a - b|` averaged over `mask`, with the cast that makes it correct.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -456,12 +453,12 @@ why the row records it under its own operator string rather than reusing
 6.0
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.bench.metrics.off_palette_pixel_fraction(packed, palette)
 
 Fraction of the frame whose colour is not one the compiler declared.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -469,6 +466,9 @@ Fraction of the frame whose colour is not one the compiler declared.
 >>> round(off_palette_pixel_fraction(p, [0x000000, 0xffffff]), 4)
 0.3333
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ### an.bench.metrics.off_palette_top_colours(packed, palette, , top=10)
 
@@ -481,9 +481,6 @@ literals from the staged art, the derivation missed them; if they are
 blends sitting between two palette entries, that is anti-aliasing and the
 number is right.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
-
 ```pycon
 >>> import numpy as np
 >>> p = np.array([[[1, 1, 2]]], np.uint32)
@@ -491,12 +488,12 @@ number is right.
 [{'hex': '#000001', 'count': 2}]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
 ### an.bench.metrics.overshoot_mean(dec_luma, src_luma, ring)
 
 Mean positive excursion above the source, over the ring band.
-
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 ```pycon
 >>> import numpy as np
@@ -505,18 +502,21 @@ Mean positive excursion above the source, over the ring band.
 2.5
 ```
 
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.bench.metrics.pack_rgb(rgb)
 
 `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.
-
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ```pycon
 >>> import numpy as np
 >>> hex(int(pack_rgb(np.array([[[[0x12, 0x34, 0x56]]]], np.uint8))[0, 0, 0]))
 '0x123456'
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.ssim_map(a, b, , r=3)
 
@@ -537,15 +537,15 @@ Do not cross-check against ffmpeg’s `ssim` filter: it uses overlapped 8x8
 block sums at 4-pixel stride, disagrees by up to 0.0201, and the
 disagreement *grows* with degradation.
 
-* **Return type:**
-  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
-
 ```pycon
 >>> import numpy as np
 >>> x = np.linspace(0, 1, 64).reshape(8, 8)
 >>> round(float(ssim_map(x, x).min()), 6)
 1.0
 ```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### an.bench.metrics.sweep_cell_key(\*\*params)
 
@@ -554,10 +554,10 @@ The label of one cell of a parameter sweep, stable across rows.
 Keyword order is irrelevant — the key is sorted — so two rows written by
 code that spells the call differently still match cell for cell.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> sweep_cell_key(tol=6, dilate_k=3)
 'dilate_k=3,tol=6'
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

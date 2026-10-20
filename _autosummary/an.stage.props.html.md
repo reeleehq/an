@@ -55,8 +55,8 @@ a two-state lamp is `asset_sets={"lamp": {"off": ..., "on": ...}}` and
 
 ### Classes
 
-| [`PropDescriptor`](#an.stage.props.PropDescriptor)(\*\*data)   | The on-disk prop schema.   |
-|-----------------------------------------------------------------------------|----------------------------|
+| [`PropDescriptor`](#an.stage.props.PropDescriptor)(\*[, origin, rest_rotation, ...])   | The on-disk prop schema.   |
+|-----------------------------------------------------------------------------------------------------|----------------------------|
 
 ### an.stage.props.PROP_DOCUMENT_KIND *: [DocumentKind](an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PropDescriptor', version_field='schema_version', current_version='0.2.0')*
 
@@ -73,7 +73,7 @@ the built parts; the migration protects a 0.1.0 rig that carried one.
 * **Type:**
   0.2.0 (an#339)
 
-### *class* an.stage.props.PropDescriptor(\*\*data)
+### *class* an.stage.props.PropDescriptor(\*, origin=None, rest_rotation=None, nesting=None, schema_version='0.2.0', kind='PropDescriptor', name, display_name=None, view_box=(0, 0, 1024, 1024), source_svg=None, bones=<factory>, slots=<factory>, skins=<factory>, asset_sets=<factory>, animations=<factory>, face_overlay=True, source=None, metadata=<factory>, \*\*extra_data)
 
 Bases: [`RigDocument`](an.stage.rig.html.md#an.stage.rig.RigDocument)
 
@@ -163,7 +163,7 @@ Where this art came from and what its licence obliges. `None` means
 “we made this” — not “unknown”. Same field as `CharacterDescriptor`,
 because `an credits` should not need to know which store it came from.
 
-#### source_svg *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### source_svg *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Optional source SVG the `parts/` folder was sliced from.
 
@@ -178,22 +178,22 @@ Before an#408 the bone sat at `(0, 0)` and an origin had to be measured
 from the art’s centre. Nothing moves for a prop without an `origin`: it
 is placed by its bones’ extent centre, which is this bone wherever it is.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.stage.rig.html.md#an.stage.rig.Bone)]
-
 ```pycon
 >>> [(b.name, b.x, b.y) for b in default_prop_bones()]
 [('root', 512.0, 512.0)]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Bone`](an.stage.rig.html.md#an.stage.rig.Bone)]
+
 ### an.stage.props.default_prop_slots()
 
 One slot on that bone.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](an.stage.rig.html.md#an.stage.rig.Slot)]
 
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]
 [('body', 'root', 0)]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Slot`](an.stage.rig.html.md#an.stage.rig.Slot)]

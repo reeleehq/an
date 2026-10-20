@@ -63,15 +63,15 @@ alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#col
 
 Fetch `url`, cut it, and put it in the sounds `store` under `key` with its provenance.
 
-* **Return type:**
-  [`SoundAsset`](an.sounds.html.md#an.sounds.SoundAsset)
-
 license: the licence code the caller vouches for — required, never
 : guessed; `"unknown"` (or `None`) records that nobody has said
 
 fetcher: `(url) -> Fetched` (default [`yb_fetcher()`](#an.sound_fetch.yb_fetcher))
 start, duration, fade_out: the cut, in seconds of the fetched media
 provider, author: override what the fetcher reported
+
+* **Return type:**
+  [`SoundAsset`](an.sounds.html.md#an.sounds.SoundAsset)
 
 ### an.sound_fetch.cut_to_wav(audio, , start=None, duration=None, fade_out=None)
 

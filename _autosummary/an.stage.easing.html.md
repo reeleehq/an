@@ -88,12 +88,12 @@ It does NOT agree with the CSS solver (`css_cubic_bezier()`) to 1e-9
 for every control point, which is why it stays a named legacy solver until
 the pixel goldens are re-blessed under the stricter one.
 
-* **Return type:**
-  [`float`](https://docs.python.org/3/builtins/functions.html#float)
-
 ```pycon
 >>> round(legacy_cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
 0.5
 >>> legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), legacy_cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0)
 (0.0, 1.0)
 ```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)

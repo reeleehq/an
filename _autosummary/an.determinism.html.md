@@ -73,22 +73,19 @@ carry a field cannot testify that the field is fine, and silently reading
 `report.get("shared_ticker_started", False)` would turn a stale runtime
 into a clean bill of health.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> capture_violations({})[0].startswith("the determinism report is missing")
 True
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.determinism.determinism_enforced()
 
 Whether to refuse a render whose determinism perimeter has been breached.
 
 True unless [`AN_DETERMINISTIC_ENV_VAR`](#an.determinism.AN_DETERMINISTIC_ENV_VAR) is explicitly falsey.
-
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ```pycon
 >>> import os
@@ -100,3 +97,6 @@ True
 False
 >>> del os.environ["AN_DETERMINISTIC"]
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)

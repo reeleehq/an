@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -726,15 +728,15 @@ without external services.</p>
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.billed_characters">
 <span class="sig-name descname"><span class="pre">billed_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.billed_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.billed_characters" title="Link to this definition">#</a></dt>
 <dd><p>Characters one request bills: the text as sent, audio tags included.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">billed_characters</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="n">audio_tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
+<span class="go">13</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">billed_characters</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="n">audio_tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
-<span class="go">13</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py method">
@@ -745,7 +747,7 @@ sent (no API key) — what the audio pipeline asks before the first
 request of a render, so nothing is half-synthesized (an#305).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -807,15 +809,15 @@ so alignment and captions never read a cue.</p>
 it (every model but <code class="docutils literal notranslate"><span class="pre">eleven_v3</span></code>, measured) still returns different
 takes; without a seed the request is unchanged and the model’s own
 sampling varies the take.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">take_options</span><span class="p">({</span><span class="s2">"seed"</span><span class="p">:</span> <span class="mi">11</span><span class="p">},</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">{'seed': 13}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">take_options</span><span class="p">({</span><span class="s2">"seed"</span><span class="p">:</span> <span class="mi">11</span><span class="p">},</span> <span class="mi">2</span><span class="p">)</span>
-<span class="go">{'seed': 13}</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </dd></dl>
@@ -978,7 +980,7 @@ provider is a stand-in the render says so loudly (an#305).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.VisemeTrack">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">VisemeTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visemes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rhubarb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/lipsync.html#VisemeTrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.VisemeTrack" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">VisemeTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visemes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rhubarb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/lipsync.html#VisemeTrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.VisemeTrack" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Aligned viseme sequence produced by a LipSyncProvider.</p>
 <p><code class="docutils literal notranslate"><span class="pre">words</span></code> carries the word timings the provider aligned from, when it had
@@ -993,7 +995,7 @@ viseme conversion: captions (Wave 8) and any consumer that wants to know
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.VoiceMeta">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">VoiceMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gender</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#VoiceMeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.VoiceMeta" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">VoiceMeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gender</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#VoiceMeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.VoiceMeta" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Metadata for a TTS voice as exposed by a provider.</p>
 <dl class="field-list simple">
@@ -1028,15 +1030,15 @@ fine and represent silence the lipsync provider should rest through.</p>
 <dd><p>The default lip-sync provider: the loaded genre’s <code class="docutils literal notranslate"><span class="pre">offline</span></code> one (the
 deterministic char-to-viseme provider of <code class="docutils literal notranslate"><span class="pre">cutan</span></code>), else
 <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.NullLipSync" title="an.audio.lipsync.NullLipSync"><code class="xref py py-class docutils literal notranslate"><span class="pre">NullLipSync</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">default_lipsync</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.LipSyncProvider" title="an.audio.lipsync.LipSyncProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">LipSyncProvider</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">default_lipsync</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
-<span class="go">True</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1081,15 +1083,15 @@ Rhubarb’s recognizer today; a future aligner’s weight allowlist.</p>
 <p>The default name (<code class="docutils literal notranslate"><span class="pre">&quot;offline&quot;</span></code>) resolves to <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.NullLipSync" title="an.audio.lipsync.NullLipSync"><code class="xref py py-class docutils literal notranslate"><span class="pre">NullLipSync</span></code></a>
 when no loaded genre provides it, so voicing a line needs no genre; any other
 name that nothing provides is an error that says how to get it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">make_lipsync</span><span class="p">(</span><span class="s2">"offline"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.LipSyncProvider" title="an.audio.lipsync.LipSyncProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">LipSyncProvider</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">make_lipsync</span><span class="p">(</span><span class="s2">"offline"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
-<span class="go">True</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1242,7 +1244,10 @@ audio’s actual length.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voice_design.html#module-an.audio.voice_design" title="an.audio.voice_design"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_design</span></code></a></p></td>
+<td><p>Design a project's voices from their written notes, then let the writer choose.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Which voice speaks a dialogue line: the character → voice binding (an#194).</p></td>
 </tr>
 </tbody>

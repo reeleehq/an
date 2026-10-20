@@ -53,13 +53,13 @@ called again, it leaves the registered part alone. The cut-out adapter
 calls it right after registering its keyer (`an.stage.render`, loaded
 lazily by the renderer registry, which `shot_keyer_for` consults first).
 
-* **Return type:**
-  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
-
 ```pycon
 >>> register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")
 (True, False)
 ```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.semantic.digest.vocabulary_digest(shot)
 

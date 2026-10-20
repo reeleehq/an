@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -896,7 +898,7 @@ persisted name is never redefined in place).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.capabilities.Subjects">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">Subjects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Subjects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.Subjects" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">Subjects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Subjects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.Subjects" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The three profiles a requirement can be matched against.</p>
 <p>A bare profile passed where <code class="docutils literal notranslate"><span class="pre">Subjects</span></code> is expected is the asset’s.</p>
@@ -910,7 +912,7 @@ persisted name is never redefined in place).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.capabilities.Substitution">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">Substitution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remedies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Substitution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.Substitution" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">Substitution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aspect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remedies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#Substitution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.Substitution" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One recorded substitution: the method asked for, the one used, and why.</p>
 <p>It generalises the compiled document’s <code class="docutils literal notranslate"><span class="pre">asset_resolution</span></code> (ADR 0002
@@ -957,15 +959,15 @@ registered analyser decides; with none, nothing is afforded.</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(profile,</span> <span class="pre">analysers)</span></code> of one subject: its capabilities and the analyser versions used.</p>
 <p>A kind with no registered analyser affords nothing <em>derived</em> and records no
 analyser — an honest empty answer, not a guess.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">analyse</span><span class="p">(</span><span class="s2">"no-such-kind"</span><span class="p">,</span> <span class="p">{})</span>
+<span class="go">({}, {})</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">analyse</span><span class="p">(</span><span class="s2">"no-such-kind"</span><span class="p">,</span> <span class="p">{})</span>
-<span class="go">({}, {})</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -973,11 +975,6 @@ analyser — an honest empty answer, not a guess.</p>
 <span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">art_in_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#art_in_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.art_in_dir" title="Link to this definition">#</a></dt>
 <dd><p>The art an asset folder holds, as an analyser reads it: <code class="docutils literal notranslate"><span class="pre">{relative</span> <span class="pre">path:</span> <span class="pre">True}</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">exclude</span></code> drops the document files themselves (<code class="docutils literal notranslate"><span class="pre">character.json</span></code>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="o">,</span><span class="w"> </span><span class="nn">pathlib</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"parts"</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">();</span> <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"parts"</span> <span class="o">/</span> <span class="s2">"head.svg"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">"&lt;svg/&gt;"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
@@ -985,6 +982,11 @@ analyser — an honest empty answer, not a guess.</p>
 <span class="go">['parts/head.svg']</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1002,15 +1004,15 @@ analyser — an honest empty answer, not a guess.</p>
 <dt class="sig sig-object py" id="an.capabilities.capability_of">
 <span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">capability_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#capability_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.capability_of" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(capability,</span> <span class="pre">key)</span></code> of a query term (the library’s <code class="docutils literal notranslate"><span class="pre">find</span></code> form).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">capability_of</span><span class="p">(</span><span class="s2">"swap.view:side"</span><span class="p">),</span> <span class="n">capability_of</span><span class="p">(</span><span class="s2">"limbs.legs"</span><span class="p">)</span>
 <span class="go">(('swap.view', 'side'), ('limbs.legs', None))</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1043,26 +1045,21 @@ snapshot made by an older analyser is what would make a facet lie.</p>
 <dd><p>The requirement terms <code class="docutils literal notranslate"><span class="pre">profile</span></code> does not meet, spelled, in the order asked.</p>
 <p>THE matcher (ADR 0002 decision 4): <code class="docutils literal notranslate"><span class="pre">why_not</span></code>, <code class="docutils literal notranslate"><span class="pre">applicable</span></code>,
 <code class="docutils literal notranslate"><span class="pre">resolve</span></code> and the library’s <code class="docutils literal notranslate"><span class="pre">find(…,</span> <span class="pre">near=True)</span></code> all call it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">missing</span><span class="p">({},</span> <span class="p">[</span><span class="s2">"env.ffmpeg"</span><span class="p">]),</span> <span class="n">missing</span><span class="p">(</span><span class="n">Subjects</span><span class="p">(</span><span class="n">environment</span><span class="o">=</span><span class="p">{</span><span class="s2">"env.ffmpeg"</span><span class="p">:</span> <span class="p">{}}),</span> <span class="p">[</span><span class="s2">"env.ffmpeg"</span><span class="p">])</span>
+<span class="go">(['env.ffmpeg'], [])</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">missing</span><span class="p">({},</span> <span class="p">[</span><span class="s2">"env.ffmpeg"</span><span class="p">]),</span> <span class="n">missing</span><span class="p">(</span><span class="n">Subjects</span><span class="p">(</span><span class="n">environment</span><span class="o">=</span><span class="p">{</span><span class="s2">"env.ffmpeg"</span><span class="p">:</span> <span class="p">{}}),</span> <span class="p">[</span><span class="s2">"env.ffmpeg"</span><span class="p">])</span>
-<span class="go">(['env.ffmpeg'], [])</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.capabilities.parse_requirement">
 <span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">parse_requirement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#parse_requirement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.parse_requirement" title="Link to this definition">#</a></dt>
 <dd><p>A <a class="reference internal" href="#an.capabilities.Requirement" title="an.capabilities.Requirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">Requirement</span></code></a> from its spelling (<code class="docutils literal notranslate"><span class="pre">cap</span></code>, <code class="docutils literal notranslate"><span class="pre">cap:key</span></code>, <code class="docutils literal notranslate"><span class="pre">cap&gt;=N</span></code>, <code class="docutils literal notranslate"><span class="pre">a|b</span></code>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.capabilities.Requirement" title="an.capabilities.Requirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">Requirement</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_requirement</span><span class="p">(</span><span class="s2">"rig.slots&gt;=2"</span><span class="p">)</span><span class="o">.</span><span class="n">at_least</span>
 <span class="go">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_requirement</span><span class="p">(</span><span class="s2">"limbs.legs(hips)"</span><span class="p">)</span>
@@ -1071,6 +1068,11 @@ snapshot made by an older analyser is what would make a facet lie.</p>
 <span class="gr">an.capabilities.CapabilityError</span>: <span class="n">requirement 'limbs.legs(hips)': ...</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.capabilities.Requirement" title="an.capabilities.Requirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">Requirement</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1095,32 +1097,32 @@ registers the decorated derivation.</p>
 <p>Re-registering the same definition is a no-op; a different definition
 under a name another owner holds raises, because capability names are
 persisted and two meanings for one name would make a stored facet lie.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.capabilities.Capability" title="an.capabilities.Capability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Capability</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cap</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span><span class="s2">"demo.thing"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"a thing"</span><span class="p">,</span> <span class="n">remedy</span><span class="o">=</span><span class="s2">"add one"</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="s2">"demo"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CAPABILITIES</span><span class="p">[</span><span class="s2">"demo.thing"</span><span class="p">]</span> <span class="ow">is</span> <span class="n">cap</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">drop_owner</span><span class="p">(</span><span class="s2">"demo"</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.capabilities.Capability" title="an.capabilities.Capability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Capability</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.capabilities.remedy_for">
 <span class="sig-prename descclassname"><span class="pre">an.capabilities.</span></span><span class="sig-name descname"><span class="pre">remedy_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/capabilities.html#remedy_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.capabilities.remedy_for" title="Link to this definition">#</a></dt>
 <dd><p>What would add the capability a requirement term asks for.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">remedy_for</span><span class="p">(</span><span class="s2">"no.such.capability"</span><span class="p">)</span>
+<span class="go">'no registered capability no.such.capability; see vocabulary() for the known names'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">remedy_for</span><span class="p">(</span><span class="s2">"no.such.capability"</span><span class="p">)</span>
-<span class="go">'no registered capability no.such.capability; see vocabulary() for the known names'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1129,15 +1131,15 @@ persisted and two meanings for one name would make a stored facet lie.</p>
 <dd><p>The subject whose profile a requirement term is matched against.</p>
 <p>An unregistered capability is matched against the asset (and reported
 missing there): <a class="reference internal" href="an.semantic.html#an.semantic.check_registry" title="an.semantic.check_registry"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.semantic.check_registry()</span></code></a> is what refuses it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type">str</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subject_of</span><span class="p">(</span><span class="s2">"env.latex"</span><span class="p">)</span> <span class="o">==</span> <span class="n">subject_of</span><span class="p">(</span><span class="s2">"limbs.legs"</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <p class="rubric">Modules</p>

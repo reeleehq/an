@@ -210,9 +210,6 @@ from inside a shot’s compile after others have rendered.
 
 Serialize cues to SubRip text, renumbering from 1.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> print(dump_srt([Cue(7, 1.0, 2.5, "Hello\nthere")]))
 1
@@ -221,37 +218,37 @@ Hello
 there
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.paginate(words, , max_chars, max_lines)
 
 Split `words` into pages of at most `max_lines` wrapped lines, a new
 page starting after each sentence end. Returns index ranges.
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
 
 ```pycon
 >>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
 [range(0, 2), range(2, 4), range(4, 6)]
 ```
 
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
+
 ### an.captions.seconds_to_srt_time(seconds)
 
 `HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)
 ('00:43:12,187', '00:00:00,000')
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.srt_for_scene(scene, , fps, pages=None)
 
 The SubRip sidecar of `scene` rendered at `fps`.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR
@@ -270,15 +267,18 @@ Hi.
 Hi.
 ```
 
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### an.captions.wrap_words(words, max_chars)
 
 Greedy line breaks at `max_chars` characters (spaces counted); a word
 longer than a line gets a line of its own and is never split.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> wrap_words("the quick brown fox jumps".split(), 10)
 [['the', 'quick'], ['brown', 'fox'], ['jumps']]
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]

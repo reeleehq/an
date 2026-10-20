@@ -113,7 +113,7 @@ Raised by [`require_registered_kinds()`](#an.ir.validate.require_registered_kind
 longer render silently wrong now that the schema holds them as `str`
 (review-244 S2). `findings` keeps each one with its IR path.
 
-### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=<factory>)
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -133,7 +133,7 @@ two checks that need the same derived fact compute it once
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-#### library_lock *: [Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+#### library_lock *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Mapping](https://docs.python.org/3/library/typing.html#typing.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]]* *= None*
 
 The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
 `None` means the pin checks did not run.
@@ -153,7 +153,7 @@ A single validation issue with a path into the IR.
 `"<file>:<line>"` when the thing to fix is an opaque source a shot runs
 (a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
-### *class* an.ir.validate.ValidationReport(passed=True, findings=<factory>)
+### *class* an.ir.validate.ValidationReport(passed=True, findings=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -211,13 +211,13 @@ The core’s own (`prop`) plus the kinds genres register with a
 `descriptor_kind` (the cut-out genre’s `character`): derived from the
 registry, not a table the core edits (an#246).
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
-
 ```pycon
 >>> rig_stores()["prop"]
 ('props', 'PropDescriptor')
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
 
 ### an.ir.validate.shot_dialogue_overruns(shot, , effects_of=None, synthesized_only=False, tolerance_s=0.016666666666666666)
 
@@ -267,9 +267,6 @@ not trim — the fix of trimming the silence a real voice pads a line with.
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
 
-* **Return type:**
-  [`ValidationReport`](#an.ir.validate.ValidationReport)
-
 ```pycon
 >>> validate_schema({"meta": {"title": "x"}, "timeline": []}).passed
 True
@@ -277,6 +274,9 @@ True
 >>> r.passed
 False
 ```
+
+* **Return type:**
+  [`ValidationReport`](#an.ir.validate.ValidationReport)
 
 ### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
 

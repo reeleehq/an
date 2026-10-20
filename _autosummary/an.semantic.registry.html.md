@@ -126,9 +126,6 @@ a taken `(kind, name)` (within an aspect, for methods) raises, unless
 `replace=True` is passed explicitly, and then the replacement is recorded
 ([`replacements()`](#an.semantic.registry.replacements)). Re-registering the same entry is a no-op.
 
-* **Return type:**
-  [`Entry`](an.semantic.html.md#an.semantic.Entry)
-
 ```pycon
 >>> from an.semantic.entries import Entry
 >>> register_entry(Entry("demo.push_in", "camera_move", name="push_in"), owner="demo")
@@ -136,6 +133,9 @@ Traceback (most recent call last):
 ...
 an.semantic.entries.VocabularyError: camera_move 'push_in' is already defined by 'camera.push_in' (owner 'an'); ...
 ```
+
+* **Return type:**
+  [`Entry`](an.semantic.html.md#an.semantic.Entry)
 
 ### an.semantic.registry.register_view(name, view)
 

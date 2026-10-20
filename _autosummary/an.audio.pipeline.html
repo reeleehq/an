@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -869,17 +871,17 @@ and <code class="docutils literal notranslate"><span class="pre">roll</span></co
 a best-of-N line; take 0 of roll 0 is the single-take request and keeps its
 key. <code class="docutils literal notranslate"><span class="pre">takes</span></code> (<a class="reference internal" href="an.audio.takes.html#an.audio.takes.takes_choice_part" title="an.audio.takes.takes_choice_part"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.takes.takes_choice_part()</span></code></a>) keys the CHOICE
 among a line’s takes — the record in <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>, not an audio blob.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">audio_key</span><span class="p">(</span><span class="s2">"hi"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">,</span> <span class="s2">"offline"</span><span class="p">)</span> <span class="o">==</span> <span class="n">audio_key</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="s2">"hi"</span><span class="p">,</span> <span class="s2">"default"</span><span class="p">,</span> <span class="s2">"offline"</span><span class="p">,</span> <span class="p">{},</span> <span class="n">provider_voice</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{},</span>
 <span class="gp">... </span>    <span class="n">takes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">take</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -888,15 +890,15 @@ among a line’s takes — the record in <code class="docutils literal notransla
 <dd><p>The default lip-sync provider: the loaded genre’s <code class="docutils literal notranslate"><span class="pre">offline</span></code> one (the
 deterministic char-to-viseme provider of <code class="docutils literal notranslate"><span class="pre">cutan</span></code>), else
 <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.NullLipSync" title="an.audio.lipsync.NullLipSync"><code class="xref py py-class docutils literal notranslate"><span class="pre">NullLipSync</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">default_lipsync</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.LipSyncProvider" title="an.audio.lipsync.LipSyncProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">LipSyncProvider</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">default_lipsync</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"offline"</span><span class="p">,</span> <span class="s2">"none"</span><span class="p">}</span>
-<span class="go">True</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -921,11 +923,6 @@ render cuts the shot’s audio at the shot’s end, so the tail would otherwise
 be lost silently. It is <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>’s own check
 (<a class="reference internal" href="an.ir.validate.html#an.ir.validate.shot_dialogue_overruns" title="an.ir.validate.shot_dialogue_overruns"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.validate.shot_dialogue_overruns()</span></code></a>), over the synthesized lines;
 <code class="docutils literal notranslate"><span class="pre">mall</span></code> lets its fix name the voice’s <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">=</span><span class="p">[</span>
 <span class="gp">... </span>    <span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"hi"</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">audio_ref</span><span class="o">=</span><span class="s2">"k"</span><span class="p">)])</span>
@@ -933,6 +930,11 @@ be lost silently. It is <code class="docutils literal notranslate"><span class="
 <span class="go">"shot 's': line 0 (a) ends at 1.30s as synthesi"</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -944,16 +946,16 @@ same bytes: <code class="docutils literal notranslate"><span class="pre">offline
 inferred from a missing method — and has no <code class="docutils literal notranslate"><span class="pre">billed_characters</span></code> hook.
 Re-running it reproduces exactly what a render stored; anything else would
 give new bytes, so new keys, or cost money.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">free_and_repeatable</span><span class="p">(</span><span class="n">OfflineTTS</span><span class="p">()),</span> <span class="n">free_and_repeatable</span><span class="p">(</span><span class="nb">object</span><span class="p">())</span>
 <span class="go">(True, False)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -974,15 +976,15 @@ to whatever keys the stamped scene (an#311).</p>
 <span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">is_voice_tts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#is_voice_tts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.is_voice_tts" title="Link to this definition">#</a></dt>
 <dd><p>Whether <code class="docutils literal notranslate"><span class="pre">tts</span></code> means “each voice’s own provider”: <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> or
 <a class="reference internal" href="#an.audio.pipeline.VOICE_TTS" title="an.audio.pipeline.VOICE_TTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">VOICE_TTS</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">is_voice_tts</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"voice"</span><span class="p">,</span> <span class="s2">" Voice "</span><span class="p">,</span> <span class="s2">"offline"</span><span class="p">)]</span>
+<span class="go">[True, True, True, True, False]</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">is_voice_tts</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"voice"</span><span class="p">,</span> <span class="s2">" Voice "</span><span class="p">,</span> <span class="s2">"offline"</span><span class="p">)]</span>
-<span class="go">[True, True, True, True, False]</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1099,11 +1101,6 @@ nothing after it has a known start). Mutates in place and returns
 leaves a shot whose lines carry no <code class="docutils literal notranslate"><span class="pre">pause</span></code>/<code class="docutils literal notranslate"><span class="pre">at</span></code> exactly as stamped:
 a hand-built scene may stamp <code class="docutils literal notranslate"><span class="pre">start</span></code> itself (a test, a fixture), and
 without the pipeline there is no authority to say that stamp is stale.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">=</span><span class="p">[</span>
 <span class="gp">... </span>    <span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"hi"</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">audio_ref</span><span class="o">=</span><span class="s2">"k1"</span><span class="p">),</span>
@@ -1113,6 +1110,11 @@ without the pipeline there is no authority to say that stamp is stale.</p>
 <span class="go">[0.0, 2.0]</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1183,11 +1185,6 @@ document’s <code class="docutils literal notranslate"><span class="pre">provid
 <code class="docutils literal notranslate"><span class="pre">make</span></code> has no provider for (<a class="reference internal" href="#an.audio.pipeline.voice_stand_ins" title="an.audio.pipeline.voice_stand_ins"><code class="xref py py-func docutils literal notranslate"><span class="pre">voice_stand_ins()</span></code></a> reports it) — is
 spoken by <a class="reference internal" href="#an.audio.pipeline.DEFAULT_TTS_NAME" title="an.audio.pipeline.DEFAULT_TTS_NAME"><code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_TTS_NAME</span></code></a>. One instance per provider name.
 <code class="docutils literal notranslate"><span class="pre">make</span></code> defaults to <a class="reference internal" href="an.audio.providers.html#an.audio.providers.make_tts" title="an.audio.providers.make_tts"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.providers.make_tts()</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference internal" href="an.audio.tts.html#an.audio.tts.TTSProvider" title="an.audio.tts.TTSProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">TTSProvider</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mall</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"mac_say"</span><span class="p">},</span> <span class="s2">"ann"</span><span class="p">:</span> <span class="p">{}}}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">choose</span> <span class="o">=</span> <span class="n">tts_chooser</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">choose</span><span class="p">(</span><span class="s2">"bob"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">choose</span><span class="p">(</span><span class="s2">"ann"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">choose</span><span class="p">(</span><span class="s2">"nobody"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
@@ -1196,6 +1193,11 @@ spoken by <a class="reference internal" href="#an.audio.pipeline.DEFAULT_TTS_NAM
 <span class="go">'offline'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference internal" href="an.audio.tts.html#an.audio.tts.TTSProvider" title="an.audio.tts.TTSProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">TTSProvider</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1215,11 +1217,6 @@ spoken by <a class="reference internal" href="#an.audio.pipeline.DEFAULT_TTS_NAM
 <dd><p>One message per voice whose lines are spoken by another provider than its
 document declares; <code class="docutils literal notranslate"><span class="pre">lines</span></code> is <code class="docutils literal notranslate"><span class="pre">(voice_id,</span> <span class="pre">provider)</span></code> per line, and
 <code class="docutils literal notranslate"><span class="pre">overridden</span></code> says whether a <code class="docutils literal notranslate"><span class="pre">tts</span></code> was given for every line.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mall</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"elevenlabs"</span><span class="p">}}}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">voice_stand_ins</span><span class="p">([(</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">OfflineTTS</span><span class="p">())]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">overridden</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
@@ -1228,6 +1225,11 @@ document declares; <code class="docutils literal notranslate"><span class="pre">
 <span class="go">[]</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

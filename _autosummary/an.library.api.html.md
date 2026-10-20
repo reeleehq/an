@@ -90,7 +90,7 @@ A JSON-ready view.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.api.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=<factory>, remedies=<factory>, federated=False)
+### *class* an.library.api.Hit(library, asset_id, version, score, title=None, license_class='unknown', missing=list(), remedies=dict(), federated=False)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -110,7 +110,7 @@ A JSON-ready view (CLI `--json`, MCP).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### *class* an.library.api.IndexEntry(library, asset_id, version, kind, record, rights, affordances, art, document=<factory>)
+### *class* an.library.api.IndexEntry(library, asset_id, version, kind, record, rights, affordances, art, document=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -191,9 +191,6 @@ The rights of a version, recomputed from its sources, its lineage and its bytes.
 owner: the library holding `version` (see [`version_sources()`](#an.library.api.version_sources))
 rule: a `_PerFileRule` to share with the caller (one per operation)
 
-* **Return type:**
-  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.vase", {"name": "vase"},
@@ -202,12 +199,12 @@ rule: a `_PerFileRule` to share with the caller (one per operation)
 'private'
 ```
 
+* **Return type:**
+  [`Rights`](an.library.rights.html.md#an.library.rights.Rights)
+
 ### an.library.api.find(libraries, \*, kind=None, style=None, affords=None, rights='any', family=None, origin=None, status=None, tags=None, art=None, near=False, index=<function scan_index>)
 
 Assets matching every facet given (AND across facets, OR within one facet’s values).
-
-* **Return type:**
-  [`FindResult`](#an.library.api.FindResult)
 
 affords: capabilities the asset must ALL have — `limbs.legs`, or
 : `swap.view:side` for a capability with a given key. Each capability is
@@ -239,6 +236,9 @@ index: the index to read (default: a scan of the stores)
 >>> len(find(lib, kind="prop", rights="publishable"))  # no source: unknown
 0
 ```
+
+* **Return type:**
+  [`FindResult`](#an.library.api.FindResult)
 
 ### an.library.api.promote(libraries, ref, , to=None, as_id=None, allow_restricted=False, strict_assets=False)
 
@@ -411,9 +411,6 @@ and validates — and its rights statements still bind the floor (retiring
 is curation, not a relabel). `find(status="retired")` lists it; a publish
 into it is refused unless it passes `status=` to revive it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.dead", {"name": "dead"})
@@ -421,6 +418,9 @@ into it is refused unless it passes `status=` to revive it.
 >>> len(find(lib)), [h.asset_id for h in find(lib, status="retired")]
 (0, ['prop.dead'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.api.scan_index(library)
 
@@ -441,9 +441,6 @@ Set an asset’s curation status, recording who and why; return the record.
 The record’s `status_history` is appended to, never rewritten, and no
 version is touched: a project pinned to one keeps reading it.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
@@ -451,12 +448,12 @@ version is touched: a project pinned to one keeps reading it.
 'approved'
 ```
 
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.library.api.show(libraries, ref)
 
 The record, the resolved version, its recomputed rights and the list of versions.
-
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
@@ -465,6 +462,9 @@ The record, the resolved version, its recomputed rights and the list of versions
 >>> s["ref"], s["record"]["title"], s["versions"]
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.library.api.unknown_advice(libraries, version, \*, owner=None, floor=<object object>)
 
@@ -478,15 +478,15 @@ relabel here cannot speak for another asset), or by dropping the file; and
 anything stated (a licence nobody recognises, an unverified stamp, a
 parent not on the path) relaxes only by a relicence.
 
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> r = publish(lib, "prop.vase", {"name": "vase"})
 >>> r.rights.license_class, "--relabel-by" in r.advice[0]
 ('unknown', True)
 ```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.library.api.version_labels(library, version)
 
@@ -560,9 +560,6 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 `find` offers by default — the same recomputed rights, and no asset of a
 hidden status (`retired`), whose numbers are under `hidden`.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
-
 ```pycon
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
@@ -571,3 +568,6 @@ hidden status (`retired`), whose numbers are under `hidden`.
 >>> isinstance(v["capabilities"], (dict, list, tuple))
 True
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

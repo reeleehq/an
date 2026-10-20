@@ -1,0 +1,31 @@
+an.audio.voice\_design
+======================
+
+.. automodule:: an.audio.voice_design
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      choose_project_voice
+      choose_voice_option
+      default_designer
+      design_project_voices
+      design_voice_options
+      designable_voices
+      sample_text_from_lines
+      sample_text_of
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ElevenLabsVoiceDesigner
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      VoiceDesignError
+   

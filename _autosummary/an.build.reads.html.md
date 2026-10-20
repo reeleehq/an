@@ -84,9 +84,6 @@ the shot depends on every entry, present and future.
 
 One entry’s digest: what the mapping returns, plus its files on disk.
 
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ```pycon
 >>> entry_digest({"a": 1}, "a") == entry_digest({"a": 1}, "a")
 True
@@ -95,6 +92,9 @@ False
 >>> entry_digest({}, "a") == entry_digest({}, "a")  # absent is a value too
 True
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.build.reads.entry_files(store, key)
 
@@ -116,10 +116,10 @@ never an asset (`an.stores._common.is_os_junk()`).
 A read of a store the mall does not have is recorded as `ABSENT`, so
 the day the store appears the key moves.
 
-* **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
 ```pycon
 >>> read_digests({}, [("props", "logo")])
 {'props/logo': 'absent'}
 ```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

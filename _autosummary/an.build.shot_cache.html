@@ -34,6 +34,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e5999b1e"></script>
+    <script src="../_static/documentation_options.js?v=876c1b95"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.239" />
+  <meta name="docsearch:version" content="0.1.240" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -339,6 +340,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 </ul>
 </details></li>
@@ -731,7 +733,7 @@ unreachable entries is a separate, explicit command: <code class="docutils liter
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.shot_cache.BuildReport">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">BuildReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.BuildReport" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">BuildReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.BuildReport" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Every shot’s outcome, in timeline order.</p>
 <dl class="field-list simple">
@@ -746,15 +748,15 @@ unreachable entries is a separate, explicit command: <code class="docutils liter
 <dt class="sig sig-object py" id="an.build.shot_cache.BuildReport.store_line">
 <span class="sig-name descname"><span class="pre">store_line</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#BuildReport.store_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.BuildReport.store_line" title="Link to this definition">#</a></dt>
 <dd><p>How big the shot cache is after the render, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> if unmeasured.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BuildReport</span><span class="p">(</span><span class="n">store_bytes</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">store_entries</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">store_line</span><span class="p">()</span>
+<span class="go">'3.0 MB in 4 entries'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BuildReport</span><span class="p">(</span><span class="n">store_bytes</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">store_entries</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">store_line</span><span class="p">()</span>
-<span class="go">'3.0 MB in 4 entries'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py method">
@@ -763,15 +765,15 @@ unreachable entries is a separate, explicit command: <code class="docutils liter
 <dd><p>One line: what was rendered, what reused, and WHY each rendered shot
 was not reused — a cache that silently re-renders everything reads as
 a broken cache (an#243 review, R2-1).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BuildReport</span><span class="p">([</span><span class="n">ShotOutcome</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"cutout"</span><span class="p">,</span> <span class="s2">"uncached"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">FRAMES_NOT_CACHED</span><span class="p">)])</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+<span class="go">'1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BuildReport</span><span class="p">([</span><span class="n">ShotOutcome</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"cutout"</span><span class="p">,</span> <span class="s2">"uncached"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">FRAMES_NOT_CACHED</span><span class="p">)])</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
-<span class="go">'1 shot(s): 1 rendered (a), 0 reused (-); not reused: frames not cached: film has transitions/sound; pass --cache-frames (a)'</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py method">
@@ -901,7 +903,7 @@ window is not whole is reused only when its parts entry is there too.</p>
 A failed write never fails the render (the next render renders it).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -919,7 +921,7 @@ synced project, or of another project sharing the store, keeps its own. Its reco
 derived from the shot keys. Also measures the store, for the summary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -947,7 +949,7 @@ compile; <code class="docutils literal notranslate"><span class="pre">render_s</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.build.shot_cache.ShotPlan">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">ShotPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_render_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.ShotPlan" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">ShotPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">dict()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_render_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#ShotPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.ShotPlan" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The engine’s answer for one shot: its key, and what to reuse if anything.</p>
 <dl class="field-list simple">
@@ -1013,11 +1015,6 @@ comes and goes with what the shot draws). The parts that follow from an
 asset (<code class="xref py py-data docutils literal notranslate"><span class="pre">FOLLOWS_ASSETS</span></code>) are left out when one is named. Both keys
 are of one composition: a different <code class="docutils literal notranslate"><span class="pre">key_version</span></code> is
 <code class="xref py py-data docutils literal notranslate"><span class="pre">KEY_FORMAT_CHANGED</span></code>, decided before this is called.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">explain_change</span><span class="p">({</span><span class="s2">"compiled"</span><span class="p">:</span> <span class="s2">"a"</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">:</span> <span class="s2">"x"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"props/logo"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">},</span>
 <span class="gp">... </span>               <span class="p">{</span><span class="s2">"compiled"</span><span class="p">:</span> <span class="s2">"b"</span><span class="p">,</span> <span class="s2">"assets"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"props/logo"</span><span class="p">:</span> <span class="s2">"2"</span><span class="p">})</span>
 <span class="go">'asset changed: props/logo'</span>
@@ -1032,21 +1029,26 @@ are of one composition: a different <code class="docutils literal notranslate"><
 <span class="go">"an's render code (an.motion) changed"</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.shot_cache.human_bytes">
 <span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">human_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#human_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.human_bytes" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">n</span></code> bytes for a person: 1024-based, one decimal.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">human_bytes</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">human_bytes</span><span class="p">(</span><span class="mi">1536</span><span class="p">),</span> <span class="n">human_bytes</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">('0 B', '1.5 KB', '5.0 GB')</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">human_bytes</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">human_bytes</span><span class="p">(</span><span class="mi">1536</span><span class="p">),</span> <span class="n">human_bytes</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
-<span class="go">('0 B', '1.5 KB', '5.0 GB')</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1066,15 +1068,15 @@ are of one composition: a different <code class="docutils literal notranslate"><
 <dd><p>A short digest naming this machine (its host name and hardware
 address), so each machine’s renders of a synced project keep a root of
 their own. A digest, never the names themselves.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">machine_id</span><span class="p">())</span>
+<span class="go">16</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">machine_id</span><span class="p">())</span>
-<span class="go">16</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1085,16 +1087,16 @@ their own. A digest, never the names themselves.</p>
 different entry) and the digest of the code that cuts and encodes the parts
 (<code class="xref py py-func docutils literal notranslate"><span class="pre">parts_code_digest()</span></code>): a parts entry is produced by <code class="code docutils literal notranslate"><span class="pre">an.assemble</span></code>, not
 by the renderer, so the renderer’s own <code class="docutils literal notranslate"><span class="pre">code</span></code> key part does not cover it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotWindow</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parts_entry_id</span><span class="p">(</span><span class="s2">"k"</span> <span class="o">*</span> <span class="mi">64</span><span class="p">,</span> <span class="n">ShotWindow</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".h0.t4"</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1102,17 +1104,17 @@ by the renderer, so the renderer’s own <code class="docutils literal notransla
 <span class="sig-prename descclassname"><span class="pre">an.build.shot_cache.</span></span><span class="sig-name descname"><span class="pre">project_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/shot_cache.html#project_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.shot_cache.project_id" title="Link to this definition">#</a></dt>
 <dd><p>A short digest naming a project by its resolved directory, so two
 projects sharing one cache store keep a root each (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">project_id</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 <span class="go">''</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">project_id</span><span class="p">(</span><span class="s2">"."</span><span class="p">))</span>
 <span class="go">16</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1121,17 +1123,17 @@ projects sharing one cache store keep a root each (<code class="docutils literal
 <dd><p><code class="docutils literal notranslate"><span class="pre">incremental=</span></code> → an engine, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for “render every shot cold”.</p>
 <p><code class="docutils literal notranslate"><span class="pre">True</span></code> is a fresh <a class="reference internal" href="#an.build.shot_cache.ShotCache" title="an.build.shot_cache.ShotCache"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotCache</span></code></a> over the mall’s store; <code class="docutils literal notranslate"><span class="pre">False</span></code> or
 <code class="docutils literal notranslate"><span class="pre">None</span></code> is off; anything else must be an <a class="reference internal" href="#an.build.shot_cache.IncrementalEngine" title="an.build.shot_cache.IncrementalEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.build.shot_cache.IncrementalEngine" title="an.build.shot_cache.IncrementalEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
-</dd>
-</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_incremental</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">resolve_incremental</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">ShotCache</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.build.shot_cache.IncrementalEngine" title="an.build.shot_cache.IncrementalEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">IncrementalEngine</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
