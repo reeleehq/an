@@ -86,7 +86,7 @@ def validate(project_dir: str, fps: float = 0.0, strict_assets: bool = False) ->
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
-    strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error
+    strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset, or a voice written in words that nobody chose, is an error
     """
     report = validate_project(project_dir, fps=fps or None, strict_assets=strict_assets)
     if report.passed and not report.findings:
@@ -174,7 +174,8 @@ def render(
     parallel: per-shot concurrency. "" or "1" = serial (default); "auto" =
         min(shots, cpu, 4); a number ≥ 2 caps the thread pool.
     strict_assets: fail instead of drawing a stand-in (the placeholder rig, the
-        default backdrop) for an asset the project's stores don't supply
+        default backdrop) for an asset the project's stores don't supply, or
+        speaking a voice written in words that nobody chose (`an voices choose`)
     supersample: render at N times the resolution and resolve back with an exact
         N x N block mean. Opt-in; 1 (the default) costs nothing at all. Measured
         on the shipped path at 1920x1080: 125.5 ms/frame at 1, 508.6 at 2 —

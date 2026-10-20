@@ -21,6 +21,15 @@ Two steps, both plain functions over injected stores:
 - :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it
   as a voice first when it was not persisted).
 
+**A choice is recorded, and a render needs one** (an#486). A voice written in
+words (``notes``) is cast by the writer, nobody else: ``an voices choose``
+writes ``chosen_by`` and ``chosen_at`` beside the ``voice_id``
+(:func:`record_choice`), and a voice document that has ``notes`` but no
+recorded choice is a render finding, refused under ``--strict-assets`` before
+anything is synthesized (:func:`voice_casting_problem`). A timing draft may
+speak a stand-in voice only with an explicit ``provisional`` (``true``, or a
+string saying why), which every render report lists.
+
 The project-level forms, :func:`design_project_voices` and
 :func:`choose_project_voice`, keep the manifest in
 ``artifacts/voice_options/<ref>.json``, the samples in
@@ -67,14 +76,20 @@ from typing import Any
 __all__ = [
     "ElevenLabsVoiceDesigner",
     "VoiceDesignError",
+    "cast_project_voice",
     "choose_project_voice",
     "choose_voice_option",
+    "default_chooser",
     "default_designer",
     "design_project_voices",
     "design_voice_options",
     "designable_voices",
+    "provisional_reason",
+    "record_choice",
     "sample_text_from_lines",
     "sample_text_of",
+    "voice_casting",
+    "voice_casting_problem",
 ]
 
 #: The key, in a voice document, holding the voice in words.
@@ -95,6 +110,20 @@ OPTION_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #: Where the project-level forms keep their records, under the project root.
 OPTIONS_DIR = Path("artifacts") / "voice_options"
 SAMPLES_DIR = Path("artifacts") / "voice_samples"
+#: What a choice writes into the voice document (an#486): who chose the
+#: ``voice_id`` and when (UTC, ISO 8601). A voice with ``notes`` and no
+#: ``chosen_by`` is not cast: nobody the writer trusts picked it.
+CHOSEN_BY_KEY = "chosen_by"
+CHOSEN_AT_KEY = "chosen_at"
+#: A voice a render may speak although nobody chose it: a timing draft. Any
+#: truthy value; a string says why, and the render report repeats it.
+PROVISIONAL_KEY = "provisional"
+#: The verbs that cast a voice, named by every refusal.
+CASTING_VERBS = (
+    "`an voices design` (options from its notes) then `an voices choose <option> "
+    "--by <writer>` (the pick, recorded as chosen_by), or `an voices cast "
+    "<voice_id> --by <writer>` for a voice picked by hand (`an voices list`)"
+)
 
 
 class VoiceDesignError(ValueError):
@@ -386,6 +415,151 @@ def choose_voice_option(
     )
 
 
+def default_chooser() -> str:
+    """Who a choice is recorded as when nobody is named: the login name."""
+    import getpass
+
+    try:
+        return getpass.getuser()
+    except Exception:  # noqa: BLE001 - no login name on this host
+        return "unknown"
+
+
+def _utc_now() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def record_choice(
+    doc: Mapping | None,
+    voice_id: str,
+    *,
+    by: str | None = None,
+    at: str | None = None,
+    provider: str | None = None,
+) -> dict:
+    """The voice document with ``voice_id`` chosen by ``by`` at ``at`` (default:
+    now, UTC): ``chosen_by`` and ``chosen_at`` beside the ``voice_id``, the
+    ``provider`` set when given (``None``, the default, keeps the document's:
+    a designed option passes :data:`DESIGN_PROVIDER`; a hand-picked voice of
+    another provider passes nothing), and ``provisional`` dropped, since a
+    choice is what it stood in for. ``by`` defaults to the login name, which
+    says nothing about the writer: a connector or an agent choosing on a
+    writer's behalf passes the writer's name.
+
+    >>> doc = record_choice({"notes": "a warm voice", "provisional": True}, "v1",
+    ...                     by="noel", at="2026-10-20T22:00:00+00:00", provider="elevenlabs")
+    >>> doc == {"notes": "a warm voice", "provider": "elevenlabs", "voice_id": "v1",
+    ...         "chosen_by": "noel", "chosen_at": "2026-10-20T22:00:00+00:00"}
+    True
+    >>> record_choice({"provider": "mac_say"}, "Junior", by="noel", at="t")["provider"]
+    'mac_say'
+    """
+    out = dict(doc or {})
+    out.pop(PROVISIONAL_KEY, None)
+    if provider:
+        out["provider"] = provider
+    out["voice_id"] = voice_id
+    out[CHOSEN_BY_KEY] = (by or "").strip() or default_chooser()
+    out[CHOSEN_AT_KEY] = at or _utc_now()
+    return out
+
+
+def provisional_reason(doc: Mapping | None) -> str | None:
+    """Why ``doc`` speaks a voice nobody chose (its ``provisional``, as text), or
+    ``None`` when it is not provisional.
+
+    >>> provisional_reason({"provisional": "timing draft"}), provisional_reason({"provisional": True})
+    ('timing draft', 'provisional')
+    >>> provisional_reason({"provisional": False}) is None, provisional_reason({}) is None
+    (True, True)
+    """
+    if not isinstance(doc, Mapping):
+        return None
+    value = doc.get(PROVISIONAL_KEY)
+    if not value:
+        return None
+    return value.strip() if isinstance(value, str) and value.strip() else "provisional"
+
+
+def voice_casting_problem(doc: Mapping | None) -> str | None:
+    """Why a render must not speak ``doc`` as it stands, or ``None``.
+
+    A voice written in words (``notes``) is cast only once a choice is recorded
+    (``chosen_by`` beside the ``voice_id``), or it is marked ``provisional``. A
+    document without ``notes`` names its voice by hand and is not judged here.
+
+    >>> voice_casting_problem({"voice_id": "v1"}) is None
+    True
+    >>> print(voice_casting_problem({"notes": "a warm voice"}))
+    is written in words but no voice is chosen for it: nothing to speak with
+    >>> print(voice_casting_problem({"notes": "a warm voice", "voice_id": "v1"}))
+    has a voice_id nobody is recorded as choosing (no chosen_by)
+    >>> voice_casting_problem({"notes": "n", "voice_id": "v1", "chosen_by": "noel"}) is None
+    True
+    >>> voice_casting_problem({"notes": "n", "voice_id": "v1", "provisional": "draft"}) is None
+    True
+    >>> voice_casting_problem({"notes": "n", "provisional": True}) is None  # provisional WHAT?
+    False
+    """
+    if not isinstance(doc, Mapping):
+        return None
+    notes = doc.get(NOTES_KEY)
+    if not isinstance(notes, str) or not notes.strip():
+        return None
+    voice_id = doc.get("voice_id")
+    if not isinstance(voice_id, str) or not voice_id.strip():
+        # Not even a provisional voice: nothing names what to speak with (the
+        # provider would be handed the document's key as a voice id).
+        return "is written in words but no voice is chosen for it: nothing to speak with"
+    if provisional_reason(doc) is not None:
+        return None
+    by = doc.get(CHOSEN_BY_KEY)
+    if not isinstance(by, str) or not by.strip():
+        return "has a voice_id nobody is recorded as choosing (no chosen_by)"
+    return None
+
+
+def voice_casting(
+    voice_refs: Iterable[str], voices: Mapping[str, Any] | None
+) -> tuple[list[str], list[str]]:
+    """``(uncast, provisional)``: one message per distinct voice of ``voice_refs``
+    (the voices a scene's lines speak with) that a render must not speak as it
+    stands, and one per voice it speaks provisionally. Each message starts
+    with ``voice '<ref>'`` and the uncast ones name the fix.
+
+    >>> voices = {"j": {"notes": "n", "voice_id": "v"}, "p": {"notes": "n", "voice_id": "v",
+    ...           "provisional": "round-2 timing draft"}, "k": {"voice_id": "x"}}
+    >>> uncast, provisional = voice_casting(["j", "p", "k", "j", "ghost"], voices)
+    >>> print(uncast[0])
+    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes) then `an voices choose <option> --by <writer>` (the pick, recorded as chosen_by), or `an voices cast <voice_id> --by <writer>` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.
+    >>> provisional
+    ["voice 'p' is provisional (round-2 timing draft): choose a voice before the cut"]
+    """
+    uncast: list[str] = []
+    provisional: list[str] = []
+    seen: set[str] = set()
+    for ref in voice_refs:
+        if ref in seen or voices is None or ref not in voices:
+            continue
+        seen.add(ref)
+        doc = voices[ref]
+        problem = voice_casting_problem(doc)
+        if problem is not None:
+            uncast.append(
+                f"voice {ref!r} {problem}. Cast it: {CASTING_VERBS}; a timing "
+                f"draft may set `{PROVISIONAL_KEY}: true` on the voice document instead."
+            )
+            continue
+        reason = provisional_reason(doc)
+        if reason is not None:
+            provisional.append(
+                f"voice {ref!r} is provisional ({reason}): choose a voice before the cut"
+            )
+    return uncast, provisional
+
+
 # --- the project-level forms ---------------------------------------------------------
 
 
@@ -456,18 +630,73 @@ def design_project_voices(
 
 
 def choose_project_voice(
-    project_dir: str | Path, ref: str, option: str, *, designer: Any = None
+    project_dir: str | Path,
+    ref: str,
+    option: str,
+    *,
+    designer: Any = None,
+    by: str | None = None,
+    at: str | None = None,
 ) -> dict:
-    """Write the chosen option's ``voice_id`` into ``assets/voices/<ref>.json``; return the document."""
+    """Write the chosen option's ``voice_id`` into ``assets/voices/<ref>.json``,
+    with who chose it (``by``, default the login name) and when (``at``, default
+    now; :func:`record_choice`); return the document."""
     voices, options, _ = _project_stores(project_dir)
     if ref not in options:
         raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
     entry = dict(options[ref])
     voice_id = choose_voice_option(entry, option, ref=ref, designer=designer)
-    doc = dict(voices[ref]) if ref in voices else {}
-    doc["provider"] = DESIGN_PROVIDER
-    doc["voice_id"] = voice_id
+    doc = record_choice(
+        voices[ref] if ref in voices else {},
+        voice_id,
+        by=by,
+        at=at,
+        provider=DESIGN_PROVIDER,
+    )
     voices[ref] = doc
-    entry["chosen"] = {"option": str(option).upper(), "voice_id": voice_id}
+    entry["chosen"] = {
+        "option": str(option).upper(),
+        "voice_id": voice_id,
+        CHOSEN_BY_KEY: doc[CHOSEN_BY_KEY],
+        CHOSEN_AT_KEY: doc[CHOSEN_AT_KEY],
+    }
     options[ref] = entry
+    return doc
+
+
+def cast_project_voice(
+    project_dir: str | Path,
+    ref: str,
+    voice_id: str | None = None,
+    *,
+    by: str | None = None,
+    at: str | None = None,
+    provider: str | None = None,
+) -> dict:
+    """Record a voice picked by hand (from `an voices list`, or the document's
+    own ``voice_id``) as the writer's choice for ``ref``: ``voice_id`` (default:
+    the one the document already names), ``chosen_by``, ``chosen_at``; no
+    options manifest needed and nothing billed. ``provider`` sets the
+    document's when given. Returns the document.
+    """
+    voices, options, _ = _project_stores(project_dir)
+    doc = dict(voices[ref]) if ref in voices else None
+    if doc is None:
+        raise VoiceDesignError(f"no voice document {ref!r} in assets/voices")
+    chosen = (voice_id or "").strip() or doc.get("voice_id")
+    if not isinstance(chosen, str) or not chosen.strip():
+        raise VoiceDesignError(
+            f"voice {ref!r} names no voice_id: pass one (`an voices list` shows them)"
+        )
+    doc = record_choice(doc, chosen, by=by, at=at, provider=provider)
+    voices[ref] = doc
+    if ref in options:
+        entry = dict(options[ref])
+        entry["chosen"] = {
+            "option": None,
+            "voice_id": chosen,
+            CHOSEN_BY_KEY: doc[CHOSEN_BY_KEY],
+            CHOSEN_AT_KEY: doc[CHOSEN_AT_KEY],
+        }
+        options[ref] = entry
     return doc

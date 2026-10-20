@@ -10,7 +10,8 @@ provider factories.
     an voices rescore <project> "He did not ask"    # re-choose a line's take from its cached takes
     an voices reroll <project> "He did not ask"     # synthesize new takes for it (billed)
     an voices design <project>                      # design options from each voice's notes (billed)
-    an voices choose <project> jerry_voice B        # the writer's pick becomes the voice_id
+    an voices choose <project> jerry_voice B --by noel   # the writer's pick becomes the voice_id (recorded)
+    an voices cast <project> paul_voice <voice_id> --by noel   # a voice picked by hand, recorded the same way
 
 The ``voice_id`` column is what a ``voices``-store document's ``voice_id`` takes.
 ``rescore`` and ``reroll`` are the only ways a recorded best-of-N take is
@@ -175,17 +176,42 @@ def design(
     )
 
 
-def choose(project: str, voice: str, option: str) -> str:
-    """Make OPTION (A, B, C...) of `an voices design` the voice's voice_id.
+def choose(project: str, voice: str, option: str, by: str = "") -> str:
+    """Make OPTION (A, B, C...) of `an voices design` the voice's voice_id, and
+    record who chose it (chosen_by, chosen_at): a render refuses a voice written
+    in words that nobody chose (--strict-assets), or lists it as provisional.
 
     project: the project directory
     voice: the voice ref (the voice document's name)
     option: the option label the writer chose
+    by: who chose: the writer's name. The default, your login name, records only that someone ran this
     """
     from an.audio.voice_design import choose_project_voice
 
-    doc = choose_project_voice(project, voice, option)
-    return f"voices/{voice}: voice_id {doc['voice_id']} (option {option.upper()})"
+    doc = choose_project_voice(project, voice, option, by=by or None)
+    return (
+        f"voices/{voice}: voice_id {doc['voice_id']} (option {option.upper()}, "
+        f"chosen by {doc['chosen_by']})"
+    )
 
 
-_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll, design, choose]
+def cast(project: str, voice: str, voice_id: str = "", by: str = "", provider: str = "") -> str:
+    """Record a voice picked by hand as the writer's choice (chosen_by, chosen_at),
+    without a design round: the document's own voice_id, or VOICE_ID from
+    `an voices list`. Nothing is billed.
+
+    project: the project directory
+    voice: the voice ref (the voice document's name)
+    voice_id: the provider's voice id to cast (default: the one the document names)
+    by: who chose: the writer's name (default: your login name)
+    provider: the TTS provider the id belongs to (default: keep the document's)
+    """
+    from an.audio.voice_design import cast_project_voice
+
+    doc = cast_project_voice(
+        project, voice, voice_id or None, by=by or None, provider=provider or None
+    )
+    return f"voices/{voice}: voice_id {doc['voice_id']} (cast by {doc['chosen_by']})"
+
+
+_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll, design, choose, cast]

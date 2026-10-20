@@ -56,6 +56,7 @@ from typing import Any, Callable
 
 import typer
 
+from an.audio.pipeline import AudioPipelineError
 from an.ir.migrate import DocumentMigrationError
 from an.ir.sync import SceneMarkdownError, SceneValidationError
 from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
@@ -115,6 +116,9 @@ _REFUSALS: tuple[type[BaseException], ...] = (
     DocumentMigrationError,
     SceneMarkdownError,
     SceneValidationError,
+    # A render refused before any request — a voice spoken by the wrong
+    # provider, a voice nobody chose (an#486): the message names the fix.
+    AudioPipelineError,
 )
 
 
