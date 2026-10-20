@@ -148,6 +148,7 @@ def _reroll(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
 _rescore.__name__ = "rescore"  # `an voices rescore`
 _reroll.__name__ = "reroll"  # `an voices reroll`
 
+
 def design(
     project: str, voices: str = "", model: str = "", only_chosen: bool = False
 ) -> str:
@@ -167,7 +168,8 @@ def design(
         project, refs, model_id=model or DFLT_DESIGN_MODEL, persist=not only_chosen
     )
     return "\n".join(
-        f"{ref} {o['option']}: {o['sample_path']}" + (f"  (voice_id {o['voice_id']})" if o["voice_id"] else "")
+        f"{ref} {o['option']}: {o['sample_path']}"
+        + (f"  (voice_id {o['voice_id']})" if o["voice_id"] else "")
         for ref, entry in manifest.items()
         for o in entry["options"]
     )

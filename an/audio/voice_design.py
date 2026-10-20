@@ -118,7 +118,11 @@ class ElevenLabsVoiceDesigner:
     ) -> None:
         import os
 
-        self.api_key = api_key or os.environ.get("ELEVEN_API_KEY") or os.environ.get("ELEVENLABS_API_KEY")
+        self.api_key = (
+            api_key
+            or os.environ.get("ELEVEN_API_KEY")
+            or os.environ.get("ELEVENLABS_API_KEY")
+        )
         self.client_factory = client_factory
         self.timeout_s = timeout_s
 
@@ -128,16 +132,26 @@ class ElevenLabsVoiceDesigner:
 
     def _client(self):
         if not self.api_key:
-            raise VoiceDesignError("voice design needs an ElevenLabs key: set ELEVEN_API_KEY")
+            raise VoiceDesignError(
+                "voice design needs an ElevenLabs key: set ELEVEN_API_KEY"
+            )
         if self.client_factory is not None:
             return self.client_factory(self.api_key)
         try:
             from elevenlabs.client import ElevenLabs  # type: ignore
         except ImportError as e:  # pragma: no cover - depends on the environment
-            raise VoiceDesignError("voice design needs the elevenlabs package: pip install elevenlabs") from e
+            raise VoiceDesignError(
+                "voice design needs the elevenlabs package: pip install elevenlabs"
+            ) from e
         return ElevenLabs(api_key=self.api_key)
 
-    def design_voice_previews(self, description: str, *, text: str | None = None, model_id: str = DFLT_DESIGN_MODEL):
+    def design_voice_previews(
+        self,
+        description: str,
+        *,
+        text: str | None = None,
+        model_id: str = DFLT_DESIGN_MODEL,
+    ):
         """Previews (``generated_voice_id``, ``audio`` mp3 bytes, ``duration_s``) of ``description``."""
         import base64
         from types import SimpleNamespace
@@ -202,7 +216,9 @@ def _clip(text: str, limit: int) -> str:
     return head.rsplit(" ", 1)[0]
 
 
-def sample_text_from_lines(lines: Iterable[str], *, limit: int = SAMPLE_TEXT_LENGTH[1]) -> str | None:
+def sample_text_from_lines(
+    lines: Iterable[str], *, limit: int = SAMPLE_TEXT_LENGTH[1]
+) -> str | None:
     """A sample text from a voice's own dialogue lines, or ``None`` when they are
     too short for a provider preview (then the provider writes one).
 
@@ -211,12 +227,16 @@ def sample_text_from_lines(lines: Iterable[str], *, limit: int = SAMPLE_TEXT_LEN
     >>> len(sample_text_from_lines(["That's a big mountain over there, I'd say."] * 5)) >= 100
     True
     """
-    text = " ".join(re.sub(r"\s+", " ", ln).strip() for ln in lines if ln and ln.strip())
+    text = " ".join(
+        re.sub(r"\s+", " ", ln).strip() for ln in lines if ln and ln.strip()
+    )
     text = _clip(text, limit)
     return text if len(text) >= SAMPLE_TEXT_LENGTH[0] else None
 
 
-def designable_voices(voices: Mapping[str, Mapping], refs: Iterable[str] | None = None) -> dict[str, Mapping]:
+def designable_voices(
+    voices: Mapping[str, Mapping], refs: Iterable[str] | None = None
+) -> dict[str, Mapping]:
     """The voice documents (of ``refs``, else all) that carry ``notes``.
 
     Raise :class:`VoiceDesignError` for a named ref that is missing or has no
@@ -311,7 +331,9 @@ def design_voice_options(
             samples[key] = preview.audio
             voice_id = (
                 _voice_id_of(
-                    designer.design_voice(notes, preview=preview, name=f"{name_prefix} {ref} {label}")
+                    designer.design_voice(
+                        notes, preview=preview, name=f"{name_prefix} {ref} {label}"
+                    )
                 )
                 if persist
                 else None
@@ -344,16 +366,23 @@ def choose_voice_option(
     An option that was not persisted is saved as a voice now (its preview must
     not have expired).
     """
-    found = next((o for o in entry.get("options", ()) if o.get("option") == str(option).upper()), None)
+    found = next(
+        (o for o in entry.get("options", ()) if o.get("option") == str(option).upper()),
+        None,
+    )
     if found is None:
         labels = ", ".join(o.get("option", "?") for o in entry.get("options", ()))
-        raise VoiceDesignError(f"no option {option!r}{f' for {ref!r}' if ref else ''} (options: {labels})")
+        raise VoiceDesignError(
+            f"no option {option!r}{f' for {ref!r}' if ref else ''} (options: {labels})"
+        )
     if found.get("voice_id"):
         return found["voice_id"]
     designer = designer if designer is not None else default_designer()
     name = f"{entry.get('name_prefix', 'an')} {ref} {found['option']}".strip()
     return _voice_id_of(
-        designer.design_voice(entry["notes"], preview=found["generated_voice_id"], name=name)
+        designer.design_voice(
+            entry["notes"], preview=found["generated_voice_id"], name=name
+        )
     )
 
 
@@ -385,7 +414,9 @@ def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
     by_voice: dict[str, list[str]] = {}
     for shot in proj.scene.timeline:
         for line in getattr(shot, "dialogue", None) or ():
-            by_voice.setdefault(line_voice_id(line, shot, proj.mall), []).append(line.text)
+            by_voice.setdefault(line_voice_id(line, shot, proj.mall), []).append(
+                line.text
+            )
     return lambda ref: by_voice.get(ref, [])
 
 
