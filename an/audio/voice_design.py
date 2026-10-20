@@ -74,6 +74,7 @@ __all__ = [
     "design_voice_options",
     "designable_voices",
     "sample_text_from_lines",
+    "sample_text_of",
 ]
 
 #: The key, in a voice document, holding the voice in words.
@@ -225,7 +226,8 @@ def _notes_problem(doc: Any) -> str | None:
     return None
 
 
-def _sample_text(doc: Mapping, fallback: str | None) -> str | None:
+def sample_text_of(doc: Mapping, fallback: str | None = None) -> str | None:
+    """The document's ``sample_text`` (clipped), else ``fallback``."""
     text = doc.get(SAMPLE_TEXT_KEY)
     if isinstance(text, str) and text.strip():
         text = _clip(text.strip(), SAMPLE_TEXT_LENGTH[1])
@@ -277,7 +279,7 @@ def design_voice_options(
     for ref, doc in todo.items():
         notes = doc[NOTES_KEY].strip()
         fallback = sample_text_from_lines(lines_of(ref)) if lines_of else None
-        text = _sample_text(doc, fallback)
+        text = sample_text_of(doc, fallback)
         previews = designer.design_voice_previews(notes, text=text, model_id=model_id)
         options = []
         for i, preview in enumerate(previews):
