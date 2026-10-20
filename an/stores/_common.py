@@ -15,6 +15,7 @@ Both patterns wrap dol's ``Files`` family.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Iterator
@@ -40,6 +41,85 @@ def is_os_junk(relpath: str) -> bool:
     return any(
         part.startswith(".") or part in OS_JUNK_NAMES for part in relpath.split("/")
     )
+
+
+#: What an asset document's path (a plane's ``art.src``, a part's ``path``)
+#: may NOT be (an#483): a URL or a drive (any ``:``), an absolute path, a
+#: backslash, a control character, an empty, ``.`` or ``..`` segment — the
+#: same cleanliness the asset library asks of a published file
+#: (:func:`an.library.api.check_relpath`), so the two never disagree about a path.
+
+
+def asset_ref_problem(rel: str) -> str | None:
+    r"""Why ``rel``, a path an asset document names, is NOT a clean relative
+    path inside the asset's folder, or ``None`` when it is one (an#483).
+
+    An asset reference resolves inside its own folder, never anywhere else:
+    an absolute path, a ``..`` that leaves the folder or a URL is refused by
+    name, before any read — a project may be someone else's input (a
+    production pack checked on a server), and a reference that reaches outside
+    it is a file-existence and XML-parse oracle on the host. The spelling is
+    held to the library's rule too (no ``.`` or empty segment, no backslash),
+    so a reference that validates here publishes there unchanged.
+
+    >>> asset_ref_problem("parts/head.svg") is None
+    True
+    >>> asset_ref_problem("/etc/hostname")
+    'is an absolute path'
+    >>> asset_ref_problem("../../other/plate.png")
+    'leaves the asset folder (`..`)'
+    >>> asset_ref_problem("file:///etc/hostname"), asset_ref_problem("C:/art/x.svg")
+    ('is a URL or a drive path (`:`)', 'is a URL or a drive path (`:`)')
+    >>> asset_ref_problem("./parts/head.svg"), asset_ref_problem("parts\\head.svg"), asset_ref_problem("")
+    ('has an empty or `.` segment', 'uses a backslash (write the path with `/`)', 'is empty')
+    """
+    text = str(rel or "")
+    if not text.strip():
+        return "is empty"
+    if any(ord(c) < 32 or c == "\x7f" for c in text):
+        return "contains a control character"
+    if "\\" in text:
+        return "uses a backslash (write the path with `/`)"
+    if ":" in text:
+        return "is a URL or a drive path (`:`)"
+    if text.startswith("/"):
+        return "is an absolute path"
+    segments = text.split("/")
+    if ".." in segments:
+        return "leaves the asset folder (`..`)"
+    if any(seg in ("", ".") for seg in segments):
+        return "has an empty or `.` segment"
+    return None
+
+
+ASSET_REF_RULE: str = (
+    "an asset reference must be a relative path inside the asset's own folder "
+    "(nothing outside it is read)"
+)
+
+
+def inside_folder(folder: str | Path, rel: str) -> Path | None:
+    """``folder / rel`` when ``rel`` is a relative path that stays inside
+    ``folder`` once symlinks are resolved, else ``None`` (an#483). The path is
+    returned as joined, not resolved, so a caller's own stat and digest see
+    the same spelling they always did.
+
+    >>> import tempfile, os
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     inside_folder(d, "parts/head.svg") == Path(d) / "parts/head.svg"
+    ...     inside_folder(d, "../head.svg") is None, inside_folder(d, "/etc/hostname") is None
+    True
+    (True, True)
+    """
+    if asset_ref_problem(rel) is not None:
+        return None
+    base = Path(folder)
+    target = base / str(rel)
+    try:
+        real, root = target.resolve(), base.resolve()
+    except (OSError, RuntimeError):  # a symlink loop, an unreadable parent
+        return None
+    return target if real == root or real.is_relative_to(root) else None
 
 
 class JsonDirStore(MutableMapping):
@@ -199,6 +279,7 @@ def art_exists_for(characters_store: Mapping, ref: str) -> Callable[[str], bool]
     base = Path(root) / ref
 
     def exists(rel_path: str) -> bool:
-        return (base / rel_path).is_file()
+        path = inside_folder(base, rel_path)  # outside the folder: not art (an#483)
+        return path is not None and path.is_file()
 
     return exists

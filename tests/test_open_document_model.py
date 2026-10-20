@@ -715,6 +715,7 @@ def test_the_report_order_is_pinned():
         "action_targets",
         "field_kinds",
         "entity_refs",
+        "asset_refs",
         "voices",
         "dialogue_lines",
         "dialogue_fits",

@@ -104,6 +104,17 @@ class PartFidelity:
         return self.aspect_distortion <= tolerance
 
 
+def _texture_file(root: Path, src: str) -> Path | None:
+    """``root/src`` when ``src`` (``<store>/<ref>/<rel>``) stays inside its
+    asset's folder (:func:`an.stage.rig._asset_file`), else ``None``."""
+    from an.stage.rig import _asset_file
+
+    store, sep, rest = src.partition("/")
+    if not sep or not store:
+        return None
+    return _asset_file(root / store, rest)
+
+
 def _walk(node: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
     """Yield ``(path, node)`` for every node in a compiled scene tree (the
     runtime's rule, :func:`an.stage.tree.walk`)."""
@@ -138,8 +149,11 @@ def part_fidelity(
         src = getattr(asset, "src", None) if asset is not None else None
         if not src:
             continue
+        file = _texture_file(root, strip_version(src))
+        if file is None:
+            continue  # outside its asset's folder: never read (an#483)
         try:
-            raster = raster_size(root / strip_version(src))
+            raster = raster_size(file)
         except (OSError, ValueError):
             continue
         out.append(
