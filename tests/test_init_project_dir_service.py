@@ -62,4 +62,6 @@ def test_a_bad_id_is_refused_before_any_service_runs(placed):
 def test_no_service_means_the_default(tmp_path, monkeypatch):
     monkeypatch.setenv("DEMO_LIB_HOME", str(tmp_path / "roots" / LIBRARY))
     out = init_cli("p3", id=True, package=LIBRARY)
-    assert out.endswith(str((tmp_path / "roots" / LIBRARY / "projects" / "p3").resolve()))
+    assert out.endswith(
+        str((tmp_path / "roots" / LIBRARY / "projects" / "p3").resolve())
+    )
