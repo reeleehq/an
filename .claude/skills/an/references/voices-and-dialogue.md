@@ -61,6 +61,19 @@ callum {sighs, annoyed}: Great. Crowds. My favourite.
 
 then `an render <dir> --lipsync whisper` (the voices name ElevenLabs; `--tts elevenlabs` would also speak voices that name no provider). Voice ids are account-visible voices at the time of writing — pick your own with `an voices list`. Each line is one billed request (`n` with `takes`), cached by content, so re-rendering an unchanged line costs nothing.
 
+#### Casting a voice from its notes (voice design)
+
+When the writer describes a voice in words instead of naming one, put the words in the voice document as `notes` (age, accent, pitch, pace, attitude; 20–1000 characters) and, optionally, `sample_text` (else the voice's own lines are the sample):
+
+```json
+{"provider": "elevenlabs", "model_id": "eleven_v3",
+ "notes": "A man in his early fifties from rural County Limerick, warm, unhurried, a soft Munster lilt."}
+```
+
+Then `an voices design <dir>` (billed: ElevenLabs Voice Design) writes options with samples to `artifacts/voice_samples/<ref>_<A|B|C>.mp3` and the manifest to `artifacts/voice_options/<ref>.json`; play them to the writer; `an voices choose <dir> <ref> B --by "<the writer's name>"` makes the pick the document's `voice_id` and records `chosen_by` / `chosen_at`.
+
+**A voice with `notes` is cast only by a recorded choice** (an#486). Until then a plain `an render` speaks it and reports it (*voices written in words that nobody chose*), and `an render --strict-assets` refuses it before any request — the render stops and asks rather than guess a voice someone other than the writer picked. Pass `--by` with the writer's name: the default is your login name, which only records that someone ran the command. A voice the writer picked by hand (from `an voices list`, or already in the document) is recorded the same way, with no design round and nothing billed: `an voices cast <dir> <ref> [<voice_id>] --by "<writer>"`. For a timing draft before the writer has chosen, set `"provisional": "round-2 timing draft"` (any truthy value; a string says why) beside a `voice_id` on the voice document: the render speaks it and lists it as provisional in its findings and `an validate`; `an voices choose`/`cast` removes the mark. A document without `notes` names its voice by hand and is not judged. Under `--strict-assets` the provider check comes first: `--tts offline` on an ElevenLabs voice is refused as a stand-in before the choice is looked at, so a strict timing draft needs `provisional`, not `--tts offline`.
+
 ### Dialogue timing
 
 - A shot's lines play **back to back from the shot start** unless a line says otherwise. **A beat is a pause, not a shot**: `maya (pause 1.5): Bye.` holds 1.5 s of silence after the previous line's SPEECH ends (the provider's own trailing silence is not counted, an#397), and every later line moves with it; `maya (at 3.0): Bye.` starts the line at 3.0 s into the shot, and the next line follows it. One line takes one or the other. The audio, the mouth, captions and music ducking all follow, and a reaction during the pause is an ordinary action with a `start` (an `expression` with `axes: {gaze_x: …}` for a look, a `play` of `nod`). Splitting a line into its own shot just to get a pause adds cuts a style did not ask for.

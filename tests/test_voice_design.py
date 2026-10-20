@@ -73,10 +73,12 @@ def test_project_round_trip(tmp_path):
     assert (proj / "artifacts" / "voice_samples" / "jerry_A.mp3").read_bytes() == b"ID3\x00"
     assert json.loads((proj / "artifacts" / "voice_options" / "jerry.json").read_text(encoding="utf-8"))["options"][1]["sample_path"] == "artifacts/voice_samples/jerry_B.mp3"
     assert manifest["jerry"]["name_prefix"] == "p"
-    doc = choose_project_voice(proj, "jerry", "B", designer=d)
-    assert doc == {"provider": "elevenlabs", "model_id": "eleven_v3", "notes": NOTES, "voice_id": "voice-gen1"}
+    doc = choose_project_voice(proj, "jerry", "B", designer=d, by="noel", at="2026-10-20T22:00:00+00:00")
+    assert doc == {"provider": "elevenlabs", "model_id": "eleven_v3", "notes": NOTES, "voice_id": "voice-gen1",
+                   "chosen_by": "noel", "chosen_at": "2026-10-20T22:00:00+00:00"}
     assert json.loads((proj / "assets" / "voices" / "jerry.json").read_text(encoding="utf-8"))["voice_id"] == "voice-gen1"
-    assert json.loads((proj / "artifacts" / "voice_options" / "jerry.json").read_text(encoding="utf-8"))["chosen"] == {"option": "B", "voice_id": "voice-gen1"}
+    assert json.loads((proj / "artifacts" / "voice_options" / "jerry.json").read_text(encoding="utf-8"))["chosen"] == {
+        "option": "B", "voice_id": "voice-gen1", "chosen_by": "noel", "chosen_at": "2026-10-20T22:00:00+00:00"}
 
 
 def test_elevenlabs_designer_calls_the_sdk_shape():

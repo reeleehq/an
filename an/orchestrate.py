@@ -152,9 +152,30 @@ def validate_project(
     )
     report = schema_report.merge(semantic_report)
     _rights_conflict_findings(project, scene, report, strict=strict_assets)
+    _voice_casting_findings(scene, project.mall, report, strict=strict_assets)
     if strict_assets:
         _strict_asset_findings(project, scene, report, fps=fps)
     return report
+
+
+def _voice_casting_findings(scene, mall, report: ValidationReport, *, strict: bool) -> None:
+    """A finding per voice the scene speaks with that is written in words
+    (``notes``) and that nobody chose (an#486) — a warning, an error under
+    ``strict`` since `an render --strict-assets` refuses it before synthesis —
+    and an info line per provisional voice (a timing draft's stand-in)."""
+    from an.audio.voice_design import voice_casting
+    from an.audio.voices import line_voice_id
+
+    spoken = [
+        line_voice_id(line, shot, mall)
+        for shot in scene.timeline
+        for line in getattr(shot, "dialogue", None) or ()
+    ]
+    uncast, provisional = voice_casting(spoken, mall.get("voices"))
+    for message in uncast:
+        report.add("error" if strict else "warning", "voices", message)
+    for message in provisional:
+        report.add("info", "voices", message)
 
 
 def _rights_conflict_findings(

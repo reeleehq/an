@@ -61,6 +61,7 @@ from an.audio.voices import (
     voice_applies,
     voice_document,
 )
+from an.audio.voice_design import voice_casting
 from an.ir.schema import Dialogue, SceneIR, VisemeKeyframe, WordTimingIR
 from an.ir.schema import VisemeTrack as IRVisemeTrack
 from an.util import _stable_hash
@@ -82,6 +83,21 @@ class VoiceStandInWarning(UserWarning):
 class VoiceStandInError(AudioPipelineError):
     """Under ``strict``: a line would be spoken by another provider than its
     voice declares. Raised before any request."""
+
+
+class VoiceNotChosenWarning(UserWarning):
+    """A line's voice is written in words (``notes``) but nobody is recorded as
+    choosing its ``voice_id`` — the writer has not cast it (an#486)."""
+
+
+class VoiceNotChosenError(AudioPipelineError):
+    """Under ``strict``: a line would speak a voice nobody chose. Raised before
+    any request, naming `an voices design` / `an voices choose` (an#486)."""
+
+
+class VoiceProvisionalWarning(UserWarning):
+    """A line speaks a voice its document marks ``provisional`` — a timing
+    draft's stand-in, allowed, and listed so the cut does not ship with it."""
 
 
 #: The ``tts`` that means "each line's voice document names its provider" — the
@@ -386,7 +402,11 @@ def produce_audio_for_scene(
     :func:`an.audio.providers.make_tts`), else offline; a ``tts`` given speaks
     every line. A line spoken by another provider than its voice declares is a
     :class:`VoiceStandInWarning` — the silent offline voice says so — and,
-    with ``strict``, a :class:`VoiceStandInError` before any request. A provider
+    with ``strict``, a :class:`VoiceStandInError` before any request. A voice
+    written in words (``notes``) that nobody is recorded as choosing is a
+    :class:`VoiceNotChosenWarning` and, with ``strict``, a
+    :class:`VoiceNotChosenError` before any request (an#486); a voice marked
+    ``provisional`` is spoken and listed (:class:`VoiceProvisionalWarning`). A provider
     with requests to send is asked ``check_available()`` first (ElevenLabs: is
     there a key?), and what a provider that bills per character will bill is
     announced before the first request — whatever chose the provider; a cached
@@ -475,6 +495,20 @@ def produce_audio_for_scene(
         )
     for message in stand_ins:
         warnings.warn(message, VoiceStandInWarning, stacklevel=2)
+    # A voice written in words that nobody chose is not spoken under strict
+    # (an#486): the render stops and asks instead of guessing a voice.
+    uncast, provisional = voice_casting(
+        (voice_id for voice_id, _ in spoken),
+        mall.get("voices") if mall is not None else None,
+    )
+    if strict and uncast:
+        raise VoiceNotChosenError(
+            "refused under strict: " + " ".join(uncast) + " Nothing was synthesized."
+        )
+    for message in uncast:
+        warnings.warn(message, VoiceNotChosenWarning, stacklevel=2)
+    for message in provisional:
+        warnings.warn(message, VoiceProvisionalWarning, stacklevel=2)
     by_provider: dict[int, list[tuple[str, _LineRequest]]] = {}
     for line, _, req in pending:
         by_provider.setdefault(id(req.tts), []).append((line.text, req))
