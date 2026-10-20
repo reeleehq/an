@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-20
+- **Voice design from a voice's notes** (`an.audio.voice_design`, `an voices design` / `an voices choose`): a voice document may carry `notes` (the voice in words) and `sample_text`; design asks a designer (default ElevenLabs Voice Design through the `elevenlabs` SDK; voxy's model drops in through the `designer=` seam, not the default because voxy brings torch) for options, keeps their samples in `artifacts/voice_samples/` and the manifest in `artifacts/voice_options/`, and the writer's choice becomes the document's `voice_id`. Billed by the provider; never called by a render; `notes`/`sample_text` move no audio key.
+
 ## 2026-10-14
 - **Tests: the last cutan-owned pins leave an's suite** (an#433, rest of #427): surface/compile/loud-discard tests read the compiled scene or a synthetic subtree instead of the placeholder rig; library/capabilities/semantic/cache-key tests read the genre's registered declarations; corpus counts become non-empty checks; DiceBear licence data, the promote-demo line, default colours and the `loop_mode` emitter line move to cutan (reeleehq/cutan#85). Test-only.
 

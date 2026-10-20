@@ -9,6 +9,8 @@ provider factories.
     an voices list --provider mac_say
     an voices rescore <project> "He did not ask"    # re-choose a line's take from its cached takes
     an voices reroll <project> "He did not ask"     # synthesize new takes for it (billed)
+    an voices design <project>                      # design options from each voice's notes (billed)
+    an voices choose <project> jerry_voice B        # the writer's pick becomes the voice_id
 
 The ``voice_id`` column is what a ``voices``-store document's ``voice_id`` takes.
 ``rescore`` and ``reroll`` are the only ways a recorded best-of-N take is
@@ -146,4 +148,42 @@ def _reroll(project: str, line: str, tts: str = DEFAULT_BROWSE_PROVIDER) -> str:
 _rescore.__name__ = "rescore"  # `an voices rescore`
 _reroll.__name__ = "reroll"  # `an voices reroll`
 
-_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll]
+def design(
+    project: str, voices: str = "", model: str = "", only_chosen: bool = False
+) -> str:
+    """Design voice options from each voice document's notes (ElevenLabs Voice Design,
+    billed): samples to artifacts/voice_samples/, the options to artifacts/voice_options/.
+    Play the samples to the writer, then run `an voices choose`.
+
+    project: the project directory
+    voices: comma-separated voice refs (default: every voice document with notes)
+    model: the voice-design model (default: eleven_ttv_v3)
+    only_chosen: save only the chosen option as an account voice, at `choose` (previews expire: choose soon)
+    """
+    from an.audio.voice_design import DFLT_DESIGN_MODEL, design_project_voices
+
+    refs = [r.strip() for r in voices.split(",") if r.strip()] or None
+    manifest = design_project_voices(
+        project, refs, model_id=model or DFLT_DESIGN_MODEL, persist=not only_chosen
+    )
+    return "\n".join(
+        f"{ref} {o['option']}: {o['sample_path']}" + (f"  (voice_id {o['voice_id']})" if o["voice_id"] else "")
+        for ref, entry in manifest.items()
+        for o in entry["options"]
+    )
+
+
+def choose(project: str, voice: str, option: str) -> str:
+    """Make OPTION (A, B, C...) of `an voices design` the voice's voice_id.
+
+    project: the project directory
+    voice: the voice ref (the voice document's name)
+    option: the option label the writer chose
+    """
+    from an.audio.voice_design import choose_project_voice
+
+    doc = choose_project_voice(project, voice, option)
+    return f"voices/{voice}: voice_id {doc['voice_id']} (option {option.upper()})"
+
+
+_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll, design, choose]
