@@ -113,6 +113,7 @@ def test_mall_keys_match_spec():
             "pictures",
             "previews",
             "props",
+            "recordings",
             "render_reports",
             "scenes",
             "shot_cache",

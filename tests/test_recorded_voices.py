@@ -102,7 +102,7 @@ def _take(
 
 def _srt(tmp_path, text=SRT, name="take.srt"):
     path = tmp_path / name
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8")
     return path
 
 
@@ -148,7 +148,7 @@ def test_a_timed_transcript_cuts_the_take_stores_it_and_binds_the_lines(tmp_path
     assert lines[1].pause == pytest.approx(1.0)
     assert report.takes[1].pause == pytest.approx(1.0)
     # scene.md says so too (the store's merge writes the dialogue block).
-    assert "(pause 1" in (root / "scene.md").read_text()
+    assert "(pause 1" in (root / "scene.md").read_text(encoding="utf-8")
 
 
 @pytest.mark.genre("cutout_animation")
@@ -212,7 +212,8 @@ def test_the_words_of_a_word_json_reach_the_line(tmp_path):
                     },
                 ]
             }
-        )
+        ),
+        encoding="utf-8",
     )
     report = import_recordings(
         root, _take(tmp_path), transcript=transcript, license=LICENSE
@@ -315,7 +316,7 @@ def test_a_wrong_shot_or_a_bad_licence_is_refused_before_anything_is_written(tmp
 def test_a_plain_transcript_is_timed_by_the_transcriber(tmp_path):
     root = _project(tmp_path)
     plain = tmp_path / "take.txt"
-    plain.write_text(f"carl: {HELLO}\ncarl: {FINE}\n")
+    plain.write_text(f"carl: {HELLO}\ncarl: {FINE}\n", encoding="utf-8")
     heard = [
         TranscriptSegment(
             text="hello there ned fine thanks",
@@ -391,7 +392,9 @@ def test_one_file_per_line_is_paired_in_order_and_named_by_its_stem(tmp_path):
     first = _take(tmp_path, name="carl-01.wav", seconds=1.0, bursts=((0.1, 0.9),))
     second = _take(tmp_path, name="carl-02.wav", seconds=0.8, bursts=((0.1, 0.7),))
     plain = tmp_path / "lines.txt"
-    plain.write_text(f"{HELLO}\n{FINE}\n")  # no speaker prefixes: the stems say who
+    plain.write_text(
+        f"{HELLO}\n{FINE}\n", encoding="utf-8"
+    )  # no prefixes: the stems say who
     report = import_recordings(root, [first, second], transcript=plain, license=LICENSE)
     assert [(t.line, t.speaker, t.source_file, t.span) for t in report.takes] == [
         ("s1/0", "carl", "carl-01.wav", (0.0, 1.0)),
@@ -406,8 +409,12 @@ def test_a_directory_of_takes_pairs_transcripts_by_stem(tmp_path):
     takes.mkdir()
     _take(takes, name="a.wav", seconds=1.0, bursts=((0.1, 0.9),))
     _take(takes, name="b.wav", seconds=0.8, bursts=((0.1, 0.7),))
-    (takes / "a.srt").write_text(f"1\n00:00:00,100 --> 00:00:00,900\ncarl: {HELLO}\n")
-    (takes / "b.srt").write_text(f"1\n00:00:00,100 --> 00:00:00,700\ncarl: {FINE}\n")
+    (takes / "a.srt").write_text(
+        f"1\n00:00:00,100 --> 00:00:00,900\ncarl: {HELLO}\n", encoding="utf-8"
+    )
+    (takes / "b.srt").write_text(
+        f"1\n00:00:00,100 --> 00:00:00,700\ncarl: {FINE}\n", encoding="utf-8"
+    )
     report = import_recordings(root, takes, transcript=takes, license=LICENSE)
     assert [(t.line, t.source_file) for t in report.takes] == [
         ("s1/0", "a.wav"),
