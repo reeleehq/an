@@ -9,6 +9,7 @@ an.genres
    .. autosummary::
    
       ENTRY_POINT_GROUP
+      PROJECT_DIR_SERVICE_PREFIX
       API_LEVEL
       IN_DISTRIBUTION_GENRES
    

@@ -53,10 +53,11 @@ genre defined in the same process).
 
 ### Module Attributes
 
-| [`ENTRY_POINT_GROUP`](#an.genres.ENTRY_POINT_GROUP)      | The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.   |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`API_LEVEL`](#an.genres.API_LEVEL)              | every hook, registry field and moved path a genre package may rely on.                                             |
-| [`IN_DISTRIBUTION_GENRES`](#an.genres.IN_DISTRIBUTION_GENRES) | Genres the `an` distribution itself ships, as entry-point values.                                                  |
+| [`ENTRY_POINT_GROUP`](#an.genres.ENTRY_POINT_GROUP)          | The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.                        |
+|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`PROJECT_DIR_SERVICE_PREFIX`](#an.genres.PROJECT_DIR_SERVICE_PREFIX) | Prefix of the service a library package registers to place its NEW projects (`projects.dir.<library>`, API level 7; reeleehq/cutan#91). |
+| [`API_LEVEL`](#an.genres.API_LEVEL)                  | every hook, registry field and moved path a genre package may rely on.                                                                  |
+| [`IN_DISTRIBUTION_GENRES`](#an.genres.IN_DISTRIBUTION_GENRES)     | Genres the `an` distribution itself ships, as entry-point values.                                                                       |
 
 ### Functions
 
@@ -105,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 6*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 7*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -136,7 +137,9 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 : `slot_node_paths`, `rig_problems`, `rig_affordances`, `RigError`, `rig.hierarchy`.
 
 6 = the rest pose’s protection said aloud (an#407): `an.stage.rig.rest_pose_protection`.
+7 = where a genre’s new projects go (reeleehq/cutan#91): the `projects.dir.<library>`
 
+> service ([`PROJECT_DIR_SERVICE_PREFIX`](#an.genres.PROJECT_DIR_SERVICE_PREFIX)) that `an init --id` consults.
 * **Type:**
   The level of the genre-facing API this `an` provides
 
@@ -391,6 +394,18 @@ that ships in the same distribution as the core (review-244 S1). Still
 explicit discovery (only [`load()`](#an.genres.load) reads it, never an import). Every genre is
 external now: the cut-out genre moved to `cutan` (an#225) and comes through
 the `an.genres` entry point alone.
+
+### an.genres.PROJECT_DIR_SERVICE_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'projects.dir.'*
+
+Prefix of the service a library package registers to place its NEW projects
+(`projects.dir.<library>`, API level 7; reeleehq/cutan#91). `an init <id> --id`
+resolves the genre’s library package ([`genre_library()`](#an.genres.genre_library)), computes the
+default folder ([`an.library.root.project_dir()`](an.library.root.html.md#an.library.root.project_dir)) and, when no `--root`
+was given, calls the service as `place(project_id, *, default: Path) -> Path`:
+the folder to create the project in, `default` when the library has no
+other say. A store-backed library (the cut-out genre’s projects on S3)
+answers with its materialise cache and may prepare that folder; the core
+never knows the backend. No service registered: `default`.
 
 ### *exception* an.genres.RegistryError
 

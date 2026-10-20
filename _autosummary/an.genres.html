@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=876c1b95"></script>
+    <script src="../_static/documentation_options.js?v=23149f8c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.240" />
+  <meta name="docsearch:version" content="0.1.241" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -658,10 +658,13 @@ genre defined in the same process).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.ENTRY_POINT_GROUP" title="an.genres.ENTRY_POINT_GROUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ENTRY_POINT_GROUP</span></code></a></p></td>
 <td><p>The entry-point group a genre package declares its <a class="reference internal" href="#an.genres.Genre" title="an.genres.Genre"><code class="xref py py-class docutils literal notranslate"><span class="pre">Genre</span></code></a> under.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.API_LEVEL" title="an.genres.API_LEVEL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">API_LEVEL</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.PROJECT_DIR_SERVICE_PREFIX" title="an.genres.PROJECT_DIR_SERVICE_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROJECT_DIR_SERVICE_PREFIX</span></code></a></p></td>
+<td><p>Prefix of the service a library package registers to place its NEW projects (<code class="docutils literal notranslate"><span class="pre">projects.dir.&lt;library&gt;</span></code>, API level 7; reeleehq/cutan#91).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.API_LEVEL" title="an.genres.API_LEVEL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">API_LEVEL</span></code></a></p></td>
 <td><p>every hook, registry field and moved path a genre package may rely on.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.genres.IN_DISTRIBUTION_GENRES" title="an.genres.IN_DISTRIBUTION_GENRES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IN_DISTRIBUTION_GENRES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.genres.IN_DISTRIBUTION_GENRES" title="an.genres.IN_DISTRIBUTION_GENRES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IN_DISTRIBUTION_GENRES</span></code></a></p></td>
 <td><p>Genres the <code class="docutils literal notranslate"><span class="pre">an</span></code> distribution itself ships, as entry-point values.</p></td>
 </tr>
 </tbody>
@@ -792,7 +795,7 @@ genre defined in the same process).</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.genres.API_LEVEL">
-<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">API_LEVEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></span><a class="headerlink" href="#an.genres.API_LEVEL" title="Link to this definition">#</a></dt>
 <dd><p>every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
 genre needs (the P8 seam PRs and each move to <code class="docutils literal notranslate"><span class="pre">cutan</span></code>, an#225), never
@@ -817,7 +820,11 @@ it reads <code class="docutils literal notranslate"><span class="pre">getattr(an
 <dt>5 = nested chains (an#340): <code class="docutils literal notranslate"><span class="pre">build_rig_subtree(skip_slots=)</span></code>, <code class="docutils literal notranslate"><span class="pre">slot_parent_chain</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">slot_node_paths</span></code>, <code class="docutils literal notranslate"><span class="pre">rig_problems</span></code>, <code class="docutils literal notranslate"><span class="pre">rig_affordances</span></code>, <code class="docutils literal notranslate"><span class="pre">RigError</span></code>, <code class="docutils literal notranslate"><span class="pre">rig.hierarchy</span></code>.</p>
 </dd>
 </dl>
-<p>6 = the rest pose’s protection said aloud (an#407): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.rest_pose_protection</span></code>.</p>
+<p>6 = the rest pose’s protection said aloud (an#407): <code class="docutils literal notranslate"><span class="pre">an.stage.rig.rest_pose_protection</span></code>.
+7 = where a genre’s new projects go (reeleehq/cutan#91): the <code class="docutils literal notranslate"><span class="pre">projects.dir.&lt;library&gt;</span></code></p>
+<blockquote>
+<div><p>service (<a class="reference internal" href="#an.genres.PROJECT_DIR_SERVICE_PREFIX" title="an.genres.PROJECT_DIR_SERVICE_PREFIX"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_DIR_SERVICE_PREFIX</span></code></a>) that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span> <span class="pre">--id</span></code> consults.</p>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The level of the genre-facing API this <code class="docutils literal notranslate"><span class="pre">an</span></code> provides</p>
@@ -1135,6 +1142,20 @@ that ships in the same distribution as the core (review-244 S1). Still
 explicit discovery (only <a class="reference internal" href="#an.genres.load" title="an.genres.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a> reads it, never an import). Every genre is
 external now: the cut-out genre moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code> (an#225) and comes through
 the <code class="docutils literal notranslate"><span class="pre">an.genres</span></code> entry point alone.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.genres.PROJECT_DIR_SERVICE_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">an.genres.</span></span><span class="sig-name descname"><span class="pre">PROJECT_DIR_SERVICE_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'projects.dir.'</span></span><a class="headerlink" href="#an.genres.PROJECT_DIR_SERVICE_PREFIX" title="Link to this definition">#</a></dt>
+<dd><p>Prefix of the service a library package registers to place its NEW projects
+(<code class="docutils literal notranslate"><span class="pre">projects.dir.&lt;library&gt;</span></code>, API level 7; reeleehq/cutan#91). <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span> <span class="pre">&lt;id&gt;</span> <span class="pre">--id</span></code>
+resolves the genre’s library package (<a class="reference internal" href="#an.genres.genre_library" title="an.genres.genre_library"><code class="xref py py-func docutils literal notranslate"><span class="pre">genre_library()</span></code></a>), computes the
+default folder (<a class="reference internal" href="an.library.root.html#an.library.root.project_dir" title="an.library.root.project_dir"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.library.root.project_dir()</span></code></a>) and, when no <code class="docutils literal notranslate"><span class="pre">--root</span></code>
+was given, calls the service as <code class="docutils literal notranslate"><span class="pre">place(project_id,</span> <span class="pre">*,</span> <span class="pre">default:</span> <span class="pre">Path)</span> <span class="pre">-&gt;</span> <span class="pre">Path</span></code>:
+the folder to create the project in, <code class="docutils literal notranslate"><span class="pre">default</span></code> when the library has no
+other say. A store-backed library (the cut-out genre’s projects on S3)
+answers with its materialise cache and may prepare that folder; the core
+never knows the backend. No service registered: <code class="docutils literal notranslate"><span class="pre">default</span></code>.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1605,6 +1626,7 @@ their callers in <code class="docutils literal notranslate"><span class="pre">mi
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.GenreAPILevelError"><code class="docutils literal notranslate"><span class="pre">GenreAPILevelError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.GenreError"><code class="docutils literal notranslate"><span class="pre">GenreError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.IN_DISTRIBUTION_GENRES"><code class="docutils literal notranslate"><span class="pre">IN_DISTRIBUTION_GENRES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.PROJECT_DIR_SERVICE_PREFIX"><code class="docutils literal notranslate"><span class="pre">PROJECT_DIR_SERVICE_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RegistryError"><code class="docutils literal notranslate"><span class="pre">RegistryError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RuntimeScript"><code class="docutils literal notranslate"><span class="pre">RuntimeScript</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.genres.RuntimeScript.code"><code class="docutils literal notranslate"><span class="pre">RuntimeScript.code()</span></code></a></li>

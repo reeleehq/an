@@ -1,38 +1,38 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-20T11:19:37Z",
+  "built_at": "2026-10-20T23:51:05Z",
   "package": {
     "name": "an",
-    "version": "0.1.240",
+    "version": "0.1.241",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "bc8639a6d89e5a20078fb7d8a143a4d5f83a347f",
-    "short_commit": "bc8639a",
+    "commit": "aeed598afe232cdfa7a20fbd05defa7555e67d3b",
+    "short_commit": "aeed598",
     "branch": "main",
     "tags": [
-      "0.1.240"
+      "0.1.241"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/bc8639a6d89e5a20078fb7d8a143a4d5f83a347f",
+    "commit_url": "https://github.com/reeleehq/an/commit/aeed598afe232cdfa7a20fbd05defa7555e67d3b",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "c4b9fc3824cd2520e4cf1a79077d9ab25edccb0c",
+    "sha": "d94dbeaff1163c9e64caa51c62bb80933e6970ae",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "39413368931",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/39413368931",
+    "run_id": "39516859941",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/39516859941",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.19",
+    "epythet": "0.2.22",
     "sphinx": "9.1.1",
     "docutils": "0.22.4",
     "python": "3.12.15"
@@ -58,15 +58,15 @@
   },
   "site": {
     "modules_documented": 203,
-    "objects_documented": 2665
+    "objects_documented": 2666
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.240",
+    "latest": "0.1.241",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout bc8639a6d89e5a20078fb7d8a143a4d5f83a347f\npip install \"epythet==0.2.19\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout aeed598afe232cdfa7a20fbd05defa7555e67d3b\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
