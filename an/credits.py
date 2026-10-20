@@ -334,8 +334,9 @@ def collect_credits(
     ``only`` restricts the walk to those ``store/key`` names (what a render
     used, :func:`credits_for_scene`) — nothing else is read.
 
-    Four stores carry provenance: characters, **props** (an#108),
-    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
+    Five stores carry provenance: characters, **props** (an#108),
+    **environments** (an#110), **sounds** and **recordings** (a performer's
+    takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store
     real art, which is the rule rather than a coincidence — a walk that skips a
     store holding third-party plates does not return less information, it
     returns an affirmative false statement to exactly the people who need the
@@ -347,7 +348,7 @@ def collect_credits(
     record from `metadata.dicebear_*`, which no other store has ever written.
     """
     report = CreditsReport()
-    for store_name in ("characters", "props", "environments", "sounds"):
+    for store_name in ("characters", "props", "environments", "sounds", "recordings"):
         store = mall.get(store_name)
         if store is None:
             continue
@@ -945,14 +946,18 @@ def _part_credits(
                             "label it carried speaks only for the bytes it was "
                             "declared on"
                             if path in changed
-                            else "a factory stamp the factory's own record of what "
-                            "it drew does not confirm"
-                            if path in unconfirmed
-                            else "the stamp on this part no longer matches its bytes "
-                            "(re-drawn or re-carved)"
-                            if path in stale
-                            else "no stamp pins these bytes, and the descriptor's "
-                            "source was written by a generator, not a person"
+                            else (
+                                "a factory stamp the factory's own record of what "
+                                "it drew does not confirm"
+                                if path in unconfirmed
+                                else (
+                                    "the stamp on this part no longer matches its bytes "
+                                    "(re-drawn or re-carved)"
+                                    if path in stale
+                                    else "no stamp pins these bytes, and the descriptor's "
+                                    "source was written by a generator, not a person"
+                                )
+                            )
                         ),
                     },
                 ),

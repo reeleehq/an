@@ -151,6 +151,13 @@ cutout = [
     "an[stage]",
     "cutan",
 ]
+# Recorded voices (an#490): `an voices import` transcribes a take that comes
+# with no timed transcript through scribed's ASR facade (pick a backend there:
+# `scribed[faster-whisper]` local, `elevenlabs`/`openai` with a key). Not needed
+# for a take that comes with its SRT/VTT/TextGrid/word JSON, or one file per line.
+recorded = [
+    "scribed",
+]
 manim = [
     # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders
     # through manimkit's `render_check` (child-process render, layout probe,

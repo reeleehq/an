@@ -10,10 +10,10 @@ caller builds a path by hand (pillar 7). `an.sounds` is the typed front door.
 
 from __future__ import annotations
 
-from an.stores._common import JsonSidecarStore
+from an.stores._common import AudioSidecarStore
 
 
-class SoundsStore(JsonSidecarStore):
+class SoundsStore(AudioSidecarStore):
     """Per-sound directory store.
 
     >>> import tempfile
@@ -29,12 +29,4 @@ class SoundsStore(JsonSidecarStore):
     #: The sidecar holding the audio bytes. WAV only in v1: `an.sounds` reads
     #: its header for the duration a fade-out needs, deterministically.
     AUDIO_NAME = "audio.wav"
-
-    def read_audio(self, key: str) -> bytes:
-        path = self._entry_dir(key) / self.AUDIO_NAME
-        if not path.exists():
-            raise KeyError(f"sound {key!r} has no audio sidecar")
-        return path.read_bytes()
-
-    def write_audio(self, key: str, data: bytes) -> None:
-        self.sidecar_path(key, self.AUDIO_NAME).write_bytes(data)
+    ENTRY_NOUN = "sound"

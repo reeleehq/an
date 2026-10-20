@@ -23,6 +23,8 @@ than its voice declares is a :class:`VoiceStandInWarning` (an error under
 
 from __future__ import annotations
 
+import functools
+import inspect
 import json
 import shutil
 import sys
@@ -177,7 +179,10 @@ def tts_chooser(
     'offline'
     """
     if make is None:
-        from an.audio.providers import make_tts as make
+        from an.audio.providers import make_tts
+
+        # The project mall reaches a provider that reads a store (`recorded`).
+        make = functools.partial(make_tts, mall=mall)
     if not is_voice_tts(tts):
         provider = make(tts) if isinstance(tts, str) else tts
         return lambda voice_id: provider
@@ -915,9 +920,7 @@ def stamp_from_stores(
         k: (
             v
             if free_in_memory and k in AUDIO_OUTPUT_STORES
-            else _ReadOnlyStore(v)
-            if k in (*AUDIO_OUTPUT_STORES, "takes")
-            else v
+            else _ReadOnlyStore(v) if k in (*AUDIO_OUTPUT_STORES, "takes") else v
         )
         for k, v in dict(mall).items()
     }
@@ -1016,9 +1019,28 @@ def synthesis_options(
             doc,
             emotion=getattr(line, "emotion", None),
             direction=getattr(line, "direction", None),
+            **_line_kwargs(hook, line, voice_id),
         )
         or {}
     )
+
+
+def _line_kwargs(hook: Callable[..., Any], line: Any, voice_id: str) -> dict[str, Any]:
+    """``text=`` and ``voice_id=`` for a ``synthesis_options`` hook that takes
+    them (the ``recorded`` provider keys a line by the take it has for it);
+    nothing for the hooks written before (ElevenLabs), whose signature is kept.
+    """
+    try:
+        params = inspect.signature(hook).parameters
+    except (TypeError, ValueError):
+        return {}
+    var_kw = any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
+    out: dict[str, Any] = {}
+    if var_kw or "text" in params:
+        out["text"] = getattr(line, "text", None)
+    if var_kw or "voice_id" in params:
+        out["voice_id"] = voice_id
+    return out
 
 
 def viseme_key(audio_key_: str, lipsync_name: str, transcript: str) -> str:
@@ -1879,12 +1901,28 @@ def _load_or_synthesize(
         wav_bytes = mall["audio"][cache_key]
         # Re-derive duration from WAV header for fidelity.
         duration = _wav_duration(wav_bytes)
-        return AudioClip(
+        clip = AudioClip(
             bytes_=wav_bytes, duration=duration, voice_id=voice_id, transcript=text
         )
+        return _with_clip_words(tts, clip)
     clip = tts.synthesize(text, voice_id, **(options or {}))
     if mall is not None and "audio" in mall and clip.bytes_ is not None:
         mall["audio"][cache_key] = clip.bytes_
+    return _with_clip_words(tts, clip)
+
+
+def _with_clip_words(tts: TTSProvider, clip: AudioClip) -> AudioClip:
+    """``clip`` with the word timings its provider knows for these bytes
+    (``words_for_clip(clip)``, the ``recorded`` provider: a take imported with a
+    timed transcript), when the clip does not carry them already — so a line
+    read back from the audio store aligns from the same words as a fresh one.
+    """
+    hook = getattr(tts, "words_for_clip", None)
+    if hook is None or getattr(clip, "words", None) is not None:
+        return clip
+    words = hook(clip)
+    if words:
+        clip.words = [(str(w[0]), float(w[1]), float(w[2])) for w in words]
     return clip
 
 
