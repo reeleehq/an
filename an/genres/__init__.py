@@ -89,6 +89,17 @@ from an.genres.registry import (
 #: The entry-point group a genre package declares its :class:`Genre` under.
 ENTRY_POINT_GROUP: str = "an.genres"
 
+#: Prefix of the service a library package registers to place its NEW projects
+#: (``projects.dir.<library>``, API level 7; reeleehq/cutan#91). ``an init <id> --id``
+#: resolves the genre's library package (:func:`genre_library`), computes the
+#: default folder (:func:`an.library.root.project_dir`) and, when no ``--root``
+#: was given, calls the service as ``place(project_id, *, default: Path) -> Path``:
+#: the folder to create the project in, ``default`` when the library has no
+#: other say. A store-backed library (the cut-out genre's projects on S3)
+#: answers with its materialise cache and may prepare that folder; the core
+#: never knows the backend. No service registered: ``default``.
+PROJECT_DIR_SERVICE_PREFIX: str = "projects.dir."
+
 
 class GenreError(RegistryError):
     """A genre declaration is malformed, or its entry point does not resolve."""
@@ -118,7 +129,9 @@ class GenreError(RegistryError):
 #: 5 = nested chains (an#340): ``build_rig_subtree(skip_slots=)``, ``slot_parent_chain``,
 #:     ``slot_node_paths``, ``rig_problems``, ``rig_affordances``, ``RigError``, ``rig.hierarchy``.
 #: 6 = the rest pose's protection said aloud (an#407): ``an.stage.rig.rest_pose_protection``.
-API_LEVEL: int = 6
+#: 7 = where a genre's new projects go (reeleehq/cutan#91): the ``projects.dir.<library>``
+#:     service (:data:`PROJECT_DIR_SERVICE_PREFIX`) that ``an init --id`` consults.
+API_LEVEL: int = 7
 
 
 class GenreAPILevelError(GenreError, ImportError):
@@ -638,6 +651,7 @@ def _all_owners() -> set[str]:
 __all__ = [
     "API_LEVEL",
     "ENTRY_POINT_GROUP",
+    "PROJECT_DIR_SERVICE_PREFIX",
     "GenreAPILevelError",
     "require_api_level",
     "ActionKind",

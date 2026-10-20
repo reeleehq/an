@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-20
+- **A library package may place its new projects** (API level 7; reeleehq/cutan#91): `an init <id> --id` resolves the genre's library package as before, computes the default folder, then consults the `projects.dir.<library>` service (`an.genres.PROJECT_DIR_SERVICE_PREFIX`) with it; a store-backed library answers with its cache folder, the core never learns the backend, and an explicit `--root` is never overridden. Additive: no registered service means the default.
 - **Voice design from a voice's notes** (`an.audio.voice_design`, `an voices design` / `an voices choose`): a voice document may carry `notes` (the voice in words) and `sample_text`; design asks a designer (default ElevenLabs Voice Design through the `elevenlabs` SDK; voxy's model drops in through the `designer=` seam, not the default because voxy brings torch) for options, keeps their samples in `artifacts/voice_samples/` and the manifest in `artifacts/voice_options/`, and the writer's choice becomes the document's `voice_id`. Billed by the provider; never called by a render; `notes`/`sample_text` move no audio key.
 
 ## 2026-10-14

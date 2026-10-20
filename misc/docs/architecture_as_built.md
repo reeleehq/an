@@ -99,7 +99,7 @@ How the core reaches a genre without importing it (`an.genres.API_LEVEL` 2; `tes
 | `EntityKind.swap_declaration`, `.descriptor_kind`, `.placeholder_on_missing`, `.swap_checks`, `.specimen` | the swap vocabulary a descriptor declares, the validator's rig-store table, "a missing ref draws a placeholder", extra swap-reference checks, the shot `an library sheet` draws for one entity of the kind (an#347) |
 | `CompilePass` (`"module:function"`) | the cut-out passes over the stage compiler (`speech`, `swap_pose`, `view_spans`, `visemes`, `face`) and the `rig` builder |
 | `RuntimeScript` | `cutan/runtime/visuals.js`: the procedural mouth and eye, registered through `window.anRegisterVisual` |
-| `Genre.services` (`an.genres.service(name)`) | `cli.<namespace>` (the `an character` and `an impacts` sub-commands), `lipsync.<name>` (`offline`, `rhubarb`, `whisper`), `credits.legacy_source`, `library.publish_warning`, `expression.known_presets` |
+| `Genre.services` (`an.genres.service(name)`) | `cli.<namespace>` (the `an character` and `an impacts` sub-commands), `lipsync.<name>` (`offline`, `rhubarb`, `whisper`), `credits.legacy_source`, `library.publish_warning`, `expression.known_presets`, `projects.dir.<library>` (where `an init --id` creates a project of that library package: `place(project_id, *, default) -> Path`, API level 7) |
 | `an.stage.rig` | the rig model (bones, slots, skins, attachments) the stage draws for props and characters alike; a genre's descriptor is composed from it |
 | `an.stage.cache_key.genre_code_modules()` | the shot cache's code key covers EVERY module of a package that registered a hook, so a `cutan` change changes the key (`tests/test_genre_cache_key.py`) |
 

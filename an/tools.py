@@ -47,7 +47,13 @@ def init(
     root: with --id, that package's root (default: its data folder, or <PKG>_HOME)
     """
     if id:
-        from an.genres import genre_library, installed, load
+        from an.genres import (
+            PROJECT_DIR_SERVICE_PREFIX,
+            genre_library,
+            installed,
+            load,
+            service,
+        )
 
         load()
         if genre and genre not in installed():
@@ -59,6 +65,12 @@ def init(
             target = _project_dir(project_dir, root or None, package=owner)
         except ValueError as e:
             raise SystemExit(f"an init: {e}") from e
+        # The library package may place its own new projects (a store-backed
+        # library answers with its cache folder; reeleehq/cutan#91). An explicit
+        # --root is the user's word and is never overridden.
+        place = None if root else service(PROJECT_DIR_SERVICE_PREFIX + owner)
+        if place is not None:
+            target = Path(place(project_dir, default=target))
     elif genre or package or root:
         raise SystemExit(
             "an init: --genre, --package and --root place a project by --id only"
