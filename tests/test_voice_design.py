@@ -15,7 +15,7 @@ from an.audio.voice_design import (
     design_voice_options,
 )
 
-NOTES = "Irish man, early 50s, rural County Limerick accent, warm and unhurried."
+NOTES = "A man in his early 50s, rural Yorkshire accent, warm and unhurried."
 
 
 class FakeDesigner:
@@ -98,6 +98,6 @@ def test_elevenlabs_designer_calls_the_sdk_shape():
     d = ElevenLabsVoiceDesigner(api_key="k", client_factory=lambda key: SimpleNamespace(text_to_voice=TTV()))
     [p] = d.design_voice_previews(NOTES, text=None)
     assert (p.generated_voice_id, p.audio, p.duration_s) == ("g", b"ID3", 1.5)
-    assert calls[0] == ("design", {"voice_description": NOTES, "model_id": "eleven_ttv_v3", "auto_generate_text": True})
+    assert calls[0] == ("design", {"voice_description": NOTES, "model_id": "eleven_ttv_v3", "auto_generate_text": True, "request_options": {"timeout_in_seconds": 120}})
     assert d.design_voice(NOTES, preview=p, name="n").segment == "v1"
     assert calls[1][1]["generated_voice_id"] == "g"

@@ -5,7 +5,7 @@ A voice document (``assets/voices/<ref>.json``) may carry the voice in words:
 ``sample_text`` (what the samples say). Voice design turns those words into
 candidate voices the writer can LISTEN to, and the writer's choice becomes the
 document's ``voice_id``. That is how a regional accent gets cast by the one
-person who can hear it (a Limerick ear for a Limerick voice), with nobody else
+person who can hear it (a local ear for a local accent), with nobody else
 picking from a stock library.
 
 Two steps, both plain functions over injected stores:
@@ -47,7 +47,7 @@ Designing is billed by the provider; nothing here is called by a render.
 ...         from types import SimpleNamespace as N
 ...         return N(segment="v-" + getattr(preview, "generated_voice_id", preview))
 >>> samples = {}
->>> notes = "An Irish man in his fifties, rural Limerick, warm and unhurried."
+>>> notes = "A man in his fifties from rural Yorkshire, warm and unhurried."
 >>> manifest = design_voice_options({"jerry": {"notes": notes}}, samples=samples, designer=Fake())
 >>> [(o["option"], o["voice_id"], o["sample"]) for o in manifest["jerry"]["options"]]
 [('A', 'v-g0', 'jerry_A'), ('B', 'v-g1', 'jerry_B')]
@@ -86,6 +86,8 @@ DFLT_DESIGN_MODEL = "eleven_ttv_v3"
 #: ElevenLabs' bounds on a voice description and a preview text (characters).
 NOTES_LENGTH = (20, 1000)
 SAMPLE_TEXT_LENGTH = (100, 1000)
+#: Seconds one provider request may take.
+DFLT_REQUEST_TIMEOUT_S = 120
 #: The provider a designed voice belongs to (written into the voice document).
 DESIGN_PROVIDER = "elevenlabs"
 #: Labels of the options, in order (past the alphabet: numbers).
@@ -107,11 +109,22 @@ class ElevenLabsVoiceDesigner:
     client_factory: ``api_key -> client``; tests inject a fake so nothing is billed
     """
 
-    def __init__(self, *, api_key: str | None = None, client_factory: Any = None) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str | None = None,
+        client_factory: Any = None,
+        timeout_s: float = DFLT_REQUEST_TIMEOUT_S,
+    ) -> None:
         import os
 
         self.api_key = api_key or os.environ.get("ELEVEN_API_KEY") or os.environ.get("ELEVENLABS_API_KEY")
         self.client_factory = client_factory
+        self.timeout_s = timeout_s
+
+    @property
+    def _request_options(self) -> dict:
+        return {"timeout_in_seconds": int(self.timeout_s)}
 
     def _client(self):
         if not self.api_key:
@@ -131,7 +144,10 @@ class ElevenLabsVoiceDesigner:
 
         kwargs = {"text": text} if text else {"auto_generate_text": True}
         response = self._client().text_to_voice.design(
-            voice_description=description, model_id=model_id, **kwargs
+            voice_description=description,
+            model_id=model_id,
+            request_options=self._request_options,
+            **kwargs,
         )
         return [
             SimpleNamespace(
@@ -148,9 +164,16 @@ class ElevenLabsVoiceDesigner:
 
         generated_id = getattr(preview, "generated_voice_id", preview)
         voice = self._client().text_to_voice.create(
-            voice_name=name, voice_description=description, generated_voice_id=generated_id
+            voice_name=name,
+            voice_description=description,
+            generated_voice_id=generated_id,
+            request_options=self._request_options,
         )
         return SimpleNamespace(segment=voice.voice_id)
+
+    def delete_voice(self, voice_id: str) -> None:
+        """Remove a saved voice from the account (a choice the writer replaced)."""
+        self._client().voices.delete(voice_id, request_options=self._request_options)
 
 
 def default_designer(*, api_key: str | None = None) -> ElevenLabsVoiceDesigner:
