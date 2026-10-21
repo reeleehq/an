@@ -15,6 +15,11 @@ into these primitives.
 True
 ```
 
+### Module Attributes
+
+| [`CASTING_RENDER_NOTE`](#an.orchestrate.CASTING_RENDER_NOTE)   | the refusal is the render's, not validate's.   |
+|------------------------------------------------------------------------|------------------------------------------------|
+
 ### Functions
 
 | [`iterate`](#an.orchestrate.iterate)(project_dir, instruction, \*\*kwargs)    | Apply a free-text edit instruction.                                                                                                                                                                                     |
@@ -27,6 +32,14 @@ True
 
 | [`OrchestratorReport`](#an.orchestrate.OrchestratorReport)([success, output_path, ...])   | Outcome of an end-to-end orchestrated run.   |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------|
+
+### an.orchestrate.CASTING_RENDER_NOTE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '\`an render --strict-assets\` refuses it until it is cast; a plain render speaks it and reports it'*
+
+the refusal is the
+render’s, not validate’s.
+
+* **Type:**
+  What `an validate` adds to an uncast voice’s message
 
 ### *class* an.orchestrate.OrchestratorReport(success=True, output_path=None, validation=None, verifications=list(), error=None, root=None)
 

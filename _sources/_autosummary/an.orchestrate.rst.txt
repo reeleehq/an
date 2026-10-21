@@ -4,6 +4,12 @@ an.orchestrate
 .. automodule:: an.orchestrate
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CASTING_RENDER_NOTE
+   
    .. rubric:: Functions
 
    .. autosummary::

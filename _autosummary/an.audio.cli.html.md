@@ -12,6 +12,8 @@ provider factories.
 > an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
 > an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
 > an voices design <project>                      # design options from each voice’s notes (billed)
+> an voices design <project> –library accent=irish,gender=male –no-design   # library candidates by accent (free)
+> an voices audition <project> –voices jerry_voice   # the character’s lines in each option’s voice (billed)
 > an voices choose <project> jerry_voice B –by noel   # the writer’s pick becomes the voice_id (recorded)
 > an voices cast <project> paul_voice <voice_id> –by noel   # a voice picked by hand, recorded the same way
 > an voices import <project> takes/ –transcript takes/ –license cc-by-4.0 –recorded-by “J. Doe”

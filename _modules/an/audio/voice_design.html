@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=b09491ff"></script>
+    <script src="../../../_static/documentation_options.js?v=7b1d0132"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.243" />
+  <meta name="docsearch:version" content="0.1.244" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -735,6 +735,21 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it</span>
 <span class="sd">  as a voice first when it was not persisted).</span>
 
+<span class="sd">**Two more routes to a voice** (an#485). Design from notes can miss a</span>
+<span class="sd">regional accent entirely (every design of "rural Limerick Irish" came out</span>
+<span class="sd">English). So a voice document may also carry a ``library`` query (``{"accent":</span>
+<span class="sd">"irish", "gender": "male", "age": "middle_aged"}``), or ``an voices design</span>
+<span class="sd">--library accent=irish,gender=male`` gives one to every voice: the provider's</span>
+<span class="sd">shared voice library, human-tagged by region, is searched and its candidates</span>
+<span class="sd">join the same manifest as ``L1``, ``L2``, ... options (:class:`ElevenLabsVoiceLibrary`</span>
+<span class="sd">behind the ``library=`` seam; a search and a preview cost nothing). And</span>
+<span class="sd">``an voices audition`` makes an **audition reel** per option: the character's</span>
+<span class="sd">own lines from the scene, spoken with the film's TTS provider and model, the</span>
+<span class="sd">line's cues as audio tags, 0.6 s apart (:func:`audition_voice_options`, the</span>
+<span class="sd">``tts=`` seam), so the writer hears what the film will sound like, accent</span>
+<span class="sd">drift of the render model included. The writer's ear is the judge: an accent</span>
+<span class="sd">classifier was measured and cannot screen TTS accents (an#485).</span>
+
 <span class="sd">**A choice is recorded, and a render needs one** (an#486). A voice written in</span>
 <span class="sd">words (``notes``) is cast by the writer, nobody else: ``an voices choose``</span>
 <span class="sd">writes ``chosen_by`` and ``chosen_at`` beside the ``voice_id``</span>
@@ -782,22 +797,38 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">wave</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"ElevenLabsVoiceDesigner"</span><span class="p">,</span>
+    <span class="s2">"ElevenLabsVoiceLibrary"</span><span class="p">,</span>
+    <span class="s2">"LibraryVoice"</span><span class="p">,</span>
     <span class="s2">"VoiceDesignError"</span><span class="p">,</span>
+    <span class="s2">"AuditionJob"</span><span class="p">,</span>
+    <span class="s2">"announce_auditions"</span><span class="p">,</span>
+    <span class="s2">"audition_key"</span><span class="p">,</span>
+    <span class="s2">"audition_project_voices"</span><span class="p">,</span>
+    <span class="s2">"audition_voice_options"</span><span class="p">,</span>
+    <span class="s2">"plan_auditions"</span><span class="p">,</span>
+    <span class="s2">"run_auditions"</span><span class="p">,</span>
     <span class="s2">"cast_project_voice"</span><span class="p">,</span>
     <span class="s2">"choose_project_voice"</span><span class="p">,</span>
     <span class="s2">"choose_voice_option"</span><span class="p">,</span>
     <span class="s2">"default_chooser"</span><span class="p">,</span>
     <span class="s2">"default_designer"</span><span class="p">,</span>
+    <span class="s2">"default_library"</span><span class="p">,</span>
     <span class="s2">"design_project_voices"</span><span class="p">,</span>
     <span class="s2">"design_voice_options"</span><span class="p">,</span>
     <span class="s2">"designable_voices"</span><span class="p">,</span>
+    <span class="s2">"library_query_of"</span><span class="p">,</span>
+    <span class="s2">"library_voice_options"</span><span class="p">,</span>
+    <span class="s2">"parse_library_query"</span><span class="p">,</span>
     <span class="s2">"provisional_reason"</span><span class="p">,</span>
     <span class="s2">"record_choice"</span><span class="p">,</span>
     <span class="s2">"sample_text_from_lines"</span><span class="p">,</span>
@@ -834,10 +865,39 @@ window.runMermaid = runMermaid;</script>
 <span class="n">PROVISIONAL_KEY</span> <span class="o">=</span> <span class="s2">"provisional"</span>
 <span class="c1">#: The verbs that cast a voice, named by every refusal.</span>
 <span class="n">CASTING_VERBS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"`an voices design` (options from its notes) then `an voices choose &lt;option&gt; "</span>
-    <span class="s2">"--by &lt;writer&gt;` (the pick, recorded as chosen_by), or `an voices cast "</span>
-    <span class="s2">"&lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand (`an voices list`)"</span>
+    <span class="s2">"`an voices design` (options from its notes or a library query), "</span>
+    <span class="s2">"`an voices audition` (the lines in each option's voice), then "</span>
+    <span class="s2">"`an voices choose &lt;option&gt; --by &lt;writer&gt;` (the pick, recorded as chosen_by), "</span>
+    <span class="s2">"or `an voices cast &lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand "</span>
+    <span class="s2">"(`an voices list`)"</span>
 <span class="p">)</span>
+<span class="c1">#: The key, in a voice document, holding a library search: the provider's</span>
+<span class="c1">#: shared-library filters (``accent``, ``gender``, ``age``, ``language``,</span>
+<span class="c1">#: ``search``), e.g. ``{"accent": "irish", "gender": "male", "age": "middle_aged"}``.</span>
+<span class="n">LIBRARY_KEY</span> <span class="o">=</span> <span class="s2">"library"</span>
+<span class="c1">#: The filters a library query may carry (the ElevenLabs shared library's).</span>
+<span class="n">LIBRARY_FILTERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"accent"</span><span class="p">,</span> <span class="s2">"gender"</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"language"</span><span class="p">,</span> <span class="s2">"search"</span><span class="p">)</span>
+<span class="c1">#: How many library candidates a query yields by default.</span>
+<span class="n">DFLT_LIBRARY_LIMIT</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="c1">#: Labels of library options (``L1``, ``L2``, ...), after the designed ``A``, ``B``, ...</span>
+<span class="n">LIBRARY_LABEL_PREFIX</span> <span class="o">=</span> <span class="s2">"L"</span>
+<span class="c1">#: Seconds of silence between two lines of an audition reel.</span>
+<span class="n">AUDITION_GAP_S</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="c1">#: Where the project-level audition reels go, under the project root.</span>
+<span class="n">AUDITIONS_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice_auditions"</span>
+<span class="c1">#: An audition reel is 16-bit mono WAV at the effects chain's rate.</span>
+<span class="n">AUDITION_SAMPLE_RATE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mi">44100</span>  <span class="c1"># = an.audio.effects.EFFECT_SAMPLE_RATE (asserted in tests)</span>
+<span class="p">)</span>
+<span class="c1">#: The option keys an audition writes: the reel's key in the reels store, how</span>
+<span class="c1">#: many lines it holds, and the content key it was made under (voice, lines,</span>
+<span class="c1">#: options, effects, gap, provider) — a reel is never made twice for the same key.</span>
+<span class="n">AUDITION_KEY</span> <span class="o">=</span> <span class="s2">"audition"</span>
+<span class="n">AUDITION_LINES_KEY</span> <span class="o">=</span> <span class="s2">"audition_lines"</span>
+<span class="n">AUDITION_CONTENT_KEY</span> <span class="o">=</span> <span class="s2">"audition_key"</span>
+<span class="c1">#: ``announce`` default: a line on stderr (the pipeline's own), so a billed</span>
+<span class="c1">#: call is never silent unless the caller passes ``None``.</span>
+<span class="n">_STDERR</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="VoiceDesignError">
@@ -956,6 +1016,267 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="LibraryVoice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.LibraryVoice">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LibraryVoice</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One candidate from a provider's shared voice library."""</span>
+
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">accent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">age</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">gender</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">preview_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The account that shares it (ElevenLabs ``public_owner_id``).</span>
+    <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceLibrary">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceLibrary">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElevenLabsVoiceLibrary</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""ElevenLabs' shared voice library through the ``elevenlabs`` SDK</span>
+<span class="sd">    (``voices.get_shared``): voices other accounts published, human-tagged by</span>
+<span class="sd">    accent, age and gender, with a region often in the description ("Cork",</span>
+<span class="sd">    "west of Ireland"). A search and a preview download cost no credit; speaking</span>
+<span class="sd">    a library voice at render time is billed like any other.</span>
+
+<span class="sd">    api_key: defaults to ``ELEVEN_API_KEY`` / ``ELEVENLABS_API_KEY``</span>
+<span class="sd">    client_factory: ``api_key -&gt; client``; tests inject a fake so nothing is called</span>
+<span class="sd">    fetch: ``url -&gt; bytes`` for a preview (default: a plain HTTP GET)</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">client_factory</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fetch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">timeout_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REQUEST_TIMEOUT_S</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">api_key</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ELEVEN_API_KEY"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ELEVENLABS_API_KEY"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="o">=</span> <span class="n">client_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span> <span class="o">=</span> <span class="n">fetch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span> <span class="o">=</span> <span class="n">timeout_s</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="s2">"the voice library needs an ElevenLabs key: set ELEVEN_API_KEY"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>  <span class="c1"># type: ignore</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover - depends on the environment</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="s2">"the voice library needs the elevenlabs package: pip install elevenlabs"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">return</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ElevenLabsVoiceLibrary.search">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceLibrary.search">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_LIBRARY_LIMIT</span><span class="p">,</span> <span class="o">**</span><span class="n">filters</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">LibraryVoice</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The shared voices matching ``filters`` (:data:`LIBRARY_FILTERS`), at most ``limit``."""</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"unknown library filter(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; the library takes </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">filters</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">)}</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">get_shared</span><span class="p">(</span>
+            <span class="n">page_size</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">limit</span><span class="p">),</span> <span class="mi">100</span><span class="p">)),</span>
+            <span class="n">request_options</span><span class="o">=</span><span class="p">{</span><span class="s2">"timeout_in_seconds"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span><span class="p">)},</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"voices"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">():</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">LibraryVoice</span><span class="p">(</span>
+                    <span class="n">voice_id</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="n">accent</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"accent"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">age</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">gender</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"gender"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">language</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"language"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">preview_url</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"preview_url"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">owner_id</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"public_owner_id"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceLibrary.preview">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceLibrary.preview">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voice</span><span class="p">:</span> <span class="n">LibraryVoice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The voice's own preview clip (mp3 bytes), or ``None`` when it has none."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">voice</span><span class="o">.</span><span class="n">preview_url</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">voice</span><span class="o">.</span><span class="n">preview_url</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlopen</span>
+
+        <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">voice</span><span class="o">.</span><span class="n">preview_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>  <span class="c1"># noqa: S310 - the provider's own CDN link</span>
+            <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceLibrary.add">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.ElevenLabsVoiceLibrary.add">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Add the shared voice to the account under ``name``; returns its id.</span>
+
+<span class="sd">        A production spoke shared voices by their id directly; ElevenLabs also</span>
+<span class="sd">        documents adding one (``voices.share``) and a ``voice_not_found`` on a</span>
+<span class="sd">        library id means it needs this. Free; not called by anything else here.</span>
+<span class="sd">        """</span>
+        <span class="n">voice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">share</span><span class="p">(</span>
+            <span class="n">owner_id</span><span class="p">,</span>
+            <span class="n">voice_id</span><span class="p">,</span>
+            <span class="n">new_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">request_options</span><span class="o">=</span><span class="p">{</span><span class="s2">"timeout_in_seconds"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_s</span><span class="p">)},</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">voice_id</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="default_library">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.default_library">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_library</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ElevenLabsVoiceLibrary</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The library used when none is given: :class:`ElevenLabsVoiceLibrary`."""</span>
+    <span class="k">return</span> <span class="n">ElevenLabsVoiceLibrary</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_library_query">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.parse_library_query">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_library_query</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A library query from its CLI spelling, ``accent=irish,gender=male``</span>
+<span class="sd">    (a mapping passes through; empty is ``None``).</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_library_query("accent=irish, gender=male")</span>
+<span class="sd">    {'accent': 'irish', 'gender': 'male'}</span>
+<span class="sd">    &gt;&gt;&gt; parse_library_query("") is None, parse_library_query({"age": "young"})</span>
+<span class="sd">    (True, {'age': 'young'})</span>
+<span class="sd">    &gt;&gt;&gt; parse_library_query("irish")  # doctest: +IGNORE_EXCEPTION_DETAIL</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    an.audio.voice_design.VoiceDesignError: library query 'irish': write it as key=value pairs (accent, gender, age, language, search)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">):</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sep</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"library query </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: write it as key=value pairs (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">LIBRARY_FILTERS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"library query </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: unknown filter </span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">!r}</span><span class="s2">; the library takes </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span> <span class="ow">or</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="library_query_of">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.library_query_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">library_query_of</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The document's own ``library`` query, else ``default``, else ``None``.</span>
+
+<span class="sd">    &gt;&gt;&gt; library_query_of({"library": {"accent": "irish"}}, {"accent": "scottish"})</span>
+<span class="sd">    {'accent': 'irish'}</span>
+<span class="sd">    &gt;&gt;&gt; library_query_of({}, {"accent": "scottish"}), library_query_of({}) is None</span>
+<span class="sd">    ({'accent': 'scottish'}, True)</span>
+<span class="sd">    """</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LIBRARY_KEY</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">own</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">own</span><span class="p">:</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">own</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">LIBRARY_KEY</span><span class="si">!r}</span><span class="s2"> on the voice document: unknown filter(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; "</span>
+                <span class="sa">f</span><span class="s2">"the library takes </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">LIBRARY_FILTERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">own</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">own</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">own</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">parse_library_query</span><span class="p">(</span><span class="n">own</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parse_library_query</span><span class="p">(</span><span class="n">default</span><span class="p">)</span> <span class="k">if</span> <span class="n">default</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="library_voice_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.library_voice_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">library_voice_options</span><span class="p">(</span>
+    <span class="n">query</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">samples</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_LIBRARY_LIMIT</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The library candidates for ``query`` as manifest options ``L&lt;n&gt;``, each</span>
+<span class="sd">    with its preview in ``samples`` (``&lt;ref&gt;_L&lt;n&gt;``) when the library has one</span>
+<span class="sd">    (``sample`` is ``None`` otherwise), and the sharing account's id</span>
+<span class="sd">    (``owner_id``) so the voice can be added to the account later.</span>
+
+<span class="sd">    &gt;&gt;&gt; class Fake:</span>
+<span class="sd">    ...     def search(self, *, limit, **f):</span>
+<span class="sd">    ...         return [LibraryVoice("v1", "Dan", "Cork", accent="irish", preview_url="u", owner_id="o")]</span>
+<span class="sd">    ...     def preview(self, v):</span>
+<span class="sd">    ...         return b"ID3"</span>
+<span class="sd">    &gt;&gt;&gt; samples = {}</span>
+<span class="sd">    &gt;&gt;&gt; library_voice_options({"accent": "irish"}, samples=samples, ref="j", library=Fake())</span>
+<span class="sd">    [{'option': 'L1', 'kind': 'library', 'voice_id': 'v1', 'owner_id': 'o', 'name': 'Dan', 'about': 'Cork', 'accent': 'irish', 'age': None, 'gender': None, 'sample': 'j_L1', 'duration_s': None}]</span>
+<span class="sd">    """</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">library</span> <span class="k">if</span> <span class="n">library</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_library</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">voice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">query</span><span class="p">))):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">LIBRARY_LABEL_PREFIX</span><span class="si">}{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">audio</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">preview</span><span class="p">(</span><span class="n">voice</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">audio</span><span class="p">:</span>
+            <span class="n">samples</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">audio</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"option"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+                <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"library"</span><span class="p">,</span>
+                <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span>
+                <span class="s2">"owner_id"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">owner_id</span><span class="p">,</span>
+                <span class="s2">"name"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">"about"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="s2">"accent"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">accent</span><span class="p">,</span>
+                <span class="s2">"age"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">age</span><span class="p">,</span>
+                <span class="s2">"gender"</span><span class="p">:</span> <span class="n">voice</span><span class="o">.</span><span class="n">gender</span><span class="p">,</span>
+                <span class="s2">"sample"</span><span class="p">:</span> <span class="n">key</span> <span class="k">if</span> <span class="n">audio</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"duration_s"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">options</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_label</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">OPTION_LABELS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">OPTION_LABELS</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
@@ -1071,58 +1392,111 @@ window.runMermaid = runMermaid;</script>
     <span class="n">persist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an"</span><span class="p">,</span>
     <span class="n">lines_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library_query</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_LIBRARY_LIMIT</span><span class="p">,</span>
+    <span class="n">design</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Design options for each voice with notes; return the options manifest.</span>
+<span class="w">    </span><span class="sd">"""Design options for each voice with notes, and search the library for</span>
+<span class="sd">    each voice with a query; return the options manifest.</span>
 
 <span class="sd">    voices: ``{ref: voice document}`` (a project's ``voices`` store)</span>
 <span class="sd">    samples: where each option's audio goes, keyed ``&lt;ref&gt;_&lt;option&gt;`` (mp3 bytes)</span>
-<span class="sd">    refs: the voices to design (default: every one with ``notes``)</span>
+<span class="sd">    refs: the voices to design (default: every one with ``notes`` or ``library``)</span>
 <span class="sd">    designer: a two-method designer (default: :func:`default_designer`)</span>
 <span class="sd">    model_id: the provider's voice-design model</span>
 <span class="sd">    persist: save every option as a durable voice now (else only the chosen one, later)</span>
 <span class="sd">    name_prefix: prefix of the saved voices' names in the provider account</span>
 <span class="sd">    lines_of: ``ref -&gt; that voice's dialogue lines``, for a sample text when the</span>
 <span class="sd">        document has none (else the provider writes one)</span>
+<span class="sd">    library: the shared-library seam (:func:`default_library` for the CLI),</span>
+<span class="sd">        searched for every voice that has a ``library`` query of its own or</span>
+<span class="sd">        gets ``library_query``. **Opt-in**: with neither ``library`` nor</span>
+<span class="sd">        ``library_query`` given, a document's ``library`` key is left alone</span>
+<span class="sd">        and nothing reaches the network — a caller that passed only a</span>
+<span class="sd">        ``designer`` sees exactly what it saw before.</span>
+<span class="sd">    library_query: the query for voices without their own (``accent=irish,gender=male``)</span>
+<span class="sd">    library_limit: at most this many library candidates per voice</span>
+<span class="sd">    design: with ``False``, no designed previews (library candidates only, nothing billed)</span>
+
+<span class="sd">    A voice with ``notes`` gets designed options ``A``, ``B``, ...; a voice with</span>
+<span class="sd">    a query gets library options ``L1``, ``L2``, ...; one with both gets both in</span>
+<span class="sd">    one manifest, so the writer compares them on the same page.</span>
 <span class="sd">    """</span>
-    <span class="n">todo</span> <span class="o">=</span> <span class="n">designable_voices</span><span class="p">(</span><span class="n">voices</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span>
+    <span class="n">use_library</span> <span class="o">=</span> <span class="n">library</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">library_query</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">design</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">use_library</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="s2">"design=False searches the library only: pass a library query "</span>
+            <span class="s2">"(`--library accent=...`), or drop it to design from notes"</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_of</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_library</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">library_query_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">library_query</span><span class="p">)</span>
+
+    <span class="n">named</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span> <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">todo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">named</span> <span class="k">if</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">voices</span><span class="p">):</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">voices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">notes_problem</span> <span class="o">=</span> <span class="n">_notes_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">design</span> <span class="ow">and</span> <span class="n">notes_problem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">query_of</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">todo</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span>
+        <span class="k">elif</span> <span class="n">named</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">notes_problem</span><span class="si">}</span><span class="s2">"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="s2">" (and no library query to search with)"</span> <span class="k">if</span> <span class="n">use_library</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">todo</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"no voice document has </span><span class="si">{</span><span class="n">NOTES_KEY</span><span class="si">!r}</span><span class="s2">: nothing to design from"</span>
+            <span class="sa">f</span><span class="s2">"no voice document has </span><span class="si">{</span><span class="n">NOTES_KEY</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" or a </span><span class="si">{</span><span class="n">LIBRARY_KEY</span><span class="si">!r}</span><span class="s2"> query"</span> <span class="k">if</span> <span class="n">use_library</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">": nothing to design from"</span>
         <span class="p">)</span>
-    <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
     <span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">todo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">notes</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="n">NOTES_KEY</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">notes</span> <span class="o">=</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NOTES_KEY</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query_of</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
         <span class="n">fallback</span> <span class="o">=</span> <span class="n">sample_text_from_lines</span><span class="p">(</span><span class="n">lines_of</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span> <span class="k">if</span> <span class="n">lines_of</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">sample_text_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span>
-        <span class="n">previews</span> <span class="o">=</span> <span class="n">designer</span><span class="o">.</span><span class="n">design_voice_previews</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">)</span>
-        <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">preview</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">previews</span><span class="p">):</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">_label</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
-            <span class="n">samples</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">preview</span><span class="o">.</span><span class="n">audio</span>
-            <span class="n">voice_id</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">_voice_id_of</span><span class="p">(</span>
-                    <span class="n">designer</span><span class="o">.</span><span class="n">design_voice</span><span class="p">(</span>
-                        <span class="n">notes</span><span class="p">,</span> <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_prefix</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">persist</span>
-                <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">options</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">design</span> <span class="ow">and</span> <span class="n">_notes_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
+            <span class="n">previews</span> <span class="o">=</span> <span class="n">designer</span><span class="o">.</span><span class="n">design_voice_previews</span><span class="p">(</span>
+                <span class="n">notes</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span>
             <span class="p">)</span>
-            <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">"option"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
-                    <span class="s2">"generated_voice_id"</span><span class="p">:</span> <span class="n">preview</span><span class="o">.</span><span class="n">generated_voice_id</span><span class="p">,</span>
-                    <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
-                    <span class="s2">"sample"</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span>
-                    <span class="s2">"duration_s"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">preview</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                <span class="p">}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">preview</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">previews</span><span class="p">):</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">_label</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">samples</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">preview</span><span class="o">.</span><span class="n">audio</span>
+                <span class="n">voice_id</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">_voice_id_of</span><span class="p">(</span>
+                        <span class="n">designer</span><span class="o">.</span><span class="n">design_voice</span><span class="p">(</span>
+                            <span class="n">notes</span><span class="p">,</span> <span class="n">preview</span><span class="o">=</span><span class="n">preview</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_prefix</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">persist</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">"option"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+                        <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"designed"</span><span class="p">,</span>
+                        <span class="s2">"generated_voice_id"</span><span class="p">:</span> <span class="n">preview</span><span class="o">.</span><span class="n">generated_voice_id</span><span class="p">,</span>
+                        <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
+                        <span class="s2">"sample"</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span>
+                        <span class="s2">"duration_s"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">preview</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">query</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">options</span> <span class="o">+=</span> <span class="n">library_voice_options</span><span class="p">(</span>
+                <span class="n">query</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">library</span><span class="o">=</span><span class="n">library</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">library_limit</span>
             <span class="p">)</span>
         <span class="n">manifest</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
+            <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">"sample_text"</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
-            <span class="s2">"design_model"</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span>
+            <span class="s2">"design_model"</span><span class="p">:</span> <span class="n">model_id</span> <span class="k">if</span> <span class="n">design</span> <span class="ow">and</span> <span class="n">notes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"library"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
             <span class="s2">"name_prefix"</span><span class="p">:</span> <span class="n">name_prefix</span><span class="p">,</span>
             <span class="s2">"options"</span><span class="p">:</span> <span class="n">options</span><span class="p">,</span>
             <span class="s2">"chosen"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -1152,6 +1526,10 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">found</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"generated_voice_id"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"option </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">!r}{</span><span class="sa">f</span><span class="s1">' for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s1">'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">ref</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> has no voice id to choose"</span>
+        <span class="p">)</span>
     <span class="n">designer</span> <span class="o">=</span> <span class="n">designer</span> <span class="k">if</span> <span class="n">designer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_designer</span><span class="p">()</span>
     <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name_prefix'</span><span class="p">,</span><span class="w"> </span><span class="s1">'an'</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">_voice_id_of</span><span class="p">(</span>
@@ -1159,6 +1537,331 @@ window.runMermaid = runMermaid;</script>
             <span class="n">entry</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">],</span> <span class="n">preview</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"generated_voice_id"</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
         <span class="p">)</span>
     <span class="p">)</span></div>
+
+
+
+<span class="c1"># --- the audition reel ---------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="AuditionJob">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.AuditionJob">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuditionJob</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One reel to make: an option of one voice, the lines it speaks, and the</span>
+<span class="sd">    content key the reel is recorded under (so it is never made twice)."""</span>
+
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">option</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="s1">'option'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reel_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``audio`` (the provider's clip, any container) with the voice's</span>
+<span class="sd">    ``effects`` applied — the tempo, pitch and trim the film applies, so the</span>
+<span class="sd">    reel is the film's sound (``takes`` are not: one take per line) — as 16-bit</span>
+<span class="sd">    mono WAV at :data:`AUDITION_SAMPLE_RATE`: an input already so is kept as it</span>
+<span class="sd">    is, anything else goes through the effects chain's own ffmpeg decoder."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">VoiceEffectError</span><span class="p">,</span>
+        <span class="n">_ffmpeg_wav</span><span class="p">,</span>
+        <span class="n">apply_voice_effects</span><span class="p">,</span>
+        <span class="n">decode_chain</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">apply_voice_effects</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects</span> <span class="k">else</span> <span class="n">audio</span>
+        <span class="k">if</span> <span class="n">_is_reel_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">wav</span>
+        <span class="k">return</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">wav</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">decode_chain</span><span class="p">()</span><span class="si">}</span><span class="s2">,aformat=channel_layouts=mono"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">except</span> <span class="n">VoiceEffectError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="s2">"an audition reel decodes the provider's audio with ffmpeg (and "</span>
+            <span class="s2">"applies the voice's effects); "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">"ffmpeg binary"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"an audition line could not be decoded: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_reel_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">audio</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">"RIFF"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">audio</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">getframerate</span><span class="p">(),</span> <span class="n">w</span><span class="o">.</span><span class="n">getnchannels</span><span class="p">(),</span> <span class="n">w</span><span class="o">.</span><span class="n">getsampwidth</span><span class="p">())</span> <span class="o">==</span> <span class="p">(</span>
+                <span class="n">AUDITION_SAMPLE_RATE</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_join_wavs</span><span class="p">(</span><span class="n">parts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One WAV of ``parts`` (16-bit mono at :data:`AUDITION_SAMPLE_RATE`, as</span>
+<span class="sd">    :func:`_reel_wav` makes them), with ``gap_s`` of silence after each."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">silence</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\x00\x00</span><span class="s2">"</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">gap_s</span> <span class="o">*</span> <span class="n">AUDITION_SAMPLE_RATE</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setnchannels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setsampwidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setframerate</span><span class="p">(</span><span class="n">AUDITION_SAMPLE_RATE</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">part</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">readframes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">getnframes</span><span class="p">()))</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">silence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="audition_key">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.audition_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">audition_key</span><span class="p">(</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDITION_GAP_S</span><span class="p">,</span>
+    <span class="n">tts_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The content key of a reel: what it would sound like depends on exactly</span>
+<span class="sd">    these, so a reel with this key is never made (billed) twice.</span>
+
+<span class="sd">    &gt;&gt;&gt; k = audition_key("v", [("Hi.", {"model_id": "m"})], tts_name="elevenlabs")</span>
+<span class="sd">    &gt;&gt;&gt; k == audition_key("v", [("Hi.", {"model_id": "m"})], tts_name="elevenlabs"), len(k) &gt; 8</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    &gt;&gt;&gt; k != audition_key("v", [("Hi!", {"model_id": "m"})], tts_name="elevenlabs")</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_stable_hash</span>
+
+    <span class="k">return</span> <span class="n">_stable_hash</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
+            <span class="s2">"lines"</span><span class="p">:</span> <span class="p">[(</span><span class="n">text</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">opts</span><span class="p">))</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">],</span>
+            <span class="s2">"effects"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">effects</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="s2">"gap_s"</span><span class="p">:</span> <span class="n">gap_s</span><span class="p">,</span>
+            <span class="s2">"tts"</span><span class="p">:</span> <span class="n">tts_name</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plan_auditions">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.plan_auditions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_auditions</span><span class="p">(</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDITION_GAP_S</span><span class="p">,</span>
+    <span class="n">tts_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">redo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">AuditionJob</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The reels to make for one voice's manifest ``entry``, every one checked</span>
+<span class="sd">    BEFORE anything is billed: the named ``options`` exist (default: every</span>
+<span class="sd">    option with a voice id) and are saved voices, there are ``lines`` to speak,</span>
+<span class="sd">    and an option whose recorded reel was made under this very key is skipped</span>
+<span class="sd">    unless ``redo``. Raises :class:`VoiceDesignError` for any problem.</span>
+<span class="sd">    """</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[(</span><span class="n">text</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">opts</span><span class="p">))</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> speaks no line in the scene: nothing to audition with"</span>
+        <span class="p">)</span>
+    <span class="n">all_options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">()))</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"option"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">all_options</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wanted</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">options</span><span class="p">]</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"no option </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> (options: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">w</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">wanted</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">all_options</span> <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chosen</span><span class="p">:</span>  <span class="c1"># nothing named and nothing auditionable: say which</span>
+            <span class="n">chosen</span> <span class="o">=</span> <span class="n">all_options</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">chosen</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no options for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: run `an voices design` first"</span><span class="p">)</span>
+    <span class="n">unsaved</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="p">[</span><span class="s2">"option"</span><span class="p">]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">chosen</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">unsaved</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"option(s) </span><span class="si">{</span><span class="n">unsaved</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> are not saved voices (designed with "</span>
+            <span class="s2">"--only-chosen): an audition needs a voice id. Design again without it."</span>
+        <span class="p">)</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">chosen</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">audition_key</span><span class="p">(</span>
+            <span class="n">option</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">],</span> <span class="n">lines</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span> <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts_name</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">redo</span>
+            <span class="ow">and</span> <span class="n">option</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AUDITION_KEY</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">option</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AUDITION_CONTENT_KEY</span><span class="p">)</span> <span class="o">==</span> <span class="n">key</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># the reel on record IS this reel: never billed twice</span>
+        <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AuditionJob</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">effects</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">key</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">jobs</span></div>
+
+
+
+<div class="viewcode-block" id="announce_auditions">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.announce_auditions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">announce_auditions</span><span class="p">(</span><span class="n">jobs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AuditionJob</span><span class="p">],</span> <span class="n">tts</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What making ``jobs`` will bill, in one sentence (``""`` for none).</span>
+
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     name = "elevenlabs"</span>
+<span class="sd">    ...     def billed_characters(self, text, **kw):</span>
+<span class="sd">    ...         return len(text)</span>
+<span class="sd">    &gt;&gt;&gt; jobs = [AuditionJob("j", {"option": "A", "voice_id": "v"}, [("Hi.", {}), ("Bye.", {})], {}, "k")]</span>
+<span class="sd">    &gt;&gt;&gt; announce_auditions(jobs, T())</span>
+<span class="sd">    'audition: 1 reel(s) x 2 line(s) = 2 request(s) to elevenlabs, 7 characters'</span>
+<span class="sd">    """</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">jobs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">chars</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">sum</span><span class="p">(</span><span class="n">count</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">jobs</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">j</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">per</span> <span class="o">=</span> <span class="p">{</span><span class="nb">len</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">}</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2"> reel(s) x </span><span class="si">{</span><span class="n">per</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2"> line(s) = "</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">per</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span><span class="si">}</span><span class="s2"> reel(s), "</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"audition: </span><span class="si">{</span><span class="n">shape</span><span class="si">}{</span><span class="n">n</span><span class="si">}</span><span class="s2"> request(s) to </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'the provider'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2"> characters"</span> <span class="k">if</span> <span class="n">chars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_auditions">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.run_auditions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_auditions</span><span class="p">(</span>
+    <span class="n">jobs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AuditionJob</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">reels</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDITION_GAP_S</span><span class="p">,</span>
+    <span class="n">announce</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_STDERR</span><span class="p">,</span>
+    <span class="n">on_reel</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">AuditionJob</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Make every reel of ``jobs`` with ``tts`` (``synthesize(text, voice_id,</span>
+<span class="sd">    **options)`` per line — billed), ``gap_s`` apart, into ``reels`` under the</span>
+<span class="sd">    job's reel key, and record it on the job's option (``audition``,</span>
+<span class="sd">    ``audition_lines``, ``audition_key``); ``on_reel`` is called after each</span>
+<span class="sd">    reel is recorded, so a failure later loses nothing paid for. ``announce``</span>
+<span class="sd">    (default: a line on stderr; ``None`` for silence) is told the whole bill</span>
+<span class="sd">    first, and the provider is asked ``check_available()`` before the first</span>
+<span class="sd">    request."""</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">jobs</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="n">_STDERR</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">_announce_to_stderr</span>
+
+        <span class="n">announce</span> <span class="o">=</span> <span class="n">_announce_to_stderr</span>
+    <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">announce</span><span class="p">(</span><span class="n">announce_auditions</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">tts</span><span class="p">))</span>
+    <span class="n">check</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"check_available"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">check</span><span class="p">):</span>
+        <span class="n">check</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">job</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+            <span class="n">clip</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">synthesize</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">],</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+            <span class="n">audio</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="s2">"bytes_"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">audio</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">audio</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">clip</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">audio</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'the provider'</span><span class="p">)</span><span class="si">}</span><span class="s2"> returned no audio for </span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_reel_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">effects</span><span class="p">))</span>
+        <span class="n">reels</span><span class="p">[</span><span class="n">job</span><span class="o">.</span><span class="n">reel</span><span class="p">]</span> <span class="o">=</span> <span class="n">_join_wavs</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">)</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="n">AUDITION_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">reel</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="n">AUDITION_LINES_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="n">AUDITION_CONTENT_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">key</span>
+        <span class="k">if</span> <span class="n">on_reel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">on_reel</span><span class="p">(</span><span class="n">job</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="audition_voice_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.audition_voice_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">audition_voice_options</span><span class="p">(</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">reels</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDITION_GAP_S</span><span class="p">,</span>
+    <span class="n">announce</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_STDERR</span><span class="p">,</span>
+    <span class="n">redo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An audition reel per option of one voice's manifest ``entry``: every line</span>
+<span class="sd">    of ``lines`` — ``(text, synthesize options)`` pairs, the options being what</span>
+<span class="sd">    the film's pipeline would send (``model_id``, ``voice_settings``,</span>
+<span class="sd">    ``audio_tags`` from the line's cues) — spoken in that option's voice by</span>
+<span class="sd">    ``tts`` (the film's provider), the voice's ``effects`` applied, ``gap_s``</span>
+<span class="sd">    apart, as one WAV in ``reels`` under ``&lt;ref&gt;_&lt;option&gt;``. Returns a copy of</span>
+<span class="sd">    the entry with each made reel recorded on its option; the input is not</span>
+<span class="sd">    changed. :func:`plan_auditions` checks everything before the first</span>
+<span class="sd">    request; a reel already on record under the same content key is not made</span>
+<span class="sd">    again unless ``redo`` (so a second call bills nothing).</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as N</span>
+<span class="sd">    &gt;&gt;&gt; import math, struct</span>
+<span class="sd">    &gt;&gt;&gt; def tone(n):</span>
+<span class="sd">    ...     import io, wave</span>
+<span class="sd">    ...     b = io.BytesIO(); w = wave.open(b, "wb"); w.setnchannels(1); w.setsampwidth(2); w.setframerate(44100)</span>
+<span class="sd">    ...     w.writeframes(b"".join(struct.pack("&lt;h", int(8000 * math.sin(i / 20))) for i in range(n))); w.close()</span>
+<span class="sd">    ...     return b.getvalue()</span>
+<span class="sd">    &gt;&gt;&gt; class FakeTTS:</span>
+<span class="sd">    ...     name = "fake"</span>
+<span class="sd">    ...     def synthesize(self, text, voice_id, **kw):</span>
+<span class="sd">    ...         return N(bytes_=tone(4410), transcript=text)</span>
+<span class="sd">    &gt;&gt;&gt; entry = {"options": [{"option": "A", "voice_id": "v1"}, {"option": "L1", "voice_id": "v2"}]}</span>
+<span class="sd">    &gt;&gt;&gt; reels = {}</span>
+<span class="sd">    &gt;&gt;&gt; out = audition_voice_options(entry, [("Hi.", {}), ("Bye.", {"audio_tags": ["sad"]})], reels=reels, tts=FakeTTS(), ref="j", announce=None)</span>
+<span class="sd">    &gt;&gt;&gt; sorted(reels), [o["audition"] for o in out["options"]]</span>
+<span class="sd">    (['j_A', 'j_L1'], ['j_A', 'j_L1'])</span>
+<span class="sd">    &gt;&gt;&gt; again = audition_voice_options(out, [("Hi.", {}), ("Bye.", {"audio_tags": ["sad"]})], reels=reels, tts=FakeTTS(), ref="j", announce=None)</span>
+<span class="sd">    &gt;&gt;&gt; again == out  # on record under the same key: nothing made, nothing billed</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())]</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="n">plan_auditions</span><span class="p">(</span>
+        <span class="n">out</span><span class="p">,</span>
+        <span class="n">lines</span><span class="p">,</span>
+        <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
+        <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">,</span>
+        <span class="n">tts_name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)),</span>
+        <span class="n">redo</span><span class="o">=</span><span class="n">redo</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">run_auditions</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">reels</span><span class="o">=</span><span class="n">reels</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span> <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">,</span> <span class="n">announce</span><span class="o">=</span><span class="n">announce</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
 
@@ -1296,7 +1999,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...           "provisional": "round-2 timing draft"}, "k": {"voice_id": "x"}}</span>
 <span class="sd">    &gt;&gt;&gt; uncast, provisional = voice_casting(["j", "p", "k", "j", "ghost"], voices)</span>
 <span class="sd">    &gt;&gt;&gt; print(uncast[0])</span>
-<span class="sd">    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes) then `an voices choose &lt;option&gt; --by &lt;writer&gt;` (the pick, recorded as chosen_by), or `an voices cast &lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.</span>
+<span class="sd">    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes or a library query), `an voices audition` (the lines in each option's voice), then `an voices choose &lt;option&gt; --by &lt;writer&gt;` (the pick, recorded as chosen_by), or `an voices cast &lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.</span>
 <span class="sd">    &gt;&gt;&gt; provisional</span>
 <span class="sd">    ["voice 'p' is provisional (round-2 timing draft): choose a voice before the cut"]</span>
 <span class="sd">    """</span>
@@ -1343,6 +2046,15 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_reels</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.artifacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BlobStore</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">_WavStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+        <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"wav"</span>
+
+    <span class="k">return</span> <span class="n">_WavStore</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">AUDITIONS_DIR</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_project_lines</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""``ref -&gt; the dialogue lines spoken in that voice`` in the project's scene."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_voice_id</span>
@@ -1358,6 +2070,35 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="k">lambda</span> <span class="n">ref</span><span class="p">:</span> <span class="n">by_voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="p">[])</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_project_audition_inputs</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">tts</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``ref -&gt; (lines, effects)`` for the lines spoken in that voice: each line</span>
+<span class="sd">    as ``(text, synthesize options)`` — what the film's audio pipeline would</span>
+<span class="sd">    send ``tts`` for it (:func:`an.audio.pipeline.synthesis_options`: the</span>
+<span class="sd">    voice document's model and settings, the line's cues as audio tags) — and</span>
+<span class="sd">    the voice's normalised ``effects``. Resolved per voice, when asked."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">voice_effects</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">synthesis_options</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_voice_id</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="n">proj</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">project_dir</span><span class="p">))</span>
+    <span class="n">by_voice</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="s2">"dialogue"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">():</span>
+            <span class="n">by_voice</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">inputs</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">ref</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">by_voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">lines</span><span class="p">,</span> <span class="n">voice_effects</span><span class="p">(</span><span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">inputs</span>
+
+
 <div class="viewcode-block" id="design_project_voices">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.design_project_voices">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">design_project_voices</span><span class="p">(</span>
@@ -1368,10 +2109,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_DESIGN_MODEL</span><span class="p">,</span>
     <span class="n">persist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">name_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library_query</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">library_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_LIBRARY_LIMIT</span><span class="p">,</span>
+    <span class="n">design</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Design options for the project's voices; write manifests and samples; return the manifest.</span>
+<span class="w">    </span><span class="sd">"""Design options for the project's voices (and search the library for the</span>
+<span class="sd">    ones with a query); write manifests and samples; return the manifest.</span>
 
 <span class="sd">    A voice document without ``sample_text`` speaks its own lines from the scene.</span>
+<span class="sd">    ``library_query`` (``accent=irish,gender=male``) applies to every voice</span>
+<span class="sd">    without a ``library`` of its own; ``design=False`` searches the library only.</span>
 <span class="sd">    """</span>
     <span class="n">voices</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1387,12 +2135,89 @@ window.runMermaid = runMermaid;</script>
         <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
         <span class="n">name_prefix</span><span class="o">=</span><span class="n">name_prefix</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="n">lines_of</span><span class="o">=</span><span class="n">lines_of</span><span class="p">,</span>
+        <span class="n">library</span><span class="o">=</span><span class="n">library</span><span class="p">,</span>
+        <span class="n">library_query</span><span class="o">=</span><span class="n">library_query</span><span class="p">,</span>
+        <span class="n">library_limit</span><span class="o">=</span><span class="n">library_limit</span><span class="p">,</span>
+        <span class="n">design</span><span class="o">=</span><span class="n">design</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">manifest</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]:</span>
-            <span class="n">o</span><span class="p">[</span><span class="s2">"sample_path"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">SAMPLES_DIR</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">o</span><span class="p">[</span><span class="s1">'sample'</span><span class="p">]</span><span class="si">}</span><span class="s2">.mp3"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+            <span class="n">o</span><span class="p">[</span><span class="s2">"sample_path"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">str</span><span class="p">((</span><span class="n">SAMPLES_DIR</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">o</span><span class="p">[</span><span class="s1">'sample'</span><span class="p">]</span><span class="si">}</span><span class="s2">.mp3"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sample"</span><span class="p">)</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
         <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
     <span class="k">return</span> <span class="n">manifest</span></div>
+
+
+
+<div class="viewcode-block" id="audition_project_voices">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.audition_project_voices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">audition_project_voices</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">refs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">AUDITION_GAP_S</span><span class="p">,</span>
+    <span class="n">announce</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_STDERR</span><span class="p">,</span>
+    <span class="n">redo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""An audition reel per option of each voice in ``refs`` (default: every</span>
+<span class="sd">    voice with a manifest): the voice's own lines from the scene, spoken with</span>
+<span class="sd">    the film's TTS provider (``tts``, default ElevenLabs — the provider the</span>
+<span class="sd">    film renders with, so the reel sounds like the film), the voice document's</span>
+<span class="sd">    model, settings and effects, to ``artifacts/voice_auditions/&lt;ref&gt;_&lt;option&gt;.wav``;</span>
+<span class="sd">    the manifest records each reel (``audition_path``) as soon as it is made.</span>
+<span class="sd">    Every voice's reels are planned and checked before the first request, the</span>
+<span class="sd">    whole bill is announced once, and a reel already on record under the same</span>
+<span class="sd">    content key is not made again (``redo`` makes them all again). Returns</span>
+<span class="sd">    the manifests of ``refs``.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span>
+
+    <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="k">if</span> <span class="n">tts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">make_tts</span><span class="p">(</span><span class="n">DESIGN_PROVIDER</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">manifests</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">reels</span> <span class="o">=</span> <span class="n">_project_reels</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">_project_audition_inputs</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">tts</span><span class="p">)</span>
+    <span class="n">wanted</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span> <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">manifests</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wanted</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="s2">"no voice options yet: run `an voices design` first"</span><span class="p">)</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">jobs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AuditionJob</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">wanted</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">manifests</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"no options for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: run `an voices design` first"</span>
+            <span class="p">)</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">manifests</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="p">())]</span>
+        <span class="n">entries</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">effects</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+        <span class="n">jobs</span> <span class="o">+=</span> <span class="n">plan_auditions</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">,</span>
+            <span class="n">lines</span><span class="p">,</span>
+            <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+            <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
+            <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">,</span>
+            <span class="n">tts_name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)),</span>
+            <span class="n">redo</span><span class="o">=</span><span class="n">redo</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="n">job</span><span class="p">:</span> <span class="n">AuditionJob</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">option</span><span class="p">[</span><span class="s2">"audition_path"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">AUDITIONS_DIR</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">reel</span><span class="si">}</span><span class="s2">.wav"</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">manifests</span><span class="p">[</span><span class="n">job</span><span class="o">.</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entries</span><span class="p">[</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">ref</span>
+        <span class="p">]</span>  <span class="c1"># written per reel: a later failure loses nothing paid</span>
+
+    <span class="n">run_auditions</span><span class="p">(</span>
+        <span class="n">jobs</span><span class="p">,</span> <span class="n">reels</span><span class="o">=</span><span class="n">reels</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span> <span class="n">gap_s</span><span class="o">=</span><span class="n">gap_s</span><span class="p">,</span> <span class="n">announce</span><span class="o">=</span><span class="n">announce</span><span class="p">,</span> <span class="n">on_reel</span><span class="o">=</span><span class="n">record</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">entries</span></div>
 
 
 

@@ -305,7 +305,7 @@ Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)
-strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset, or a voice written in words that nobody chose, is an error
+strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error (a voice written in words that nobody chose stays a warning here: casting comes after the check, and the render is what refuses it)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

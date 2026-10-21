@@ -8,14 +8,24 @@ an.audio.voice\_design
 
    .. autosummary::
    
+      announce_auditions
+      audition_key
+      audition_project_voices
+      audition_voice_options
+      plan_auditions
+      run_auditions
       cast_project_voice
       choose_project_voice
       choose_voice_option
       default_chooser
       default_designer
+      default_library
       design_project_voices
       design_voice_options
       designable_voices
+      library_query_of
+      library_voice_options
+      parse_library_query
       provisional_reason
       record_choice
       sample_text_from_lines
@@ -28,6 +38,9 @@ an.audio.voice\_design
    .. autosummary::
    
       ElevenLabsVoiceDesigner
+      ElevenLabsVoiceLibrary
+      LibraryVoice
+      AuditionJob
    
    .. rubric:: Exceptions
 
