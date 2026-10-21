@@ -168,16 +168,17 @@ CASTING_RENDER_NOTE: str = (
 
 
 def _voice_casting_findings(scene, mall, report: ValidationReport) -> None:
-    """A WARNING per voice the scene speaks with that is written in words
+    """An INFO line per voice the scene speaks with that is written in words
     (``notes``) and that nobody chose (an#486), whatever ``strict_assets`` —
-    and an info line per provisional voice (a timing draft's stand-in).
+    and one per provisional voice (a timing draft's stand-in).
 
-    A warning, not a strict error, on purpose: casting is a step that happens
-    AFTER a scene is checked and BEFORE it is rendered. A production pack is
-    checked (``an validate --strict-assets``, run by the pack checker) exactly
-    when its voices are still words, so an error here would fail every pack
-    that is doing the right thing. The refusal belongs to the render, which
-    is where a wrong voice would be paid for; validate says so in the message.
+    Info, not a warning or a strict error, on purpose: casting is a step that
+    happens AFTER a scene is checked and BEFORE it is rendered. A production
+    pack is checked (``an validate --strict-assets``, run by the pack checker,
+    whose example pack must check clean) exactly when its voices are still
+    words — that is the pack's correct state, not a defect of it. The refusal
+    belongs to the render, which is where a wrong voice would be paid for;
+    validate says so in the message.
     """
     from an.audio.voice_design import voice_casting
     from an.audio.voices import line_voice_id
@@ -189,7 +190,7 @@ def _voice_casting_findings(scene, mall, report: ValidationReport) -> None:
     ]
     uncast, provisional = voice_casting(spoken, mall.get("voices"))
     for message in uncast:
-        report.add("warning", "voices", f"{message} ({CASTING_RENDER_NOTE})")
+        report.add("info", "voices", f"{message} ({CASTING_RENDER_NOTE})")
     for message in provisional:
         report.add("info", "voices", message)
 

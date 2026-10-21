@@ -207,14 +207,15 @@ def test_the_pipeline_warns_a_python_caller_too():
 # -----------------------------------------------------------------------------
 
 
-def test_validate_warns_strict_or_not_because_casting_comes_after_the_check(tmp_path):
+def test_validate_notes_it_as_info_strict_or_not_because_casting_comes_after_the_check(tmp_path):
     """A production pack is checked with --strict-assets while its voices are
-    still words: that must pass. The refusal is the render's."""
+    still words: that must pass, and check CLEAN (the pack checker's example
+    pack allows no warning). The refusal is the render's."""
     root = _speaking(tmp_path, WRITTEN)
     for strict in (False, True):
         report = validate_project(root, strict_assets=strict)
         (f,) = [f for f in report.findings if f.ir_path == "voices"]
-        assert f.severity == "warning" and "nobody is recorded as choosing" in f.description
+        assert f.severity == "info" and "nobody is recorded as choosing" in f.description
         assert "`an render --strict-assets` refuses it until it is cast" in f.description
         assert report.passed
 
