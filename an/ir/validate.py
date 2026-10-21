@@ -2056,7 +2056,9 @@ def _asset_ref_problems(store: Any, ref: str) -> list[str]:
             continue
         file = inside_folder(folder, rel)
         if file is None:
-            out.append(f"{who} resolves outside the asset's folder (a link): {ASSET_REF_RULE}")
+            out.append(
+                f"{who} resolves outside the asset's folder (a link): {ASSET_REF_RULE}"
+            )
             continue
         out += [
             f"{who} is SVG that {found} — an asset is self-contained: no code, "
