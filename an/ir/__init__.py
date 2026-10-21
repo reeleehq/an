@@ -21,7 +21,14 @@ from an.ir.schema import (
     Dialogue,
     Camera,
     Resolution,
+    Space,
+    SpaceMember,
+    Attachment,
+    Viewpoint,
+    Travel,
+    Stream,
 )
+from an.ir.space import lower_space
 from an.ir.compose import (
     set_,
     tween,
@@ -60,6 +67,13 @@ __all__ = [
     "Dialogue",
     "Camera",
     "Resolution",
+    "Space",
+    "SpaceMember",
+    "Attachment",
+    "Viewpoint",
+    "Travel",
+    "Stream",
+    "lower_space",
     "set_",
     "tween",
     "sequence",

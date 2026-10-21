@@ -29,6 +29,7 @@ from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
 from an.ir.schema import CueAnchor, SceneIR
+from an.ir.space import SpaceError, has_space
 from an.base import SUPPORTED_RENDERERS
 from an.genres.registry import (
     CORE_OWNER,
@@ -1392,11 +1393,27 @@ class ValidationContext:
     shot: Any = None
     index: int | None = None
     memo: dict[Any, Any] = field(default_factory=dict)
+    #: The scene as the compiler sees it (ADR 0007): every framed shot's
+    #: placements derived from the space (:class:`an.ir.space.Lowered`).
+    #: ``None`` when the scene has no space, or its viewpoints could not be
+    #: resolved (reported as an error at ``space``); then ``shots`` are the
+    #: scene's own. The ``shot`` checks run on these shots: a member the world
+    #: adds is an entity to them, and its actions have a target.
+    lowered: Any = None
 
     @property
     def path(self) -> str:
         """The IR path of the current shot (``timeline/<index>``)."""
         return f"timeline/{self.index}"
+
+    @property
+    def shots(self) -> list:
+        """The shots the compiler would compile: lowered when there is a space."""
+        return list(
+            self.lowered.scene.timeline
+            if self.lowered is not None
+            else self.scene.timeline
+        )
 
     def cached(self, key: Any, compute: Any) -> Any:
         """``compute()``, once per ``key`` per validation."""
@@ -1482,7 +1499,12 @@ def validate_semantic(
 
     for check in selected("scene"):
         _run_check(check, ctx)
-    for i, shot in enumerate(scene.timeline):
+    if has_space(scene):
+        try:
+            ctx.lowered = _lowered(ctx)
+        except SpaceError as e:
+            ctx.report.add("error", "space", str(e))
+    for i, shot in enumerate(ctx.shots):
         ctx.shot, ctx.index = shot, i
         for check in selected("shot"):
             _run_check(check, ctx)
@@ -1490,6 +1512,19 @@ def validate_semantic(
     for check in selected("finish"):
         _run_check(check, ctx)
     return ctx.report
+
+
+def _lowered(ctx: ValidationContext) -> Any:
+    """The scene lowered through its space (ADR 0007), computed once. The
+    stage measures the members' extents by compiling each one's specimen; a
+    stand-in's warnings are the compile's own, not this read's."""
+    import warnings
+
+    from an.stage.space import lower_scene
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return lower_scene(ctx.scene, ctx.stores, fps=ctx.memo.get(_RENDER_FPS))
 
 
 def _run_check(check: Any, ctx: ValidationContext) -> None:
@@ -2433,12 +2468,15 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
     decision either way. Facing and view across a cut are the genre's check."""
     scene, report = ctx.scene, ctx.report
     fps = scene.meta.fps
-    placed = [_placements(shot, ctx) for shot in scene.timeline]
-    for i in range(1, len(scene.timeline)):
+    shots = ctx.shots
+    placed = _all_placements(ctx)
+    for i in range(1, len(shots)):
         before, after = placed[i - 1], placed[i]
         if not before or not after:
             continue
-        prev, shot = scene.timeline[i - 1], scene.timeline[i]
+        prev, shot = shots[i - 1], shots[i]
+        if _viewpoint_key(prev) != _viewpoint_key(shot):
+            continue  # a cut between two framings of one world is a cut, not a jump (ADR 0007)
         for entity_id in [e for e in after if e in before]:
             ended, starts = before[entity_id][1], after[entity_id][0]
             opened = _opened(shot, entity_id, fps=fps)
@@ -2460,6 +2498,172 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
                 "`stage.at`/`scale`); to jump on purpose, open the shot with a "
                 f"`set` of that property on {entity_id!r} at 0.",
             )
+
+
+def _all_placements(ctx: ValidationContext) -> list:
+    """Every shot's :func:`_placements`, computed once per validation."""
+    return ctx.cached(
+        "placements", lambda: [_placements(shot, ctx) for shot in ctx.shots]
+    )
+
+
+def _viewpoint_key(shot: Any) -> Any:
+    """What identifies a shot's viewpoint for "the same framing": its name, or
+    its inline viewpoint's dump; ``None`` for a hand-placed shot."""
+    vp = getattr(shot, "viewpoint", None)
+    if vp is None or isinstance(vp, str):
+        return vp
+    return json.dumps(vp.model_dump(), sort_keys=True, default=str)
+
+
+#: Two entities closer than this on screen have no left/right order to flip.
+SCREEN_DIRECTION_TOLERANCE_PX: float = 1.0
+
+
+def _core_screen_direction(ctx: ValidationContext) -> None:
+    """Two entities present on both sides of a cut whose left/right order
+    flips (ADR 0007): the camera crossed the line, and the audience sees them
+    swap seats. A warning naming the pair and both shots; a reverse angle
+    that keeps the order (over the shoulder, the line respected) says
+    nothing. Environments are not entities on screen."""
+    shots = ctx.shots
+    placed = _all_placements(ctx)
+    for i in range(1, len(shots)):
+        before, after = placed[i - 1], placed[i]
+        if not before or not after:
+            continue
+        prev, shot = shots[i - 1], shots[i]
+        # The cast and the props, not a travel's streams: scenery streaming
+        # past changes sides with everything, and that is the point of it.
+        space = ctx.scene.space
+        members = {m.id for m in space.members} if space is not None else set()
+        authored = {
+            e.id
+            for s in ctx.scene.timeline[i - 1 : i + 1]
+            for e in s.entities
+            if e.kind != "environment"
+        }
+        drawn = (authored | members) - {
+            e.id for s in (prev, shot) for e in s.entities if e.kind == "environment"
+        }
+        common = sorted(e for e in after if e in before and e in drawn)
+        for a_i, a in enumerate(common):
+            for b in common[a_i + 1 :]:
+                dx_before = before[a][1]["x"] - before[b][1]["x"]
+                dx_after = after[a][0]["x"] - after[b][0]["x"]
+                if (
+                    abs(dx_before) > SCREEN_DIRECTION_TOLERANCE_PX
+                    and abs(dx_after) > SCREEN_DIRECTION_TOLERANCE_PX
+                    and (dx_before > 0) != (dx_after > 0)
+                ):
+                    ctx.report.add(
+                        "warning",
+                        f"timeline/{i}/entities",
+                        f"{a!r} and {b!r} swap sides across the cut from shot {prev.id!r} "
+                        f"to {shot.id!r} ({a!r} is {'right' if dx_before > 0 else 'left'} of "
+                        f"{b!r}, then {'right' if dx_after > 0 else 'left'}): the camera "
+                        "crossed the line (the 180° rule). Keep both viewpoints on one side "
+                        "of the line between them, or cross it with a move or a neutral shot.",
+                    )
+
+
+def _core_space(ctx: ValidationContext) -> None:
+    """The scene's space names what exists (ADR 0007): registered member
+    kinds, and viewpoints whose `subject`/`hide` are members of the space. A size that
+    cannot be measured and a viewpoint that cannot be resolved are reported
+    with the shot that uses them."""
+    space = ctx.scene.space
+    if space is None:
+        return
+    from an.genres.registry import entity_kind
+
+    ids = {m.id for m in space.members}
+    for j, member in enumerate(space.members):
+        if entity_kind(member.kind) is None:
+            ctx.report.add(
+                "error",
+                f"space/members/{j}",
+                f"member {member.id!r} has kind {member.kind!r}, which no loaded genre "
+                "registers (the core has environment, prop and voice; a genre adds its own).",
+            )
+    for name, vp in space.viewpoints.items():
+        subjects = (
+            [vp.subject] if isinstance(vp.subject, str) else list(vp.subject or [])
+        )
+        for sid in subjects:
+            if sid not in ids:
+                ctx.report.add(
+                    "error",
+                    f"space/viewpoints/{name}",
+                    f"viewpoint {name!r} frames {sid!r}, which is not a member.",
+                )
+        for hid in vp.hide:
+            if hid not in ids:
+                ctx.report.add(
+                    "error",
+                    f"space/viewpoints/{name}",
+                    f"viewpoint {name!r} hides {hid!r}, which is not a member.",
+                )
+
+
+def _core_viewpoint(ctx: ValidationContext) -> None:
+    """What the world did to this framed shot (ADR 0007): the members it
+    added (info), a hand placement that disagrees with it (warning), a listed
+    entity the frame does not show (info), a member whose art cannot be
+    sized (warning); and, under a travel, the plates: every plane of the
+    shot's environments must be declared `far` (and then pinned, parallax
+    factor 0) or `vehicle`, because a plate with near objects baked in stands
+    still while the streams move."""
+    shot = ctx.shot
+    if getattr(shot, "viewpoint", None) is None or ctx.lowered is None:
+        return
+    for n in ctx.lowered.notes_for(ctx.index):
+        ctx.report.add(n.severity, f"{ctx.path}/entities", f"{n.entity!r}: {n.message}")
+    space = ctx.scene.space
+    travel = space.travel if space is not None else None
+    env_store = ctx.stores.get("environments")
+    if travel is None or env_store is None:
+        return
+    from an.stage.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
+
+    roles = {plane: role for role, planes in travel.plates.items() for plane in planes}
+    for entity in shot.entities:
+        if entity.kind != "environment":
+            continue
+        try:
+            raw = env_store[entity.ref]
+        except (KeyError, TypeError):
+            continue
+        if (
+            not isinstance(raw, dict)
+            or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name
+        ):
+            continue
+        try:
+            env = EnvironmentDescriptor.model_validate(
+                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
+            )
+        except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
+            continue
+        for plane in env.planes:
+            path = f"{entity.id}/{plane.name}"
+            role = roles.get(path)
+            if role is None:
+                ctx.report.add(
+                    "warning",
+                    f"{ctx.path}/entities",
+                    f"plane {path!r} is under a travelling view but `space.travel.plates` "
+                    "does not say what it holds: list it under `far` (the sky, the horizon, "
+                    "the far range: nothing nearer, which the streams draw) or `vehicle` "
+                    "(rigid with the camera: the cabin, the dashboard).",
+                )
+            elif role == "far" and plane.factors() != (0.0, 0.0):
+                ctx.report.add(
+                    "warning",
+                    f"{ctx.path}/entities",
+                    f"plane {path!r} is declared `far` (at infinity) but its parallax "
+                    f"factor is {plane.factors()}: a far plate is pinned, `depth: 0`.",
+                )
 
 
 def _core_meta_duration(ctx: ValidationContext) -> None:
@@ -2501,12 +2705,25 @@ def _register_core_checks() -> None:
         SemanticCheck("meta", _core_meta, stage="scene", order=20),
         SemanticCheck("easings", _core_easings, stage="scene", order=30),
         SemanticCheck("has_shots", _core_has_shots, stage="scene", order=40),
+        SemanticCheck(
+            "space",
+            _core_space,
+            stage="scene",
+            order=50,
+            description="the scene's space names members and kinds that exist",
+        ),
         SemanticCheck("action_kinds", _core_action_kinds, stage="scene", order=1),
         SemanticCheck("entity_kinds", _core_entity_kinds, stage="scene", order=2),
         SemanticCheck("renderer", _core_renderer, order=3),
         SemanticCheck("shot_basics", _core_shot_basics, order=10),
         SemanticCheck("renderable", _core_renderable, order=20),
         SemanticCheck("framing", _core_framing, order=30),
+        SemanticCheck(
+            "viewpoint",
+            _core_viewpoint,
+            order=36,
+            description="what the scene's space did to a framed shot, and its plates under a travel",
+        ),
         SemanticCheck("swap_references", _core_swap_references, order=50),
         SemanticCheck("trim_targets", _core_trim_targets, order=70),
         SemanticCheck("text_blocks", _core_text_blocks, order=80),
@@ -2529,6 +2746,13 @@ def _register_core_checks() -> None:
             stage="finish",
             order=11,
             description="an entity does not jump across a cut unless a set says so",
+        ),
+        SemanticCheck(
+            "screen_direction",
+            _core_screen_direction,
+            stage="finish",
+            order=12,
+            description="two entities keep their left/right order across a cut (the line)",
         ),
         SemanticCheck(
             "meta_duration",

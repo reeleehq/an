@@ -68,7 +68,7 @@ from an.genres.registry import (
     dialogue_sugars,
     register_action_kind,
 )
-from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot
+from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, Space
 from an.util import _read_text, _write_json, _write_text
 
 
@@ -162,6 +162,9 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     if title and "title" not in meta_data:
         meta_data["title"] = title
     meta = Meta(**meta_data)
+    # The scene's space (ADR 0007): a ```yaml space``` block before the shots.
+    space_data = _extract_yaml_block(global_text, "space")
+    space = Space(**space_data) if space_data is not None else None
 
     shots: list[Shot] = []
     for shot_id, renderer, body in parts["__shots__"]:
@@ -191,7 +194,7 @@ def markdown_to_ir(md_text: str) -> SceneIR:
             shot_kwargs["step_hz"] = shot_yaml["step_hz"]
         # The assembly fields (transitions, the sound layer) and the shot's
         # method policy (an#348): same whitelist.
-        for key in ("transition", "sounds", "policy"):
+        for key in ("transition", "sounds", "policy", "viewpoint"):
             if key in shot_yaml:
                 shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
@@ -199,7 +202,7 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     if meta.duration == 0.0:
         meta.duration = sum(s.duration for s in shots)
 
-    return SceneIR(meta=meta, timeline=shots)
+    return SceneIR(meta=meta, timeline=shots, space=space)
 
 
 def _extract_title(md_text: str) -> str:
@@ -731,6 +734,9 @@ def ir_to_markdown(scene: SceneIR) -> str:
     """
     parts: list[str] = [_md_title_line(scene) + "\n"]
     parts.append(_md_fence(_META_FENCE, _md_meta_body(scene)) + "\n")
+    space_body = _md_space_body(scene)
+    if space_body is not None:
+        parts.append(_md_fence(_SPACE_FENCE, space_body) + "\n")
 
     if scene.meta.notes:
         parts.append(scene.meta.notes.rstrip() + "\n")
@@ -745,6 +751,10 @@ def ir_to_markdown(scene: SceneIR) -> str:
 FenceKey = tuple[str, "str | None"]
 
 _META_FENCE: FenceKey = ("yaml", "meta")
+#: The scene's space (ADR 0007), written after the meta block when set.
+_SPACE_FENCE: FenceKey = ("yaml", "space")
+#: The blocks before the first shot, in the order the writer emits them.
+_HEAD_FENCES: tuple[FenceKey, ...] = (_META_FENCE, _SPACE_FENCE)
 
 #: The blocks the writer emits per shot, in the order it emits them.
 _SHOT_FENCES: tuple[FenceKey, ...] = (
@@ -808,6 +818,26 @@ def _md_meta_body(scene: SceneIR) -> str:
     return yaml.safe_dump(meta_dict, sort_keys=False).rstrip()
 
 
+def _md_space_body(scene: SceneIR) -> str | None:
+    """The ```yaml space`` block's body, or ``None`` when the scene has no
+    space: written only when set, like every field added after the first
+    documents were stored."""
+    if scene.space is None:
+        return None
+    return yaml.safe_dump(
+        scene.space.model_dump(exclude_none=True), sort_keys=False
+    ).rstrip()
+
+
+def _md_head_blocks(scene: SceneIR) -> dict[FenceKey, str]:
+    """The blocks the writer emits before the first shot."""
+    blocks = {_META_FENCE: _md_meta_body(scene)}
+    space_body = _md_space_body(scene)
+    if space_body is not None:
+        blocks[_SPACE_FENCE] = space_body
+    return blocks
+
+
 def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
     """The fenced blocks the writer emits for ``shot``: ``{fence: body}``, in order."""
     blocks: dict[FenceKey, str] = {}
@@ -824,6 +854,12 @@ def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
         shot_yaml["sounds"] = [c.model_dump(exclude_defaults=True) for c in shot.sounds]
     if shot.policy is not None:
         shot_yaml["policy"] = shot.policy
+    if shot.viewpoint is not None:  # ADR 0007, same rule
+        shot_yaml["viewpoint"] = (
+            shot.viewpoint
+            if isinstance(shot.viewpoint, str)
+            else shot.viewpoint.model_dump(exclude_none=True)
+        )
     blocks[("yaml", "shot")] = yaml.safe_dump(shot_yaml, sort_keys=False).rstrip()
     if shot.entities:
         entities_dump = [
@@ -1016,10 +1052,7 @@ def _patch_markdown(existing: str, old: SceneIR, new: SceneIR) -> str:
             else line + "\n\n" + head
         )
     head = _patch_blocks(
-        head,
-        {_META_FENCE: _md_meta_body(old)},
-        {_META_FENCE: _md_meta_body(new)},
-        order=(_META_FENCE,),
+        head, _md_head_blocks(old), _md_head_blocks(new), order=_HEAD_FENCES
     )
     if _META_FENCE not in {k for k, _ in _fences_in(head)}:
         title = _H1_RE.search(head)

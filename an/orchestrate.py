@@ -267,7 +267,9 @@ def _strict_asset_findings(
     rate = int(round(fps or scene.meta.fps or DEFAULT_FPS))
     width = scene.meta.resolution.width or DEFAULT_RESOLUTION[0]
     height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
-    for i, shot in enumerate(scene.timeline):
+    from an.stage.space import lower_scene
+
+    for i, shot in enumerate(lower_scene(scene, project.mall).scene.timeline):
         if shot.renderer not in STAGE_RENDERER_NAMES or str(i) in failing:
             continue
         try:

@@ -1079,6 +1079,14 @@ def _prepare_shots(
     if measure:
         warn_findings(findings)
 
+    # The scene as the compiler sees it (ADR 0007): every framed shot's
+    # placements derived from the space, on the settled copy and before
+    # anything compiles (the cue anchors, the keys, the shots). Never written
+    # back: the project keeps what the author wrote.
+    from an.stage.space import lower_scene
+
+    scene = lower_scene(scene, project.mall, fps=effective_fps).scene
+
     # Cues timed by the picture (an#317), on the settled copy: before the film
     # timeline, captions, the mix and every key read a cue's `at`.
     from an.sound_anchors import has_anchors, resolve_cue_anchors
