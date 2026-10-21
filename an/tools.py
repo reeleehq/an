@@ -23,6 +23,7 @@ from an.library.cli import _dispatch_funcs as _library_dispatch_funcs
 from an.build.cli import _dispatch_funcs as _cache_dispatch_funcs
 from an.sounds_cli import _dispatch_funcs as _sounds_dispatch_funcs
 from an.props_cli import _dispatch_funcs as _props_dispatch_funcs
+from an.world_cli import _dispatch_funcs as _world_dispatch_funcs
 from an.library.root import CORE_PACKAGE
 from an.library.root import project_dir as _project_dir
 
@@ -737,4 +738,7 @@ _dispatch_namespaces: dict[str, list] = {
     "sounds": _sounds_dispatch_funcs,
     # A prop's asset folder (an#340): `an props validate <key>`, `an props contract`.
     "props": _props_dispatch_funcs,
+    # The scene's world (ADR 0009): `an world show` prints every framed shot
+    # as the compiler sees it.
+    "world": _world_dispatch_funcs,
 }

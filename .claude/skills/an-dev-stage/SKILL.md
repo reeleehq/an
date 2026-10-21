@@ -212,6 +212,16 @@ channels that name it; there is no document marker. What to know before touching
 - Not built: `rotation_y`, a plane inside a plane (refused), mipmaps (the far fade hides the
   minification), tilt in `an validate`'s framing check.
 
+## 3d. The scene space: one world, shots as viewpoints (ADR 0009)
+
+- **The authored form** is `SceneIR.world` (members = the shot's own `{kind, id, store, ref}` at `at: [x, y, z]`, `x` right, `y` DOWN, `z` away, in the author's units, sized by `height`/`width` or `units_per_px`; `attached: {to, at?, scale?}`; `viewpoints: {name: …}`; `travel`) and `Shot.viewpoint` (a name or an inline `Viewpoint`). Both omit when unset: no stored scene moves, no schema version moves. The key is `world`, not `space` (`EntityKind.space` is a node's property space); the field is `subject`, not `on`: YAML reads `on:` as `true`.
+- **The lowering is IR-level and happens before any compile pass**: `an.ir.world.lower_world` (pure, takes `extents`) under `an.stage.world.lower_scene` (measures extents by compiling each member's specimen and taking the union of `node_box` over its subtree, relative to `screen_position` of its root). Every entry point that compiles calls it — `render._prepare_shots` (probe goes through it), `preview_project`, the orchestrator's strict-asset pass, `validate_semantic` (`ctx.lowered`, so the `shot` checks see the members the world adds and their actions resolve) — and `tests/test_world.py` pins that. **Never write the lowered scene back**: `_prepare_shots` lowers AFTER the audio write-back.
+- **The projection** is a pinhole on billboards: `depth = (p − c)·forward`, `sx = f·(p − c)·right/depth`, `stage.scale = (size/native) · f/depth`. `focal` defaults from `fov` (50°) and the frame WIDTH, so a world framed once frames the same at any resolution. roll turns the PICTURE clockwise (pinned by a doctest; the reviewer found the first draft documented the camera's turn); `vanish: [sx, sy]` is sugar for yaw/pitch (`sy = −f·tan(pitch)`): a vanishing point above centre is a camera looking down. A composition (`subject`, `size`) puts the camera on the look direction at the distance where the subject's band (`SHOT_SIZES`: fractions of its box from the top, human proportions until a genre registers landmarks) fills `fill` of the frame on the binding axis.
+- **What the lowering does to a framed shot**: fills a listed member's `stage` (a hand `stage.at` wins and a note says when it disagrees; its `scale` is the world's unless set, 1.0 being the default), adds every member whose screen box meets the frame (`hide` excludes, a listing overrides `hide` with a note), orders entities by depth (environments first, listed non-members on top) — this is the ENTITY LIST order the runtime draws, not a `zIndex`; `after` still rules planes. A body-attached member (`attached` without `at`) is added with no placement and `overrides.attached = {to, …}` for the genre's pass (cutan's `body_placement`, order 90) to place from the host's `stage`. Finding paths on a framed shot are remapped to the author's entity index (`_name_authored_entities`), `~<id>` for an added member. A shot that already lists a stream's slot ids is a lowered shot and is left alone (idempotent).
+- **A travel** moves the viewpoint through the world in FILM time (`film_timeline` starts, so phase holds across cuts); members ride; `streams` are seeded world rows (`stream_instances`: instance `k` at `k × mean spacing` + a per-`k` jitter, so a shot's window is a subset of any wider one). Entities are SLOTS (`stream_slots`: one per instance that fits between `near` and `far`, plus one; instance `k` draws in slot `k mod slots`, the same slot in every shot), so the count is bounded by the depth range; `max_actions` refuses a shot past the budget, naming the knobs. Each instance's channels are `fit_channel`: cubic-Bézier tweens (Hermite control points from the end slopes, `(1/3, d0/3, 2/3, 1 − d1/3)`) split until within `tolerance_px`, cut to the on-screen window (the off-screen tail is where `1/z` is steepest). Measured on a 10 s, three-stream road: 3.9 k actions, a 1.8 MB document, 0.7 px worst error; the review's 60 s road with markings every 2 units was 56 k actions before slots and the budget, which is why both exist. `plates: {far, vehicle}` must name every plane under a travel (validate), a `far` plate pinned at `depth: 0`; the deterministic check trusts the declaration, a content check needs a vision model (filed).
+- **Lints**: `world` (scene), `viewpoint` (per framed shot: the lowering's notes and the plates), `screen_direction` (finish: a pair of the cast or props swapping left/right across a cut; streams excluded), and `cut_continuity` skips a pair whose viewpoints differ.
+- Not built, filed: world-space motion (a member walking in world units; relative tweens), a plane at a world depth (true parallax and the dolly, an#478), a member fixed in the world under a travel, `an space from-shot`, rig landmarks for shot sizes and view selection and an eyeline lint (cutan), previz sharing the viewpoint vocabulary (an#257).
+
 ## 4. What a pack may and may not do
 
 A StylePack recolours SVG art **only where the descriptor tags it**: the character factory records,
@@ -290,11 +300,11 @@ contract hashes.
 
 **An entity kind may declare its own property space** (an#245, an#287): the
 compiled document records it per entity (`meta.entity_spaces`) and embeds the
-space's definition (`meta.spaces`), and `runtime.js` evaluates that entity's
+world's definition (`meta.spaces`), and `runtime.js` evaluates that entity's
 targets by the declared field kinds, write groups and the contract's easings
 (every other target keeps the value-typed rule). The runtime implements the
 seven core kinds only (`an.stage.compile.RUNTIME_FIELD_KINDS`, pinned to its
-`FIELD_KINDS` table); a space using any other kind is refused at compile. What a
+`FIELD_KINDS` table); a world using any other kind is refused at compile. What a
 declared property *draws* is still `applyProperty`'s switch or a swap set: a
 space changes how a value moves, not what it sets.
 

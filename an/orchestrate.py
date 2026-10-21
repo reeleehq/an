@@ -209,11 +209,14 @@ def _rights_conflict_findings(
     import warnings
 
     from an.credits import conflict_line, credits_for_scene
+    from an.stage.world import lowered_or_same
 
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # the credits walk's own warnings
-            conflicts = credits_for_scene(project.mall, scene).conflicts
+            conflicts = credits_for_scene(
+                project.mall, lowered_or_same(scene, project.mall)
+            ).conflicts
     except Exception as e:  # noqa: BLE001 — a finding, never a traceback
         report.add("warning", "library", f"rights conflicts could not be read: {e}")
         return
@@ -267,7 +270,13 @@ def _strict_asset_findings(
     rate = int(round(fps or scene.meta.fps or DEFAULT_FPS))
     width = scene.meta.resolution.width or DEFAULT_RESOLUTION[0]
     height = scene.meta.resolution.height or DEFAULT_RESOLUTION[1]
-    for i, shot in enumerate(scene.timeline):
+    from an.stage.world import lower_scene
+
+    try:
+        shots = lower_scene(scene, project.mall, fps=fps).scene.timeline
+    except Exception:  # noqa: BLE001 — validate reported it; check what it can
+        shots = scene.timeline
+    for i, shot in enumerate(shots):
         if shot.renderer not in STAGE_RENDERER_NAMES or str(i) in failing:
             continue
         try:

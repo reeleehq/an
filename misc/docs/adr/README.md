@@ -15,3 +15,4 @@ Format: Context → Decision → Alternatives considered → Consequences → Fi
 | 0006 | [The shared structured-animation contract is authored in `an` and published as a data package](0006-contract-ssot.md) | Accepted, 2026-10-01 (maintainer's choice) |
 | 0007 | [A performer's recording is a voice: recorded takes enter through the TTS provider seam](0007-recorded-voices.md) | Proposed, 2026-10-21 (built: an#494) |
 | 0008 | [A constraint layer under structured animation: bodies, joints, drivers and frames, solved per frame](0008-constraint-layer.md) | Proposed, 2026-10-21 |
+| 0009 | [A scene space: one world, and shots as viewpoints onto it](0009-scene-world.md) | Proposed, 2026-10-20 (built as its first slice: an#484) |

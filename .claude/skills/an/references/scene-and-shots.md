@@ -108,3 +108,49 @@ narrator: Sales doubled, then fell back.
 - **Look at what the render reports.** Layout problems (text cut off at the frame edge, labels overlapping, shapes off screen) are warned as `assets/sources/chart.py:14: [cut-off] …` — the line of the `play` they appeared after — with the contact sheet's path (`artifacts/contact_sheets/<sha>.png`, the settled beats tiled with their times). Open the contact sheet. A scene that fails is an error at its own line. The same findings are in `artifacts/render_reports/main.json`, and `an validate` lists them (with their `file:line`) for as long as the file is unchanged.
 - LaTeX (`MathTex`, `Tex`, numbered axes) needs a TeX install (`env.latex`); without one the scene renders until its first LaTeX use, which fails at that line — use `Text` instead.
 - Writing the scene file itself: the `manimkit` skill (storyboard, `manimkit search` for a working example to adapt, `manimkit lint`).
+
+## One world, many shots (the scene space)
+
+When several shots show one scene — a two-shot and the close singles of a conversation, a car and the road behind it — describe the scene ONCE as a `world` and make each shot a `viewpoint` onto it. Every placement then follows from the world: a close-up of Paul shows Jerry beside him because the world says Jerry is there, the wheel in Paul's hands keeps its size relative to him in every framing, and the road's poles rush past at the speed the world says. A shot without a `viewpoint` is placed by hand, as before, and a hand `stage.at` always wins (validate says when it disagrees with the world).
+
+````markdown
+```yaml world
+members:
+- {kind: character, id: jerry, store: characters, ref: jerry, at: [-0.45, 0.65, 1.6], height: 1.75}
+- {kind: character, id: paul, store: characters, ref: paul, at: [0.45, 0.65, 1.6], height: 1.75}
+- {kind: prop, id: wheel, store: props, ref: wheel_hands, attached: {to: paul}, after: paul}
+- {kind: environment, id: set, store: environments, ref: car_cabin}
+viewpoints:
+  two_shot: {at: [0, 0, 0], vanish: [0, -262], fov: 50}
+  paul_single: {subject: paul, size: close_up, subject_at: [150, 0]}
+  jerry_single: {subject: jerry, size: close_up, subject_at: [-150, 0]}
+travel:
+  speed: 20
+  far: 60
+  streams:
+  - {id: dash, ref: road_dash, height: 0.1, every: 12, y: 1.2, after: set/rear_view}
+  - {id: pole, ref: pole, height: 6, every: [30, 50], lane: [3, 3.5], y: 1.2, after: set/rear_view}
+  - {id: tree, ref: olive_tree, height: 4, every: [10, 40], lane: [-14, -5], y: 1.2, after: set/rear_view}
+  plates: {far: [set/rear_view], vehicle: [set/cabin, set/front]}
+```
+
+## Shot mountain (cutout)
+
+```yaml shot
+duration: 10.0
+viewpoint: two_shot
+```
+
+## Shot its_big (cutout)
+
+```yaml shot
+duration: 6.0
+viewpoint: jerry_single
+```
+````
+
+- **Units are yours** (metres read well); `x` is right, `y` is DOWN (the stage's axis), `z` is away from the viewer. A character's `at` is where its feet stand; `height` is its size in your units (its art's extent is measured for you). An `environment` member is present in every framed shot and placed by nothing: plates are per shot, and a close-up usually has its own.
+- **A viewpoint is a camera**: `at`, `look: [yaw, pitch, roll]` in degrees or `look_at: [x, y, z]` or `vanish: [sx, sy]` (where the road's vanishing point lands on screen), and `fov` (horizontal, default 50°) or `focal` (pixels). Or a **composition**: `subject` (one member or a list), `size` (`close_up` head and shoulders, `medium` waist up, `full`, `wide`) or `distance`, and `subject_at` (where the subject lands, pixels from the frame centre). Name the coverage in `viewpoints` and reuse it: two shots on `jerry_single` frame identically, and `cut_continuity` knows a cut between two viewpoints is a cut.
+- **What a framed shot lists** is what you place by hand or animate; everything else the frame shows is added for you (`an validate` reports it as info; `an world show <dir>` prints the whole lowered shot). A travel's streams are drawn by a bounded set of entities (one per instance that fits between `near` and `far`), and a shot whose streams would cost more than `max_actions` (20,000 by default) is refused with the knobs to turn: `every`, `far`, `tolerance_px`, the shot's length. `hide: [jerry]` on a viewpoint leaves a member out (a shot that lists it anyway keeps it: the listing wins). A hand `stage: {at: [...]}` on a listed member nudges it and keeps the world's size; add `scale` only to change the size too. Actions stay in the shot's screen pixels, so a 2 px seat bob is 2 px in any framing.
+- **A travel** is the viewpoint moving through the world at `speed` units per second of film time; the cast rides with it; `streams` are rows of one prop (`every` units apart, `lane` to the right of the direction, at height `y`), positioned once in the world so that every shot sees the same poles in the same places at the same film time. Under a travel, declare every plane of the shot's environment in `plates`: `far` for what is at infinity (the sky, the horizon, the far range — and NOTHING nearer, which the streams draw; a far plate is `depth: 0`), `vehicle` for what is rigid with the camera (the cabin, the dashboard). A plate with near trees baked in stands still while the poles move, and reads as broken.
+- **The line**: `an validate` warns when two members swap sides across a cut (the 180° rule). Keep a conversation's viewpoints on one side of the line between the speakers.

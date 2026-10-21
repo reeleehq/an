@@ -116,8 +116,9 @@ def frame(project: Project | str | os.PathLike, shot: str, t: float, **kwargs) -
 def _shot_publishable(project: Project, shot: str) -> tuple[bool, list[str]]:
     """Whether everything shot ``shot`` draws or plays may ship, and what may not."""
     from an.credits import credits_for_scene
+    from an.stage.world import lowered_or_same
 
-    scene = project.scene
+    scene = lowered_or_same(project.scene, project.mall)
     only = scene.model_copy(
         update={"timeline": [s for s in scene.timeline if s.id == shot]}
     )

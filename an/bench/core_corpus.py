@@ -500,6 +500,9 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
         project = load(work)
         meta = project.scene.meta
         style_pack = style_pack_for(meta, project.mall.get("styles") or {})
+        from an.stage.world import lower_scene  # what the render compiles (ADR 0009)
+
+        scene = lower_scene(project.scene, project.mall).scene
         docs = [
             to_dict(
                 compile_shot(
@@ -514,7 +517,7 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
                     default_easing=meta.default_easing,
                 )
             )
-            for shot in project.scene.timeline
+            for shot in scene.timeline
         ]
     return scenes_contract_sha256(docs)
 

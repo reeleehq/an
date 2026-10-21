@@ -21,7 +21,14 @@ from an.ir.schema import (
     Dialogue,
     Camera,
     Resolution,
+    World,
+    WorldMember,
+    Attachment,
+    Viewpoint,
+    Travel,
+    Stream,
 )
+from an.ir.world import lower_world
 from an.ir.compose import (
     set_,
     tween,
@@ -60,6 +67,13 @@ __all__ = [
     "Dialogue",
     "Camera",
     "Resolution",
+    "World",
+    "WorldMember",
+    "Attachment",
+    "Viewpoint",
+    "Travel",
+    "Stream",
+    "lower_world",
     "set_",
     "tween",
     "sequence",

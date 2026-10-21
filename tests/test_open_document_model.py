@@ -73,7 +73,9 @@ def _declared_entry_point() -> EntryPoint:
     """The `an.genres` entry point `cutan`'s `pyproject.toml` declares."""
     # `an` declares none since the move (an#225); `cutan` declares the cut-out genre under
     # the same name, so the test builds that declaration.
-    return EntryPoint("cutout_animation", "cutan.genre:CUTOUT", genres.ENTRY_POINT_GROUP)
+    return EntryPoint(
+        "cutout_animation", "cutan.genre:CUTOUT", genres.ENTRY_POINT_GROUP
+    )
 
 
 @pytest.fixture
@@ -344,12 +346,16 @@ def test_the_cut_out_genre_is_one_plain_inspectable_object():
     # What it declares is the genre's to pin (an#427): read it, never copy it.
     assert tuple(provides["action kinds"]) == tuple(x.name for x in CUTOUT.action_kinds)
     assert tuple(provides["entity kinds"]) == tuple(x.name for x in CUTOUT.entity_kinds)
-    assert tuple(provides["dialogue sugar"]) == tuple(x.name for x in CUTOUT.dialogue_sugar)
+    assert tuple(provides["dialogue sugar"]) == tuple(
+        x.name for x in CUTOUT.dialogue_sugar
+    )
     # Its checks are its own declaration, namespaced; WHICH checks it has is
     # pinned in the genre's repository (cutan), never here: a pin here turned
     # every open `an` PR red each time the genre added one (an#354, cutan#19).
     assert set(provides["checks"]) == {c.name for c in CUTOUT.checks}
-    assert provides["checks"] and all(n.startswith("cutout.") for n in provides["checks"])
+    assert provides["checks"] and all(
+        n.startswith("cutout.") for n in provides["checks"]
+    )
 
 
 def test_the_nw_genre_slug_is_the_genre_name():
@@ -708,6 +714,7 @@ def test_the_report_order_is_pinned():
         "manim.shot",  # an#279: a Manim shot's options, before anything reads them
         "renderable",
         "framing",
+        "viewpoint",  # ADR 0009: what the world did to a framed shot, after its framing
         "swap_references",
         "trim_targets",
         "text_blocks",
@@ -723,6 +730,8 @@ def test_the_report_order_is_pinned():
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
         "cut_continuity",
+        # ADR 0009: two entities keep their left/right order across a cut (the line)
+        "screen_direction",
         # an#396: meta.duration, when set, says what the shots lay out
         "meta_duration",
         "assembly",
@@ -811,22 +820,41 @@ def test_a_dialogue_sugar_can_carry_a_typed_parameter():
             return line.emotion
         return f"{line.emotion} {line.emotion_intensity:g}"
 
-    sugar = DialogueSugar("demo_emotion", "[", "emotion", parse=parse, format=fmt,
-                          fields=("emotion_intensity",))
+    sugar = DialogueSugar(
+        "demo_emotion",
+        "[",
+        "emotion",
+        parse=parse,
+        format=fmt,
+        fields=("emotion_intensity",),
+    )
     with without_genres():
         register_genre(Genre("demo_sugar", dialogue_sugar=(sugar,)))
         line = _parse_dialogue_line("maya [angry 0.4]: Fine.", where="t")
         assert (line.emotion, line.emotion_intensity) == ("angry", 0.4)
         assert _format_dialogue_line(line) == "maya [angry 0.4]: Fine."
-        assert _parse_dialogue_line("maya [happy]: Hi.", where="t").emotion_intensity is None
-        assert "emotion_intensity" not in Dialogue(speaker="m", text="x").model_dump(mode="json")
+        assert (
+            _parse_dialogue_line("maya [happy]: Hi.", where="t").emotion_intensity
+            is None
+        )
+        assert "emotion_intensity" not in Dialogue(speaker="m", text="x").model_dump(
+            mode="json"
+        )
         with pytest.raises(ValueError):
             Dialogue(speaker="m", text="x", emotion="angry", emotion_intensity=1.5)
-    bad = DialogueSugar("demo_bad", "[", "emotion", parse=lambda c: {"voice_ref": c},
-                        format=lambda line: None, fields=("emotion_intensity",))
+    bad = DialogueSugar(
+        "demo_bad",
+        "[",
+        "emotion",
+        parse=lambda c: {"voice_ref": c},
+        format=lambda line: None,
+        fields=("emotion_intensity",),
+    )
     with pytest.raises(RegistryError, match="does not declare"):
         bad.values("x")
     # with no genre spelling it, a line carrying an intensity cannot be written
     with without_genres():
         with pytest.raises(UnregisteredKindError):
-            _format_dialogue_line(Dialogue(speaker="m", text="x", emotion_intensity=0.4))
+            _format_dialogue_line(
+                Dialogue(speaker="m", text="x", emotion_intensity=0.4)
+            )
