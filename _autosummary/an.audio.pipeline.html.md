@@ -62,13 +62,16 @@ than its voice declares is a [`VoiceStandInWarning`](#an.audio.pipeline.VoiceSta
 
 ### Exceptions
 
-| [`AudioNotCachedError`](#an.audio.pipeline.AudioNotCachedError)    | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.           |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                                                                                           |
-| [`DialogueOverrunWarning`](#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                                                                                |
-| [`TakeDigestWarning`](#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names.                                                                |
-| [`VoiceStandInError`](#an.audio.pipeline.VoiceStandInError)      | Under `strict`: a line would be spoken by another provider than its voice declares.                                                             |
-| [`VoiceStandInWarning`](#an.audio.pipeline.VoiceStandInWarning)    | A line is spoken by another provider than its voice document declares — an override for every line, or a provider `an` has no TTS for (an#305). |
+| [`AudioNotCachedError`](#an.audio.pipeline.AudioNotCachedError)     | A line's audio (or its visemes) is not in the content-keyed stores, so stamping it would need a synthesis this caller does not allow.           |
+|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)      | The scene declares audio the pipeline cannot produce.                                                                                           |
+| [`DialogueOverrunWarning`](#an.audio.pipeline.DialogueOverrunWarning)  | A synthesized line runs past its shot's end, so its tail is cut.                                                                                |
+| [`TakeDigestWarning`](#an.audio.pipeline.TakeDigestWarning)       | The audio restored for a line's recorded take is not the audio the record names.                                                                |
+| [`VoiceNotChosenError`](#an.audio.pipeline.VoiceNotChosenError)     | Under `strict`: a line would speak a voice nobody chose.                                                                                        |
+| [`VoiceNotChosenWarning`](#an.audio.pipeline.VoiceNotChosenWarning)   | A line's voice is written in words (`notes`) but nobody is recorded as choosing its `voice_id` — the writer has not cast it (an#486).           |
+| [`VoiceProvisionalWarning`](#an.audio.pipeline.VoiceProvisionalWarning) | A line speaks a voice its document marks `provisional` — a timing draft's stand-in, allowed, and listed so the cut does not ship with it.       |
+| [`VoiceStandInError`](#an.audio.pipeline.VoiceStandInError)       | Under `strict`: a line would be spoken by another provider than its voice declares.                                                             |
+| [`VoiceStandInWarning`](#an.audio.pipeline.VoiceStandInWarning)     | A line is spoken by another provider than its voice document declares — an override for every line, or a provider `an` has no TTS for (an#305). |
 
 ### an.audio.pipeline.AUDIO_OUTPUT_STORES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('audio', 'visemes')*
 
@@ -142,6 +145,27 @@ alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#col
 
 The `tts` that means “each line’s voice document names its provider” — the
 default of a render (an#305). `None` and `""` mean the same.
+
+### *exception* an.audio.pipeline.VoiceNotChosenError
+
+Bases: [`AudioPipelineError`](#an.audio.pipeline.AudioPipelineError)
+
+Under `strict`: a line would speak a voice nobody chose. Raised before
+any request, naming `an voices design` / `an voices choose` (an#486).
+
+### *exception* an.audio.pipeline.VoiceNotChosenWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A line’s voice is written in words (`notes`) but nobody is recorded as
+choosing its `voice_id` — the writer has not cast it (an#486).
+
+### *exception* an.audio.pipeline.VoiceProvisionalWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A line speaks a voice its document marks `provisional` — a timing
+draft’s stand-in, allowed, and listed so the cut does not ship with it.
 
 ### *exception* an.audio.pipeline.VoiceStandInError
 
@@ -337,7 +361,11 @@ given (`None`, `""` or [`VOICE_TTS`](#an.audio.pipeline.VOICE_TTS)), the line’
 [`an.audio.providers.make_tts()`](an.audio.providers.html.md#an.audio.providers.make_tts)), else offline; a `tts` given speaks
 every line. A line spoken by another provider than its voice declares is a
 [`VoiceStandInWarning`](#an.audio.pipeline.VoiceStandInWarning) — the silent offline voice says so — and,
-with `strict`, a [`VoiceStandInError`](#an.audio.pipeline.VoiceStandInError) before any request. A provider
+with `strict`, a [`VoiceStandInError`](#an.audio.pipeline.VoiceStandInError) before any request. A voice
+written in words (`notes`) that nobody is recorded as choosing is a
+[`VoiceNotChosenWarning`](#an.audio.pipeline.VoiceNotChosenWarning) and, with `strict`, a
+[`VoiceNotChosenError`](#an.audio.pipeline.VoiceNotChosenError) before any request (an#486); a voice marked
+`provisional` is spoken and listed ([`VoiceProvisionalWarning`](#an.audio.pipeline.VoiceProvisionalWarning)). A provider
 with requests to send is asked `check_available()` first (ElevenLabs: is
 there a key?), and what a provider that bills per character will bill is
 announced before the first request — whatever chose the provider; a cached

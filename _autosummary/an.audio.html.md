@@ -434,7 +434,11 @@ given (`None`, `""` or `VOICE_TTS`), the line’s voice document’s
 [`an.audio.providers.make_tts()`](an.audio.providers.html.md#an.audio.providers.make_tts)), else offline; a `tts` given speaks
 every line. A line spoken by another provider than its voice declares is a
 `VoiceStandInWarning` — the silent offline voice says so — and,
-with `strict`, a `VoiceStandInError` before any request. A provider
+with `strict`, a `VoiceStandInError` before any request. A voice
+written in words (`notes`) that nobody is recorded as choosing is a
+`VoiceNotChosenWarning` and, with `strict`, a
+`VoiceNotChosenError` before any request (an#486); a voice marked
+`provisional` is spoken and listed (`VoiceProvisionalWarning`). A provider
 with requests to send is asked `check_available()` first (ElevenLabs: is
 there a key?), and what a provider that bills per character will bill is
 announced before the first request — whatever chose the provider; a cached

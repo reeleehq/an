@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=23149f8c"></script>
+    <script src="../_static/documentation_options.js?v=14ec15e6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.241" />
+  <meta name="docsearch:version" content="0.1.242" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1175,7 +1175,11 @@ given (<code class="docutils literal notranslate"><span class="pre">None</span><
 <a class="reference internal" href="an.audio.providers.html#an.audio.providers.make_tts" title="an.audio.providers.make_tts"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.providers.make_tts()</span></code></a>), else offline; a <code class="docutils literal notranslate"><span class="pre">tts</span></code> given speaks
 every line. A line spoken by another provider than its voice declares is a
 <code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceStandInWarning</span></code> — the silent offline voice says so — and,
-with <code class="docutils literal notranslate"><span class="pre">strict</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceStandInError</span></code> before any request. A provider
+with <code class="docutils literal notranslate"><span class="pre">strict</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceStandInError</span></code> before any request. A voice
+written in words (<code class="docutils literal notranslate"><span class="pre">notes</span></code>) that nobody is recorded as choosing is a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceNotChosenWarning</span></code> and, with <code class="docutils literal notranslate"><span class="pre">strict</span></code>, a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceNotChosenError</span></code> before any request (an#486); a voice marked
+<code class="docutils literal notranslate"><span class="pre">provisional</span></code> is spoken and listed (<code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceProvisionalWarning</span></code>). A provider
 with requests to send is asked <code class="docutils literal notranslate"><span class="pre">check_available()</span></code> first (ElevenLabs: is
 there a key?), and what a provider that bills per character will bill is
 announced before the first request — whatever chose the provider; a cached

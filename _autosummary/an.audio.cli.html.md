@@ -12,7 +12,8 @@ provider factories.
 > an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
 > an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
 > an voices design <project>                      # design options from each voice’s notes (billed)
-> an voices choose <project> jerry_voice B        # the writer’s pick becomes the voice_id
+> an voices choose <project> jerry_voice B –by noel   # the writer’s pick becomes the voice_id (recorded)
+> an voices cast <project> paul_voice <voice_id> –by noel   # a voice picked by hand, recorded the same way
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
 `rescore` and `reroll` are the only ways a recorded best-of-N take is

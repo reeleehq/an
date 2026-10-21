@@ -241,7 +241,8 @@ parallel: per-shot concurrency. “” or “1” = serial (default); “auto”
 : min(shots, cpu, 4); a number ≥ 2 caps the thread pool.
 
 strict_assets: fail instead of drawing a stand-in (the placeholder rig, the
-: default backdrop) for an asset the project’s stores don’t supply
+: default backdrop) for an asset the project’s stores don’t supply, or
+  speaking a voice written in words that nobody chose (`an voices choose`)
 
 supersample: render at N times the resolution and resolve back with an exact
 : N x N block mean. Opt-in; 1 (the default) costs nothing at all. Measured
@@ -304,7 +305,7 @@ Validate the scene at `project_dir`. Prints findings, exit 0 on pass.
 
 project_dir: the an project
 fps: the frame rate `an render --fps` will use, when not the scene’s (0: the scene’s)
-strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error
+strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset, or a voice written in words that nobody chose, is an error
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

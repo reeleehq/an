@@ -23,6 +23,15 @@ Two steps, both plain functions over injected stores:
 - [`choose_voice_option()`](#an.audio.voice_design.choose_voice_option): the `voice_id` of the chosen option (saving it
   as a voice first when it was not persisted).
 
+**A choice is recorded, and a render needs one** (an#486). A voice written in
+words (`notes`) is cast by the writer, nobody else: `an voices choose`
+writes `chosen_by` and `chosen_at` beside the `voice_id`
+([`record_choice()`](#an.audio.voice_design.record_choice)), and a voice document that has `notes` but no
+recorded choice is a render finding, refused under `--strict-assets` before
+anything is synthesized ([`voice_casting_problem()`](#an.audio.voice_design.voice_casting_problem)). A timing draft may
+speak a stand-in voice only with an explicit `provisional` (`true`, or a
+string saying why), which every render report lists.
+
 The project-level forms, [`design_project_voices()`](#an.audio.voice_design.design_project_voices) and
 [`choose_project_voice()`](#an.audio.voice_design.choose_project_voice), keep the manifest in
 `artifacts/voice_options/<ref>.json`, the samples in
@@ -64,15 +73,21 @@ Designing is billed by the provider; nothing here is called by a render.
 
 ### Functions
 
-| [`choose_project_voice`](#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*)   | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`; return the document.                                                |
-|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`choose_voice_option`](#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...])   | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                      |
-| [`default_designer`](#an.audio.voice_design.default_designer)(\*[, api_key])                      | The designer used when none is given: [`ElevenLabsVoiceDesigner`](#an.audio.voice_design.ElevenLabsVoiceDesigner).                           |
-| [`design_project_voices`](#an.audio.voice_design.design_project_voices)(project_dir[, refs, ...])      | Design options for the project's voices; write manifests and samples; return the manifest.                                                |
-| [`design_voice_options`](#an.audio.voice_design.design_voice_options)(voices, \*, samples[, ...])     | Design options for each voice with notes; return the options manifest.                                                                    |
-| [`designable_voices`](#an.audio.voice_design.designable_voices)(voices[, refs])                    | The voice documents (of `refs`, else all) that carry `notes`.                                                                             |
-| [`sample_text_from_lines`](#an.audio.voice_design.sample_text_from_lines)(lines, \*[, limit])           | A sample text from a voice's own dialogue lines, or `None` when they are too short for a provider preview (then the provider writes one). |
-| [`sample_text_of`](#an.audio.voice_design.sample_text_of)(doc[, fallback])                      | The document's `sample_text` (clipped), else `fallback`.                                                                                  |
+| [`cast_project_voice`](#an.audio.voice_design.cast_project_voice)(project_dir, ref[, ...])        | Record a voice picked by hand (from `an voices list`, or the document's own `voice_id`) as the writer's choice for `ref`: `voice_id` (default: the one the document already names), `chosen_by`, `chosen_at`; no options manifest needed and nothing billed.                                                                                                                        |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`choose_project_voice`](#an.audio.voice_design.choose_project_voice)(project_dir, ref, option, \*) | Write the chosen option's `voice_id` into `assets/voices/<ref>.json`, with who chose it (`by`, default the login name) and when (`at`, default now; [`record_choice()`](#an.audio.voice_design.record_choice)); return the document.                                                                                                                                         |
+| [`choose_voice_option`](#an.audio.voice_design.choose_voice_option)(entry, option, \*[, ref, ...]) | The provider `voice_id` of `option` in one voice's manifest `entry`.                                                                                                                                                                                                                                                                                                                |
+| [`default_chooser`](#an.audio.voice_design.default_chooser)()                                  | Who a choice is recorded as when nobody is named: the login name.                                                                                                                                                                                                                                                                                                                   |
+| [`default_designer`](#an.audio.voice_design.default_designer)(\*[, api_key])                    | The designer used when none is given: [`ElevenLabsVoiceDesigner`](#an.audio.voice_design.ElevenLabsVoiceDesigner).                                                                                                                                                                                                                                                                     |
+| [`design_project_voices`](#an.audio.voice_design.design_project_voices)(project_dir[, refs, ...])    | Design options for the project's voices; write manifests and samples; return the manifest.                                                                                                                                                                                                                                                                                          |
+| [`design_voice_options`](#an.audio.voice_design.design_voice_options)(voices, \*, samples[, ...])   | Design options for each voice with notes; return the options manifest.                                                                                                                                                                                                                                                                                                              |
+| [`designable_voices`](#an.audio.voice_design.designable_voices)(voices[, refs])                  | The voice documents (of `refs`, else all) that carry `notes`.                                                                                                                                                                                                                                                                                                                       |
+| [`provisional_reason`](#an.audio.voice_design.provisional_reason)(doc)                            | Why `doc` speaks a voice nobody chose (its `provisional`, as text), or `None` when it is not provisional.                                                                                                                                                                                                                                                                           |
+| [`record_choice`](#an.audio.voice_design.record_choice)(doc, voice_id, \*[, by, at, ...])    | The voice document with `voice_id` chosen by `by` at `at` (default: now, UTC): `chosen_by` and `chosen_at` beside the `voice_id`, the `provider` set when given (`None`, the default, keeps the document's: a designed option passes `DESIGN_PROVIDER`; a hand-picked voice of another provider passes nothing), and `provisional` dropped, since a choice is what it stood in for. |
+| [`sample_text_from_lines`](#an.audio.voice_design.sample_text_from_lines)(lines, \*[, limit])         | A sample text from a voice's own dialogue lines, or `None` when they are too short for a provider preview (then the provider writes one).                                                                                                                                                                                                                                           |
+| [`sample_text_of`](#an.audio.voice_design.sample_text_of)(doc[, fallback])                    | The document's `sample_text` (clipped), else `fallback`.                                                                                                                                                                                                                                                                                                                            |
+| [`voice_casting`](#an.audio.voice_design.voice_casting)(voice_refs, voices)                  | `(uncast, provisional)`: one message per distinct voice of `voice_refs` (the voices a scene's lines speak with) that a render must not speak as it stands, and one per voice it speaks provisionally.                                                                                                                                                                               |
+| [`voice_casting_problem`](#an.audio.voice_design.voice_casting_problem)(doc)                         | Why a render must not speak `doc` as it stands, or `None`.                                                                                                                                                                                                                                                                                                                          |
 
 ### Classes
 
@@ -115,9 +130,22 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A voice that cannot be designed or chosen (no notes, an unknown option, …).
 
-### an.audio.voice_design.choose_project_voice(project_dir, ref, option, , designer=None)
+### an.audio.voice_design.cast_project_voice(project_dir, ref, voice_id=None, , by=None, at=None, provider=None)
 
-Write the chosen option’s `voice_id` into `assets/voices/<ref>.json`; return the document.
+Record a voice picked by hand (from `an voices list`, or the document’s
+own `voice_id`) as the writer’s choice for `ref`: `voice_id` (default:
+the one the document already names), `chosen_by`, `chosen_at`; no
+options manifest needed and nothing billed. `provider` sets the
+document’s when given. Returns the document.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### an.audio.voice_design.choose_project_voice(project_dir, ref, option, , designer=None, by=None, at=None)
+
+Write the chosen option’s `voice_id` into `assets/voices/<ref>.json`,
+with who chose it (`by`, default the login name) and when (`at`, default
+now; [`record_choice()`](#an.audio.voice_design.record_choice)); return the document.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
@@ -128,6 +156,13 @@ The provider `voice_id` of `option` in one voice’s manifest `entry`.
 
 An option that was not persisted is saved as a voice now (its preview must
 not have expired).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.voice_design.default_chooser()
+
+Who a choice is recorded as when nobody is named: the login name.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -180,6 +215,45 @@ usable notes; skip the unnamed ones silently.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)]
 
+### an.audio.voice_design.provisional_reason(doc)
+
+Why `doc` speaks a voice nobody chose (its `provisional`, as text), or
+`None` when it is not provisional.
+
+```pycon
+>>> provisional_reason({"provisional": "timing draft"}), provisional_reason({"provisional": True})
+('timing draft', 'provisional')
+>>> provisional_reason({"provisional": False}) is None, provisional_reason({}) is None
+(True, True)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.voice_design.record_choice(doc, voice_id, , by=None, at=None, provider=None)
+
+The voice document with `voice_id` chosen by `by` at `at` (default:
+now, UTC): `chosen_by` and `chosen_at` beside the `voice_id`, the
+`provider` set when given (`None`, the default, keeps the document’s:
+a designed option passes `DESIGN_PROVIDER`; a hand-picked voice of
+another provider passes nothing), and `provisional` dropped, since a
+choice is what it stood in for. `by` defaults to the login name, which
+says nothing about the writer: a connector or an agent choosing on a
+writer’s behalf passes the writer’s name.
+
+```pycon
+>>> doc = record_choice({"notes": "a warm voice", "provisional": True}, "v1",
+...                     by="noel", at="2026-10-20T22:00:00+00:00", provider="elevenlabs")
+>>> doc == {"notes": "a warm voice", "provider": "elevenlabs", "voice_id": "v1",
+...         "chosen_by": "noel", "chosen_at": "2026-10-20T22:00:00+00:00"}
+True
+>>> record_choice({"provider": "mac_say"}, "Junior", by="noel", at="t")["provider"]
+'mac_say'
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
 ### an.audio.voice_design.sample_text_from_lines(lines, , limit=1000)
 
 A sample text from a voice’s own dialogue lines, or `None` when they are
@@ -198,6 +272,52 @@ True
 ### an.audio.voice_design.sample_text_of(doc, fallback=None)
 
 The document’s `sample_text` (clipped), else `fallback`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.voice_design.voice_casting(voice_refs, voices)
+
+`(uncast, provisional)`: one message per distinct voice of `voice_refs`
+(the voices a scene’s lines speak with) that a render must not speak as it
+stands, and one per voice it speaks provisionally. Each message starts
+with `voice '<ref>'` and the uncast ones name the fix.
+
+```pycon
+>>> voices = {"j": {"notes": "n", "voice_id": "v"}, "p": {"notes": "n", "voice_id": "v",
+...           "provisional": "round-2 timing draft"}, "k": {"voice_id": "x"}}
+>>> uncast, provisional = voice_casting(["j", "p", "k", "j", "ghost"], voices)
+>>> print(uncast[0])
+voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes) then `an voices choose <option> --by <writer>` (the pick, recorded as chosen_by), or `an voices cast <voice_id> --by <writer>` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.
+>>> provisional
+["voice 'p' is provisional (round-2 timing draft): choose a voice before the cut"]
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.audio.voice_design.voice_casting_problem(doc)
+
+Why a render must not speak `doc` as it stands, or `None`.
+
+A voice written in words (`notes`) is cast only once a choice is recorded
+(`chosen_by` beside the `voice_id`), or it is marked `provisional`. A
+document without `notes` names its voice by hand and is not judged here.
+
+```pycon
+>>> voice_casting_problem({"voice_id": "v1"}) is None
+True
+>>> print(voice_casting_problem({"notes": "a warm voice"}))
+is written in words but no voice is chosen for it: nothing to speak with
+>>> print(voice_casting_problem({"notes": "a warm voice", "voice_id": "v1"}))
+has a voice_id nobody is recorded as choosing (no chosen_by)
+>>> voice_casting_problem({"notes": "n", "voice_id": "v1", "chosen_by": "noel"}) is None
+True
+>>> voice_casting_problem({"notes": "n", "voice_id": "v1", "provisional": "draft"}) is None
+True
+>>> voice_casting_problem({"notes": "n", "provisional": True}) is None  # provisional WHAT?
+False
+```
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=23149f8c"></script>
+    <script src="../../../_static/documentation_options.js?v=14ec15e6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.241" />
+  <meta name="docsearch:version" content="0.1.242" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -735,6 +735,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it</span>
 <span class="sd">  as a voice first when it was not persisted).</span>
 
+<span class="sd">**A choice is recorded, and a render needs one** (an#486). A voice written in</span>
+<span class="sd">words (``notes``) is cast by the writer, nobody else: ``an voices choose``</span>
+<span class="sd">writes ``chosen_by`` and ``chosen_at`` beside the ``voice_id``</span>
+<span class="sd">(:func:`record_choice`), and a voice document that has ``notes`` but no</span>
+<span class="sd">recorded choice is a render finding, refused under ``--strict-assets`` before</span>
+<span class="sd">anything is synthesized (:func:`voice_casting_problem`). A timing draft may</span>
+<span class="sd">speak a stand-in voice only with an explicit ``provisional`` (``true``, or a</span>
+<span class="sd">string saying why), which every render report lists.</span>
+
 <span class="sd">The project-level forms, :func:`design_project_voices` and</span>
 <span class="sd">:func:`choose_project_voice`, keep the manifest in</span>
 <span class="sd">``artifacts/voice_options/&lt;ref&gt;.json``, the samples in</span>
@@ -781,14 +790,20 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"ElevenLabsVoiceDesigner"</span><span class="p">,</span>
     <span class="s2">"VoiceDesignError"</span><span class="p">,</span>
+    <span class="s2">"cast_project_voice"</span><span class="p">,</span>
     <span class="s2">"choose_project_voice"</span><span class="p">,</span>
     <span class="s2">"choose_voice_option"</span><span class="p">,</span>
+    <span class="s2">"default_chooser"</span><span class="p">,</span>
     <span class="s2">"default_designer"</span><span class="p">,</span>
     <span class="s2">"design_project_voices"</span><span class="p">,</span>
     <span class="s2">"design_voice_options"</span><span class="p">,</span>
     <span class="s2">"designable_voices"</span><span class="p">,</span>
+    <span class="s2">"provisional_reason"</span><span class="p">,</span>
+    <span class="s2">"record_choice"</span><span class="p">,</span>
     <span class="s2">"sample_text_from_lines"</span><span class="p">,</span>
     <span class="s2">"sample_text_of"</span><span class="p">,</span>
+    <span class="s2">"voice_casting"</span><span class="p">,</span>
+    <span class="s2">"voice_casting_problem"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: The key, in a voice document, holding the voice in words.</span>
@@ -809,6 +824,20 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Where the project-level forms keep their records, under the project root.</span>
 <span class="n">OPTIONS_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice_options"</span>
 <span class="n">SAMPLES_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"artifacts"</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"voice_samples"</span>
+<span class="c1">#: What a choice writes into the voice document (an#486): who chose the</span>
+<span class="c1">#: ``voice_id`` and when (UTC, ISO 8601). A voice with ``notes`` and no</span>
+<span class="c1">#: ``chosen_by`` is not cast: nobody the writer trusts picked it.</span>
+<span class="n">CHOSEN_BY_KEY</span> <span class="o">=</span> <span class="s2">"chosen_by"</span>
+<span class="n">CHOSEN_AT_KEY</span> <span class="o">=</span> <span class="s2">"chosen_at"</span>
+<span class="c1">#: A voice a render may speak although nobody chose it: a timing draft. Any</span>
+<span class="c1">#: truthy value; a string says why, and the render report repeats it.</span>
+<span class="n">PROVISIONAL_KEY</span> <span class="o">=</span> <span class="s2">"provisional"</span>
+<span class="c1">#: The verbs that cast a voice, named by every refusal.</span>
+<span class="n">CASTING_VERBS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"`an voices design` (options from its notes) then `an voices choose &lt;option&gt; "</span>
+    <span class="s2">"--by &lt;writer&gt;` (the pick, recorded as chosen_by), or `an voices cast "</span>
+    <span class="s2">"&lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand (`an voices list`)"</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="VoiceDesignError">
@@ -1133,6 +1162,168 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="default_chooser">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.default_chooser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_chooser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Who a choice is recorded as when nobody is named: the login name."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - no login name on this host</span>
+        <span class="k">return</span> <span class="s2">"unknown"</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_utc_now</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="record_choice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.record_choice">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">record_choice</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The voice document with ``voice_id`` chosen by ``by`` at ``at`` (default:</span>
+<span class="sd">    now, UTC): ``chosen_by`` and ``chosen_at`` beside the ``voice_id``, the</span>
+<span class="sd">    ``provider`` set when given (``None``, the default, keeps the document's:</span>
+<span class="sd">    a designed option passes :data:`DESIGN_PROVIDER`; a hand-picked voice of</span>
+<span class="sd">    another provider passes nothing), and ``provisional`` dropped, since a</span>
+<span class="sd">    choice is what it stood in for. ``by`` defaults to the login name, which</span>
+<span class="sd">    says nothing about the writer: a connector or an agent choosing on a</span>
+<span class="sd">    writer's behalf passes the writer's name.</span>
+
+<span class="sd">    &gt;&gt;&gt; doc = record_choice({"notes": "a warm voice", "provisional": True}, "v1",</span>
+<span class="sd">    ...                     by="noel", at="2026-10-20T22:00:00+00:00", provider="elevenlabs")</span>
+<span class="sd">    &gt;&gt;&gt; doc == {"notes": "a warm voice", "provider": "elevenlabs", "voice_id": "v1",</span>
+<span class="sd">    ...         "chosen_by": "noel", "chosen_at": "2026-10-20T22:00:00+00:00"}</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; record_choice({"provider": "mac_say"}, "Junior", by="noel", at="t")["provider"]</span>
+<span class="sd">    'mac_say'</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">PROVISIONAL_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">provider</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">"provider"</span><span class="p">]</span> <span class="o">=</span> <span class="n">provider</span>
+    <span class="n">out</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">voice_id</span>
+    <span class="n">out</span><span class="p">[</span><span class="n">CHOSEN_BY_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">by</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">default_chooser</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">[</span><span class="n">CHOSEN_AT_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">at</span> <span class="ow">or</span> <span class="n">_utc_now</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="provisional_reason">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.provisional_reason">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">provisional_reason</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why ``doc`` speaks a voice nobody chose (its ``provisional``, as text), or</span>
+<span class="sd">    ``None`` when it is not provisional.</span>
+
+<span class="sd">    &gt;&gt;&gt; provisional_reason({"provisional": "timing draft"}), provisional_reason({"provisional": True})</span>
+<span class="sd">    ('timing draft', 'provisional')</span>
+<span class="sd">    &gt;&gt;&gt; provisional_reason({"provisional": False}) is None, provisional_reason({}) is None</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PROVISIONAL_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"provisional"</span></div>
+
+
+
+<div class="viewcode-block" id="voice_casting_problem">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.voice_casting_problem">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">voice_casting_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why a render must not speak ``doc`` as it stands, or ``None``.</span>
+
+<span class="sd">    A voice written in words (``notes``) is cast only once a choice is recorded</span>
+<span class="sd">    (``chosen_by`` beside the ``voice_id``), or it is marked ``provisional``. A</span>
+<span class="sd">    document without ``notes`` names its voice by hand and is not judged here.</span>
+
+<span class="sd">    &gt;&gt;&gt; voice_casting_problem({"voice_id": "v1"}) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; print(voice_casting_problem({"notes": "a warm voice"}))</span>
+<span class="sd">    is written in words but no voice is chosen for it: nothing to speak with</span>
+<span class="sd">    &gt;&gt;&gt; print(voice_casting_problem({"notes": "a warm voice", "voice_id": "v1"}))</span>
+<span class="sd">    has a voice_id nobody is recorded as choosing (no chosen_by)</span>
+<span class="sd">    &gt;&gt;&gt; voice_casting_problem({"notes": "n", "voice_id": "v1", "chosen_by": "noel"}) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; voice_casting_problem({"notes": "n", "voice_id": "v1", "provisional": "draft"}) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; voice_casting_problem({"notes": "n", "provisional": True}) is None  # provisional WHAT?</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NOTES_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">notes</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">notes</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">voice_id</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">voice_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">voice_id</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="c1"># Not even a provisional voice: nothing names what to speak with (the</span>
+        <span class="c1"># provider would be handed the document's key as a voice id).</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">"is written in words but no voice is chosen for it: nothing to speak with"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">provisional_reason</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">by</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CHOSEN_BY_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">by</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">by</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="s2">"has a voice_id nobody is recorded as choosing (no chosen_by)"</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="voice_casting">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.voice_casting">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">voice_casting</span><span class="p">(</span>
+    <span class="n">voice_refs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">voices</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(uncast, provisional)``: one message per distinct voice of ``voice_refs``</span>
+<span class="sd">    (the voices a scene's lines speak with) that a render must not speak as it</span>
+<span class="sd">    stands, and one per voice it speaks provisionally. Each message starts</span>
+<span class="sd">    with ``voice '&lt;ref&gt;'`` and the uncast ones name the fix.</span>
+
+<span class="sd">    &gt;&gt;&gt; voices = {"j": {"notes": "n", "voice_id": "v"}, "p": {"notes": "n", "voice_id": "v",</span>
+<span class="sd">    ...           "provisional": "round-2 timing draft"}, "k": {"voice_id": "x"}}</span>
+<span class="sd">    &gt;&gt;&gt; uncast, provisional = voice_casting(["j", "p", "k", "j", "ghost"], voices)</span>
+<span class="sd">    &gt;&gt;&gt; print(uncast[0])</span>
+<span class="sd">    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes) then `an voices choose &lt;option&gt; --by &lt;writer&gt;` (the pick, recorded as chosen_by), or `an voices cast &lt;voice_id&gt; --by &lt;writer&gt;` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.</span>
+<span class="sd">    &gt;&gt;&gt; provisional</span>
+<span class="sd">    ["voice 'p' is provisional (round-2 timing draft): choose a voice before the cut"]</span>
+<span class="sd">    """</span>
+    <span class="n">uncast</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">provisional</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voice_refs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="n">voices</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">voices</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">voice_casting_problem</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">uncast</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">. Cast it: </span><span class="si">{</span><span class="n">CASTING_VERBS</span><span class="si">}</span><span class="s2">; a timing "</span>
+                <span class="sa">f</span><span class="s2">"draft may set `</span><span class="si">{</span><span class="n">PROVISIONAL_KEY</span><span class="si">}</span><span class="s2">: true` on the voice document instead."</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="n">provisional_reason</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reason</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">provisional</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> is provisional (</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">): choose a voice before the cut"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">uncast</span><span class="p">,</span> <span class="n">provisional</span></div>
+
+
+
 <span class="c1"># --- the project-level forms ---------------------------------------------------------</span>
 
 
@@ -1208,20 +1399,78 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="choose_project_voice">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.choose_project_voice">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">choose_project_voice</span><span class="p">(</span>
-    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">designer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Write the chosen option's ``voice_id`` into ``assets/voices/&lt;ref&gt;.json``; return the document."""</span>
+<span class="w">    </span><span class="sd">"""Write the chosen option's ``voice_id`` into ``assets/voices/&lt;ref&gt;.json``,</span>
+<span class="sd">    with who chose it (``by``, default the login name) and when (``at``, default</span>
+<span class="sd">    now; :func:`record_choice`); return the document."""</span>
     <span class="n">voices</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no options for </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: run `an voices design` first"</span><span class="p">)</span>
     <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
     <span class="n">voice_id</span> <span class="o">=</span> <span class="n">choose_voice_option</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">designer</span><span class="o">=</span><span class="n">designer</span><span class="p">)</span>
-    <span class="n">doc</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="p">{}</span>
-    <span class="n">doc</span><span class="p">[</span><span class="s2">"provider"</span><span class="p">]</span> <span class="o">=</span> <span class="n">DESIGN_PROVIDER</span>
-    <span class="n">doc</span><span class="p">[</span><span class="s2">"voice_id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">voice_id</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">record_choice</span><span class="p">(</span>
+        <span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="p">{},</span>
+        <span class="n">voice_id</span><span class="p">,</span>
+        <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span>
+        <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">,</span>
+        <span class="n">provider</span><span class="o">=</span><span class="n">DESIGN_PROVIDER</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span>
-    <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"option"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">}</span>
+    <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"option"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+        <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
+        <span class="n">CHOSEN_BY_KEY</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">CHOSEN_BY_KEY</span><span class="p">],</span>
+        <span class="n">CHOSEN_AT_KEY</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">CHOSEN_AT_KEY</span><span class="p">],</span>
+    <span class="p">}</span>
     <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+    <span class="k">return</span> <span class="n">doc</span></div>
+
+
+
+<div class="viewcode-block" id="cast_project_voice">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.voice_design.html#an.audio.voice_design.cast_project_voice">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cast_project_voice</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record a voice picked by hand (from `an voices list`, or the document's</span>
+<span class="sd">    own ``voice_id``) as the writer's choice for ``ref``: ``voice_id`` (default:</span>
+<span class="sd">    the one the document already names), ``chosen_by``, ``chosen_at``; no</span>
+<span class="sd">    options manifest needed and nothing billed. ``provider`` sets the</span>
+<span class="sd">    document's when given. Returns the document.</span>
+<span class="sd">    """</span>
+    <span class="n">voices</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_project_stores</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">voices</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no voice document </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> in assets/voices"</span><span class="p">)</span>
+    <span class="n">chosen</span> <span class="o">=</span> <span class="p">(</span><span class="n">voice_id</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chosen</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">chosen</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">VoiceDesignError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> names no voice_id: pass one (`an voices list` shows them)"</span>
+        <span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">record_choice</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">chosen</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">provider</span><span class="p">)</span>
+    <span class="n">voices</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span>
+    <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">])</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"option"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"voice_id"</span><span class="p">:</span> <span class="n">chosen</span><span class="p">,</span>
+            <span class="n">CHOSEN_BY_KEY</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">CHOSEN_BY_KEY</span><span class="p">],</span>
+            <span class="n">CHOSEN_AT_KEY</span><span class="p">:</span> <span class="n">doc</span><span class="p">[</span><span class="n">CHOSEN_AT_KEY</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">options</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
     <span class="k">return</span> <span class="n">doc</span></div>
 
 </pre></div>

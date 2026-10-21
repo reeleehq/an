@@ -8,14 +8,20 @@ an.audio.voice\_design
 
    .. autosummary::
    
+      cast_project_voice
       choose_project_voice
       choose_voice_option
+      default_chooser
       default_designer
       design_project_voices
       design_voice_options
       designable_voices
+      provisional_reason
+      record_choice
       sample_text_from_lines
       sample_text_of
+      voice_casting
+      voice_casting_problem
    
    .. rubric:: Classes
 

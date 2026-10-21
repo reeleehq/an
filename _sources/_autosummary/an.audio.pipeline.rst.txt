@@ -52,6 +52,9 @@ an.audio.pipeline
       AudioPipelineError
       DialogueOverrunWarning
       TakeDigestWarning
+      VoiceNotChosenError
+      VoiceNotChosenWarning
+      VoiceProvisionalWarning
       VoiceStandInError
       VoiceStandInWarning
    
