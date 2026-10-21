@@ -43,6 +43,10 @@ The core's constraints:
 - ``solidity`` (an#509, catalogue A2): two solids (characters and props) whose
   boxes overlap, with no ``stage.after`` between them, are drawn through each
   other. :func:`solid_overlaps` is the pure function under it.
+- ``draw_order`` (an#510, catalogue A3): two entities painted one way in one
+  shot and the other way in a later one, with no change of ``stage.after``
+  between them. :func:`order_flips` is the pure function under it. (The
+  within-shot half, painted order against world depth, is not built.)
 """
 
 from __future__ import annotations
@@ -64,6 +68,7 @@ __all__ = [
     "CONSTRAINTS",
     "CONTINUITY",
     "SOLIDITY",
+    "DRAW_ORDER",
     "Discontinuity",
     "ShortHold",
     "compiled_shot",
@@ -691,8 +696,101 @@ SOLIDITY = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# draw order (an#510): the same two things are painted in the same order
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class OrderFlip:
+    """``front`` was painted over ``back`` in shot ``before`` and under it in shot ``after``."""
+
+    back: str
+    front: str
+    before: int
+    after: int
+
+
+def painted_order(doc: Any, ids: Any) -> list[str]:
+    """The entities among ``ids`` in the order the compiled scene paints them (back to front).
+
+    >>> from an.stage.serialize import CutoutSceneJSON, NodeJSON, TimelineJSON
+    >>> doc = CutoutSceneJSON(
+    ...     scene=NodeJSON(name="root", children=[NodeJSON(name="b"), NodeJSON(name="a", z_index=-1.0)]),
+    ...     timeline=TimelineJSON(duration=1.0),
+    ... )
+    >>> painted_order(doc, {"a", "b"})
+    ['a', 'b']
+    """
+    kids = [(i, n) for i, n in enumerate(doc.scene.children) if n.name in ids]
+    kids.sort(key=lambda p: (p[1].z_index if p[1].z_index is not None else p[0], p[0]))
+    return [n.name for _, n in kids]
+
+
+def order_flips(
+    orders: list[list[str]], afters: list[Mapping[str, str | None]]
+) -> list[OrderFlip]:
+    """Pairs whose painted order differs from the last shot that had both.
+
+    ``orders[i]`` is shot ``i``'s painted order, back to front; ``afters[i]`` maps
+    its entities to their ``stage.after``. A flip is not reported when either
+    entity's ``after`` changed between the two shots: the author said so.
+
+    >>> order_flips([["a", "b"], ["b", "a"]], [{}, {}])
+    [OrderFlip(back='a', front='b', before=0, after=1)]
+    >>> order_flips([["a", "b"], ["b", "a"]], [{}, {"a": "b"}])
+    []
+    """
+    out: list[OrderFlip] = []
+    seen: dict[frozenset[str], tuple[int, str]] = {}  # pair -> (shot, the back one)
+    for i, order in enumerate(orders):
+        for pos, front in enumerate(order):
+            for back in order[:pos]:
+                pair = frozenset((back, front))
+                if pair in seen:
+                    j, was_back = seen[pair]
+                    changed = any(afters[j].get(e) != afters[i].get(e) for e in pair)
+                    if was_back != back and not changed:
+                        out.append(OrderFlip(was_back, back, j, i))
+                seen[pair] = (i, back)
+    return out
+
+
+def check_draw_order(ctx: Any) -> None:
+    """The core's ``draw_order`` check (an#510): painted order across the shots."""
+    orders: list[list[str]] = []
+    afters: list[dict[str, str | None]] = []
+    world_ids = {m.id for m in ctx.scene.world.members} if ctx.scene.world else set()
+    shots = ctx.shots
+    for i, shot in enumerate(shots):
+        ctx.shot, ctx.index = shot, i
+        doc = compiled_shot(ctx)
+        ctx.shot = ctx.index = None
+        # a world derives its members' order from depth (ADR 0009), so it may flip
+        ids = {e.id for e in shot.entities if e.kind not in NON_SOLID_KINDS} - world_ids
+        orders.append(painted_order(doc, ids) if doc is not None else [])
+        afters.append({e.id: e.stage.after if e.stage else None for e in shot.entities})
+    for f in order_flips(orders, afters):
+        ctx.report.add(
+            "warning",
+            f"timeline/{f.after}/entities",
+            f"{f.front!r} is painted over {f.back!r} in shot {shots[f.before].id!r} "
+            f"(timeline/{f.before}) and under it in shot {shots[f.after].id!r}: the order "
+            f"flips with nothing saying so. Say which is in front with `stage.after` in the "
+            f"shot that changes, or keep one order.",
+        )
+
+
+DRAW_ORDER = Constraint(
+    "draw_order",
+    check_draw_order,
+    stage="finish",
+    description="two entities are painted in the same order in every shot unless `after` changes (an#510)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
-CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY)
+CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY, DRAW_ORDER)
 
 
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:

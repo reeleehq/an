@@ -19,7 +19,7 @@ from an.verify.constraints import Constraint, discontinuities
 
 ROOT = Path(__file__).resolve().parents[1]
 LAMP = ROOT / "misc" / "bench" / "corpus" / "prop_swap"
-ONLY = {"continuity", "solidity"}
+ONLY = {"continuity", "solidity", "draw_order"}
 
 
 def _lint(tmp_path: Path, actions, *, duration=2.0, extra=None):
@@ -200,3 +200,38 @@ def test_an_after_on_either_makes_the_overlap_occlusion(tmp_path):
 
 def test_a_solid_false_override_opts_out(tmp_path):
     assert _msgs(_two_lamps(tmp_path, second={"overrides": {"solid": False}})) == []
+
+
+# -- draw order (an#510) ----------------------------------------------------
+
+
+def _two_shot_order(tmp_path: Path, *, swapped_after: str | None = None):
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    project = load(root)
+    first = project.scene.timeline[0].model_dump()
+    lamp = first["entities"][0]
+    twin = {**lamp, "id": "twin", "stage": {"at": [300.0, 90.0], "scale": 0.55}}
+    if swapped_after:
+        lamp = {**lamp, "stage": {**(lamp.get("stage") or {}), "after": swapped_after}}
+    one = Shot.model_validate({**first, "id": "one", "entities": [lamp, twin]})
+    two = Shot.model_validate({**first, "id": "two", "entities": [twin, lamp]})
+    scene = project.scene.model_copy(update={"timeline": [one, two]})
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"draw_order"},
+    )
+
+
+def test_draw_order_is_registered_at_finish():
+    assert "draw_order" in check_names(owner=CORE_OWNER)
+
+
+def test_the_same_two_painted_in_the_other_order_is_one_warning_naming_both_shots(tmp_path):
+    (msg,) = _msgs(_two_shot_order(tmp_path))
+    assert "'lamp'" in msg and "'twin'" in msg and "'one'" in msg and "'two'" in msg
+
+
+def test_a_changed_after_makes_the_flip_deliberate(tmp_path):
+    assert _msgs(_two_shot_order(tmp_path, swapped_after="twin")) == []
