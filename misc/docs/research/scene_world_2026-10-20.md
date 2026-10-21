@@ -1,6 +1,6 @@
 # A scene space for `an`: one world, many shots (research, 2026-10-20)
 
-Session `scene-space`, 2026-10-20. The decision this informed is ADR 0007 (`../adr/0007-scene-world.md`); the first slice is reeleehq/an#513. Owner's intent: a model of where things are and the space they take, so that every shot of one scene is a camera onto the same world, and close-ups keep the objects and distances the two-shot established. Scope was widened mid-session to the travelling view ([an#484](https://github.com/reeleehq/an/issues/484)): perspective from the world model, streams that keep phase across cuts, plates that hold only what is at infinity.
+Session `scene-space`, 2026-10-20. The decision this informed is ADR 0009 (`../adr/0009-scene-world.md`); the first slice is reeleehq/an#513. Owner's intent: a model of where things are and the space they take, so that every shot of one scene is a camera onto the same world, and close-ups keep the objects and distances the two-shot established. Scope was widened mid-session to the travelling view ([an#484](https://github.com/reeleehq/an/issues/484)): perspective from the world model, streams that keep phase across cuts, plates that hold only what is at infinity.
 
 ## 1. The failure, measured
 

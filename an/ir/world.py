@@ -1,4 +1,4 @@
-"""One world, many shots: the scene world's geometry and its lowering (ADR 0007).
+"""One world, many shots: the scene world's geometry and its lowering (ADR 0009).
 
 A scene may declare a **world** (`SceneIR.world`): members at world positions
 with a size, named viewpoints, and a travel. A shot with a **viewpoint** is a
@@ -104,7 +104,7 @@ _MAX_SAMPLE_SPLITS: int = 14
 #: Two consecutive keys of one channel closer than this are one value.
 _FLAT_CHANNEL_EPS: float = 1e-6
 #: The key the lowering records a member's attachment under in the entity's
-#: ``overrides``, for a pass that places it from its host (ADR 0007).
+#: ``overrides``, for a pass that places it from its host (ADR 0009).
 ATTACHED_OVERRIDE: str = "attached"
 
 

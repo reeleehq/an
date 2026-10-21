@@ -160,7 +160,7 @@ def _compile_scene_to(
     )  # an edited pause plays where it says (an#187)
     from an.stage.world import lower_scene
 
-    scene = lower_scene(scene, project.mall).scene  # ADR 0007: what `an render` draws
+    scene = lower_scene(scene, project.mall).scene  # ADR 0009: what `an render` draws
     if not scene.timeline:
         raise PreviewError(
             "scene has no shots — add at least one shot to scene.md and save"

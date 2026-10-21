@@ -1,4 +1,4 @@
-"""``an world …``: the scene's world from the shell (ADR 0007).
+"""``an world …``: the scene's world from the shell (ADR 0009).
 
 Thin projections of :mod:`an.stage.world`, wired into the CLI by
 :data:`an.tools._dispatch_namespaces`.

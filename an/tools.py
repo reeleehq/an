@@ -738,7 +738,7 @@ _dispatch_namespaces: dict[str, list] = {
     "sounds": _sounds_dispatch_funcs,
     # A prop's asset folder (an#340): `an props validate <key>`, `an props contract`.
     "props": _props_dispatch_funcs,
-    # The scene's world (ADR 0007): `an world show` prints every framed shot
+    # The scene's world (ADR 0009): `an world show` prints every framed shot
     # as the compiler sees it.
     "world": _world_dispatch_funcs,
 }

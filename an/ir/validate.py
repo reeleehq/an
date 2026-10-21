@@ -1394,7 +1394,7 @@ class ValidationContext:
     shot: Any = None
     index: int | None = None
     memo: dict[Any, Any] = field(default_factory=dict)
-    #: The scene as the compiler sees it (ADR 0007): every framed shot's
+    #: The scene as the compiler sees it (ADR 0009): every framed shot's
     #: placements derived from the world (:class:`an.ir.world.Lowered`).
     #: ``None`` when the scene has no world, or its viewpoints could not be
     #: resolved (reported as an error at ``world``); then ``shots`` are the
@@ -1505,7 +1505,7 @@ def validate_semantic(
             ctx.lowered = _lowered(ctx)
         except WorldError as e:
             ctx.report.add("error", "world", str(e))
-        except Exception as e:  # noqa: BLE001 — a finding, never a traceback (ADR 0007)
+        except Exception as e:  # noqa: BLE001 — a finding, never a traceback (ADR 0009)
             ctx.report.add(
                 "error", "world", f"the scene's world could not be lowered: {e}"
             )
@@ -1549,7 +1549,7 @@ def _name_authored_entities(ctx: ValidationContext, index: int, first: int) -> N
 
 
 def _lowered(ctx: ValidationContext) -> Any:
-    """The scene lowered through its world (ADR 0007), computed once. The
+    """The scene lowered through its world (ADR 0009), computed once. The
     stage measures the members' extents by compiling each one's specimen; a
     stand-in's warnings are the compile's own, not this read's."""
     import warnings
@@ -2510,7 +2510,7 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
             continue
         prev, shot = shots[i - 1], shots[i]
         if _viewpoint_key(prev) != _viewpoint_key(shot):
-            continue  # a cut between two framings of one world is a cut, not a jump (ADR 0007)
+            continue  # a cut between two framings of one world is a cut, not a jump (ADR 0009)
         for entity_id in [e for e in after if e in before]:
             ended, starts = before[entity_id][1], after[entity_id][0]
             opened = _opened(shot, entity_id, fps=fps)
@@ -2556,7 +2556,7 @@ SCREEN_DIRECTION_TOLERANCE_PX: float = 1.0
 
 def _core_screen_direction(ctx: ValidationContext) -> None:
     """Two entities present on both sides of a cut whose left/right order
-    flips (ADR 0007): the camera crossed the line, and the audience sees them
+    flips (ADR 0009): the camera crossed the line, and the audience sees them
     swap seats. A warning naming the pair and both shots; a reverse angle
     that keeps the order (over the shoulder, the line respected) says
     nothing. Environments are not entities on screen."""
@@ -2602,7 +2602,7 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
 
 
 def _core_world(ctx: ValidationContext) -> None:
-    """The scene's world names what exists (ADR 0007): registered member
+    """The scene's world names what exists (ADR 0009): registered member
     kinds, and viewpoints whose `subject`/`hide` are members of the world. A size that
     cannot be measured and a viewpoint that cannot be resolved are reported
     with the shot that uses them."""
@@ -2641,7 +2641,7 @@ def _core_world(ctx: ValidationContext) -> None:
 
 
 def _core_viewpoint(ctx: ValidationContext) -> None:
-    """What the world did to this framed shot (ADR 0007): the members it
+    """What the world did to this framed shot (ADR 0009): the members it
     added (info), a hand placement that disagrees with it (warning), a listed
     entity the frame does not show (info), a member whose art cannot be
     sized (warning); and, under a travel, the plates: every plane of the

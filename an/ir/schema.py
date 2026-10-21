@@ -407,7 +407,7 @@ class AssetRef(_IRModel):
 
 
 # -----------------------------------------------------------------------------
-# The scene world (ADR 0007): one world, and shots as viewpoints onto it.
+# The scene world (ADR 0009): one world, and shots as viewpoints onto it.
 # The models are here beside `Camera`; the geometry and the lowering live in
 # `an.ir.world`, as the camera's resolver lives in `an.ir.camera`.
 # -----------------------------------------------------------------------------
@@ -425,7 +425,7 @@ Point2 = tuple[_Coord, _Coord]
 DFLT_FOV_DEG: float = 50.0
 
 #: Shot sizes, by where the frame cuts the subject (the film convention, see
-#: ADR 0007): ``name: (top, bottom, fill)``. ``top``/``bottom`` are the band of
+#: ADR 0009): ``name: (top, bottom, fill)``. ``top``/``bottom`` are the band of
 #: the subject's box the frame shows, as fractions of its height from the top
 #: (``0.35``: head and shoulders; ``0.55``: the waist); ``fill`` is how much of
 #: the frame's height that band fills. A genre may later supply landmarks from
@@ -463,7 +463,7 @@ def _omit_none(data: Any, *keys: str) -> Any:
 
 
 class Attachment(_IRModel):
-    """A member that goes where another member goes (ADR 0007 decision 1).
+    """A member that goes where another member goes (ADR 0009 decision 1).
 
     >>> Attachment(to="paul", at=(8.0, 70.0), scale=0.9).to
     'paul'
@@ -490,7 +490,7 @@ class Attachment(_IRModel):
 
 class WorldMember(AssetRef):
     """An entity of the scene's world: the same reference a shot's entity
-    carries, at a world position with a size (ADR 0007 decision 1).
+    carries, at a world position with a size (ADR 0009 decision 1).
 
     >>> m = WorldMember(kind="character", id="paul", store="characters", ref="paul",
     ...                 at=(0.45, 0.65, 1.6), height=1.75)
@@ -572,7 +572,7 @@ class WorldMember(AssetRef):
 
 class Viewpoint(_IRModel):
     """A pinhole camera onto the world, or a composition that resolves to one
-    (ADR 0007 decision 2).
+    (ADR 0009 decision 2).
 
     >>> Viewpoint(at=(0.0, 0.0, 0.0), vanish=(0.0, -262.0)).vanish
     (0.0, -262.0)
@@ -672,7 +672,7 @@ class Viewpoint(_IRModel):
 
 
 class Stream(_IRModel):
-    """A row of one prop along a travel's direction (ADR 0007 decision 4).
+    """A row of one prop along a travel's direction (ADR 0009 decision 4).
 
     >>> Stream(id="tree", ref="olive_tree", height=4.0, every=(1.0, 3.0), lane=(-3.0, -2.0)).id
     'tree'
@@ -742,7 +742,7 @@ TRAVEL_PLATE_ROLES: tuple[str, ...] = ("far", "vehicle")
 
 
 class Travel(_IRModel):
-    """The viewpoints moving through the world in film time (ADR 0007 decision 4).
+    """The viewpoints moving through the world in film time (ADR 0009 decision 4).
 
     >>> t = Travel(speed=20.0, streams=[Stream(id="pole", ref="pole", height=6.0, every=12.0, lane=2.0)])
     >>> t.direction, t.speed
@@ -818,7 +818,7 @@ class Travel(_IRModel):
 
 class World(_IRModel):
     """A scene's world: members at positions, the named viewpoints that are
-    its coverage, and its travel (ADR 0007).
+    its coverage, and its travel (ADR 0009).
 
     >>> world = World(members=[
     ...     WorldMember(kind="character", id="jerry", store="characters", ref="jerry", at=(-0.45, 0.65, 1.6), height=1.75),
@@ -1562,7 +1562,7 @@ class Shot(_IRModel):
     #: order, over the style pack's (``StylePack.policy``) and under an author's
     #: request — ``{"locomotion": ["loco.glide"]}``. ``None``: the style's.
     policy: dict[str, Any] | None = None
-    #: This shot's **viewpoint** onto the scene's world (ADR 0007): the name
+    #: This shot's **viewpoint** onto the scene's world (ADR 0009): the name
     #: of one of ``world.viewpoints`` or an inline :class:`Viewpoint`. ``None``
     #: (the default, and every document written before the world existed)
     #: means the shot is placed by hand, as it always was. Omitted from JSON
@@ -1753,7 +1753,7 @@ class SceneIR(_IRModel):
     meta: Meta = Field(default_factory=Meta)
     assets: list[AssetRef] = Field(default_factory=list)
     timeline: list[Shot] = Field(default_factory=list)
-    #: The scene's **world** (ADR 0007): its members at world positions, its
+    #: The scene's **world** (ADR 0009): its members at world positions, its
     #: named viewpoints and its travel. ``None`` — the default, and every
     #: document written before it existed — is no world at all: every shot is
     #: placed by hand. Omitted from JSON when unset (the `stage` rule), so no

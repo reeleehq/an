@@ -1,4 +1,4 @@
-"""The scene world (ADR 0007): one world, shots as viewpoints onto it, the
+"""The scene world (ADR 0009): one world, shots as viewpoints onto it, the
 lowering to `stage` placements and stream tweens, and the continuity lints.
 
 The fixture is the `prop_swap` corpus project (a lamp prop), which keeps every
@@ -821,7 +821,7 @@ def test_an_space_show_prints_the_lowered_shots(tmp_path, capsys):
     assert [row["shot"] for row in as_json] == ["two"]
 
 
-# --- what the adversarial review found (ADR 0007 review, 2026-10-21) ----------------
+# --- what the adversarial review found (ADR 0009 review, 2026-10-21) ----------------
 
 
 def test_a_member_whose_art_cannot_compile_is_a_finding_not_a_traceback(tmp_path):

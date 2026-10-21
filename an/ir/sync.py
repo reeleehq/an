@@ -162,7 +162,7 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     if title and "title" not in meta_data:
         meta_data["title"] = title
     meta = Meta(**meta_data)
-    # The scene's world (ADR 0007): a ```yaml world``` block before the shots.
+    # The scene's world (ADR 0009): a ```yaml world``` block before the shots.
     world_data = _extract_yaml_block(global_text, "world")
     world = World(**world_data) if world_data is not None else None
 
@@ -171,7 +171,7 @@ def markdown_to_ir(md_text: str) -> SceneIR:
         if _extract_yaml_block(body, "world") is not None:
             raise SceneMarkdownError(
                 f"shot {shot_id!r} holds a ```yaml world``` block: the world is the "
-                "scene's, written once before the first shot heading (ADR 0007)."
+                "scene's, written once before the first shot heading (ADR 0009)."
             )
         shot_yaml = _extract_yaml_block(body, "shot") or {}
         dialogue_block = _extract_dialogue_block(body, shot_id=shot_id)
@@ -756,7 +756,7 @@ def ir_to_markdown(scene: SceneIR) -> str:
 FenceKey = tuple[str, "str | None"]
 
 _META_FENCE: FenceKey = ("yaml", "meta")
-#: The scene's world (ADR 0007), written after the meta block when set.
+#: The scene's world (ADR 0009), written after the meta block when set.
 _WORLD_FENCE: FenceKey = ("yaml", "world")
 #: The blocks before the first shot, in the order the writer emits them.
 _HEAD_FENCES: tuple[FenceKey, ...] = (_META_FENCE, _WORLD_FENCE)
@@ -859,7 +859,7 @@ def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
         shot_yaml["sounds"] = [c.model_dump(exclude_defaults=True) for c in shot.sounds]
     if shot.policy is not None:
         shot_yaml["policy"] = shot.policy
-    if shot.viewpoint is not None:  # ADR 0007, same rule
+    if shot.viewpoint is not None:  # ADR 0009, same rule
         shot_yaml["viewpoint"] = (
             shot.viewpoint
             if isinstance(shot.viewpoint, str)

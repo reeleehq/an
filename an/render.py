@@ -1082,7 +1082,7 @@ def _prepare_shots(
     if measure:
         warn_findings(findings)
 
-    # The scene as the compiler sees it (ADR 0007): every framed shot's
+    # The scene as the compiler sees it (ADR 0009): every framed shot's
     # placements derived from the world, on the settled copy and before
     # anything compiles (the cue anchors, the keys, the shots). Never written
     # back: the project keeps what the author wrote.

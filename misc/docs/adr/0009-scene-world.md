@@ -1,4 +1,4 @@
-# ADR 0007 — A scene space: one world, and shots as viewpoints onto it
+# ADR 0009 — A scene space: one world, and shots as viewpoints onto it
 
 **Status:** Proposed, 2026-10-20 (first slice merged as #513) · **Decider:** the maintainer · **Related:** an#484 (the travelling view, re-based on this), an#478 (the dolly: a consumer), an#445/an#467 (`screen_position`, `node_box`: what the extents are measured with), an#394 (cut continuity: amended by this), an#257 (previz: the view-space vocabulary), reeleehq/cutan `body-attachment-lint` (attachments in the character's units, placed from the character's `stage`), ADR 0001 (core and genre), ADR 0003 (structured ↔ semantic), the research note `misc/docs/research/scene_world_2026-10-20.md`
 

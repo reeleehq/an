@@ -1,4 +1,4 @@
-"""The stage's side of the scene world (ADR 0007): measuring a member's
+"""The stage's side of the scene world (ADR 0009): measuring a member's
 extent, and lowering a whole scene for the compiler.
 
 The IR layer (:mod:`an.ir.world`) projects points and sizes; what it cannot
@@ -95,7 +95,7 @@ def member_extents(
     out). A member whose art cannot be measured maps to ``None`` — a missing
     ref, an unregistered kind, a compile that refuses — and ``problems`` (an
     out-parameter, like the compiler's ``textures``) records why, so the
-    lowering can say it instead of a traceback (ADR 0007: validate reports).
+    lowering can say it instead of a traceback (ADR 0009: validate reports).
     """
     out: dict[str, Box | None] = {}
     if world is None:

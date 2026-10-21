@@ -714,7 +714,7 @@ def test_the_report_order_is_pinned():
         "manim.shot",  # an#279: a Manim shot's options, before anything reads them
         "renderable",
         "framing",
-        "viewpoint",  # ADR 0007: what the world did to a framed shot, after its framing
+        "viewpoint",  # ADR 0009: what the world did to a framed shot, after its framing
         "swap_references",
         "trim_targets",
         "text_blocks",
@@ -730,7 +730,7 @@ def test_the_report_order_is_pinned():
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
         "cut_continuity",
-        # ADR 0007: two entities keep their left/right order across a cut (the line)
+        # ADR 0009: two entities keep their left/right order across a cut (the line)
         "screen_direction",
         # an#396: meta.duration, when set, says what the shots lay out
         "meta_duration",

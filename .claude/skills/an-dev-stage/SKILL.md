@@ -212,7 +212,7 @@ channels that name it; there is no document marker. What to know before touching
 - Not built: `rotation_y`, a plane inside a plane (refused), mipmaps (the far fade hides the
   minification), tilt in `an validate`'s framing check.
 
-## 3d. The scene space: one world, shots as viewpoints (ADR 0007)
+## 3d. The scene space: one world, shots as viewpoints (ADR 0009)
 
 - **The authored form** is `SceneIR.world` (members = the shot's own `{kind, id, store, ref}` at `at: [x, y, z]`, `x` right, `y` DOWN, `z` away, in the author's units, sized by `height`/`width` or `units_per_px`; `attached: {to, at?, scale?}`; `viewpoints: {name: …}`; `travel`) and `Shot.viewpoint` (a name or an inline `Viewpoint`). Both omit when unset: no stored scene moves, no schema version moves. The key is `world`, not `space` (`EntityKind.space` is a node's property space); the field is `subject`, not `on`: YAML reads `on:` as `true`.
 - **The lowering is IR-level and happens before any compile pass**: `an.ir.world.lower_world` (pure, takes `extents`) under `an.stage.world.lower_scene` (measures extents by compiling each member's specimen and taking the union of `node_box` over its subtree, relative to `screen_position` of its root). Every entry point that compiles calls it — `render._prepare_shots` (probe goes through it), `preview_project`, the orchestrator's strict-asset pass, `validate_semantic` (`ctx.lowered`, so the `shot` checks see the members the world adds and their actions resolve) — and `tests/test_world.py` pins that. **Never write the lowered scene back**: `_prepare_shots` lowers AFTER the audio write-back.
