@@ -47,6 +47,10 @@ The core’s constraints:
 - `solidity` (an#509, catalogue A2): two solids (characters and props) whose
   boxes overlap, with no `stage.after` between them, are drawn through each
   other. `solid_overlaps()` is the pure function under it.
+- `draw_order` (an#510, catalogue A3): two entities painted one way in one
+  shot and the other way in a later one, with no change of `stage.after`
+  between them. `order_flips()` is the pure function under it. (The
+  within-shot half, painted order against world depth, is not built.)
 
 ### Module Attributes
 
@@ -68,7 +72,7 @@ The core’s constraints:
 | [`Discontinuity`](#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).           |
 | [`ShortHold`](#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.             |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None))*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
