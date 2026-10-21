@@ -1050,9 +1050,9 @@ def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
     )
     scene.world.travel = scene.world.travel.model_copy(
         update={
-            "far": 8.0,
+            "far": 30.0,
             "streams": [
-                Stream(id="pole", ref="lamp", height=1.5, every=0.5, lane=1.2, y=0.0)
+                Stream(id="pole", ref="lamp", height=6.0, every=2.0, lane=20.0, y=0.0)
             ],
         }
     )
