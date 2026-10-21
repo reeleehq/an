@@ -44,6 +44,9 @@ The core’s constraints:
 - `continuity` (an#508, catalogue B1): a node does not jump within a shot
   unless a `set` says so, and a value is not held for less than a frame.
   [`discontinuities()`](#an.verify.constraints.discontinuities) is the pure function under it.
+- `solidity` (an#509, catalogue A2): two solids (characters and props) whose
+  boxes overlap, with no `stage.after` between them, are drawn through each
+  other. `solid_overlaps()` is the pure function under it.
 
 ### Module Attributes
 
@@ -65,7 +68,7 @@ The core’s constraints:
 | [`Discontinuity`](#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).           |
 | [`ShortHold`](#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.             |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None),)*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
