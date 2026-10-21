@@ -207,14 +207,16 @@ def test_the_pipeline_warns_a_python_caller_too():
 # -----------------------------------------------------------------------------
 
 
-def test_validate_says_it_and_strict_makes_it_an_error(tmp_path):
+def test_validate_warns_strict_or_not_because_casting_comes_after_the_check(tmp_path):
+    """A production pack is checked with --strict-assets while its voices are
+    still words: that must pass. The refusal is the render's."""
     root = _speaking(tmp_path, WRITTEN)
-    report = validate_project(root)
-    (f,) = [f for f in report.findings if f.ir_path == "voices"]
-    assert f.severity == "warning" and "nobody is recorded as choosing" in f.description
-    strict = validate_project(root, strict_assets=True)
-    (f,) = [f for f in strict.findings if f.ir_path == "voices"]
-    assert f.severity == "error" and not strict.passed
+    for strict in (False, True):
+        report = validate_project(root, strict_assets=strict)
+        (f,) = [f for f in report.findings if f.ir_path == "voices"]
+        assert f.severity == "warning" and "nobody is recorded as choosing" in f.description
+        assert "`an render --strict-assets` refuses it until it is cast" in f.description
+        assert report.passed
 
 
 def test_validate_lists_a_provisional_voice_as_info(tmp_path):

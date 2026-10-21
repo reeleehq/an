@@ -86,7 +86,7 @@ def validate(project_dir: str, fps: float = 0.0, strict_assets: bool = False) ->
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
-    strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset, or a voice written in words that nobody chose, is an error
+    strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error (a voice written in words that nobody chose stays a warning here: casting comes after the check, and the render is what refuses it)
     """
     report = validate_project(project_dir, fps=fps or None, strict_assets=strict_assets)
     if report.passed and not report.findings:
