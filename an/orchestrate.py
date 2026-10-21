@@ -153,19 +153,32 @@ def validate_project(
     )
     report = schema_report.merge(semantic_report)
     _rights_conflict_findings(project, scene, report, strict=strict_assets)
-    _voice_casting_findings(scene, project.mall, report, strict=strict_assets)
+    _voice_casting_findings(scene, project.mall, report)
     if strict_assets:
         _strict_asset_findings(project, scene, report, fps=fps)
     return report
 
 
-def _voice_casting_findings(
-    scene, mall, report: ValidationReport, *, strict: bool
-) -> None:
-    """A finding per voice the scene speaks with that is written in words
-    (``notes``) and that nobody chose (an#486) — a warning, an error under
-    ``strict`` since `an render --strict-assets` refuses it before synthesis —
-    and an info line per provisional voice (a timing draft's stand-in)."""
+#: What `an validate` adds to an uncast voice's message: the refusal is the
+#: render's, not validate's.
+CASTING_RENDER_NOTE: str = (
+    "`an render --strict-assets` refuses it until it is cast; a plain render "
+    "speaks it and reports it"
+)
+
+
+def _voice_casting_findings(scene, mall, report: ValidationReport) -> None:
+    """A WARNING per voice the scene speaks with that is written in words
+    (``notes``) and that nobody chose (an#486), whatever ``strict_assets`` —
+    and an info line per provisional voice (a timing draft's stand-in).
+
+    A warning, not a strict error, on purpose: casting is a step that happens
+    AFTER a scene is checked and BEFORE it is rendered. A production pack is
+    checked (``an validate --strict-assets``, run by the pack checker) exactly
+    when its voices are still words, so an error here would fail every pack
+    that is doing the right thing. The refusal belongs to the render, which
+    is where a wrong voice would be paid for; validate says so in the message.
+    """
     from an.audio.voice_design import voice_casting
     from an.audio.voices import line_voice_id
 
@@ -176,7 +189,7 @@ def _voice_casting_findings(
     ]
     uncast, provisional = voice_casting(spoken, mall.get("voices"))
     for message in uncast:
-        report.add("error" if strict else "warning", "voices", message)
+        report.add("warning", "voices", f"{message} ({CASTING_RENDER_NOTE})")
     for message in provisional:
         report.add("info", "voices", message)
 
