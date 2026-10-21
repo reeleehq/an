@@ -605,9 +605,7 @@ def scribed_transcriber(
             options["diarize"] = True
         try:
             result = scribed.transcribe(str(path), **options)
-        except (
-            Exception
-        ) as e:  # noqa: BLE001 — the backend's own error, with the way out
+        except Exception as e:  # noqa: BLE001 — the backend's own error, with the way out
             raise TranscriberUnavailableError(
                 f"transcribing {Path(path).name} with scribed"
                 + (f" ({backend})" if backend else "")
@@ -1249,9 +1247,7 @@ def import_recordings(
     given = _transcripts_for(paths, transcript)
     speaker_map = _parse_speakers(speakers)
     known = _scene_speakers(scene)
-    make_transcriber = lambda: scribed_transcriber(
-        transcriber, diarize=diarize
-    )  # noqa: E731
+    make_transcriber = lambda: scribed_transcriber(transcriber, diarize=diarize)  # noqa: E731
 
     takes: list[_Take] = []
     for path in paths:

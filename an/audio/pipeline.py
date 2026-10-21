@@ -920,7 +920,9 @@ def stamp_from_stores(
         k: (
             v
             if free_in_memory and k in AUDIO_OUTPUT_STORES
-            else _ReadOnlyStore(v) if k in (*AUDIO_OUTPUT_STORES, "takes") else v
+            else _ReadOnlyStore(v)
+            if k in (*AUDIO_OUTPUT_STORES, "takes")
+            else v
         )
         for k, v in dict(mall).items()
     }

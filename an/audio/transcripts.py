@@ -242,8 +242,9 @@ def _timed_cue(lines: list[str]) -> TranscriptSegment | None:
     for i, line in enumerate(lines[:2]):
         arrow = _ARROW_RE.match(line)
         if arrow:
-            start, end = parse_timestamp(arrow.group("a")), parse_timestamp(
-                arrow.group("b")
+            start, end = (
+                parse_timestamp(arrow.group("a")),
+                parse_timestamp(arrow.group("b")),
             )
             body = " ".join(part.strip() for part in lines[i + 1 :]).strip()
             speaker = None

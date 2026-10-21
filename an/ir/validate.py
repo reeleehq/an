@@ -2039,9 +2039,7 @@ def _check_recorded_take(
 
     try:
         doc = voices[voice_ref]
-    except (
-        Exception
-    ):  # noqa: BLE001 — an unreadable document is another check's finding
+    except Exception:  # noqa: BLE001 — an unreadable document is another check's finding
         return
     if not isinstance(doc, Mapping):
         return
