@@ -1,0 +1,85 @@
+{
+ "task_A_two_link_reach_48_targets_elbow_limit": {
+  "analytic_two_bone": {
+   "worst_tip_error_px": 2.929642751054232e-14,
+   "limit_violation_deg": 112.66490993753276,
+   "worst_frame_to_frame_deg": 7.5000000000000675,
+   "us_per_frame": 6.635166452421497,
+   "bitwise_identical_rerun": true,
+   "iterations": "closed form"
+  },
+  "ccd_with_limits": {
+   "worst_tip_error_px": 0.000694972717733807,
+   "limit_violation_deg": 0.0,
+   "worst_frame_to_frame_deg": 7.502147954373147,
+   "us_per_frame": 203.7496875952153,
+   "median_iterations": 11.0,
+   "max_iterations": 12,
+   "bitwise_identical_rerun": true
+  },
+  "fabrik_no_limits": {
+   "worst_tip_error_px": 5.4388157120593745e-05,
+   "limit_violation_deg": 0.0,
+   "worst_frame_to_frame_deg": 7.500005565799061,
+   "us_per_frame": 19.723999381919082,
+   "median_iterations": 3.0,
+   "max_iterations": 4,
+   "bitwise_identical_rerun": true
+  },
+  "pbd_goal_with_limits_warm_start": {
+   "worst_tip_error_px": 8.957805492341208e-07,
+   "limit_violation_deg": 0.0,
+   "worst_frame_to_frame_deg": 7.500001874629041,
+   "us_per_frame": 466.62283299762447,
+   "median_iterations": 6.0,
+   "max_iterations": 7,
+   "bitwise_identical_rerun": true
+  }
+ },
+ "task_A_prime_unreachable_target": {
+  "analytic_two_bone": "None (refused)",
+  "ccd_with_limits": {
+   "tip_error_px": 15.40761090300599,
+   "iterations": 100,
+   "note": "straightens toward the target up to the limit"
+  },
+  "fabrik": {
+   "tip_error_px": 13.013630581982463,
+   "iterations": 1,
+   "note": "points the chain at the target in one pass"
+  },
+  "pbd_hard_pin_both_ends": {
+   "worst_stick_error_px": 13.013630581988785,
+   "rounds": 5,
+   "note": "a hard pin beyond reach is a permanent conflict; must be refused (lint) or softened (goal)"
+  }
+ },
+ "task_B_hanging_chain_moving_pin_pose_mode": {
+  "pbd_settle": {
+   "worst_error_vs_closed_form_px": 0.40331696384939675,
+   "median_rounds": 302.0,
+   "max_rounds": 330,
+   "ms_per_frame": 47.04933962542176,
+   "bitwise_identical_rerun": true
+  },
+  "fabrik": "N/A (no gravity, no settle)",
+  "ccd": "N/A (no gravity, no settle)",
+  "closed_form": "exact for a free-hanging tree; not available once strings or a second pin couple the chain"
+ },
+ "task_C_soft_rod_extension_vs_iterations": {
+  "pbd": {
+   "iterations_1": 1.0888888888888317,
+   "iterations_2": 0.48395061728395206,
+   "iterations_8": 0.05487837347789082,
+   "iterations_32": 0.00021584767677040873,
+   "spread_px": 1.0886730412120613
+  },
+  "xpbd": {
+   "iterations_1": 0.19599999999999795,
+   "iterations_2": 0.19599999999999795,
+   "iterations_8": 0.19599999999999795,
+   "iterations_32": 0.19599999999999795,
+   "spread_px": 0.0
+  }
+ }
+}
