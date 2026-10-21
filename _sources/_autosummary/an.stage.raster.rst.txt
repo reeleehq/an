@@ -9,6 +9,7 @@ an.stage.raster
    .. autosummary::
    
       RASTER_SUFFIXES
+      SVG_FORBIDDEN_ELEMENTS
    
    .. rubric:: Functions
 
@@ -19,7 +20,9 @@ an.stage.raster
       has_alpha
       image_size
       is_raster
+      is_svg_content
       strip_version
+      svg_problems
       versioned_src
    
    .. rubric:: Exceptions

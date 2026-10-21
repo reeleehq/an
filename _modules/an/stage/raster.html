@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=df65852b"></script>
+    <script src="../../../_static/documentation_options.js?v=e89d0f41"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.245" />
+  <meta name="docsearch:version" content="0.1.246" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -754,6 +754,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -763,12 +765,15 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"RASTER_SUFFIXES"</span><span class="p">,</span>
     <span class="s2">"RasterFormatError"</span><span class="p">,</span>
+    <span class="s2">"SVG_FORBIDDEN_ELEMENTS"</span><span class="p">,</span>
     <span class="s2">"art_size"</span><span class="p">,</span>
     <span class="s2">"content_digest"</span><span class="p">,</span>
     <span class="s2">"has_alpha"</span><span class="p">,</span>
     <span class="s2">"image_size"</span><span class="p">,</span>
     <span class="s2">"is_raster"</span><span class="p">,</span>
+    <span class="s2">"is_svg_content"</span><span class="p">,</span>
     <span class="s2">"strip_version"</span><span class="p">,</span>
+    <span class="s2">"svg_problems"</span><span class="p">,</span>
     <span class="s2">"versioned_src"</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -968,6 +973,114 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">image_size</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">svg_raster_size</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
 
+
+
+<span class="c1"># --- what an SVG may hold (an#483) ------------------------------------------------</span>
+
+<span class="c1">#: SVG elements no asset may carry: code, a foreign document the rasteriser</span>
+<span class="c1">#: would lay out, and an embedded picture (a raster part is a PNG of its own,</span>
+<span class="c1">#: an#211: an ``&lt;image&gt;`` hides its pixels from every check and may reach</span>
+<span class="c1">#: outside the file) — the production-pack lint's own set.</span>
+<span class="n">SVG_FORBIDDEN_ELEMENTS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"script"</span><span class="p">,</span> <span class="s2">"foreignObject"</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">})</span>
+<span class="c1">#: An SVG attribute value that reaches outside the file (or embeds data the</span>
+<span class="c1">#: checks cannot see): an ``href`` to anything but a ``#fragment``, a</span>
+<span class="c1">#: ``url()`` of the same, a scheme or a protocol-relative address.</span>
+<span class="n">_OUTSIDE_VALUE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"url\(\s*['</span><span class="se">\"</span><span class="s2">]?(?!#)"</span><span class="p">)</span>
+<span class="n">_OUTSIDE_PREFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"data:"</span><span class="p">,</span> <span class="s2">"//"</span><span class="p">,</span> <span class="s2">"http:"</span><span class="p">,</span> <span class="s2">"https:"</span><span class="p">,</span> <span class="s2">"file:"</span><span class="p">)</span>
+<span class="n">_SVG_NS</span> <span class="o">=</span> <span class="s2">"{http://www.w3.org/2000/svg}"</span>
+<span class="c1">#: How many leading bytes are parsed to decide whether a file is SVG: enough</span>
+<span class="c1">#: for an XML declaration, a DOCTYPE with an internal subset, and comments.</span>
+<span class="n">_SNIFF_BYTES</span> <span class="o">=</span> <span class="mi">65536</span>
+
+
+<div class="viewcode-block" id="is_svg_content">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.raster.html#an.stage.raster.is_svg_content">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_svg_content</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Whether ``source`` (a path, or bytes) IS an SVG document, by content:</span>
+<span class="sd">    an XML document whose root element is ``&lt;svg&gt;``, whatever the file is</span>
+<span class="sd">    called — read by parsing its head up to the first element, so a</span>
+<span class="sd">    declaration, a DOCTYPE with an internal subset, comments, processing</span>
+<span class="sd">    instructions and a UTF-16 encoding are all seen through.</span>
+
+<span class="sd">    &gt;&gt;&gt; is_svg_content(b'&lt;?xml version="1.0"?&gt;\n&lt;svg xmlns="http://www.w3.org/2000/svg"/&gt;')</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_svg_content(b'&lt;!DOCTYPE svg [&lt;!ENTITY x "y"&gt;]&gt;&lt;!-- c --&gt;&lt;svg/&gt;')</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_svg_content(b"\x89PNG\r\n"), is_svg_content(b"&lt;html&gt;&lt;svg/&gt;&lt;/html&gt;")</span>
+<span class="sd">    (False, False)</span>
+<span class="sd">    """</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">source</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="k">else</span> <span class="n">_head</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_event</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">ET</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">events</span><span class="o">=</span><span class="p">(</span><span class="s2">"start"</span><span class="p">,)):</span>
+            <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span> <span class="ow">in</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_SVG_NS</span><span class="si">}</span><span class="s2">svg"</span><span class="p">,</span> <span class="s2">"svg"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># not XML, or no element in its head</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_head</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">_SNIFF_BYTES</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="svg_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.raster.html#an.stage.raster.svg_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">svg_problems</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What an SVG asset holds that no asset may: ``&lt;script&gt;`` or</span>
+<span class="sd">    ``&lt;foreignObject&gt;``, and any link outside the file (an ``href`` or ``url()``</span>
+<span class="sd">    to anything but ``#id``, a ``data:``/``http:``/``file:`` address, a</span>
+<span class="sd">    ``&lt;style&gt;`` that imports). Empty when the file is self-contained. A file</span>
+<span class="sd">    that is not well-formed XML is one problem saying so. Reads ``source`` with</span>
+<span class="sd">    :func:`svg_raster_size`'s parser (a path, bytes, or a parsed tree).</span>
+
+<span class="sd">    &gt;&gt;&gt; svg_problems('&lt;svg xmlns="http://www.w3.org/2000/svg"&gt;&lt;rect fill="url(#g)"/&gt;&lt;/svg&gt;')</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; svg_problems('&lt;svg xmlns="http://www.w3.org/2000/svg"&gt;&lt;script&gt;x()&lt;/script&gt;'</span>
+<span class="sd">    ...              '&lt;image href="http://x/y.png"/&gt;&lt;/svg&gt;')</span>
+<span class="sd">    ['forbidden element(s): image, script', "links outside the file: 'http://x/y.png' (only `#id` links are allowed)"]</span>
+<span class="sd">    &gt;&gt;&gt; svg_problems(b"&lt;svg" + b" " * 5000 + b"/&gt;")  # bytes of any length are the document</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">source</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">):</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>  <span class="c1"># the document itself, not a path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">_parse_svg</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"not valid XML: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+    <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="n">el</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">_SVG_NS</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">()}</span>
+    <span class="n">forbidden</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tags</span> <span class="o">&amp;</span> <span class="n">SVG_FORBIDDEN_ELEMENTS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">forbidden</span><span class="p">:</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"forbidden element(s): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">forbidden</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">outside</span> <span class="o">=</span> <span class="n">_outside_links</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">outside</span><span class="p">:</span>
+        <span class="n">listed</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">outside</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">more</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">outside</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">3</span><span class="si">}</span><span class="s2"> more"</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outside</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"links outside the file: </span><span class="si">{</span><span class="n">listed</span><span class="si">}{</span><span class="n">more</span><span class="si">}</span><span class="s2"> (only `#id` links are allowed)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">problems</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_outside_links</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">_OUTSIDE_VALUE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">or</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_OUTSIDE_PREFIXES</span><span class="p">):</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">_SVG_NS</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"style"</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s2">"@import|url\(\s*['</span><span class="se">\"</span><span class="s2">]?(?!#)"</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span>
+        <span class="p">):</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"&lt;style&gt; imports or loads a URL"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
 
 
 <span class="c1">#: The query key a raster texture's ``src`` carries its digest under. The</span>

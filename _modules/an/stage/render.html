@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=df65852b"></script>
+    <script src="../../../_static/documentation_options.js?v=e89d0f41"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.245" />
+  <meta name="docsearch:version" content="0.1.246" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1173,7 +1173,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (`an.stage.cache_key.texture_digests`), so the bytes keyed are the bytes</span>
 <span class="sd">    drawn — a change to where art is read from (the asset library's reference</span>
 <span class="sd">    mode, ADR 0005) changes both or neither (an#316 review). ``why`` is one of</span>
-<span class="sd">    ``"prefix"``, ``"store"`` (absent or in-memory) and ``"missing"``.</span>
+<span class="sd">    ``"prefix"``, ``"store"`` (absent or in-memory), ``"outside"`` (a src that</span>
+<span class="sd">    leaves the ASSET's own folder under the store: absolute, through ``..``,</span>
+<span class="sd">    or a link to anywhere else — never read, an#483) and ``"missing"``.</span>
 <span class="sd">    """</span>
     <span class="n">prefix</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ASSET_SRC_PREFIX_TO_STORE</span> <span class="k">if</span> <span class="n">src_rel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">p</span><span class="p">)),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1184,7 +1186,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"store"</span>
     <span class="c1"># A raster src carries its digest as a query (an#211); the file is the</span>
     <span class="c1"># path before it.</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">strip_version</span><span class="p">(</span><span class="n">src_rel</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.rig</span><span class="w"> </span><span class="kn">import</span> <span class="n">_asset_file</span>
+
+    <span class="n">source</span> <span class="o">=</span> <span class="n">_asset_file</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">strip_version</span><span class="p">(</span><span class="n">src_rel</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span>
+    <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"outside"</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"missing"</span>
     <span class="k">return</span> <span class="n">source</span><span class="p">,</span> <span class="s2">""</span></div>
@@ -1248,6 +1254,22 @@ window.runMermaid = runMermaid;</script>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"texture </span><span class="si">{</span><span class="n">alias</span><span class="si">!r}</span><span class="s2"> resolves to the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store, which has "</span>
                 <span class="s2">"no filesystem root (absent or in-memory); it cannot be staged."</span><span class="p">,</span>
+                <span class="n">CutoutAssetWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">why</span> <span class="o">==</span> <span class="s2">"outside"</span><span class="p">:</span>
+            <span class="n">store_name</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ASSET_SRC_PREFIX_TO_STORE</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">src_rel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"texture </span><span class="si">{</span><span class="n">alias</span><span class="si">!r}</span><span class="s2"> declared as </span><span class="si">{</span><span class="n">src_rel</span><span class="si">!r}</span><span class="s2"> is not a path inside its "</span>
+                <span class="sa">f</span><span class="s2">"asset's own folder in the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store (absolute, leaving it "</span>
+                <span class="s2">"through `..`, or a link to anywhere else). Nothing outside an asset's "</span>
+                <span class="s2">"folder is read, so nothing is staged for it and the render will fail "</span>
+                <span class="s2">"at load rather than draw a stand-in. Put the art in the asset's folder "</span>
+                <span class="s2">"and name it relatively."</span><span class="p">,</span>
                 <span class="n">CutoutAssetWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>

@@ -42,19 +42,22 @@ compiler says so once.
 
 ### Module Attributes
 
-| [`RASTER_SUFFIXES`](#an.stage.raster.RASTER_SUFFIXES)   | The raster formats a plate or a part may be, by file suffix.   |
-|--------------------------------------------------------------------|----------------------------------------------------------------|
+| [`RASTER_SUFFIXES`](#an.stage.raster.RASTER_SUFFIXES)        | The raster formats a plate or a part may be, by file suffix.                                                                                                                                                                                    |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SVG_FORBIDDEN_ELEMENTS`](#an.stage.raster.SVG_FORBIDDEN_ELEMENTS) | code, a foreign document the rasteriser would lay out, and an embedded picture (a raster part is a PNG of its own, an#211: an `<image>` hides its pixels from every check and may reach outside the file) — the production-pack lint's own set. |
 
 ### Functions
 
-| [`art_size`](#an.stage.raster.art_size)(source)           | The size a piece of art rasterises at, whatever format it is.        |
-|-----------------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`content_digest`](#an.stage.raster.content_digest)(path)       | The hex sha256 of a file's bytes, cached by (path, mtime, size).     |
-| [`has_alpha`](#an.stage.raster.has_alpha)(source)          | Whether the image can be transparent anywhere; `None` if unknown.    |
-| [`image_size`](#an.stage.raster.image_size)(source)         | `(width, height)` in pixels of a PNG, JPEG or WebP, from its header. |
-| [`is_raster`](#an.stage.raster.is_raster)(src)             | Whether `src` names raster art, by its suffix (case-insensitive).    |
-| [`strip_version`](#an.stage.raster.strip_version)(src)         | The file path a (possibly versioned) texture `src` names.            |
-| [`versioned_src`](#an.stage.raster.versioned_src)(src, digest) | `src` with its content digest as a query string.                     |
+| [`art_size`](#an.stage.raster.art_size)(source)           | The size a piece of art rasterises at, whatever format it is.                                                                                                                                                                                                                                                                         |
+|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`content_digest`](#an.stage.raster.content_digest)(path)       | The hex sha256 of a file's bytes, cached by (path, mtime, size).                                                                                                                                                                                                                                                                      |
+| [`has_alpha`](#an.stage.raster.has_alpha)(source)          | Whether the image can be transparent anywhere; `None` if unknown.                                                                                                                                                                                                                                                                     |
+| [`image_size`](#an.stage.raster.image_size)(source)         | `(width, height)` in pixels of a PNG, JPEG or WebP, from its header.                                                                                                                                                                                                                                                                  |
+| [`is_raster`](#an.stage.raster.is_raster)(src)             | Whether `src` names raster art, by its suffix (case-insensitive).                                                                                                                                                                                                                                                                     |
+| [`is_svg_content`](#an.stage.raster.is_svg_content)(source)     | Whether `source` (a path, or bytes) IS an SVG document, by content: an XML document whose root element is `<svg>`, whatever the file is called — read by parsing its head up to the first element, so a declaration, a DOCTYPE with an internal subset, comments, processing instructions and a UTF-16 encoding are all seen through. |
+| [`strip_version`](#an.stage.raster.strip_version)(src)         | The file path a (possibly versioned) texture `src` names.                                                                                                                                                                                                                                                                             |
+| [`svg_problems`](#an.stage.raster.svg_problems)(source)       | What an SVG asset holds that no asset may: `<script>` or `<foreignObject>`, and any link outside the file (an `href` or `url()` to anything but `#id`, a `data:`/`http:`/`file:` address, a `<style>` that imports).                                                                                                                  |
+| [`versioned_src`](#an.stage.raster.versioned_src)(src, digest) | `src` with its content digest as a query string.                                                                                                                                                                                                                                                                                      |
 
 ### Exceptions
 
@@ -77,6 +80,16 @@ A file named as raster art whose header this module cannot read.
 A `ValueError`, so the compiler’s size probe treats it exactly like a
 malformed SVG: the art is declared (and fails loudly at load) rather than
 silently dropped.
+
+### an.stage.raster.SVG_FORBIDDEN_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'foreignObject', 'image', 'script'})*
+
+code, a foreign document the rasteriser
+would lay out, and an embedded picture (a raster part is a PNG of its own,
+an#211: an `<image>` hides its pixels from every check and may reach
+outside the file) — the production-pack lint’s own set.
+
+* **Type:**
+  SVG elements no asset may carry
 
 ### an.stage.raster.art_size(source)
 
@@ -150,6 +163,26 @@ False
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
+### an.stage.raster.is_svg_content(source)
+
+Whether `source` (a path, or bytes) IS an SVG document, by content:
+an XML document whose root element is `<svg>`, whatever the file is
+called — read by parsing its head up to the first element, so a
+declaration, a DOCTYPE with an internal subset, comments, processing
+instructions and a UTF-16 encoding are all seen through.
+
+```pycon
+>>> is_svg_content(b'<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"/>')
+True
+>>> is_svg_content(b'<!DOCTYPE svg [<!ENTITY x "y">]><!-- c --><svg/>')
+True
+>>> is_svg_content(b"\x89PNG\r\n"), is_svg_content(b"<html><svg/></html>")
+(False, False)
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
 ### an.stage.raster.strip_version(src)
 
 The file path a (possibly versioned) texture `src` names.
@@ -161,6 +194,28 @@ The file path a (possibly versioned) texture `src` names.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.stage.raster.svg_problems(source)
+
+What an SVG asset holds that no asset may: `<script>` or
+`<foreignObject>`, and any link outside the file (an `href` or `url()`
+to anything but `#id`, a `data:`/`http:`/`file:` address, a
+`<style>` that imports). Empty when the file is self-contained. A file
+that is not well-formed XML is one problem saying so. Reads `source` with
+`svg_raster_size()`’s parser (a path, bytes, or a parsed tree).
+
+```pycon
+>>> svg_problems('<svg xmlns="http://www.w3.org/2000/svg"><rect fill="url(#g)"/></svg>')
+[]
+>>> svg_problems('<svg xmlns="http://www.w3.org/2000/svg"><script>x()</script>'
+...              '<image href="http://x/y.png"/></svg>')
+['forbidden element(s): image, script', "links outside the file: 'http://x/y.png' (only `#id` links are allowed)"]
+>>> svg_problems(b"<svg" + b" " * 5000 + b"/>")  # bytes of any length are the document
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.stage.raster.versioned_src(src, digest)
 

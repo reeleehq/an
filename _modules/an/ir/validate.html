@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=df65852b"></script>
+    <script src="../../../_static/documentation_options.js?v=e89d0f41"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.245" />
+  <meta name="docsearch:version" content="0.1.246" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -729,6 +729,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
@@ -1859,15 +1860,20 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_plane_art_size</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The measured extent of an image plane's art, or ``None``."""</span>
+<span class="w">    </span><span class="sd">"""The measured extent of an image plane's art, or ``None`` (also for a</span>
+<span class="sd">    ``src`` outside the asset's folder, which is never read: an#483)."""</span>
     <span class="k">if</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"image"</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span> <span class="ow">or</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">inside_folder</span>
 
+    <span class="n">path</span> <span class="o">=</span> <span class="n">inside_folder</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">art_size</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">/</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">art_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -2737,6 +2743,129 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_asset_refs</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every path an entity's asset document names stays inside the asset's</span>
+<span class="sd">    folder, and every SVG it names is self-contained (an#483).</span>
+
+<span class="sd">    A plane's ``art.src``, a rig part's ``path``, a ``source_svg`` and the</span>
+<span class="sd">    files ``colour_roles`` keys name are judged by NAME first</span>
+<span class="sd">    (:func:`an.stores._common.asset_ref_problem`: an absolute path, a ``..``,</span>
+<span class="sd">    a URL is an error and is never read), then, for a store with a folder,</span>
+<span class="sd">    by where they resolve (a link out of the folder is the same error), and a</span>
+<span class="sd">    file that IS an SVG — by content, whatever its suffix — must hold no</span>
+<span class="sd">    ``&lt;script&gt;``, ``&lt;foreignObject&gt;`` or ``&lt;image&gt;`` and no link outside itself</span>
+<span class="sd">    (:func:`an.stage.raster.svg_problems`). The files are read once per asset;</span>
+<span class="sd">    the findings are reported on every shot that uses it, so a strict</span>
+<span class="sd">    pre-flight that skips shots with errors never compiles the shot anyway.</span>
+<span class="sd">    """</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="n">store_name</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"environments"</span>
+            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span>
+            <span class="k">else</span> <span class="n">rig_stores</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">store_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">store</span> <span class="o">!=</span> <span class="n">store_name</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># store not supplied → this check did not run</span>
+        <span class="n">problems</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">"asset_refs"</span><span class="p">,</span> <span class="n">store_name</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">),</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">_asset_ref_problems</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_asset_ref_problems</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What is wrong with the files the asset ``ref``'s document names</span>
+<span class="sd">    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASSET_REF_RULE</span><span class="p">,</span> <span class="n">asset_ref_problem</span><span class="p">,</span> <span class="n">inside_folder</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span> <span class="k">if</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">store</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># a missing or malformed document is `entity_refs`' finding</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">_asset_references</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+        <span class="n">who</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> names </span><span class="si">{</span><span class="n">rel</span><span class="si">!r}</span><span class="s2">, which"</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">asset_ref_problem</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ASSET_REF_RULE</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">inside_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> resolves outside the asset's folder (a link): </span><span class="si">{</span><span class="n">ASSET_REF_RULE</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> is SVG that </span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2"> — an asset is self-contained: no code, "</span>
+            <span class="s2">"no picture inside, no outside file, no embedded data"</span>
+            <span class="k">for</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">_svg_file_problems</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_asset_references</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(what, path)`` for every file path ``doc`` names: an environment's</span>
+<span class="sd">    image planes (``planes/&lt;name&gt;/art/src``), a rig's attachments</span>
+<span class="sd">    (``skins/&lt;skin&gt;/slots/&lt;slot&gt;/&lt;attachment&gt;/path``), a character's</span>
+<span class="sd">    ``source_svg`` and the files its ``colour_roles`` keys name.</span>
+
+<span class="sd">    &gt;&gt;&gt; _asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},</span>
+<span class="sd">    ...                               {"name": "fill", "art": {"kind": "fill"}}]})</span>
+<span class="sd">    [('plane sky', 'sky.png')]</span>
+<span class="sd">    &gt;&gt;&gt; _asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},</span>
+<span class="sd">    ...                    "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})</span>
+<span class="sd">    [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"planes"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">art</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"art"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">art</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"src"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">art</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">art</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">,</span> <span class="s2">"fill"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"image"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">src</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"plane </span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">src</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">slots</span> <span class="o">=</span> <span class="p">(</span><span class="n">skin</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attachments</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">att_name</span><span class="p">,</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">rel</span> <span class="o">=</span> <span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">att</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rel</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rel</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"part </span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">att_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">rel</span><span class="p">))</span>
+    <span class="n">source_svg</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_svg"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_svg</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">source_svg</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"source_svg"</span><span class="p">,</span> <span class="n">source_svg</span><span class="p">))</span>
+    <span class="n">roles</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"colour_roles"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">roles</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[(</span><span class="sa">f</span><span class="s2">"colour_roles </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">roles</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_svg_file_problems</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="s2">"Path"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">""":func:`an.stage.raster.svg_problems` of ``file`` when it IS an SVG by</span>
+<span class="sd">    content (any suffix), else ``[]``; an unreadable or absent file is another</span>
+<span class="sd">    check's finding."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_svg_content</span><span class="p">,</span> <span class="n">svg_problems</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_svg_content</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">svg_problems</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_voices</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Dialogue voice refs resolve? The line's own voice_ref, else the one its</span>
 <span class="sd">    speaker is bound to — the resolver the audio pipeline speaks with (an#194)."""</span>
@@ -3130,6 +3259,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"action_targets"</span><span class="p">,</span> <span class="n">_core_action_targets</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">90</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"field_kinds"</span><span class="p">,</span> <span class="n">_core_field_kinds</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">95</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"entity_refs"</span><span class="p">,</span> <span class="n">_core_entity_refs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span>
+            <span class="s2">"asset_refs"</span><span class="p">,</span>
+            <span class="n">_core_asset_refs</span><span class="p">,</span>
+            <span class="n">order</span><span class="o">=</span><span class="mi">101</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"every path an asset names stays inside its folder; its SVG is self-contained"</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"voices"</span><span class="p">,</span> <span class="n">_core_voices</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_lines"</span><span class="p">,</span> <span class="n">_core_dialogue_lines</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">120</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_fits"</span><span class="p">,</span> <span class="n">_core_dialogue_fits</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">130</span><span class="p">),</span>

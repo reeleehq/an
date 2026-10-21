@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=df65852b"></script>
+    <script src="../_static/documentation_options.js?v=e89d0f41"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.245" />
+  <meta name="docsearch:version" content="0.1.246" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -654,6 +654,9 @@ compiler says so once.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.raster.RASTER_SUFFIXES" title="an.stage.raster.RASTER_SUFFIXES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RASTER_SUFFIXES</span></code></a></p></td>
 <td><p>The raster formats a plate or a part may be, by file suffix.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.raster.SVG_FORBIDDEN_ELEMENTS" title="an.stage.raster.SVG_FORBIDDEN_ELEMENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SVG_FORBIDDEN_ELEMENTS</span></code></a></p></td>
+<td><p>code, a foreign document the rasteriser would lay out, and an embedded picture (a raster part is a PNG of its own, an#211: an <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;</span></code> hides its pixels from every check and may reach outside the file) — the production-pack lint's own set.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -675,8 +678,14 @@ compiler says so once.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.raster.is_raster" title="an.stage.raster.is_raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_raster</span></code></a>(src)</p></td>
 <td><p>Whether <code class="docutils literal notranslate"><span class="pre">src</span></code> names raster art, by its suffix (case-insensitive).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.raster.strip_version" title="an.stage.raster.strip_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_version</span></code></a>(src)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.raster.is_svg_content" title="an.stage.raster.is_svg_content"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_svg_content</span></code></a>(source)</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">source</span></code> (a path, or bytes) IS an SVG document, by content: an XML document whose root element is <code class="docutils literal notranslate"><span class="pre">&lt;svg&gt;</span></code>, whatever the file is called — read by parsing its head up to the first element, so a declaration, a DOCTYPE with an internal subset, comments, processing instructions and a UTF-16 encoding are all seen through.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.raster.strip_version" title="an.stage.raster.strip_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_version</span></code></a>(src)</p></td>
 <td><p>The file path a (possibly versioned) texture <code class="docutils literal notranslate"><span class="pre">src</span></code> names.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.raster.svg_problems" title="an.stage.raster.svg_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_problems</span></code></a>(source)</p></td>
+<td><p>What an SVG asset holds that no asset may: <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;foreignObject&gt;</span></code>, and any link outside the file (an <code class="docutils literal notranslate"><span class="pre">href</span></code> or <code class="docutils literal notranslate"><span class="pre">url()</span></code> to anything but <code class="docutils literal notranslate"><span class="pre">#id</span></code>, a <code class="docutils literal notranslate"><span class="pre">data:</span></code>/<code class="docutils literal notranslate"><span class="pre">http:</span></code>/<code class="docutils literal notranslate"><span class="pre">file:</span></code> address, a <code class="docutils literal notranslate"><span class="pre">&lt;style&gt;</span></code> that imports).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.raster.versioned_src" title="an.stage.raster.versioned_src"><code class="xref py py-obj docutils literal notranslate"><span class="pre">versioned_src</span></code></a>(src, digest)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">src</span></code> with its content digest as a query string.</p></td>
@@ -710,6 +719,20 @@ whose output is not specified bit-exactly and the render is a contract).</p>
 <p>A <code class="code docutils literal notranslate"><span class="pre">ValueError</span></code>, so the compiler’s size probe treats it exactly like a
 malformed SVG: the art is declared (and fails loudly at load) rather than
 silently dropped.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.raster.SVG_FORBIDDEN_ELEMENTS">
+<span class="sig-prename descclassname"><span class="pre">an.stage.raster.</span></span><span class="sig-name descname"><span class="pre">SVG_FORBIDDEN_ELEMENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'foreignObject',</span> <span class="pre">'image',</span> <span class="pre">'script'})</span></span><a class="headerlink" href="#an.stage.raster.SVG_FORBIDDEN_ELEMENTS" title="Link to this definition">#</a></dt>
+<dd><p>code, a foreign document the rasteriser
+would lay out, and an embedded picture (a raster part is a PNG of its own,
+an#211: an <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;</span></code> hides its pixels from every check and may reach
+outside the file) — the production-pack lint’s own set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SVG elements no asset may carry</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -798,6 +821,29 @@ uses this for.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.stage.raster.is_svg_content">
+<span class="sig-prename descclassname"><span class="pre">an.stage.raster.</span></span><span class="sig-name descname"><span class="pre">is_svg_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/raster.html#is_svg_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.raster.is_svg_content" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">source</span></code> (a path, or bytes) IS an SVG document, by content:
+an XML document whose root element is <code class="docutils literal notranslate"><span class="pre">&lt;svg&gt;</span></code>, whatever the file is
+called — read by parsing its head up to the first element, so a
+declaration, a DOCTYPE with an internal subset, comments, processing
+instructions and a UTF-16 encoding are all seen through.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_svg_content</span><span class="p">(</span><span class="sa">b</span><span class="s1">'&lt;?xml version="1.0"?&gt;</span><span class="se">\n</span><span class="s1">&lt;svg xmlns="http://www.w3.org/2000/svg"/&gt;'</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_svg_content</span><span class="p">(</span><span class="sa">b</span><span class="s1">'&lt;!DOCTYPE svg [&lt;!ENTITY x "y"&gt;]&gt;&lt;!-- c --&gt;&lt;svg/&gt;'</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_svg_content</span><span class="p">(</span><span class="sa">b</span><span class="s2">"</span><span class="se">\x89</span><span class="s2">PNG</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">),</span> <span class="n">is_svg_content</span><span class="p">(</span><span class="sa">b</span><span class="s2">"&lt;html&gt;&lt;svg/&gt;&lt;/html&gt;"</span><span class="p">)</span>
+<span class="go">(False, False)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.stage.raster.strip_version">
 <span class="sig-prename descclassname"><span class="pre">an.stage.raster.</span></span><span class="sig-name descname"><span class="pre">strip_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/raster.html#strip_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.raster.strip_version" title="Link to this definition">#</a></dt>
 <dd><p>The file path a (possibly versioned) texture <code class="docutils literal notranslate"><span class="pre">src</span></code> names.</p>
@@ -808,6 +854,31 @@ uses this for.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.raster.svg_problems">
+<span class="sig-prename descclassname"><span class="pre">an.stage.raster.</span></span><span class="sig-name descname"><span class="pre">svg_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/raster.html#svg_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.raster.svg_problems" title="Link to this definition">#</a></dt>
+<dd><p>What an SVG asset holds that no asset may: <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&lt;foreignObject&gt;</span></code>, and any link outside the file (an <code class="docutils literal notranslate"><span class="pre">href</span></code> or <code class="docutils literal notranslate"><span class="pre">url()</span></code>
+to anything but <code class="docutils literal notranslate"><span class="pre">#id</span></code>, a <code class="docutils literal notranslate"><span class="pre">data:</span></code>/<code class="docutils literal notranslate"><span class="pre">http:</span></code>/<code class="docutils literal notranslate"><span class="pre">file:</span></code> address, a
+<code class="docutils literal notranslate"><span class="pre">&lt;style&gt;</span></code> that imports). Empty when the file is self-contained. A file
+that is not well-formed XML is one problem saying so. Reads <code class="docutils literal notranslate"><span class="pre">source</span></code> with
+<code class="xref py py-func docutils literal notranslate"><span class="pre">svg_raster_size()</span></code>’s parser (a path, bytes, or a parsed tree).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">svg_problems</span><span class="p">(</span><span class="s1">'&lt;svg xmlns="http://www.w3.org/2000/svg"&gt;&lt;rect fill="url(#g)"/&gt;&lt;/svg&gt;'</span><span class="p">)</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">svg_problems</span><span class="p">(</span><span class="s1">'&lt;svg xmlns="http://www.w3.org/2000/svg"&gt;&lt;script&gt;x()&lt;/script&gt;'</span>
+<span class="gp">... </span>             <span class="s1">'&lt;image href="http://x/y.png"/&gt;&lt;/svg&gt;'</span><span class="p">)</span>
+<span class="go">['forbidden element(s): image, script', "links outside the file: 'http://x/y.png' (only `#id` links are allowed)"]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">svg_problems</span><span class="p">(</span><span class="sa">b</span><span class="s2">"&lt;svg"</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">" "</span> <span class="o">*</span> <span class="mi">5000</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">"/&gt;"</span><span class="p">)</span>  <span class="c1"># bytes of any length are the document</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -878,12 +949,15 @@ uses this for.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.RASTER_SUFFIXES"><code class="docutils literal notranslate"><span class="pre">RASTER_SUFFIXES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.RasterFormatError"><code class="docutils literal notranslate"><span class="pre">RasterFormatError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.SVG_FORBIDDEN_ELEMENTS"><code class="docutils literal notranslate"><span class="pre">SVG_FORBIDDEN_ELEMENTS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.art_size"><code class="docutils literal notranslate"><span class="pre">art_size()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.content_digest"><code class="docutils literal notranslate"><span class="pre">content_digest()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.has_alpha"><code class="docutils literal notranslate"><span class="pre">has_alpha()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.image_size"><code class="docutils literal notranslate"><span class="pre">image_size()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.is_raster"><code class="docutils literal notranslate"><span class="pre">is_raster()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.is_svg_content"><code class="docutils literal notranslate"><span class="pre">is_svg_content()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.strip_version"><code class="docutils literal notranslate"><span class="pre">strip_version()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.svg_problems"><code class="docutils literal notranslate"><span class="pre">svg_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.raster.versioned_src"><code class="docutils literal notranslate"><span class="pre">versioned_src()</span></code></a></li>
 </ul>
   </nav></div>

@@ -319,7 +319,9 @@ The ONE resolution of a texture `src` to a file: staging copies from it
 (`an.stage.cache_key.texture_digests`), so the bytes keyed are the bytes
 drawn — a change to where art is read from (the asset library’s reference
 mode, ADR 0005) changes both or neither (an#316 review). `why` is one of
-`"prefix"`, `"store"` (absent or in-memory) and `"missing"`.
+`"prefix"`, `"store"` (absent or in-memory), `"outside"` (a src that
+leaves the ASSET’s own folder under the store: absolute, through `..`,
+or a link to anywhere else — never read, an#483) and `"missing"`.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
