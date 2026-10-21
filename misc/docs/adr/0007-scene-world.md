@@ -1,6 +1,6 @@
 # ADR 0007 — A scene space: one world, and shots as viewpoints onto it
 
-**Status:** Proposed, 2026-10-20 · **Decider:** the maintainer · **Related:** an#484 (the travelling view, re-based on this), an#478 (the dolly: a consumer), an#445/an#467 (`screen_position`, `node_box`: what the extents are measured with), an#394 (cut continuity: amended by this), an#257 (previz: the view-space vocabulary), reeleehq/cutan `body-attachment-lint` (attachments in the character's units, placed from the character's `stage`), ADR 0001 (core and genre), ADR 0003 (structured ↔ semantic), the research note *A scene space for an: one world, many shots* (2026-10-20, in the production's working folder and the owner's annals)
+**Status:** Proposed, 2026-10-20 (first slice merged as #513) · **Decider:** the maintainer · **Related:** an#484 (the travelling view, re-based on this), an#478 (the dolly: a consumer), an#445/an#467 (`screen_position`, `node_box`: what the extents are measured with), an#394 (cut continuity: amended by this), an#257 (previz: the view-space vocabulary), reeleehq/cutan `body-attachment-lint` (attachments in the character's units, placed from the character's `stage`), ADR 0001 (core and genre), ADR 0003 (structured ↔ semantic), the research note `misc/docs/research/scene_world_2026-10-20.md`
 
 ## Context
 
@@ -43,3 +43,9 @@ What the core has: `screen_position`/`node_box` to measure a built entity withou
 ## First slice
 
 Built in this ADR's PR: the schema (`Space`, `WorldMember`, `Attachment`, `Viewpoint`, `Travel`, `Stream`), the projection and composition resolvers, `lower_world` with streams, `member_extents`, the `scene.md` blocks (`yaml world`, `viewpoint:` in `yaml shot`), the four validate changes, `an world show`, the entry-point hooks, tests and doctests. Not built, filed as issues: world-space motion and relative tweens; a plane at a world depth (true parallax and the dolly, an#478); a member fixed in the world under a travel (a landmark passing by); `an space from-shot` (derive a world from a hand-placed master); landmarks from a rig (`SHOT_SIZES` seam) and automatic view selection and the eyeline lint (cutan); a content check of far plates by a vision model (cutan#95); previz sharing the viewpoint vocabulary (an#257).
+
+## Known limits of the first slice (the adversarial review's second pass, 2026-10-21)
+
+- A travelling view's slot entities are counted from the depth range; a wide lens or a yawed view can show more of a row than that. Two instances in one slot are REFUSED with a message (never drawn as a teleport); sizing the slots from the on-screen span per (stream, viewpoint) is the fix, filed.
+- A travel's cost is per pass (about thirty actions: four channels of Bézier segments and the alpha), so a minute of dense road markings exceeds `max_actions` and is refused rather than made cheap, and the refusal comes after the fitting. A parametric stream track the runtime evaluates (one action per channel per pass) is the lever, at the action-vocabulary seam; filed with the early abort.
+- A world member whose art cannot be measured (a missing ref) is a validate warning and the render leaves it out with no finding of its own; a listed entity in the same state is an error. Filed, with: `cut_continuity` warning about hidden slot entities across a cut (alpha is not recorded), an authored entity named like a slot (`<stream>_<n>`) being taken for a lowered shot, and the rule that a hand `scale` of exactly 1.0 means the world's (an author who wants native size by hand writes 1.0001 for now).

@@ -1039,3 +1039,22 @@ def test_a_world_block_inside_a_shot_is_refused():
     )
     with pytest.raises(SceneMarkdownError, match="before the first shot"):
         markdown_to_ir(moved)
+
+
+def test_a_wide_lens_side_window_is_refused_rather_than_teleporting():
+    """Review B3: the slot count comes from the depth range; a wide lens on a side
+    window shows more of the row than that, and the lowering says so."""
+    scene = _travel_scene(Shot(id="s1", duration=6.0, viewpoint="road"), yaw=90.0)
+    scene.world.viewpoints["road"] = Viewpoint(
+        at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), fov=120.0
+    )
+    scene.world.travel = scene.world.travel.model_copy(
+        update={
+            "far": 8.0,
+            "streams": [
+                Stream(id="pole", ref="lamp", height=1.5, every=0.5, lane=1.2, y=0.0)
+            ],
+        }
+    )
+    with pytest.raises(WorldError, match="on screen at once"):
+        lower_world(scene, extents=EXTENTS)

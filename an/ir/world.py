@@ -904,6 +904,20 @@ def _travel_entities(
             if entity_id in skipped:
                 continue
             ordered = sorted(passes[slot], key=lambda item: item[1].t_in)
+            for (_, prev, _), (_, nxt, _) in zip(ordered, ordered[1:]):
+                if nxt.t_in < prev.t_out:
+                    # Two instances on screen at once in one slot: the slot count
+                    # comes from the depth window, and a wide lens or a yawed
+                    # view shows more of the row than that (review B3). Loud,
+                    # not a teleport; the slot count from the on-screen span is
+                    # the fix, filed.
+                    raise WorldError(
+                        f"stream {stream.id!r}: two instances are on screen at once "
+                        f"in one slot ({entity_id}, {prev.t_out:.2f}s and {nxt.t_in:.2f}s) "
+                        "under this viewpoint; the travelling view's slots are sized by "
+                        "the depth range, which a wide lens or a yawed view exceeds. "
+                        "Narrow `fov`, bring `far` in, or space the stream out (`every`)."
+                    )
             first = ordered[0][1]
             entities.append(
                 (
