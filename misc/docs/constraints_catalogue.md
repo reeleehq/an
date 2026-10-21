@@ -85,7 +85,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; the body lint's "limbs are not crossed" is a rig-internal special case it should absorb.
 
-**Status.** Missing.
+**Status.** Shipped as the `solidity` check (an#509, `an/verify/constraints.py`): characters and props whose boxes overlap by more than a quarter of the smaller, with no `stage.after` on either, warn; `overrides: {solid: false}` opts out; path and text props are drawings, not solids.
 
 #### A3. Occlusion and draw order from depth
 
@@ -385,7 +385,7 @@ Ranked by (a) how often the error class reached a viewer in the two plot-car rou
 |---|---|---|---|---|---|---|---|
 | 1 | spatio-temporal continuity within a shot (no mid-shot jump, no one-frame flicker) | B1 | no | `evaluate_timeline`, `FrameClock` | `an` | small | an#508 |
 | 2 | support, penetration, floating and foot skate | A1, B3 | yes: `contacts` on assets, `support` relation, a surface (`y`, a member's `support_top`, scene-space ground) | `node_box`, rig bones | contacts in the rig: `cutan`; the relation and surface: `an` | medium |  |
-| 3 | solidity between declared solids | A2 | yes: `solid` (default from depth band once scene space lands) | `node_box` | `an` | small |  |
+| 3 | solidity between declared solids | A2 | yes: `solid` (default from depth band once scene space lands) | `node_box` | `an` | small | an#509 |
 | 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small |  |
 | 5 | pre-render cadence lint from the IR against the style (tween durations, holds, easing list) | B6 | no (style specs carry it) | flat timeline, style spec | `cutan` | small |  |
 | 6 | causality and audio-visual tolerance for sound cues and dialogue | B7 | `cause` on timed cues | cues, anchors, word timings | `an` | small |  |

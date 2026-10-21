@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-21
+- **`solidity` lint** (an#509, an#497): two solids (characters and props; not planes, voices, path or text props) whose boxes overlap by more than a quarter of the smaller one, sampled every 0.25 s, with no `stage.after` on either, are one `an validate` warning naming both; `overrides: {solid: false}` opts an entity out.
 - **Constraint interface and the `continuity` lint** (an#508, an#497): `an.verify.constraints.Constraint` (name, check, optional solver `term`, `semantic_check()`), the first check on it, `continuity` (a node jumping within a shot without a `set`, a value held under a frame), registered when `an.ir` is imported; `an.verify` imports lazily so `import an` stays light.
 - **Puppeteering research** (an#497, puppet-research session): `misc/docs/research/puppeteering_2026-10.md`, puppetry traditions and 2D rigging tools read for their joint/control/gravity vocabulary, the solver families, and a measured comparison (analytic two-bone, CCD, FABRIK, PBD, XPBD; bitwise determinism; prototype and JSON measurements beside it) that chooses the hybrid `an.kinematics` design for P1 (#499).
 
