@@ -172,7 +172,9 @@ AUDITION_GAP_S = 0.6
 #: Where the project-level audition reels go, under the project root.
 AUDITIONS_DIR = Path("artifacts") / "voice_auditions"
 #: An audition reel is 16-bit mono WAV at the effects chain's rate.
-AUDITION_SAMPLE_RATE = 44100  # = an.audio.effects.EFFECT_SAMPLE_RATE (asserted in tests)
+AUDITION_SAMPLE_RATE = (
+    44100  # = an.audio.effects.EFFECT_SAMPLE_RATE (asserted in tests)
+)
 #: The option keys an audition writes: the reel's key in the reels store, how
 #: many lines it holds, and the content key it was made under (voice, lines,
 #: options, effects, gap, provider) — a reel is never made twice for the same key.
@@ -344,7 +346,9 @@ class ElevenLabsVoiceLibrary:
             ) from e
         return ElevenLabs(api_key=self.api_key)
 
-    def search(self, *, limit: int = DFLT_LIBRARY_LIMIT, **filters: Any) -> list[LibraryVoice]:
+    def search(
+        self, *, limit: int = DFLT_LIBRARY_LIMIT, **filters: Any
+    ) -> list[LibraryVoice]:
         """The shared voices matching ``filters`` (:data:`LIBRARY_FILTERS`), at most ``limit``."""
         unknown = sorted(set(filters) - set(LIBRARY_FILTERS))
         if unknown:
@@ -442,7 +446,9 @@ def parse_library_query(text: str | Mapping | None) -> dict[str, str] | None:
     return out or None
 
 
-def library_query_of(doc: Mapping | None, default: Mapping | None = None) -> dict[str, str] | None:
+def library_query_of(
+    doc: Mapping | None, default: Mapping | None = None
+) -> dict[str, str] | None:
     """The document's own ``library`` query, else ``default``, else ``None``.
 
     >>> library_query_of({"library": {"accent": "irish"}}, {"accent": "scottish"})
@@ -686,7 +692,9 @@ def design_voice_options(
         options: list[dict] = []
         if design and _notes_problem(doc) is None:
             designer = designer if designer is not None else default_designer()
-            previews = designer.design_voice_previews(notes, text=text, model_id=model_id)
+            previews = designer.design_voice_previews(
+                notes, text=text, model_id=model_id
+            )
             for i, preview in enumerate(previews):
                 label = _label(i)
                 key = f"{ref}_{label}"
@@ -783,7 +791,12 @@ def _reel_wav(audio: bytes, effects: Mapping[str, Any]) -> bytes:
     reel is the film's sound (``takes`` are not: one take per line) — as 16-bit
     mono WAV at :data:`AUDITION_SAMPLE_RATE`: an input already so is kept as it
     is, anything else goes through the effects chain's own ffmpeg decoder."""
-    from an.audio.effects import VoiceEffectError, _ffmpeg_wav, apply_voice_effects, decode_chain
+    from an.audio.effects import (
+        VoiceEffectError,
+        _ffmpeg_wav,
+        apply_voice_effects,
+        decode_chain,
+    )
 
     try:
         wav = apply_voice_effects(audio, effects) if effects else audio
@@ -908,7 +921,11 @@ def plan_auditions(
         key = audition_key(
             option["voice_id"], lines, effects=effects, gap_s=gap_s, tts_name=tts_name
         )
-        if not redo and option.get(AUDITION_KEY) and option.get(AUDITION_CONTENT_KEY) == key:
+        if (
+            not redo
+            and option.get(AUDITION_KEY)
+            and option.get(AUDITION_CONTENT_KEY) == key
+        ):
             continue  # the reel on record IS this reel: never billed twice
         jobs.append(AuditionJob(ref, option, lines, dict(effects or {}), key))
     return jobs
@@ -936,7 +953,11 @@ def announce_auditions(jobs: Iterable[AuditionJob], tts: Any) -> str:
         else None
     )
     per = {len(j.lines) for j in jobs}
-    shape = f"{len(jobs)} reel(s) x {per.pop()} line(s) = " if len(per) == 1 else f"{len(jobs)} reel(s), "
+    shape = (
+        f"{len(jobs)} reel(s) x {per.pop()} line(s) = "
+        if len(per) == 1
+        else f"{len(jobs)} reel(s), "
+    )
     return (
         f"audition: {shape}{n} request(s) to {getattr(tts, 'name', 'the provider')}"
         + (f", {chars} characters" if chars is not None else "")
@@ -1355,7 +1376,9 @@ def audition_project_voices(
     jobs: list[AuditionJob] = []
     for ref in wanted:
         if ref not in manifests:
-            raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
+            raise VoiceDesignError(
+                f"no options for {ref!r}: run `an voices design` first"
+            )
         entry = dict(manifests[ref])
         entry["options"] = [dict(o) for o in entry.get("options", ())]
         entries[ref] = entry
@@ -1375,9 +1398,13 @@ def audition_project_voices(
         job.option["audition_path"] = str(
             (AUDITIONS_DIR / f"{job.reel}.wav").as_posix()
         )
-        manifests[job.ref] = entries[job.ref]  # written per reel: a later failure loses nothing paid
+        manifests[job.ref] = entries[
+            job.ref
+        ]  # written per reel: a later failure loses nothing paid
 
-    run_auditions(jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, on_reel=record)
+    run_auditions(
+        jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, on_reel=record
+    )
     return entries
 
 
