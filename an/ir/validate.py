@@ -41,7 +41,6 @@ from an.genres.registry import (
     register_check,
 )
 
-
 Severity = Literal["error", "warning", "info"]
 
 
@@ -1410,6 +1409,7 @@ def validate_semantic(
     available_sounds: Mapping[str, Any] | None = None,
     available_library_lock: Mapping[str, Any] | None = None,
     available_styles: Mapping[str, Any] | None = None,
+    available_recordings: Mapping[str, Any] | None = None,
     only: "Collection[str] | None" = None,
     fps: float | None = None,
 ) -> ValidationReport:
@@ -1460,6 +1460,7 @@ def validate_semantic(
                 ("props", available_props),
                 ("environments", available_environments),
                 ("styles", available_styles),
+                ("recordings", available_recordings),
             )
             if store is not None
         },
@@ -2018,6 +2019,44 @@ def _core_voices(ctx: ValidationContext) -> None:
             _check_voice_effects(
                 report, path, k, voice_ref, available_voices, line=line
             )
+            _check_recorded_take(
+                report,
+                path,
+                k,
+                voice_ref,
+                available_voices,
+                ctx.stores.get("recordings"),
+                line=line,
+            )
+
+
+def _check_recorded_take(
+    report, path: str, k: int, voice_ref: str, voices, recordings, *, line
+) -> None:
+    """A line of a recorded voice has a take, or the render refuses it (an#490):
+    error wherever the pipeline raises. Nothing to check without the store."""
+    from an.audio.recorded import IMPORT_HINT, PROVIDER_NAME, find_recording
+
+    try:
+        doc = voices[voice_ref]
+    except (
+        Exception
+    ):  # noqa: BLE001 — an unreadable document is another check's finding
+        return
+    if not isinstance(doc, Mapping):
+        return
+    if (
+        str(doc.get("provider", "")).strip().lower() != PROVIDER_NAME
+        or recordings is None
+    ):
+        return
+    if find_recording(recordings, voice_ref, line.text) is None:
+        report.add(
+            "error",
+            f"{path}/dialogue/{k}",
+            f"voice {voice_ref!r} is recorded, but there is no take of {line.text!r} "
+            f"(the render refuses the line); {IMPORT_HINT}",
+        )
 
 
 def _core_dialogue_lines(ctx: ValidationContext) -> None:

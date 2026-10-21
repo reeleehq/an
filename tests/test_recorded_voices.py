@@ -23,7 +23,11 @@ import wave
 import pytest
 
 from an.audio.lipsync import NullLipSync
-from an.audio.pipeline import produce_audio_for_scene
+from an.audio.pipeline import (
+    in_memory_audio_mall,
+    produce_audio_for_scene,
+    stamp_from_stores,
+)
 from an.audio.recorded import (
     RECORDINGS_STORE,
     RecordedVoicesError,
@@ -32,7 +36,7 @@ from an.audio.recorded import (
     import_recordings,
 )
 from an.audio.transcripts import TranscriptSegment
-from an.credits import collect_credits
+from an.credits import collect_credits, credits_for_scene
 from an.ir.schema import AssetRef, Dialogue, Meta, Resolution, SceneIR, Shot
 from an.project import init, load
 
@@ -143,12 +147,13 @@ def test_a_timed_transcript_cuts_the_take_stores_it_and_binds_the_lines(tmp_path
     # No character entity: the binding is per line, and the report says what that means.
     assert [d.voice_ref for d in lines] == ["carl_recorded", "carl_recorded"]
     assert any("no character entity" in v for v in report.voices)
-    # The silence heard between the two lines is the second line's pause.
+    # The silence heard between the two lines is the second line's pause: the
+    # 1.0 s gap less the 50 ms pad the second cut keeps before its speech.
     assert lines[0].pause is None
-    assert lines[1].pause == pytest.approx(1.0)
-    assert report.takes[1].pause == pytest.approx(1.0)
+    assert lines[1].pause == pytest.approx(0.95)
+    assert report.takes[1].pause == pytest.approx(0.95)
     # scene.md says so too (the store's merge writes the dialogue block).
-    assert "(pause 1" in (root / "scene.md").read_text(encoding="utf-8")
+    assert "(pause 0.95" in (root / "scene.md").read_text(encoding="utf-8")
 
 
 @pytest.mark.genre("cutout_animation")
@@ -180,9 +185,10 @@ def test_the_pipeline_speaks_the_takes_from_the_store(tmp_path):
         key, record = find_recording(store, "carl_recorded", line.text)
         assert proj.mall["audio"][line.audio_ref] == store.read_audio(key)
         assert line.duration == pytest.approx(record["duration"])
-    # The second line follows the first line's speech by the recorded pause.
+    # The second line follows the first line's speech by the recorded pause, so
+    # its speech (50 ms into its clip) starts 1.0 s after the first's ends.
     heard = first.spoken if first.spoken is not None else first.duration
-    assert second.start == pytest.approx(first.start + heard + 1.0, abs=0.02)
+    assert second.start == pytest.approx(first.start + heard + 0.95, abs=0.02)
     # Idempotent: a second pass re-reads everything and changes no key.
     refs = [d.audio_ref for d in scene.timeline[0].dialogue]
     produce_audio_for_scene(scene, proj.mall, lipsync=NullLipSync(), announce=None)
@@ -295,7 +301,7 @@ def test_a_take_matching_no_line_goes_only_to_a_named_shot(tmp_path):
     ]
     lines = load(root).scene.timeline[0].dialogue
     assert [d.text for d in lines] == [HELLO, FINE, "Bye now."]
-    assert lines[2].pause == pytest.approx(0.2)
+    assert lines[2].pause == pytest.approx(0.15)
 
 
 def test_a_wrong_shot_or_a_bad_licence_is_refused_before_anything_is_written(tmp_path):
@@ -347,7 +353,7 @@ def test_a_plain_transcript_is_timed_by_the_transcriber(tmp_path):
     assert asked == ["take.wav"]
     assert [(t.line, t.words) for t in report.takes] == [("s1/0", 3), ("s1/1", 2)]
     assert report.takes[0].span == pytest.approx((0.45, 1.55))
-    assert report.takes[1].pause == pytest.approx(1.0)
+    assert report.takes[1].pause == pytest.approx(0.95)
 
 
 def test_no_transcript_means_the_transcriber_segments_are_the_lines(tmp_path):
@@ -488,3 +494,212 @@ def test_denoising_runs_the_take_through_ffmpeg(tmp_path):
             license=LICENSE,
             denoise="magic",
         )
+
+
+# --- the review's findings, pinned ---------------------------------------------
+
+
+def test_the_cache_key_reader_restamps_a_recorded_scene_in_memory(tmp_path):
+    """`an cache gc` reads a render's keys through `stamp_from_stores`, whose
+    providers must reach the recordings store too (review finding 1)."""
+    root = _project(tmp_path)
+    import_recordings(root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE)
+    proj = load(root)
+    scene = produce_audio_for_scene(
+        proj.scene, proj.mall, lipsync=NullLipSync(), announce=None
+    )
+    refs = [d.audio_ref for d in scene.timeline[0].dialogue]
+    fresh = load(root).scene  # unstamped: the render's stamps were not saved
+    assert all(d.audio_ref is None for d in fresh.timeline[0].dialogue)
+    stamped = stamp_from_stores(
+        fresh,
+        in_memory_audio_mall(proj.mall),
+        lipsync=NullLipSync(),
+        free_in_memory=True,
+    )
+    assert [d.audio_ref for d in stamped.timeline[0].dialogue] == refs
+
+
+def test_overlapping_cues_are_refused_before_anything_is_written(tmp_path):
+    root = _project(tmp_path)
+    nested = (
+        "1\n00:00:01,000 --> 00:00:05,000\ncarl: Hello there, Ned.\n\n"
+        "2\n00:00:02,000 --> 00:00:03,000\ncarl: Fine, thanks.\n"
+    )
+    with pytest.raises(RecordedVoicesError, match="leaves no audio to cut"):
+        import_recordings(
+            root,
+            _take(tmp_path, seconds=6.0),
+            transcript=_srt(tmp_path, nested),
+            license=LICENSE,
+        )
+    proj = load(root)
+    assert not _records(root)
+    assert "carl_recorded" not in proj.mall["voices"]
+    assert all(d.voice_ref is None for d in proj.scene.timeline[0].dialogue)
+
+
+def test_a_renders_credits_name_the_take_and_its_permission(tmp_path):
+    root = _project(tmp_path)
+    import_recordings(
+        root,
+        _take(tmp_path),
+        transcript=_srt(tmp_path),
+        license="all-rights-reserved",
+        recorded_by="J. Doe",
+    )
+    proj = load(root)
+    scene = produce_audio_for_scene(
+        proj.scene, proj.mall, lipsync=NullLipSync(), announce=None
+    )
+    report = credits_for_scene(proj.mall, scene)
+    takes = [e for e in report.entries if e.asset.startswith("recordings/")]
+    assert len(takes) == 2
+    assert all(
+        e.source.author == "J. Doe" and e.source.license == "all-rights-reserved"
+        for e in takes
+    )
+    assert not any(
+        e.asset == "speech/carl_recorded" for e in report.entries
+    )  # not synthesized
+    assert report.publishable is False  # a private take makes the film private
+
+
+@pytest.mark.genre("cutout_animation")
+def test_an_entity_without_a_descriptor_binds_per_line_and_says_so(tmp_path):
+    root = _project(tmp_path, character=True)
+    proj = load(root)
+    del proj.mall["characters"][
+        "carl"
+    ]  # the entity stays in the shot, its descriptor is gone
+    report = import_recordings(
+        root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE
+    )
+    assert any("has no descriptor" in v for v in report.voices)
+    lines = load(root).scene.timeline[0].dialogue
+    assert [d.voice_ref for d in lines] == ["carl_recorded", "carl_recorded"]
+
+
+def test_a_nameless_take_that_fits_two_speakers_is_refused(tmp_path):
+    root = init(tmp_path / "p")
+    proj = load(root)
+    scene = _scene((), character=False)
+    scene.timeline[0].dialogue = [
+        Dialogue(speaker="carl", text="Yeah."),
+        Dialogue(speaker="ned", text="Yeah."),
+    ]
+    proj.mall["scenes"]["main"] = scene
+    srt = _srt(
+        tmp_path,
+        "1\n00:00:00,500 --> 00:00:01,500\nYeah.\n\n2\n00:00:02,500 --> 00:00:03,300\nYeah.\n",
+    )
+    with pytest.raises(RecordedVoicesError, match="equally well"):
+        import_recordings(root, _take(tmp_path), transcript=srt, license=LICENSE)
+    assert not _records(root)
+    # Named, the first take is carl's line; the second has no free carl line and
+    # is added to the shot — and the repeated text is said to play one take.
+    report = import_recordings(
+        root,
+        _take(tmp_path),
+        transcript=srt,
+        license=LICENSE,
+        speaker="carl",
+        shot="s1",
+    )
+    assert [(t.speaker, t.added) for t in report.takes] == [
+        ("carl", False),
+        ("carl", True),
+    ]
+    assert any("more than once" in w for w in report.warnings)
+
+
+def test_validate_reports_a_line_with_no_take(tmp_path):
+    from an.orchestrate import validate_project
+
+    root = _project(tmp_path)
+    import_recordings(root, _take(tmp_path), transcript=_srt(tmp_path), license=LICENSE)
+    assert not [f for f in validate_project(root).findings if f.severity == "error"]
+    proj = load(root)
+    proj.scene.timeline[0].dialogue.append(
+        Dialogue(speaker="carl", text="Bye now.", voice_ref="carl_recorded")
+    )
+    proj.mall["scenes"]["main"] = proj.scene
+    errors = [f for f in validate_project(root).findings if f.severity == "error"]
+    assert len(errors) == 1 and "no take of 'Bye now.'" in errors[0].description
+
+
+def test_the_same_bytes_under_two_texts_keep_their_own_words(tmp_path):
+    root = _project(tmp_path, lines=(HELLO, "Hello there, Fred."))
+    words = lambda name: [
+        [name.split()[0], 0.5, 0.8],
+        ["there", 0.8, 1.1],
+        [name.split()[-1].rstrip("."), 1.1, 1.5],
+    ]  # noqa: E731
+    for text in (HELLO, "Hello there, Fred."):
+        transcript = tmp_path / f"{text[-5:-1]}.json"
+        transcript.write_text(
+            json.dumps(
+                {"segments": [{"speaker": "carl", "text": text, "words": words(text)}]}
+            ),
+            encoding="utf-8",
+        )
+        import_recordings(
+            root,
+            _take(tmp_path, seconds=2.0, bursts=((0.5, 1.5),)),
+            transcript=transcript,
+            license=LICENSE,
+        )
+    proj = load(root)
+    scene = produce_audio_for_scene(
+        proj.scene, proj.mall, lipsync=NullLipSync(), announce=None
+    )
+    first, second = scene.timeline[0].dialogue
+    assert [w.text for w in first.word_timings] == ["Hello", "there", "Ned"]
+    assert [w.text for w in second.word_timings] == ["Hello", "there", "Fred"]
+
+
+def test_a_bad_transcript_is_a_refusal_naming_the_file(tmp_path):
+    root = _project(tmp_path)
+    bad = _srt(
+        tmp_path,
+        "1\n00:00:xx,500 --> 00:00:01,500\ncarl: Hello there, Ned.\n",
+        name="bad.srt",
+    )
+    with pytest.raises(RecordedVoicesError, match=r"bad\.srt: not a timestamp"):
+        import_recordings(root, _take(tmp_path), transcript=bad, license=LICENSE)
+    takes = tmp_path / "takes"
+    takes.mkdir()
+    _take(takes, name="a.wav", seconds=1.0, bursts=((0.1, 0.9),))
+    (takes / "other.srt").write_text(
+        "1\n00:00:00,100 --> 00:00:00,900\ncarl: Hi.\n", encoding="utf-8"
+    )
+    with pytest.raises(RecordedVoicesError, match="pairs by stem with a.wav"):
+        import_recordings(root, takes, transcript=takes, license=LICENSE)
+
+
+def test_the_default_transcriber_never_picks_a_remote_backend_silently(
+    tmp_path, monkeypatch
+):
+    import sys
+    import types
+
+    from an.audio.recorded import TranscriberUnavailableError, scribed_transcriber
+
+    class _Info:
+        def __init__(self, id):
+            self.id = id
+
+    calls = []
+    fake = types.ModuleType("scribed")
+    fake.available_backends = lambda: ["elevenlabs", "openai"]
+    fake.find = lambda **criteria: [_Info("faster-whisper"), _Info("vosk")]
+    fake.transcribe = lambda path, **kw: calls.append(kw) or []
+    monkeypatch.setitem(sys.modules, "scribed", fake)
+    with pytest.raises(TranscriberUnavailableError, match="--transcriber"):
+        scribed_transcriber()(tmp_path / "take.wav")
+    assert calls == []
+    fake.available_backends = lambda: ["elevenlabs", "faster-whisper"]
+    scribed_transcriber()(tmp_path / "take.wav")
+    assert calls[-1]["backend"] == "faster-whisper"
+    scribed_transcriber("elevenlabs")(tmp_path / "take.wav")  # named: allowed
+    assert calls[-1]["backend"] == "elevenlabs"

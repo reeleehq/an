@@ -931,7 +931,11 @@ def stamp_from_stores(
         return _CacheOnlyProvider(provider)
 
     if tts_factory is None:
-        from an.audio.providers import make_tts as tts_factory
+        from an.audio.providers import make_tts
+
+        # The mall reaches a provider that reads a store (`recorded`), exactly
+        # as `tts_chooser` hands it in a render: the keys read here are a render's.
+        tts_factory = functools.partial(make_tts, mall=view)
     make = tts_factory
     return produce_audio_for_scene(
         scene,

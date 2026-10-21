@@ -126,7 +126,9 @@ DFLT_MATCH_THRESHOLD: float = 0.75
 DENOISE_FILTERS: dict[str, str] = {"afftdn": "afftdn", "anlmdn": "anlmdn"}
 #: The strategy a bare request for denoising means.
 DFLT_DENOISE: str = "afftdn"
-#: What a decoded take is resampled to (the film mix's rate), mono 16-bit.
+#: What a take DECODED by ffmpeg (a non-WAV file, or any file when denoising)
+#: is resampled to, mono 16-bit: the film mix's rate. A 16-bit PCM WAV is kept
+#: as it is, whatever its rate and channels.
 IMPORT_SAMPLE_RATE: int = 44100
 #: Files :func:`audio_paths` takes from a directory.
 AUDIO_SUFFIXES: frozenset[str] = frozenset(
@@ -218,15 +220,30 @@ def find_recording(
     return (best[1], best[2]) if best else None
 
 
-def recording_by_digest(store: Mapping | None, sha256: str) -> tuple[str, dict] | None:
-    """The take whose audio has ``sha256``, as ``(key, record)``; ``None`` if none."""
+def recording_by_digest(
+    store: Mapping | None, sha256: str, *, text: str | None = None
+) -> tuple[str, dict] | None:
+    """The take whose audio has ``sha256``, as ``(key, record)``; ``None`` if none.
+
+    The same bytes may be stored under two records (a take re-imported with its
+    text corrected): ``text`` picks the record whose text it is, so the line
+    gets its own words.
+    """
     if store is None:
         return None
+    found: list[tuple[str, dict]] = []
     for key in store:
         record = store[key]
         if isinstance(record, Mapping) and record.get("sha256") == sha256:
-            return key, dict(record)
-    return None
+            found.append((key, dict(record)))
+    if not found:
+        return None
+    if text is not None:
+        wanted = normalize_key_text(text)
+        for key, record in found:
+            if normalize_key_text(str(record.get("text", ""))) == wanted:
+                return key, record
+    return found[0]
 
 
 def read_recording(store: Mapping, key: str) -> tuple[dict, bytes]:
@@ -385,7 +402,7 @@ class RecordedTTS:
         """The take of ``text`` in ``voice_id`` (by ``recording`` digest when given), with its words."""
         self.check_available()
         found = (
-            recording_by_digest(self.recordings, recording)
+            recording_by_digest(self.recordings, recording, text=text)
             if recording
             else find_recording(self.recordings, voice_id, text)
         )
@@ -449,9 +466,10 @@ def audio_paths(audio: str | Path | Sequence[str | Path]) -> list[Path]:
     []
     """
     if isinstance(audio, (str, Path)):
+        literal = Path(str(audio)).expanduser()
         items: list[str | Path] = (
             [part.strip() for part in str(audio).split(",") if part.strip()]
-            if isinstance(audio, str) and "," in audio
+            if isinstance(audio, str) and "," in audio and not literal.exists()
             else [audio]
         )
     else:
@@ -582,8 +600,7 @@ def scribed_transcriber(
                 "elevenlabs / openai), or give --transcript"
             ) from e
         options: dict[str, Any] = {"word_timestamps": True}
-        if backend:
-            options["backend"] = backend
+        options["backend"] = backend or _default_local_backend(scribed)
         if diarize:
             options["diarize"] = True
         try:
@@ -600,6 +617,33 @@ def scribed_transcriber(
         return from_transcript_object(result)
 
     return transcribe
+
+
+def _default_local_backend(scribed_module: Any) -> str:
+    """The first usable LOCAL scribed backend. A remote one uploads the
+    performer's audio to a service and may bill, so it is never chosen
+    silently: name it with ``transcriber`` (``--transcriber elevenlabs``)."""
+    try:
+        available = [str(b) for b in scribed_module.available_backends()]
+        local = {str(getattr(b, "id", b)) for b in scribed_module.find(is_local=True)}
+    except Exception as e:  # noqa: BLE001 — scribed's own error, with the way out
+        raise TranscriberUnavailableError(
+            f"scribed could not list its backends: {e}; name one with --transcriber"
+        ) from e
+    for name in available:
+        if name in local:
+            return name
+    remote = ", ".join(n for n in available if n not in local)
+    raise TranscriberUnavailableError(
+        "no local transcriber is installed"
+        + (
+            f" (installed: {remote} — remote services that upload the audio and may bill)"
+            if remote
+            else ""
+        )
+        + ': install one (`pip install "scribed[faster-whisper]"`), name a remote one '
+        "explicitly with --transcriber, or give --transcript"
+    )
 
 
 # --- the import -----------------------------------------------------------------
@@ -699,12 +743,23 @@ def _scene_speakers(scene: Any) -> dict[str, str]:
     return names
 
 
+def _parse_transcript_file(item: str | Path) -> list[TranscriptSegment]:
+    """:func:`parse_transcript`, with a refusal that names the file instead of a traceback."""
+    try:
+        return parse_transcript(item)
+    except (ValueError, OSError) as e:
+        p = Path(str(item)) if len(str(item)) < 4096 else None
+        name = p.name if p is not None and p.is_file() else "the transcript text"
+        raise RecordedVoicesError(f"{name}: {e}") from e
+
+
 def _transcripts_for(
     paths: Sequence[Path], transcript: str | Path | Sequence[str | Path] | None
 ) -> dict[Path, tuple[list[TranscriptSegment], str]]:
     """``{audio path: (segments, kind)}`` from what ``transcript`` names: nothing;
-    a directory (paired by stem); one file or text per audio file (same count);
-    one file for one take; or one plain transcript whose lines are the takes."""
+    a directory (paired by stem, every take must pair); one file or text per
+    audio file (same count); one file for one take; or one plain transcript
+    whose lines are the takes."""
     if transcript is None or transcript == "":
         return {}
     items: list[str | Path]
@@ -724,17 +779,27 @@ def _transcripts_for(
                 )
                 if match is not None:
                     out[audio] = (
-                        parse_transcript(match),
+                        _parse_transcript_file(match),
                         match.suffix.lstrip(".").lower(),
                     )
+            unpaired = [a.name for a in paths if a not in out]
+            if unpaired:
+                raise RecordedVoicesError(
+                    f"no transcript in {p.name}/ pairs by stem with {', '.join(unpaired)} "
+                    f"(looked for {', '.join(TRANSCRIPT_SUFFIXES)}); name the file(s) with "
+                    "the take's stem, give --transcript <file>, or leave --transcript out to transcribe"
+                )
             return out
-        items = (
-            [part.strip() for part in str(transcript).split(",") if part.strip()]
-            if isinstance(transcript, str)
+        literal_files = (
+            isinstance(transcript, str)
             and "," in transcript
             and all(
                 Path(x.strip()).is_file() for x in transcript.split(",") if x.strip()
             )
+        )
+        items = (
+            [part.strip() for part in str(transcript).split(",") if part.strip()]
+            if literal_files
             else [transcript]
         )
     else:
@@ -742,15 +807,13 @@ def _transcripts_for(
 
     def kind_of(item: str | Path) -> str:
         p = Path(item) if len(str(item)) < 4096 else None
-        return (
-            p.suffix.lstrip(".").lower() or "text"
-            if p is not None and p.is_file()
-            else "text"
-        )
+        if p is not None and p.is_file():
+            return p.suffix.lstrip(".").lower() or "text"
+        return "text"
 
     if len(items) == len(paths):
         return {
-            audio: (parse_transcript(item), kind_of(item))
+            audio: (_parse_transcript_file(item), kind_of(item))
             for audio, item in zip(paths, items)
         }
     if len(items) != 1:
@@ -758,7 +821,7 @@ def _transcripts_for(
             f"{len(items)} transcript(s) for {len(paths)} audio file(s): give one per file "
             "(a directory pairs them by stem), or one transcript for one take"
         )
-    segments = parse_transcript(items[0])
+    segments = _parse_transcript_file(items[0])
     kind = kind_of(items[0])
     if len(paths) == 1:
         return {paths[0]: (segments, kind)}
@@ -783,7 +846,9 @@ def _timed_segments(
     how the words were obtained (``'srt'``, ``'asr'``, ``'plain+asr'``, ``'file'``)."""
     if given is None:
         segments = list((transcribe or make_transcriber())(path))
-        timed = [s for s in segments if s.timed and s.text]
+        timed = sorted(
+            (s for s in segments if s.timed and s.text), key=lambda s: (s.start, s.end)
+        )
         if not timed:
             raise RecordedVoicesError(
                 f"the transcriber found no speech with timings in {path.name}"
@@ -794,7 +859,10 @@ def _timed_segments(
     if not segments:
         raise RecordedVoicesError(f"the transcript for {path.name} has no lines")
     if all(s.timed for s in segments):
-        inside = [s for s in segments if s.start < total + 1e-6]
+        inside = sorted(
+            (s for s in segments if s.start < total + 1e-6),
+            key=lambda s: (s.start, s.end),
+        )
         if len(inside) < len(segments):
             raise RecordedVoicesError(
                 f"{len(segments) - len(inside)} line(s) of the transcript for {path.name} "
@@ -860,10 +928,14 @@ def _ratio(a: str, b: str) -> float:
 
 def _bind_to_lines(scene: Any, takes: list[_Take], *, threshold: float) -> None:
     """Give each take the scene line whose words it says (once per line), by
-    the best ratio at or above ``threshold``; its speaker when the take had none."""
+    the best ratio at or above ``threshold``; its speaker when the take had none.
+
+    A take with no speaker that fits lines of two speakers equally well is
+    refused: order in the file is no evidence of who spoke."""
     used: set[tuple[str, int]] = set()
     for take in takes:
         best: tuple[float, Any, int, Any] | None = None
+        tied: set[str] = set()
         for shot in scene.timeline:
             for idx, line in enumerate(shot.dialogue):
                 if (shot.id, idx) in used:
@@ -871,10 +943,21 @@ def _bind_to_lines(scene: Any, takes: list[_Take], *, threshold: float) -> None:
                 if take.speaker and line.speaker.casefold() != take.speaker.casefold():
                     continue
                 score = _ratio(take.segment.text, line.text)
-                if score >= threshold and (best is None or score > best[0]):
+                if score < threshold:
+                    continue
+                if best is None or score > best[0] + 1e-9:
                     best = (score, shot, idx, line)
+                    tied = {line.speaker}
+                elif abs(score - best[0]) <= 1e-9:
+                    tied.add(line.speaker)
         if best is None:
             continue
+        if take.speaker is None and len(tied) > 1:
+            raise RecordedVoicesError(
+                f"the take {take.segment.text!r} ({take.path.name}) fits lines of "
+                f"{sorted(tied)} equally well; say who speaks it: --speaker <character>, "
+                "--speakers <label=character,...>, or `speaker:` prefixes in the transcript"
+            )
         _, shot, idx, line = best
         used.add((shot.id, idx))
         take.line = line
@@ -988,7 +1071,7 @@ def _voice_for(
     doc.setdefault("speaker", speaker)
     if recorded_by:
         doc["recorded_by"] = recorded_by
-    refs = sorted(
+    entity_refs = sorted(
         {
             e.ref
             for shot in scene.timeline
@@ -998,10 +1081,12 @@ def _voice_for(
         }
     )
     characters = mall.get("characters")
+    # An entity whose descriptor is not in the store cannot carry the binding:
+    # it is treated like no character at all (the line keeps it), and said.
+    refs = [r for r in entity_refs if characters is not None and r in characters]
+    undescribed = [r for r in entity_refs if r not in refs]
     bound = []
     for ref in refs:
-        if characters is None or ref not in characters:
-            continue
         descriptor = dict(characters[ref])
         previous = descriptor.get("voice_ref")
         if previous == key:
@@ -1025,17 +1110,69 @@ def _voice_for(
     elif not refs:
         for line in lines:
             line.voice_ref = key
+        why = (
+            f"whose character entity ({', '.join(undescribed)}) has no descriptor in the "
+            "characters store"
+            if undescribed
+            else "who is no character entity of any shot"
+        )
         report.voices.append(
             f"voices/{key} ({'created' if created else 'kept'}, provider recorded) is set on "
-            f"{len(lines)} line(s) of {speaker!r}, who is no character entity of any shot: a "
-            "per-line voice_ref lives in ir/scene.json only, so an edit of scene.md drops it; "
-            "add the character to its shots to bind the voice by descriptor"
+            f"{len(lines)} line(s) of {speaker!r}, {why}: a per-line voice_ref lives in "
+            "ir/scene.json only, so an edit of scene.md drops it; "
+            + (
+                "create the descriptor to bind the voice by it"
+                if undescribed
+                else "add the character to its shots to bind the voice by descriptor"
+            )
         )
     else:
         report.voices.append(
             f"voices/{key} ({'created' if created else 'kept'}) already voices {', '.join(refs)}"
         )
     return key
+
+
+def _check_voice_document(
+    mall: Mapping[str, MutableMapping], key: str, speaker: str
+) -> None:
+    """Refuse a voice document written for another provider (before any write)."""
+    voices = mall["voices"]
+    doc = voices[key] if key in voices else None
+    if isinstance(doc, Mapping) and str(
+        doc.get("provider", "")
+    ).strip().lower() not in (
+        "",
+        PROVIDER_NAME,
+    ):
+        raise RecordedVoicesError(
+            f"voice {key!r} is written for provider {doc['provider']!r}; the takes of "
+            f"{speaker!r} need a recorded voice: name another with --voice, or change that document"
+        )
+
+
+def _warn_repeated_text(scene: Any, takes: list[_Take], report: ImportReport) -> None:
+    """The pipeline keys a line's audio by voice and text: two lines of one
+    speaker saying the same words play the same (newest) take. Say so."""
+    seen: dict[tuple[str, str], int] = {}
+    for take in takes:
+        k = (take.speaker.casefold(), normalize_key_text(take.line.text))
+        seen[k] = seen.get(k, 0) + 1
+    repeated = {k for k, n in seen.items() if n > 1}
+    speakers = {t.speaker.casefold() for t in takes}
+    scene_counts: dict[tuple[str, str], int] = {}
+    for shot in scene.timeline:
+        for line in shot.dialogue:
+            if line.speaker.casefold() in speakers:
+                k = (line.speaker.casefold(), normalize_key_text(line.text))
+                scene_counts[k] = scene_counts.get(k, 0) + 1
+    repeated |= {k for k, n in scene_counts.items() if n > 1 and k in seen}
+    for spk, text in sorted(repeated):
+        report.warnings.append(
+            f"{spk!r} says {text!r} more than once: a line's audio is keyed by its voice and "
+            "text, so every such line plays the same (newest) take — the recording's other "
+            "take of it is stored but not heard (reeleehq/an#492 is the way to tell them apart)"
+        )
 
 
 def _unrecorded_lines(
@@ -1130,17 +1267,24 @@ def import_recordings(
         spans = cut_spans(segments, total=total)
         previous_end: float | None = None
         for segment, (a, b) in zip(segments, spans):
+            clip = cut_wav(wav, a, b) if (a, b) != (0.0, total) else wav
+            if b - a <= 0 or wav_seconds(clip) <= 0:
+                raise RecordedVoicesError(
+                    f"{path.name}: the cue {segment.text!r} ({segment.start:.2f}–{segment.end:.2f} s) "
+                    "leaves no audio to cut — its times overlap or nest with a neighbour's; "
+                    "fix the transcript's times. Nothing was written."
+                )
             take = _Take(
                 path=path,
                 segment=segment,
                 span=(a, b),
-                wav=cut_wav(wav, a, b) if (a, b) != (0.0, total) else wav,
+                wav=clip,
                 words=rebase_words(segment.words, a),
                 speaker=None,
                 transcript_kind=kind,
-                gap_before=(
-                    (segment.start - previous_end) if previous_end is not None else None
-                ),
+                # The silence HEARD: from the previous speech's end to this cut's
+                # start (the cut keeps its pad, so the pause must not count it twice).
+                gap_before=(a - previous_end) if previous_end is not None else None,
             )
             take.speaker = _speaker_of(
                 take, speaker=speaker, speakers=speaker_map, known=known
@@ -1160,23 +1304,14 @@ def import_recordings(
         )
     store = mall[RECORDINGS_STORE]
     stamp = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="microseconds")
-    voice_of: dict[str, str] = {}
+    speakers_found = sorted({t.speaker for t in takes}, key=str.casefold)
+    voice_of: dict[str, str] = {
+        spk: voice or f"{spk}{RECORDED_VOICE_SUFFIX}" for spk in speakers_found
+    }
+    for spk, key in voice_of.items():
+        _check_voice_document(mall, key, spk)  # refuse BEFORE anything is written
+    _warn_repeated_text(scene, takes, report)
     recorded_ids: set[int] = set()
-    for spk in sorted({t.speaker for t in takes}, key=str.casefold):
-        lines = [t.line for t in takes if t.speaker == spk]
-        voice_of[spk] = (
-            _voice_for(
-                mall,
-                scene,
-                spk,
-                voice=voice,
-                recorded_by=recorded_by,
-                lines=lines,
-                report=report,
-            )
-            if write
-            else (voice or f"{spk}{RECORDED_VOICE_SUFFIX}")
-        )
     for take in takes:
         source = AssetSource(
             provider=SOURCE_PROVIDER,
@@ -1228,6 +1363,20 @@ def import_recordings(
                 pause=take.pause,
             )
         )
+    # The takes are in the store: now the voice documents and the bindings
+    # (a failure above leaves the project exactly as it was).
+    if write:
+        for spk in speakers_found:
+            lines = [t.line for t in takes if t.speaker == spk]
+            _voice_for(
+                mall,
+                scene,
+                spk,
+                voice=voice,
+                recorded_by=recorded_by,
+                lines=lines,
+                report=report,
+            )
     for spk, key in voice_of.items():
         n = _unrecorded_lines(scene, mall, spk, key, recorded_ids) if write else 0
         if n:
