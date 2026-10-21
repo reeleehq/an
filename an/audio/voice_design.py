@@ -21,6 +21,21 @@ Two steps, both plain functions over injected stores:
 - :func:`choose_voice_option`: the ``voice_id`` of the chosen option (saving it
   as a voice first when it was not persisted).
 
+**Two more routes to a voice** (an#485). Design from notes can miss a
+regional accent entirely (every design of "rural Limerick Irish" came out
+English). So a voice document may also carry a ``library`` query (``{"accent":
+"irish", "gender": "male", "age": "middle_aged"}``), or ``an voices design
+--library accent=irish,gender=male`` gives one to every voice: the provider's
+shared voice library, human-tagged by region, is searched and its candidates
+join the same manifest as ``L1``, ``L2``, ... options (:class:`ElevenLabsVoiceLibrary`
+behind the ``library=`` seam; a search and a preview cost nothing). And
+``an voices audition`` makes an **audition reel** per option: the character's
+own lines from the scene, spoken with the film's TTS provider and model, the
+line's cues as audio tags, 0.6 s apart (:func:`audition_voice_options`, the
+``tts=`` seam), so the writer hears what the film will sound like, accent
+drift of the render model included. The writer's ear is the judge: an accent
+classifier was measured and cannot screen TTS accents (an#485).
+
 **A choice is recorded, and a render needs one** (an#486). A voice written in
 words (``notes``) is cast by the writer, nobody else: ``an voices choose``
 writes ``chosen_by`` and ``chosen_at`` beside the ``voice_id``
@@ -68,22 +83,38 @@ Designing is billed by the provider; nothing here is called by a render.
 
 from __future__ import annotations
 
+import io
 import re
+import wave
 from collections.abc import Callable, Iterable, Mapping, MutableMapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 __all__ = [
     "ElevenLabsVoiceDesigner",
+    "ElevenLabsVoiceLibrary",
+    "LibraryVoice",
     "VoiceDesignError",
+    "AuditionJob",
+    "announce_auditions",
+    "audition_key",
+    "audition_project_voices",
+    "audition_voice_options",
+    "plan_auditions",
+    "run_auditions",
     "cast_project_voice",
     "choose_project_voice",
     "choose_voice_option",
     "default_chooser",
     "default_designer",
+    "default_library",
     "design_project_voices",
     "design_voice_options",
     "designable_voices",
+    "library_query_of",
+    "library_voice_options",
+    "parse_library_query",
     "provisional_reason",
     "record_choice",
     "sample_text_from_lines",
@@ -120,10 +151,37 @@ CHOSEN_AT_KEY = "chosen_at"
 PROVISIONAL_KEY = "provisional"
 #: The verbs that cast a voice, named by every refusal.
 CASTING_VERBS = (
-    "`an voices design` (options from its notes) then `an voices choose <option> "
-    "--by <writer>` (the pick, recorded as chosen_by), or `an voices cast "
-    "<voice_id> --by <writer>` for a voice picked by hand (`an voices list`)"
+    "`an voices design` (options from its notes or a library query), "
+    "`an voices audition` (the lines in each option's voice), then "
+    "`an voices choose <option> --by <writer>` (the pick, recorded as chosen_by), "
+    "or `an voices cast <voice_id> --by <writer>` for a voice picked by hand "
+    "(`an voices list`)"
 )
+#: The key, in a voice document, holding a library search: the provider's
+#: shared-library filters (``accent``, ``gender``, ``age``, ``language``,
+#: ``search``), e.g. ``{"accent": "irish", "gender": "male", "age": "middle_aged"}``.
+LIBRARY_KEY = "library"
+#: The filters a library query may carry (the ElevenLabs shared library's).
+LIBRARY_FILTERS: tuple[str, ...] = ("accent", "gender", "age", "language", "search")
+#: How many library candidates a query yields by default.
+DFLT_LIBRARY_LIMIT = 8
+#: Labels of library options (``L1``, ``L2``, ...), after the designed ``A``, ``B``, ...
+LIBRARY_LABEL_PREFIX = "L"
+#: Seconds of silence between two lines of an audition reel.
+AUDITION_GAP_S = 0.6
+#: Where the project-level audition reels go, under the project root.
+AUDITIONS_DIR = Path("artifacts") / "voice_auditions"
+#: An audition reel is 16-bit mono WAV at the effects chain's rate.
+AUDITION_SAMPLE_RATE = 44100  # = an.audio.effects.EFFECT_SAMPLE_RATE (asserted in tests)
+#: The option keys an audition writes: the reel's key in the reels store, how
+#: many lines it holds, and the content key it was made under (voice, lines,
+#: options, effects, gap, provider) — a reel is never made twice for the same key.
+AUDITION_KEY = "audition"
+AUDITION_LINES_KEY = "audition_lines"
+AUDITION_CONTENT_KEY = "audition_key"
+#: ``announce`` default: a line on stderr (the pipeline's own), so a billed
+#: call is never silent unless the caller passes ``None``.
+_STDERR = object()
 
 
 class VoiceDesignError(ValueError):
@@ -222,6 +280,236 @@ class ElevenLabsVoiceDesigner:
 def default_designer(*, api_key: str | None = None) -> ElevenLabsVoiceDesigner:
     """The designer used when none is given: :class:`ElevenLabsVoiceDesigner`."""
     return ElevenLabsVoiceDesigner(api_key=api_key)
+
+
+@dataclass(frozen=True)
+class LibraryVoice:
+    """One candidate from a provider's shared voice library."""
+
+    voice_id: str
+    name: str = ""
+    description: str = ""
+    accent: str | None = None
+    age: str | None = None
+    gender: str | None = None
+    language: str | None = None
+    preview_url: str | None = None
+    #: The account that shares it (ElevenLabs ``public_owner_id``).
+    owner_id: str | None = None
+
+
+class ElevenLabsVoiceLibrary:
+    """ElevenLabs' shared voice library through the ``elevenlabs`` SDK
+    (``voices.get_shared``): voices other accounts published, human-tagged by
+    accent, age and gender, with a region often in the description ("Cork",
+    "west of Ireland"). A search and a preview download cost no credit; speaking
+    a library voice at render time is billed like any other.
+
+    api_key: defaults to ``ELEVEN_API_KEY`` / ``ELEVENLABS_API_KEY``
+    client_factory: ``api_key -> client``; tests inject a fake so nothing is called
+    fetch: ``url -> bytes`` for a preview (default: a plain HTTP GET)
+    """
+
+    def __init__(
+        self,
+        *,
+        api_key: str | None = None,
+        client_factory: Any = None,
+        fetch: Callable[[str], bytes] | None = None,
+        timeout_s: float = DFLT_REQUEST_TIMEOUT_S,
+    ) -> None:
+        import os
+
+        self.api_key = (
+            api_key
+            or os.environ.get("ELEVEN_API_KEY")
+            or os.environ.get("ELEVENLABS_API_KEY")
+        )
+        self.client_factory = client_factory
+        self.fetch = fetch
+        self.timeout_s = timeout_s
+
+    def _client(self):
+        if not self.api_key:
+            raise VoiceDesignError(
+                "the voice library needs an ElevenLabs key: set ELEVEN_API_KEY"
+            )
+        if self.client_factory is not None:
+            return self.client_factory(self.api_key)
+        try:
+            from elevenlabs.client import ElevenLabs  # type: ignore
+        except ImportError as e:  # pragma: no cover - depends on the environment
+            raise VoiceDesignError(
+                "the voice library needs the elevenlabs package: pip install elevenlabs"
+            ) from e
+        return ElevenLabs(api_key=self.api_key)
+
+    def search(self, *, limit: int = DFLT_LIBRARY_LIMIT, **filters: Any) -> list[LibraryVoice]:
+        """The shared voices matching ``filters`` (:data:`LIBRARY_FILTERS`), at most ``limit``."""
+        unknown = sorted(set(filters) - set(LIBRARY_FILTERS))
+        if unknown:
+            raise VoiceDesignError(
+                f"unknown library filter(s) {unknown}; the library takes {list(LIBRARY_FILTERS)}"
+            )
+        kwargs = {k: v for k, v in filters.items() if v not in (None, "")}
+        page = self._client().voices.get_shared(
+            page_size=max(1, min(int(limit), 100)),
+            request_options={"timeout_in_seconds": int(self.timeout_s)},
+            **kwargs,
+        )
+        out = []
+        for v in getattr(page, "voices", None) or ():
+            out.append(
+                LibraryVoice(
+                    voice_id=getattr(v, "voice_id", ""),
+                    name=getattr(v, "name", "") or "",
+                    description=getattr(v, "description", "") or "",
+                    accent=getattr(v, "accent", None),
+                    age=getattr(v, "age", None),
+                    gender=getattr(v, "gender", None),
+                    language=getattr(v, "language", None),
+                    preview_url=getattr(v, "preview_url", None),
+                    owner_id=getattr(v, "public_owner_id", None),
+                )
+            )
+            if len(out) >= limit:
+                break
+        return out
+
+    def preview(self, voice: LibraryVoice) -> bytes | None:
+        """The voice's own preview clip (mp3 bytes), or ``None`` when it has none."""
+        if not voice.preview_url:
+            return None
+        if self.fetch is not None:
+            return self.fetch(voice.preview_url)
+        from urllib.request import urlopen
+
+        with urlopen(voice.preview_url, timeout=self.timeout_s) as r:  # noqa: S310 - the provider's own CDN link
+            return r.read()
+
+    def add(self, voice_id: str, owner_id: str, *, name: str) -> str:
+        """Add the shared voice to the account under ``name``; returns its id.
+
+        A production spoke shared voices by their id directly; ElevenLabs also
+        documents adding one (``voices.share``) and a ``voice_not_found`` on a
+        library id means it needs this. Free; not called by anything else here.
+        """
+        voice = self._client().voices.share(
+            owner_id,
+            voice_id,
+            new_name=name,
+            request_options={"timeout_in_seconds": int(self.timeout_s)},
+        )
+        return getattr(voice, "voice_id", None) or voice_id
+
+
+def default_library(*, api_key: str | None = None) -> ElevenLabsVoiceLibrary:
+    """The library used when none is given: :class:`ElevenLabsVoiceLibrary`."""
+    return ElevenLabsVoiceLibrary(api_key=api_key)
+
+
+def parse_library_query(text: str | Mapping | None) -> dict[str, str] | None:
+    """A library query from its CLI spelling, ``accent=irish,gender=male``
+    (a mapping passes through; empty is ``None``).
+
+    >>> parse_library_query("accent=irish, gender=male")
+    {'accent': 'irish', 'gender': 'male'}
+    >>> parse_library_query("") is None, parse_library_query({"age": "young"})
+    (True, {'age': 'young'})
+    >>> parse_library_query("irish")  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    an.audio.voice_design.VoiceDesignError: library query 'irish': write it as key=value pairs (accent, gender, age, language, search)
+    """
+    if text is None:
+        return None
+    if isinstance(text, Mapping):
+        return {str(k): str(v) for k, v in text.items()} or None
+    if not str(text).strip():
+        return None
+    out: dict[str, str] = {}
+    for part in str(text).split(","):
+        key, sep, value = part.partition("=")
+        if not sep or not key.strip() or not value.strip():
+            raise VoiceDesignError(
+                f"library query {text!r}: write it as key=value pairs ({', '.join(LIBRARY_FILTERS)})"
+            )
+        if key.strip() not in LIBRARY_FILTERS:
+            raise VoiceDesignError(
+                f"library query {text!r}: unknown filter {key.strip()!r}; the library takes {list(LIBRARY_FILTERS)}"
+            )
+        out[key.strip()] = value.strip()
+    return out or None
+
+
+def library_query_of(doc: Mapping | None, default: Mapping | None = None) -> dict[str, str] | None:
+    """The document's own ``library`` query, else ``default``, else ``None``.
+
+    >>> library_query_of({"library": {"accent": "irish"}}, {"accent": "scottish"})
+    {'accent': 'irish'}
+    >>> library_query_of({}, {"accent": "scottish"}), library_query_of({}) is None
+    ({'accent': 'scottish'}, True)
+    """
+    own = doc.get(LIBRARY_KEY) if isinstance(doc, Mapping) else None
+    if isinstance(own, Mapping) and own:
+        unknown = sorted(set(map(str, own)) - set(LIBRARY_FILTERS))
+        if unknown:
+            raise VoiceDesignError(
+                f"{LIBRARY_KEY!r} on the voice document: unknown filter(s) {unknown}; "
+                f"the library takes {list(LIBRARY_FILTERS)}"
+            )
+        return {str(k): str(v) for k, v in own.items()}
+    if isinstance(own, str) and own.strip():
+        return parse_library_query(own)
+    return parse_library_query(default) if default else None
+
+
+def library_voice_options(
+    query: Mapping[str, Any],
+    *,
+    samples: MutableMapping[str, bytes],
+    ref: str,
+    library: Any = None,
+    limit: int = DFLT_LIBRARY_LIMIT,
+) -> list[dict]:
+    """The library candidates for ``query`` as manifest options ``L<n>``, each
+    with its preview in ``samples`` (``<ref>_L<n>``) when the library has one
+    (``sample`` is ``None`` otherwise), and the sharing account's id
+    (``owner_id``) so the voice can be added to the account later.
+
+    >>> class Fake:
+    ...     def search(self, *, limit, **f):
+    ...         return [LibraryVoice("v1", "Dan", "Cork", accent="irish", preview_url="u", owner_id="o")]
+    ...     def preview(self, v):
+    ...         return b"ID3"
+    >>> samples = {}
+    >>> library_voice_options({"accent": "irish"}, samples=samples, ref="j", library=Fake())
+    [{'option': 'L1', 'kind': 'library', 'voice_id': 'v1', 'owner_id': 'o', 'name': 'Dan', 'about': 'Cork', 'accent': 'irish', 'age': None, 'gender': None, 'sample': 'j_L1', 'duration_s': None}]
+    """
+    library = library if library is not None else default_library()
+    options = []
+    for i, voice in enumerate(library.search(limit=limit, **dict(query))):
+        label = f"{LIBRARY_LABEL_PREFIX}{i + 1}"
+        key = f"{ref}_{label}"
+        audio = library.preview(voice)
+        if audio:
+            samples[key] = audio
+        options.append(
+            {
+                "option": label,
+                "kind": "library",
+                "voice_id": voice.voice_id,
+                "owner_id": voice.owner_id,
+                "name": voice.name,
+                "about": voice.description,
+                "accent": voice.accent,
+                "age": voice.age,
+                "gender": voice.gender,
+                "sample": key if audio else None,
+                "duration_s": None,
+            }
+        )
+    return options
 
 
 def _label(i: int) -> str:
@@ -328,58 +616,109 @@ def design_voice_options(
     persist: bool = True,
     name_prefix: str = "an",
     lines_of: Callable[[str], Iterable[str]] | None = None,
+    library: Any = None,
+    library_query: Mapping | str | None = None,
+    library_limit: int = DFLT_LIBRARY_LIMIT,
+    design: bool = True,
 ) -> dict[str, dict]:
-    """Design options for each voice with notes; return the options manifest.
+    """Design options for each voice with notes, and search the library for
+    each voice with a query; return the options manifest.
 
     voices: ``{ref: voice document}`` (a project's ``voices`` store)
     samples: where each option's audio goes, keyed ``<ref>_<option>`` (mp3 bytes)
-    refs: the voices to design (default: every one with ``notes``)
+    refs: the voices to design (default: every one with ``notes`` or ``library``)
     designer: a two-method designer (default: :func:`default_designer`)
     model_id: the provider's voice-design model
     persist: save every option as a durable voice now (else only the chosen one, later)
     name_prefix: prefix of the saved voices' names in the provider account
     lines_of: ``ref -> that voice's dialogue lines``, for a sample text when the
         document has none (else the provider writes one)
+    library: the shared-library seam (:func:`default_library` for the CLI),
+        searched for every voice that has a ``library`` query of its own or
+        gets ``library_query``. **Opt-in**: with neither ``library`` nor
+        ``library_query`` given, a document's ``library`` key is left alone
+        and nothing reaches the network — a caller that passed only a
+        ``designer`` sees exactly what it saw before.
+    library_query: the query for voices without their own (``accent=irish,gender=male``)
+    library_limit: at most this many library candidates per voice
+    design: with ``False``, no designed previews (library candidates only, nothing billed)
+
+    A voice with ``notes`` gets designed options ``A``, ``B``, ...; a voice with
+    a query gets library options ``L1``, ``L2``, ...; one with both gets both in
+    one manifest, so the writer compares them on the same page.
     """
-    todo = designable_voices(voices, refs)
+    use_library = library is not None or library_query is not None
+    if not design and not use_library:
+        raise VoiceDesignError(
+            "design=False searches the library only: pass a library query "
+            "(`--library accent=...`), or drop it to design from notes"
+        )
+
+    def query_of(doc: Any) -> dict[str, str] | None:
+        if not use_library or not isinstance(doc, Mapping):
+            return None
+        return library_query_of(doc, library_query)
+
+    named = list(refs) if refs is not None else None
+    todo: dict[str, Mapping] = {}
+    for ref in named if named is not None else sorted(voices):
+        doc = voices.get(ref) if ref in voices else None
+        notes_problem = _notes_problem(doc)
+        if (design and notes_problem is None) or query_of(doc) is not None:
+            todo[ref] = doc
+        elif named is not None:
+            raise VoiceDesignError(
+                f"voice {ref!r}: {notes_problem}"
+                + (" (and no library query to search with)" if use_library else "")
+            )
     if not todo:
         raise VoiceDesignError(
-            f"no voice document has {NOTES_KEY!r}: nothing to design from"
+            f"no voice document has {NOTES_KEY!r}"
+            + (f" or a {LIBRARY_KEY!r} query" if use_library else "")
+            + ": nothing to design from"
         )
-    designer = designer if designer is not None else default_designer()
     manifest: dict[str, dict] = {}
     for ref, doc in todo.items():
-        notes = doc[NOTES_KEY].strip()
+        notes = (doc.get(NOTES_KEY) or "").strip()
+        query = query_of(doc)
         fallback = sample_text_from_lines(lines_of(ref)) if lines_of else None
         text = sample_text_of(doc, fallback)
-        previews = designer.design_voice_previews(notes, text=text, model_id=model_id)
-        options = []
-        for i, preview in enumerate(previews):
-            label = _label(i)
-            key = f"{ref}_{label}"
-            samples[key] = preview.audio
-            voice_id = (
-                _voice_id_of(
-                    designer.design_voice(
-                        notes, preview=preview, name=f"{name_prefix} {ref} {label}"
+        options: list[dict] = []
+        if design and _notes_problem(doc) is None:
+            designer = designer if designer is not None else default_designer()
+            previews = designer.design_voice_previews(notes, text=text, model_id=model_id)
+            for i, preview in enumerate(previews):
+                label = _label(i)
+                key = f"{ref}_{label}"
+                samples[key] = preview.audio
+                voice_id = (
+                    _voice_id_of(
+                        designer.design_voice(
+                            notes, preview=preview, name=f"{name_prefix} {ref} {label}"
+                        )
                     )
+                    if persist
+                    else None
                 )
-                if persist
-                else None
-            )
-            options.append(
-                {
-                    "option": label,
-                    "generated_voice_id": preview.generated_voice_id,
-                    "voice_id": voice_id,
-                    "sample": key,
-                    "duration_s": getattr(preview, "duration_s", None),
-                }
+                options.append(
+                    {
+                        "option": label,
+                        "kind": "designed",
+                        "generated_voice_id": preview.generated_voice_id,
+                        "voice_id": voice_id,
+                        "sample": key,
+                        "duration_s": getattr(preview, "duration_s", None),
+                    }
+                )
+        if query is not None:
+            options += library_voice_options(
+                query, samples=samples, ref=ref, library=library, limit=library_limit
             )
         manifest[ref] = {
-            "notes": notes,
+            "notes": notes or None,
             "sample_text": text,
-            "design_model": model_id,
+            "design_model": model_id if design and notes else None,
+            "library": query,
             "name_prefix": name_prefix,
             "options": options,
             "chosen": None,
@@ -406,6 +745,10 @@ def choose_voice_option(
         )
     if found.get("voice_id"):
         return found["voice_id"]
+    if not found.get("generated_voice_id"):
+        raise VoiceDesignError(
+            f"option {found['option']!r}{f' for {ref!r}' if ref else ''} has no voice id to choose"
+        )
     designer = designer if designer is not None else default_designer()
     name = f"{entry.get('name_prefix', 'an')} {ref} {found['option']}".strip()
     return _voice_id_of(
@@ -413,6 +756,300 @@ def choose_voice_option(
             entry["notes"], preview=found["generated_voice_id"], name=name
         )
     )
+
+
+# --- the audition reel ---------------------------------------------------------------
+
+
+@dataclass
+class AuditionJob:
+    """One reel to make: an option of one voice, the lines it speaks, and the
+    content key the reel is recorded under (so it is never made twice)."""
+
+    ref: str
+    option: dict
+    lines: list[tuple[str, dict[str, Any]]]
+    effects: dict[str, Any]
+    key: str
+
+    @property
+    def reel(self) -> str:
+        return f"{self.ref}_{self.option['option']}"
+
+
+def _reel_wav(audio: bytes, effects: Mapping[str, Any]) -> bytes:
+    """``audio`` (the provider's clip, any container) with the voice's
+    ``effects`` applied — the tempo, pitch and trim the film applies, so the
+    reel is the film's sound (``takes`` are not: one take per line) — as 16-bit
+    mono WAV at :data:`AUDITION_SAMPLE_RATE`: an input already so is kept as it
+    is, anything else goes through the effects chain's own ffmpeg decoder."""
+    from an.audio.effects import VoiceEffectError, _ffmpeg_wav, apply_voice_effects, decode_chain
+
+    try:
+        wav = apply_voice_effects(audio, effects) if effects else audio
+        if _is_reel_wav(wav):
+            return wav
+        return _ffmpeg_wav(wav, f"{decode_chain()},aformat=channel_layouts=mono", {})
+    except VoiceEffectError as e:
+        raise VoiceDesignError(
+            "an audition reel decodes the provider's audio with ffmpeg (and "
+            "applies the voice's effects); " + str(e).split(":", 1)[-1].strip()
+            if "ffmpeg binary" in str(e)
+            else f"an audition line could not be decoded: {e}"
+        ) from e
+
+
+def _is_reel_wav(audio: bytes) -> bool:
+    if audio[:4] != b"RIFF":
+        return False
+    try:
+        with wave.open(io.BytesIO(audio), "rb") as w:
+            return (w.getframerate(), w.getnchannels(), w.getsampwidth()) == (
+                AUDITION_SAMPLE_RATE,
+                1,
+                2,
+            )
+    except (wave.Error, EOFError):
+        return False
+
+
+def _join_wavs(parts: Iterable[bytes], *, gap_s: float) -> bytes:
+    """One WAV of ``parts`` (16-bit mono at :data:`AUDITION_SAMPLE_RATE`, as
+    :func:`_reel_wav` makes them), with ``gap_s`` of silence after each."""
+    out = io.BytesIO()
+    silence = b"\x00\x00" * int(round(gap_s * AUDITION_SAMPLE_RATE))
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(AUDITION_SAMPLE_RATE)
+        for part in parts:
+            with wave.open(io.BytesIO(part), "rb") as r:
+                w.writeframes(r.readframes(r.getnframes()))
+            w.writeframes(silence)
+    return out.getvalue()
+
+
+def audition_key(
+    voice_id: str,
+    lines: Iterable[tuple[str, Mapping[str, Any]]],
+    *,
+    effects: Mapping[str, Any] | None = None,
+    gap_s: float = AUDITION_GAP_S,
+    tts_name: str = "",
+) -> str:
+    """The content key of a reel: what it would sound like depends on exactly
+    these, so a reel with this key is never made (billed) twice.
+
+    >>> k = audition_key("v", [("Hi.", {"model_id": "m"})], tts_name="elevenlabs")
+    >>> k == audition_key("v", [("Hi.", {"model_id": "m"})], tts_name="elevenlabs"), len(k) > 8
+    (True, True)
+    >>> k != audition_key("v", [("Hi!", {"model_id": "m"})], tts_name="elevenlabs")
+    True
+    """
+    from an.util import _stable_hash
+
+    return _stable_hash(
+        {
+            "voice_id": voice_id,
+            "lines": [(text, dict(opts)) for text, opts in lines],
+            "effects": dict(effects or {}),
+            "gap_s": gap_s,
+            "tts": tts_name,
+        }
+    )
+
+
+def plan_auditions(
+    entry: Mapping,
+    lines: Iterable[tuple[str, Mapping[str, Any]]],
+    *,
+    ref: str = "",
+    options: Iterable[str] | None = None,
+    effects: Mapping[str, Any] | None = None,
+    gap_s: float = AUDITION_GAP_S,
+    tts_name: str = "",
+    redo: bool = False,
+) -> list[AuditionJob]:
+    """The reels to make for one voice's manifest ``entry``, every one checked
+    BEFORE anything is billed: the named ``options`` exist (default: every
+    option with a voice id) and are saved voices, there are ``lines`` to speak,
+    and an option whose recorded reel was made under this very key is skipped
+    unless ``redo``. Raises :class:`VoiceDesignError` for any problem.
+    """
+    lines = [(text, dict(opts)) for text, opts in lines]
+    if not lines:
+        raise VoiceDesignError(
+            f"voice {ref!r} speaks no line in the scene: nothing to audition with"
+        )
+    all_options = list(entry.get("options", ()))
+    labels = {str(o.get("option", "")).upper(): o for o in all_options}
+    if options is not None:
+        wanted = [str(o).upper() for o in options]
+        missing = sorted(set(wanted) - set(labels))
+        if missing:
+            raise VoiceDesignError(
+                f"no option {missing} for {ref!r} (options: {', '.join(labels)})"
+            )
+        chosen = [labels[w] for w in dict.fromkeys(wanted)]
+    else:
+        chosen = [o for o in all_options if o.get("voice_id")]
+        if not chosen:  # nothing named and nothing auditionable: say which
+            chosen = all_options
+    if not chosen:
+        raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
+    unsaved = [o["option"] for o in chosen if not o.get("voice_id")]
+    if unsaved:
+        raise VoiceDesignError(
+            f"option(s) {unsaved} for {ref!r} are not saved voices (designed with "
+            "--only-chosen): an audition needs a voice id. Design again without it."
+        )
+    jobs = []
+    for option in chosen:
+        key = audition_key(
+            option["voice_id"], lines, effects=effects, gap_s=gap_s, tts_name=tts_name
+        )
+        if not redo and option.get(AUDITION_KEY) and option.get(AUDITION_CONTENT_KEY) == key:
+            continue  # the reel on record IS this reel: never billed twice
+        jobs.append(AuditionJob(ref, option, lines, dict(effects or {}), key))
+    return jobs
+
+
+def announce_auditions(jobs: Iterable[AuditionJob], tts: Any) -> str:
+    """What making ``jobs`` will bill, in one sentence (``""`` for none).
+
+    >>> class T:
+    ...     name = "elevenlabs"
+    ...     def billed_characters(self, text, **kw):
+    ...         return len(text)
+    >>> jobs = [AuditionJob("j", {"option": "A", "voice_id": "v"}, [("Hi.", {}), ("Bye.", {})], {}, "k")]
+    >>> announce_auditions(jobs, T())
+    'audition: 1 reel(s) x 2 line(s) = 2 request(s) to elevenlabs, 7 characters'
+    """
+    jobs = list(jobs)
+    if not jobs:
+        return ""
+    n = sum(len(j.lines) for j in jobs)
+    count = getattr(tts, "billed_characters", None)
+    chars = (
+        sum(count(text, **opts) for j in jobs for text, opts in j.lines)
+        if callable(count)
+        else None
+    )
+    per = {len(j.lines) for j in jobs}
+    shape = f"{len(jobs)} reel(s) x {per.pop()} line(s) = " if len(per) == 1 else f"{len(jobs)} reel(s), "
+    return (
+        f"audition: {shape}{n} request(s) to {getattr(tts, 'name', 'the provider')}"
+        + (f", {chars} characters" if chars is not None else "")
+    )
+
+
+def run_auditions(
+    jobs: Iterable[AuditionJob],
+    *,
+    reels: MutableMapping[str, bytes],
+    tts: Any,
+    gap_s: float = AUDITION_GAP_S,
+    announce: Any = _STDERR,
+    on_reel: Callable[[AuditionJob], None] | None = None,
+) -> None:
+    """Make every reel of ``jobs`` with ``tts`` (``synthesize(text, voice_id,
+    **options)`` per line — billed), ``gap_s`` apart, into ``reels`` under the
+    job's reel key, and record it on the job's option (``audition``,
+    ``audition_lines``, ``audition_key``); ``on_reel`` is called after each
+    reel is recorded, so a failure later loses nothing paid for. ``announce``
+    (default: a line on stderr; ``None`` for silence) is told the whole bill
+    first, and the provider is asked ``check_available()`` before the first
+    request."""
+    jobs = list(jobs)
+    if not jobs:
+        return
+    if announce is _STDERR:
+        from an.audio.pipeline import _announce_to_stderr
+
+        announce = _announce_to_stderr
+    if announce is not None:
+        announce(announce_auditions(jobs, tts))
+    check = getattr(tts, "check_available", None)
+    if callable(check):
+        check()
+    for job in jobs:
+        parts = []
+        for text, opts in job.lines:
+            clip = tts.synthesize(text, job.option["voice_id"], **opts)
+            audio = getattr(clip, "bytes_", None)
+            if audio is None and getattr(clip, "path", None):
+                audio = Path(clip.path).read_bytes()
+            if not audio:
+                raise VoiceDesignError(
+                    f"{getattr(tts, 'name', 'the provider')} returned no audio for {text!r}"
+                )
+            parts.append(_reel_wav(audio, job.effects))
+        reels[job.reel] = _join_wavs(parts, gap_s=gap_s)
+        job.option[AUDITION_KEY] = job.reel
+        job.option[AUDITION_LINES_KEY] = len(job.lines)
+        job.option[AUDITION_CONTENT_KEY] = job.key
+        if on_reel is not None:
+            on_reel(job)
+
+
+def audition_voice_options(
+    entry: Mapping,
+    lines: Iterable[tuple[str, Mapping[str, Any]]],
+    *,
+    reels: MutableMapping[str, bytes],
+    tts: Any,
+    ref: str = "",
+    options: Iterable[str] | None = None,
+    effects: Mapping[str, Any] | None = None,
+    gap_s: float = AUDITION_GAP_S,
+    announce: Any = _STDERR,
+    redo: bool = False,
+) -> dict:
+    """An audition reel per option of one voice's manifest ``entry``: every line
+    of ``lines`` — ``(text, synthesize options)`` pairs, the options being what
+    the film's pipeline would send (``model_id``, ``voice_settings``,
+    ``audio_tags`` from the line's cues) — spoken in that option's voice by
+    ``tts`` (the film's provider), the voice's ``effects`` applied, ``gap_s``
+    apart, as one WAV in ``reels`` under ``<ref>_<option>``. Returns a copy of
+    the entry with each made reel recorded on its option; the input is not
+    changed. :func:`plan_auditions` checks everything before the first
+    request; a reel already on record under the same content key is not made
+    again unless ``redo`` (so a second call bills nothing).
+
+    >>> from types import SimpleNamespace as N
+    >>> import math, struct
+    >>> def tone(n):
+    ...     import io, wave
+    ...     b = io.BytesIO(); w = wave.open(b, "wb"); w.setnchannels(1); w.setsampwidth(2); w.setframerate(44100)
+    ...     w.writeframes(b"".join(struct.pack("<h", int(8000 * math.sin(i / 20))) for i in range(n))); w.close()
+    ...     return b.getvalue()
+    >>> class FakeTTS:
+    ...     name = "fake"
+    ...     def synthesize(self, text, voice_id, **kw):
+    ...         return N(bytes_=tone(4410), transcript=text)
+    >>> entry = {"options": [{"option": "A", "voice_id": "v1"}, {"option": "L1", "voice_id": "v2"}]}
+    >>> reels = {}
+    >>> out = audition_voice_options(entry, [("Hi.", {}), ("Bye.", {"audio_tags": ["sad"]})], reels=reels, tts=FakeTTS(), ref="j", announce=None)
+    >>> sorted(reels), [o["audition"] for o in out["options"]]
+    (['j_A', 'j_L1'], ['j_A', 'j_L1'])
+    >>> again = audition_voice_options(out, [("Hi.", {}), ("Bye.", {"audio_tags": ["sad"]})], reels=reels, tts=FakeTTS(), ref="j", announce=None)
+    >>> again == out  # on record under the same key: nothing made, nothing billed
+    True
+    """
+    out = dict(entry)
+    out["options"] = [dict(o) for o in entry.get("options", ())]
+    jobs = plan_auditions(
+        out,
+        lines,
+        ref=ref,
+        options=options,
+        effects=effects,
+        gap_s=gap_s,
+        tts_name=str(getattr(tts, "name", "")),
+        redo=redo,
+    )
+    run_auditions(jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce)
+    return out
 
 
 def default_chooser() -> str:
@@ -535,7 +1172,7 @@ def voice_casting(
     ...           "provisional": "round-2 timing draft"}, "k": {"voice_id": "x"}}
     >>> uncast, provisional = voice_casting(["j", "p", "k", "j", "ghost"], voices)
     >>> print(uncast[0])
-    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes) then `an voices choose <option> --by <writer>` (the pick, recorded as chosen_by), or `an voices cast <voice_id> --by <writer>` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.
+    voice 'j' has a voice_id nobody is recorded as choosing (no chosen_by). Cast it: `an voices design` (options from its notes or a library query), `an voices audition` (the lines in each option's voice), then `an voices choose <option> --by <writer>` (the pick, recorded as chosen_by), or `an voices cast <voice_id> --by <writer>` for a voice picked by hand (`an voices list`); a timing draft may set `provisional: true` on the voice document instead.
     >>> provisional
     ["voice 'p' is provisional (round-2 timing draft): choose a voice before the cut"]
     """
@@ -581,6 +1218,15 @@ def _project_stores(project_dir: str | Path):
     )
 
 
+def _project_reels(project_dir: str | Path):
+    from an.stores.artifacts import _BlobStore
+
+    class _WavStore(_BlobStore):
+        EXT = "wav"
+
+    return _WavStore(Path(project_dir) / AUDITIONS_DIR)
+
+
 def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
     """``ref -> the dialogue lines spoken in that voice`` in the project's scene."""
     from an.audio.voices import line_voice_id
@@ -596,6 +1242,35 @@ def _project_lines(project_dir: str | Path) -> Callable[[str], list[str]]:
     return lambda ref: by_voice.get(ref, [])
 
 
+def _project_audition_inputs(
+    project_dir: str | Path, tts: Any
+) -> Callable[[str], tuple[list[tuple[str, dict[str, Any]]], dict[str, Any]]]:
+    """``ref -> (lines, effects)`` for the lines spoken in that voice: each line
+    as ``(text, synthesize options)`` — what the film's audio pipeline would
+    send ``tts`` for it (:func:`an.audio.pipeline.synthesis_options`: the
+    voice document's model and settings, the line's cues as audio tags) — and
+    the voice's normalised ``effects``. Resolved per voice, when asked."""
+    from an.audio.effects import voice_effects
+    from an.audio.pipeline import synthesis_options
+    from an.audio.voices import line_voice_id
+    from an.project import load
+
+    proj = load(str(project_dir))
+    by_voice: dict[str, list[Any]] = {}
+    for shot in proj.scene.timeline:
+        for line in getattr(shot, "dialogue", None) or ():
+            by_voice.setdefault(line_voice_id(line, shot, proj.mall), []).append(line)
+
+    def inputs(ref: str):
+        lines = [
+            (line.text, synthesis_options(tts, line, proj.mall, ref))
+            for line in by_voice.get(ref, [])
+        ]
+        return lines, voice_effects(proj.mall, ref)
+
+    return inputs
+
+
 def design_project_voices(
     project_dir: str | Path,
     refs: Iterable[str] | None = None,
@@ -604,10 +1279,17 @@ def design_project_voices(
     model_id: str = DFLT_DESIGN_MODEL,
     persist: bool = True,
     name_prefix: str | None = None,
+    library: Any = None,
+    library_query: Mapping | str | None = None,
+    library_limit: int = DFLT_LIBRARY_LIMIT,
+    design: bool = True,
 ) -> dict[str, dict]:
-    """Design options for the project's voices; write manifests and samples; return the manifest.
+    """Design options for the project's voices (and search the library for the
+    ones with a query); write manifests and samples; return the manifest.
 
     A voice document without ``sample_text`` speaks its own lines from the scene.
+    ``library_query`` (``accent=irish,gender=male``) applies to every voice
+    without a ``library`` of its own; ``design=False`` searches the library only.
     """
     voices, options, samples = _project_stores(project_dir)
     try:
@@ -623,12 +1305,80 @@ def design_project_voices(
         persist=persist,
         name_prefix=name_prefix or Path(project_dir).resolve().name,
         lines_of=lines_of,
+        library=library,
+        library_query=library_query,
+        library_limit=library_limit,
+        design=design,
     )
     for ref, entry in manifest.items():
         for o in entry["options"]:
-            o["sample_path"] = str((SAMPLES_DIR / f"{o['sample']}.mp3").as_posix())
+            o["sample_path"] = (
+                str((SAMPLES_DIR / f"{o['sample']}.mp3").as_posix())
+                if o.get("sample")
+                else None
+            )
         options[ref] = entry
     return manifest
+
+
+def audition_project_voices(
+    project_dir: str | Path,
+    refs: Iterable[str] | None = None,
+    *,
+    options: Iterable[str] | None = None,
+    tts: Any = None,
+    gap_s: float = AUDITION_GAP_S,
+    announce: Any = _STDERR,
+    redo: bool = False,
+) -> dict[str, dict]:
+    """An audition reel per option of each voice in ``refs`` (default: every
+    voice with a manifest): the voice's own lines from the scene, spoken with
+    the film's TTS provider (``tts``, default ElevenLabs — the provider the
+    film renders with, so the reel sounds like the film), the voice document's
+    model, settings and effects, to ``artifacts/voice_auditions/<ref>_<option>.wav``;
+    the manifest records each reel (``audition_path``) as soon as it is made.
+    Every voice's reels are planned and checked before the first request, the
+    whole bill is announced once, and a reel already on record under the same
+    content key is not made again (``redo`` makes them all again). Returns
+    the manifests of ``refs``.
+    """
+    from an.audio.providers import make_tts
+
+    tts = tts if tts is not None else make_tts(DESIGN_PROVIDER)
+    _, manifests, _ = _project_stores(project_dir)
+    reels = _project_reels(project_dir)
+    inputs = _project_audition_inputs(project_dir, tts)
+    wanted = list(refs) if refs is not None else sorted(manifests)
+    if not wanted:
+        raise VoiceDesignError("no voice options yet: run `an voices design` first")
+    entries: dict[str, dict] = {}
+    jobs: list[AuditionJob] = []
+    for ref in wanted:
+        if ref not in manifests:
+            raise VoiceDesignError(f"no options for {ref!r}: run `an voices design` first")
+        entry = dict(manifests[ref])
+        entry["options"] = [dict(o) for o in entry.get("options", ())]
+        entries[ref] = entry
+        lines, effects = inputs(ref)
+        jobs += plan_auditions(
+            entry,
+            lines,
+            ref=ref,
+            options=options,
+            effects=effects,
+            gap_s=gap_s,
+            tts_name=str(getattr(tts, "name", "")),
+            redo=redo,
+        )
+
+    def record(job: AuditionJob) -> None:
+        job.option["audition_path"] = str(
+            (AUDITIONS_DIR / f"{job.reel}.wav").as_posix()
+        )
+        manifests[job.ref] = entries[job.ref]  # written per reel: a later failure loses nothing paid
+
+    run_auditions(jobs, reels=reels, tts=tts, gap_s=gap_s, announce=announce, on_reel=record)
+    return entries
 
 
 def choose_project_voice(
