@@ -512,7 +512,9 @@ def voice_casting_problem(doc: Mapping | None) -> str | None:
     if not isinstance(voice_id, str) or not voice_id.strip():
         # Not even a provisional voice: nothing names what to speak with (the
         # provider would be handed the document's key as a voice id).
-        return "is written in words but no voice is chosen for it: nothing to speak with"
+        return (
+            "is written in words but no voice is chosen for it: nothing to speak with"
+        )
     if provisional_reason(doc) is not None:
         return None
     by = doc.get(CHOSEN_BY_KEY)

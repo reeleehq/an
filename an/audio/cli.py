@@ -195,7 +195,9 @@ def choose(project: str, voice: str, option: str, by: str = "") -> str:
     )
 
 
-def cast(project: str, voice: str, voice_id: str = "", by: str = "", provider: str = "") -> str:
+def cast(
+    project: str, voice: str, voice_id: str = "", by: str = "", provider: str = ""
+) -> str:
     """Record a voice picked by hand as the writer's choice (chosen_by, chosen_at),
     without a design round: the document's own voice_id, or VOICE_ID from
     `an voices list`. Nothing is billed.
@@ -214,4 +216,11 @@ def cast(project: str, voice: str, voice_id: str = "", by: str = "", provider: s
     return f"voices/{voice}: voice_id {doc['voice_id']} (cast by {doc['chosen_by']})"
 
 
-_dispatch_funcs: list[Callable[..., Any]] = [_list, _rescore, _reroll, design, choose, cast]
+_dispatch_funcs: list[Callable[..., Any]] = [
+    _list,
+    _rescore,
+    _reroll,
+    design,
+    choose,
+    cast,
+]

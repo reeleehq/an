@@ -158,7 +158,9 @@ def validate_project(
     return report
 
 
-def _voice_casting_findings(scene, mall, report: ValidationReport, *, strict: bool) -> None:
+def _voice_casting_findings(
+    scene, mall, report: ValidationReport, *, strict: bool
+) -> None:
     """A finding per voice the scene speaks with that is written in words
     (``notes``) and that nobody chose (an#486) — a warning, an error under
     ``strict`` since `an render --strict-assets` refuses it before synthesis —
