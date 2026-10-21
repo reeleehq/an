@@ -1,0 +1,12 @@
+an.world\_cli
+=============
+
+.. automodule:: an.world_cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      show
+   

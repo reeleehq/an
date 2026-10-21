@@ -14,13 +14,14 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Module Attributes
 
-| [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
-|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
-| [`CUT_CONTINUITY_PROPS`](#an.ir.validate.CUT_CONTINUITY_PROPS)         | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
-| [`CUT_CONTINUITY_TOLERANCE`](#an.ir.validate.CUT_CONTINUITY_TOLERANCE)     | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
-| [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
-| [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)        | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
+| [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                  | Keys an#106 retired, and what to write instead.                                                                                                                                                                                                                                                                                                              |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)           | an#109's removed camera fields.                                                                                                                                                                                                                                                                                                                              |
+| [`CUT_CONTINUITY_PROPS`](#an.ir.validate.CUT_CONTINUITY_PROPS)          | position in scene px, and the size of its scale (its SIGN is facing, which the genre's view continuity check says, an#203).                                                                                                                                                                                                                                  |
+| [`CUT_CONTINUITY_TOLERANCE`](#an.ir.validate.CUT_CONTINUITY_TOLERANCE)      | a pixel, or a hundredth of the scale.                                                                                                                                                                                                                                                                                                                        |
+| [`SCREEN_DIRECTION_TOLERANCE_PX`](#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX) | Two entities closer than this on screen have no left/right order to flip.                                                                                                                                                                                                                                                                                    |
+| [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S)  | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
+| [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)         | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
 
 ### Functions
 
@@ -102,6 +103,10 @@ a document that is already 0.2.0: an agent patch, a hand edit, or a caller
 passing `style=` to `Shot(...)` all produce a permanently dead key that no
 later migration will touch. So it is caught here, at ERROR, by name.
 
+### an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+Two entities closer than this on screen have no left/right order to flip.
+
 ### *exception* an.ir.validate.UnregisteredInSceneError(findings, , where='')
 
 Bases: [`UnregisteredKindError`](an.genres.registry.html.md#an.genres.registry.UnregisteredKindError)
@@ -113,7 +118,7 @@ Raised by [`require_registered_kinds()`](#an.ir.validate.require_registered_kind
 longer render silently wrong now that the schema holds them as `str`
 (review-244 S2). `findings` keeps each one with its IR path.
 
-### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=dict())
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, library_lock=None, shot=None, index=None, memo=dict(), lowered=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -138,9 +143,28 @@ two checks that need the same derived fact compute it once
 The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
 `None` means the pin checks did not run.
 
+#### lowered *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+every framed shot’s
+placements derived from the world ([`an.ir.world.Lowered`](an.ir.world.html.md#an.ir.world.Lowered)).
+`None` when the scene has no world, or its viewpoints could not be
+resolved (reported as an error at `world`); then `shots` are the
+scene’s own. The `shot` checks run on these shots: a member the world
+adds is an entity to them, and its actions have a target.
+
+* **Type:**
+  The scene as the compiler sees it (ADR 0009)
+
 #### *property* path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 The IR path of the current shot (`timeline/<index>`).
+
+#### *property* shots *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)*
+
+lowered when there is a world.
+
+* **Type:**
+  The shots the compiler would compile
 
 ### *class* an.ir.validate.ValidationFinding(severity, ir_path, description, location=None)
 

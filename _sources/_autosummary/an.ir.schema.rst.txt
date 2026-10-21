@@ -9,6 +9,13 @@ an.ir.schema
    .. autosummary::
    
       DFLT_SHAKE_DURATION
+      Point3
+      DFLT_FOV_DEG
+      SHOT_SIZES
+      DFLT_TRAVEL_NEAR
+      DFLT_TRAVEL_TOLERANCE_PX
+      DFLT_TRAVEL_MAX_ACTIONS
+      TRAVEL_PLATE_ROLES
       CORE_ACTION_KINDS
       EXTENSION_TAG
       Action
@@ -31,6 +38,7 @@ an.ir.schema
    .. autosummary::
    
       AssetRef
+      Attachment
       Camera
       CameraFollow
       CameraKey
@@ -52,10 +60,15 @@ an.ir.schema
       Shot
       SoundCue
       StagePlacement
+      Stream
       Transition
+      Travel
       TweenAction
+      Viewpoint
       VisemeKeyframe
       VisemeTrack
       VoiceLoudness
       WordTimingIR
+      World
+      WorldMember
    

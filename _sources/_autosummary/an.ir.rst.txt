@@ -8,6 +8,7 @@ an.ir
 
    .. autosummary::
    
+      lower_world
       set_
       tween
       sequence
@@ -39,6 +40,12 @@ an.ir
       Dialogue
       Camera
       Resolution
+      World
+      WorldMember
+      Attachment
+      Viewpoint
+      Travel
+      Stream
       FlatAction
       ValidationReport
       ValidationFinding
@@ -55,3 +62,4 @@ an.ir
    compose
    schema
    validate
+   world

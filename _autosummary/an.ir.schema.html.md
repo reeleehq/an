@@ -40,16 +40,23 @@ True
 
 ### Module Attributes
 
-| [`DFLT_SHAKE_DURATION`](#an.ir.schema.DFLT_SHAKE_DURATION)       | how long a jolt lasts, how far the frame jumps (a fraction of the frame HEIGHT, so it reads the same at any resolution: 0.015 is about 11 px at 720p), and how many times a second it jumps.   |
-|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                        |
-| [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                              |
-| [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it).                     |
-| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                                        |
-| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                                      |
-| [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                              |
-| [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                                      |
-| [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                                     |
+| [`DFLT_SHAKE_DURATION`](#an.ir.schema.DFLT_SHAKE_DURATION)       | how long a jolt lasts, how far the frame jumps (a fraction of the frame HEIGHT, so it reads the same at any resolution: 0.015 is about 11 px at 720p), and how many times a second it jumps.                                                                              |
+|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Point3`](#an.ir.schema.Point3)                    | the stage's axes extended with depth — `x` right, `y` DOWN, `z` away from the viewer.                                                                                                                                                                                     |
+| [`DFLT_FOV_DEG`](#an.ir.schema.DFLT_FOV_DEG)              | The horizontal field of view a viewpoint has when it names neither `fov` nor `focal`: a normal lens, neither wide nor long.                                                                                                                                               |
+| [`SHOT_SIZES`](#an.ir.schema.SHOT_SIZES)                | Shot sizes, by where the frame cuts the subject (the film convention, see ADR 0009): `name: (top, bottom, fill)`.                                                                                                                                                         |
+| [`DFLT_TRAVEL_NEAR`](#an.ir.schema.DFLT_TRAVEL_NEAR)          | nearer than `near` an instance has passed the camera (and is hidden); beyond `far` it is effectively at infinity (the far plate's job, not a stream's).                                                                                                                   |
+| [`DFLT_TRAVEL_TOLERANCE_PX`](#an.ir.schema.DFLT_TRAVEL_TOLERANCE_PX)  | How far a stream instance's screen position may stray from the fitted tweens between two of their keys, in pixels: the fitting's tolerance.                                                                                                                               |
+| [`DFLT_TRAVEL_MAX_ACTIONS`](#an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS)   | The most actions one shot's travel may lower to before the lowering refuses and names the knobs: a 10 s road with three streams is about four thousand; a minute of dense road markings would be fifty thousand, which is a document the runtime pays for on every frame. |
+| [`TRAVEL_PLATE_ROLES`](#an.ir.schema.TRAVEL_PLATE_ROLES)        | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
+| [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                                                                                                   |
+| [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                                                                                                         |
+| [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it).                                                                                                |
+| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                                                                                                                   |
+| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                                                                                                                 |
+| [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                         |
+| [`SPECIMEN_DURATION`](#an.ir.schema.SPECIMEN_DURATION)         | How long a specimen shot runs (`an library sheet` draws its first frame).                                                                                                                                                                                                 |
+| [`SPECIMEN_SHOT_ID`](#an.ir.schema.SPECIMEN_SHOT_ID)          | The id of a specimen shot.                                                                                                                                                                                                                                                |
 
 ### Functions
 
@@ -62,6 +69,7 @@ True
 
 | [`AssetRef`](#an.ir.schema.AssetRef)(\*, kind, id, store, ref[, ...])          | Reference to an entry in a project store.                                                                                                                           |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Attachment`](#an.ir.schema.Attachment)(\*, to[, at, scale])                    | A member that goes where another member goes (ADR 0009 decision 1).                                                                                                 |
 | [`Camera`](#an.ir.schema.Camera)(\*[, shake, follow, move, keys])            | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
 | [`CameraFollow`](#an.ir.schema.CameraFollow)(\*, target[, axes])                   | A camera that follows an entity (an#445): the frame keeps `target` where it stood at the shot's start.                                                              |
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, easing])  | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
@@ -83,12 +91,17 @@ True
 | [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
 | [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
 | [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, direction]) | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`Travel`](#an.ir.schema.Travel)(\*[, direction, near, far, ...])            | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                         |
 | [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
+| [`Viewpoint`](#an.ir.schema.Viewpoint)(\*[, at, look, look_at, vanish, ...])    | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                                                       |
 | [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
 | [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
 | [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
 | [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
+| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel])           | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                       |
+| [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                  |
 
 ### an.ir.schema.Action
 
@@ -162,6 +175,28 @@ which for characters is the evenly-spaced row the compiler computes.
 **Additive by construction, and hash-free by construction**: the
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
+
+### *class* an.ir.schema.Attachment(, to, at=None, scale=1.0, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A member that goes where another member goes (ADR 0009 decision 1).
+
+```pycon
+>>> Attachment(to="paul", at=(8.0, 70.0), scale=0.9).to
+'paul'
+```
+
+`at` is the offset in the HOST’s native units (its art’s pixels at
+`stage.scale` 1) and `scale` the size relative to the host, so the
+pair is derived from the host’s placement in every framing. Without
+`at` the member is added whenever the host is, with no placement of
+its own: another pass places it (the cut-out genre’s body attachments,
+from the host’s bones).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### an.ir.schema.CORE_ACTION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('set', 'tween', 'sequence', 'parallel', 'delay', 'loop')*
 
@@ -432,6 +467,11 @@ convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
 Caption type size as a fraction of frame height — a little under the title
 default, as captions are read while something else is watched.
 
+### an.ir.schema.DFLT_FOV_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 50.0*
+
+The horizontal field of view a viewpoint has when it names neither `fov`
+nor `focal`: a normal lens, neither wide nor long.
+
 ### an.ir.schema.DFLT_SHAKE_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
 
 how long a jolt lasts, how far the frame
@@ -441,6 +481,27 @@ jumps. Art direction, chosen to read as an impact rather than a tremor.
 
 * **Type:**
   A camera shake’s defaults (an#429)
+
+### an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 20000*
+
+The most actions one shot’s travel may lower to before the lowering
+refuses and names the knobs: a 10 s road with three streams is about four
+thousand; a minute of dense road markings would be fifty thousand, which
+is a document the runtime pays for on every frame.
+
+### an.ir.schema.DFLT_TRAVEL_NEAR *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+nearer than `near` an instance has
+passed the camera (and is hidden); beyond `far` it is effectively at infinity
+(the far plate’s job, not a stream’s).
+
+* **Type:**
+  A travel’s depth range, in world units
+
+### an.ir.schema.DFLT_TRAVEL_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+How far a stream instance’s screen position may stray from the fitted
+tweens between two of their keys, in pixels: the fitting’s tolerance.
 
 ### *class* an.ir.schema.DelayAction(, name=None, kind='delay', duration, \*\*extra_data)
 
@@ -712,6 +773,16 @@ Composition: run all children simultaneously starting at the same time.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.schema.Point3
+
+the stage’s axes extended with depth — `x`
+right, `y` DOWN, `z` away from the viewer. The unit is the author’s.
+
+* **Type:**
+  A world position `(x, y, z)`
+
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[`Annotated`[[`float`](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], `Annotated`[[`float`](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])], `Annotated`[[`float`](https://docs.python.org/3/builtins/functions.html#float), FieldInfo(annotation=NoneType, required=True, metadata=[AllowInfNan(allow_inf_nan=False)])]]
+
 ### *class* an.ir.schema.Resolution(, width=1920, height=1080, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -721,6 +792,15 @@ Pixel dimensions of the rendered output.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.SHOT_SIZES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'close_up': (0.0, 0.35, 0.9), 'full': (0.0, 1.0, 0.9), 'medium': (0.0, 0.55, 0.9), 'wide': (0.0, 1.0, 0.5)}*
+
+Shot sizes, by where the frame cuts the subject (the film convention, see
+ADR 0009): `name: (top, bottom, fill)`. `top`/`bottom` are the band of
+the subject’s box the frame shows, as fractions of its height from the top
+(`0.35`: head and shoulders; `0.55`: the waist); `fill` is how much of
+the frame’s height that band fills. A genre may later supply landmarks from
+its rig (a seam, not built); until then these are human proportions.
 
 ### an.ir.schema.SPECIMEN_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 
@@ -734,7 +814,7 @@ The id of a specimen shot.
 
 The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).
 
-### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
+### *class* an.ir.schema.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, world=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -757,6 +837,17 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### world *: [World](#an.ir.schema.World) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+its members at world positions, its
+named viewpoints and its travel. `None` — the default, and every
+document written before it existed — is no world at all: every shot is
+placed by hand. Omitted from JSON when unset (the `stage` rule), so no
+stored scene and no schema version moves.
+
+* **Type:**
+  The scene’s **world** (ADR 0009)
+
 ### *class* an.ir.schema.SequenceAction(\*, name=None, kind='sequence', children=<factory>, \*\*extra_data)
 
 Bases: `_ActionBase`
@@ -777,7 +868,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -821,6 +912,17 @@ Per-shot override of [`Meta.step_hz`](#an.ir.schema.Meta.step_hz) (`None` = inhe
 #### transition *: [Transition](#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How this shot is entered ([`Transition`](#an.ir.schema.Transition)); `None` is a hard cut.
+
+#### viewpoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [Viewpoint](#an.ir.schema.Viewpoint) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the name
+of one of `world.viewpoints` or an inline [`Viewpoint`](#an.ir.schema.Viewpoint). `None`
+(the default, and every document written before the world existed)
+means the shot is placed by hand, as it always was. Omitted from JSON
+when unset, like `policy`.
+
+* **Type:**
+  This shot’s **viewpoint** onto the scene’s world (ADR 0009)
 
 ### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
@@ -950,6 +1052,35 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
 
+### *class* an.ir.schema.Stream(, id, ref, kind='prop', store='props', height=None, width=None, units_per_px=None, every, lane=0.0, y=0.0, after=None, seed=0, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A row of one prop along a travel’s direction (ADR 0009 decision 4).
+
+```pycon
+>>> Stream(id="tree", ref="olive_tree", height=4.0, every=(1.0, 3.0), lane=(-3.0, -2.0)).id
+'tree'
+```
+
+Instances `<id>_<k>` stand `every` world units apart along the
+direction (a range is seeded-uniform), `lane` to the right of it
+(negative: left), at height `y`; sized like a member. They are
+positioned in the world once, so every shot sees the same instances in
+the same places at the same film time.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.TRAVEL_PLATE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('far', 'vehicle')*
+
+at infinity, or rigid with
+the vehicle the viewpoints are mounted on.
+
+* **Type:**
+  What a plane under a travel may be declared as
+
 ### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', \*\*extra_data)
 
 Bases: `_IRModel`
@@ -985,6 +1116,31 @@ from nothing.
 #### direction *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['left', 'right', 'up', 'down']*
 
 A `wipe`’s direction; omitted from a dump for every other kind.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.Travel(\*, direction=(0.0, 0.0, 1.0), speed, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
+
+Bases: `_IRModel`
+
+The viewpoints moving through the world in film time (ADR 0009 decision 4).
+
+```pycon
+>>> t = Travel(speed=20.0, streams=[Stream(id="pole", ref="pole", height=6.0, every=12.0, lane=2.0)])
+>>> t.direction, t.speed
+((0.0, 0.0, 1.0), 20.0)
+```
+
+The vehicle the members and viewpoints ride moves at `speed` world units
+per second of FILM time along `direction`; `streams` stream past
+between `near` and `far`. `plates` declares every plane a framed
+shot’s environment holds as `far` (at infinity; its parallax factor
+must be 0) or `vehicle` (rigid with the camera): `{"far":
+["set/rear_view"], "vehicle": ["set/cabin"]}`. A plane in neither is a
+validate warning, because a plate with near objects baked in stands
+still while the streams move.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -1057,6 +1213,36 @@ The easing this tween draws with under a scene default of
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
+### *class* an.ir.schema.Viewpoint(\*, at=None, look=(0.0, 0.0, 0.0), look_at=None, vanish=None, fov=None, focal=None, subject=None, size=None, distance=None, subject_at=(0.0, 0.0), hide=<factory>, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A pinhole camera onto the world, or a composition that resolves to one
+(ADR 0009 decision 2).
+
+```pycon
+>>> Viewpoint(at=(0.0, 0.0, 0.0), vanish=(0.0, -262.0)).vanish
+(0.0, -262.0)
+>>> Viewpoint(subject="paul", size="close_up", subject_at=(190.0, 0.0)).size
+'close_up'
+```
+
+A camera: `at` (world), its look as `look: [yaw, pitch, roll]` in
+degrees (yaw turns right, pitch looks down, roll turns the picture clockwise), or
+`look_at` (a world point), or `vanish` (where the `+z` direction
+lands on screen, in pixels from the frame centre: the road’s vanishing
+point), and `fov` (horizontal, degrees) or `focal` (pixels).
+
+A composition: `subject` (a member, or a list), `size` (a `SHOT_SIZES`
+name) or `distance` (world units), and `subject_at` (where the
+subject’s band lands on screen, pixels; the centre by default). The
+camera is computed on the look direction so the band fills the frame as
+the size says. `hide` names members this shot leaves out.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.ir.schema.VisemeKeyframe(, time, viseme, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -1121,6 +1307,53 @@ One word of a line and when it was spoken, in seconds from the line’s
 start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). Stamped by the audio
 pipeline from the provider’s word timings when it has them (an#96); JSON
 only — `scene.md` never carries it, the way it never carries visemes.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A scene’s world: members at positions, the named viewpoints that are
+its coverage, and its travel (ADR 0009).
+
+```pycon
+>>> world = World(members=[
+...     WorldMember(kind="character", id="jerry", store="characters", ref="jerry", at=(-0.45, 0.65, 1.6), height=1.75),
+...     WorldMember(kind="prop", id="wheel", store="props", ref="wheel", attached=Attachment(to="jerry")),
+... ], viewpoints={"two_shot": Viewpoint(at=(0.0, 0.0, 0.0))})
+>>> [m.id for m in world.members], sorted(world.viewpoints)
+(['jerry', 'wheel'], ['two_shot'])
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, \*\*extra_data)
+
+Bases: [`AssetRef`](#an.ir.schema.AssetRef)
+
+An entity of the scene’s world: the same reference a shot’s entity
+carries, at a world position with a size (ADR 0009 decision 1).
+
+```pycon
+>>> m = WorldMember(kind="character", id="paul", store="characters", ref="paul",
+...                 at=(0.45, 0.65, 1.6), height=1.75)
+>>> m.at, m.height
+((0.45, 0.65, 1.6), 1.75)
+```
+
+`at` is where the entity’s placement point stands (a character’s feet,
+a prop’s origin) in world units; exactly one of `height`/`width` (its
+size in world units) or `units_per_px` (world units per native pixel, for art
+whose extent cannot be measured) sizes it. A member is `attached` to
+another instead of positioned, or it is an environment (present in every
+framed shot, placed by nothing: plates are per shot). `after` is the
+draw anchor a shot’s `stage.after` would be. A member never carries
+`stage`: the viewpoint places it.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

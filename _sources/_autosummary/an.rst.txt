@@ -100,3 +100,4 @@
    tools
    util
    verify
+   world_cli

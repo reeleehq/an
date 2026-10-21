@@ -1,0 +1,16 @@
+an.stage.world
+==============
+
+.. automodule:: an.stage.world
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      lower_scene
+      lowered_or_same
+      member_extents
+      native_box
+      world_report
+   

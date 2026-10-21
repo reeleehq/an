@@ -1,0 +1,43 @@
+an.ir.world
+===========
+
+.. automodule:: an.ir.world
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Box
+      Extents
+      HAND_PLACEMENT_TOLERANCE_PX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      fit_channel
+      focal_length
+      has_world
+      lower_world
+      member_placements
+      resolve_viewpoint
+      stream_instances
+      stream_slots
+      viewpoint_of
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Lowered
+      Placed
+      Projection
+      WorldNote
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      WorldError
+   

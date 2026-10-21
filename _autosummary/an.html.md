@@ -364,7 +364,7 @@ Pixel dimensions of the rendered output.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, \*\*extra_data)
+### *class* an.SceneIR(\*, version='0.3.0', compatible_version='0.3.0', kind='SceneIR', meta=<factory>, assets=<factory>, timeline=<factory>, world=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -387,7 +387,18 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, \*\*extra_data)
+#### world *: [World](an.ir.schema.html.md#an.ir.schema.World) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+its members at world positions, its
+named viewpoints and its travel. `None` — the default, and every
+document written before it existed — is no world at all: every shot is
+placed by hand. Omitted from JSON when unset (the `stage` rule), so no
+stored scene and no schema version moves.
+
+* **Type:**
+  The scene’s **world** (ADR 0009)
+
+### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -431,6 +442,17 @@ Per-shot override of [`Meta.step_hz`](#an.Meta.step_hz) (`None` = inherit).
 #### transition *: [Transition](an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How this shot is entered (`Transition`); `None` is a hard cut.
+
+#### viewpoint *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [Viewpoint](an.ir.schema.html.md#an.ir.schema.Viewpoint) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the name
+of one of `world.viewpoints` or an inline `Viewpoint`. `None`
+(the default, and every document written before the world existed)
+means the shot is placed by hand, as it always was. Omitted from JSON
+when unset, like `policy`.
+
+* **Type:**
+  This shot’s **viewpoint** onto the scene’s world (ADR 0009)
 
 ### an.build_project_mall(project_dir, , ensure=False, \*\*overrides)
 
@@ -816,3 +838,4 @@ which decides how long a dissolve’s overlap is.
 | [`tools`](an.tools.html.md#module-an.tools)                 | User-facing utility functions, plus the SSOT list for CLI dispatch.                                                                                     |
 | [`util`](an.util.html.md#module-an.util)                   | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                                                                             |
 | [`verify`](an.verify.html.md#module-an.verify)               | Verification protocol — same interface for human, lint, vision-LM, MoVer.                                                                               |
+| [`world_cli`](an.world_cli.html.md#module-an.world_cli)         | `an world …`: the scene's world from the shell (ADR 0009).                                                                                              |

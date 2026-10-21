@@ -70,3 +70,4 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`text_layout`](an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
 | [`timeline`](an.stage.timeline.html.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                               |
 | [`tree`](an.stage.tree.html.md#module-an.stage.tree)                     | The scene tree's paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).                                                |
+| [`world`](an.stage.world.html.md#module-an.stage.world)                   | The stage's side of the scene world (ADR 0009): measuring a member's extent, and lowering a whole scene for the compiler.                   |
