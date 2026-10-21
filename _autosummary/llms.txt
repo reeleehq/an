@@ -207,6 +207,7 @@
 - [an.tools](an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
 - [an.util](an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
+- [an.verify.constraints](an.verify.constraints.html.md): Constraints: declarative statements a lint checks and a solver may enforce (an#497).
 - [an.verify.human](an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
 - [an.verify.layout](an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
 - [an.verify.media](an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.

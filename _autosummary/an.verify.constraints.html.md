@@ -1,0 +1,194 @@
+# an.verify.constraints
+
+Constraints: declarative statements a lint checks and a solver may enforce (an#497).
+
+A constraint says something about the world the shots show that must stay true:
+a node does not jump within a shot, two solids do not pass through each other, a
+prop meets the body it is drawn on. It is declared once and has up to two faces
+(the constraints catalogue, `misc/docs/constraints_catalogue.md`):
+
+- a **check**: a lint, run by `an validate` through the semantic-check registry
+  ([`an.genres.SemanticCheck`](an.genres.html.md#an.genres.SemanticCheck)). It reads a
+  [`an.ir.validate.ValidationContext`](an.ir.validate.html.md#an.ir.validate.ValidationContext) and adds findings to `ctx.report`;
+- a **term**, optional: the residual the kinematic layer’s solver drives to zero,
+  for a constraint that is enforced as well as checked. `None` means lint-only,
+  and that is the legitimate default rather than a stub: draw order is derived
+  from depth and continuity comes from solving each frame from the previous one,
+  so neither has a residual.
+
+Every constraint ships as a lint before it is a term, and a term never replaces
+the lint: what the solver produces is checked again by the same `check`.
+
+The one example a genre or a later batch copies (P2’s `joint_violation`):
+
+```pycon
+>>> def joint_check(ctx):
+...     "Every joint of ctx.shot holds at every sampled instant, else ctx.report.add(...)."
+>>> def joint_term(state):
+...     "The solver's residual for one joint: zero when its two bodies meet there."
+...     return 0.0
+>>> JOINT = Constraint("joint_violation", joint_check, term=joint_term,
+...                    description="a joint's two bodies meet at the joint")
+>>> check = JOINT.semantic_check()
+>>> check.name, check.stage, check.order == DFLT_ORDER, JOINT.term is joint_term
+('joint_violation', 'shot', True, True)
+```
+
+A genre registers it like any check (`Genre(checks=(JOINT.semantic_check(),))`);
+the core’s own are [`CONSTRAINTS`](#an.verify.constraints.CONSTRAINTS), registered when this module is imported
+(`an.ir` imports it, so `validate_semantic` always has them, the way the core’s
+other checks are registered when `an.ir.validate` is).
+
+The core’s constraints:
+
+- `continuity` (an#508, catalogue B1): a node does not jump within a shot
+  unless a `set` says so, and a value is not held for less than a frame.
+  [`discontinuities()`](#an.verify.constraints.discontinuities) is the pure function under it.
+
+### Module Attributes
+
+| [`CONSTRAINTS`](#an.verify.constraints.CONSTRAINTS)   | The core's constraints, in the order their checks run within a stage.   |
+|----------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### Functions
+
+| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                      |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                             |
+| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`. |
+| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                   |
+
+### Classes
+
+| [`Constraint`](#an.verify.constraints.Constraint)(name, check[, stage, order, ...])     | One constraint: a declarative statement with a `check` and, optionally, a `term`.   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [`Discontinuity`](#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).           |
+| [`ShortHold`](#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.             |
+
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None),)*
+
+The core’s constraints, in the order their checks run within a stage.
+
+### *class* an.verify.constraints.Constraint(name, check, stage='shot', order=200.0, description='', term=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One constraint: a declarative statement with a `check` and, optionally, a `term`.
+
+`check(ctx)` is SemanticCheck-shaped (it adds findings to `ctx.report`);
+`stage`, `order` and `description` are the registry’s. `term` is the
+solver residual hook the kinematic layer’s `solve` pass consumes: a callable
+returning the residual(s), zero when the constraint holds, in the units of the
+constrained quantity. `None` is lint-only.
+
+```pycon
+>>> c = Constraint("holds", lambda ctx: None, stage="finish", order=5.0)
+>>> c.semantic_check().stage, c.term
+('finish', None)
+```
+
+#### semantic_check()
+
+The registry’s view of this constraint: its `check`, to register.
+
+* **Return type:**
+  [`SemanticCheck`](an.genres.registry.html.md#an.genres.registry.SemanticCheck)
+
+### *class* an.verify.constraints.Discontinuity(target, property, at, before, after, cause, deliberate)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A numeric channel of `target` that jumps at `at` (seconds into the shot).
+
+#### cause *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+an action begins there from a value the node is not at;
+`end`: the action governing the value ends there and another one, running
+underneath, takes over; `loop`: a looping clip restarts there.
+
+* **Type:**
+  `start`
+
+#### deliberate *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+the author’s.
+
+* **Type:**
+  A `set` (a step-held value equal to what shows) explains it
+
+### *class* an.verify.constraints.ShortHold(target, property, at, value, held_s)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A step-held value of `target`’s `property` shown for less than a frame.
+
+### an.verify.constraints.compiled_shot(ctx)
+
+`ctx.shot` compiled as `an render` compiles it, once per validation.
+
+The stores validate was given stand in for the mall; the scene’s frame rate
+(the render’s when `an validate --fps` says), resolution, step grid and
+default easing are the ones the render uses, so what is linted is the
+document that is drawn. `None` for a shot the stage does not render or
+that does not compile: the checks that own those problems report them, and
+a constraint says nothing about a shot it could not see.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.verify.constraints.continuity_findings(doc, , duration, fps, path='')
+
+`[(severity, ir path, message)]` for a compiled shot’s jumps and short holds.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.verify.constraints.discontinuities(timeline, , rest, duration)
+
+Every instant in `(0, duration]` where a numeric value of `timeline`
+jumps: the pose read just before the instant and just after it differ
+beyond `CONTINUITY_TOLERANCE`. `rest` is each `(target, property)`’s
+value while nothing writes it (the node’s own transform); a key absent from
+both the pose and `rest` is not judged.
+
+A tween with a `from` the node is not at jumps where it starts; two tweens
+on one property jump where the later one starts and again where it ends and
+the earlier one shows through; a loop whose last pose is not its first jumps
+at each restart. A `set` is a jump the author wrote: it is reported with
+`deliberate=True`, for the caller to leave alone.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
+>>> from an.timing.timeline import PlacedClip, Timeline, Track
+>>> rise = Clip("rise", 1.0, [Channel("a", "y", [Keyframe(0.0, 3.0, "linear"), Keyframe(1.0, 10.0)])])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(rise, start_time=0.5)])])
+>>> (d,) = discontinuities(tl, rest={("a", "y"): 0.0}, duration=2.0)
+>>> d.at, d.before, d.after, d.cause, d.deliberate
+(0.5, 0.0, 3.0, 'start', False)
+>>> hold = Clip("hold", 1.5, [Channel("a", "y", [Keyframe(0.0, 3.0, "step")])])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(hold, start_time=0.5), PlacedClip(rise, start_time=0.5)])])
+>>> discontinuities(tl, rest={("a", "y"): 0.0}, duration=2.0)[0].deliberate
+True
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Discontinuity`](#an.verify.constraints.Discontinuity)]
+
+### an.verify.constraints.short_holds(timeline, , fps)
+
+Step-held values shown for less than a frame: two `set``s of one property
+closer than ``1/fps`, so the first may never land on a frame.
+
+```pycon
+>>> from an.timing.channel import Channel, Keyframe
+>>> from an.timing.clip import Clip
+>>> from an.timing.timeline import PlacedClip, Timeline, Track
+>>> sets = Clip("sets", 1.0, [Channel("a", "x", [Keyframe(0.0, 5.0, "step"), Keyframe(0.01, 0.0, "step")])])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(sets, start_time=0.5)])])
+>>> [(h.at, h.value, round(h.held_s, 3)) for h in short_holds(tl, fps=24)]
+[(0.5, 5.0, 0.01)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ShortHold`](#an.verify.constraints.ShortHold)]

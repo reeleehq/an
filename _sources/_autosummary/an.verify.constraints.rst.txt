@@ -1,0 +1,29 @@
+an.verify.constraints
+=====================
+
+.. automodule:: an.verify.constraints
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CONSTRAINTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compiled_shot
+      continuity_findings
+      discontinuities
+      short_holds
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Constraint
+      Discontinuity
+      ShortHold
+   

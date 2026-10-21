@@ -2,10 +2,14 @@
 
 Verification protocol — same interface for human, lint, vision-LM, MoVer.
 
-`StyleLintVerifier` is imported on first use, not here: `an.verify.style` is
-also a script (`python -m an.verify.style`), and a package that imports the
-module it is about to run as `__main__` makes `runpy` warn that it is
-already in `sys.modules`.
+Every public name here is imported on first use (PEP 562), not when the package
+is: [`an.verify.constraints`](an.verify.constraints.html.md#module-an.verify.constraints), the constraint lints `an validate` runs
+(an#497), is imported by `an.ir` on every `import an`, and the media verifier
+behind this package pulls in numpy, which the validate path has no use for.
+`StyleLintVerifier` moved to `cutan` with the cut-out style lint (an#225);
+`an.verify.style` is also a script (`python -m an.verify.style`), and a
+package that imports the module it is about to run as `__main__` makes
+`runpy` warn that it is already in `sys.modules`.
 
 ### Classes
 
@@ -89,8 +93,9 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
+| [`constraints`](an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
 | [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
 | [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
 | [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |

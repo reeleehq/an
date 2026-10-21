@@ -209,6 +209,7 @@
 - [an.tools](_autosummary/an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
 - [an.util](_autosummary/an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](_autosummary/an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
+- [an.verify.constraints](_autosummary/an.verify.constraints.html.md): Constraints: declarative statements a lint checks and a solver may enforce (an#497).
 - [an.verify.human](_autosummary/an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
 - [an.verify.layout](_autosummary/an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
 - [an.verify.media](_autosummary/an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
@@ -217,7 +218,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-21 07:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-21 08:12 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 
