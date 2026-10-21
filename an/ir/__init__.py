@@ -47,6 +47,7 @@ from an.ir.validate import (
     ValidationReport,
     ValidationFinding,
 )
+
 # The core's constraint lints (an#497, an#508) register themselves when imported;
 # importing them here gives `validate_semantic` them wherever `an.ir.validate` loads.
 import an.verify.constraints  # noqa: F401

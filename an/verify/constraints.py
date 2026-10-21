@@ -319,9 +319,11 @@ def _cause(timeline: Any, key: tuple[str, str], t: float, after_side: float) -> 
         return "end"
     if abs(governing.start_time - t) <= SIDE_S:
         return "start"
-    if governing.clip.loop_mode is LoopMode.LOOP and abs(
-        _local_time(governing, after_side)
-    ) <= SIDE_S * governing.speed + SAME_INSTANT_S:
+    if (
+        governing.clip.loop_mode is LoopMode.LOOP
+        and abs(_local_time(governing, after_side))
+        <= SIDE_S * governing.speed + SAME_INSTANT_S
+    ):
         return "loop"
     return "end"
 
@@ -411,7 +413,8 @@ def short_holds(timeline: Any, *, fps: float) -> list[ShortHold]:
                     if (
                         kfs[k].easing == STEP_EASING
                         and held < frame - SAME_INSTANT_S
-                        and abs(kfs[k + 1].value - kfs[k].value) > _tolerance(ch.property)
+                        and abs(kfs[k + 1].value - kfs[k].value)
+                        > _tolerance(ch.property)
                     ):
                         out.append(
                             ShortHold(
