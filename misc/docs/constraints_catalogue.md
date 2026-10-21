@@ -171,7 +171,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing within a shot; it is the within-shot twin of `cut_continuity` (an#394), and the two should share the deliberate-jump vocabulary (`_DELIBERATE`) and the tolerances.
 
-**Status.** Missing. Every input exists (`evaluate_timeline`, `FrameClock`).
+**Status.** Shipped as the `continuity` check (an#508, `an/verify/constraints.py`); `an validate` warns on a mid-shot jump and on a value held for under a frame. Every input existed (`evaluate_timeline`, `FrameClock`).
 
 #### B2. Smoothness, ease and arcs
 
@@ -381,24 +381,24 @@ One constraint only, stated here because the others depend on it and `planes-res
 
 Ranked by (a) how often the error class reached a viewer in the two plot-car rounds, (b) whether a new declaration is needed, (c) whether every input exists today in the compiled document and the timing kernel. All of these are `SemanticCheck`s registered in `an.ir.validate` (core) or by the genre (`cutan`), with the same shape as `cutan.verify.body`: compile the shot's stage once, sample the timeline, measure with `node_box`/`screen_position`.
 
-| Rank | Lint | Entry | Needs a new declaration? | Inputs today | Home | Size |
-|---|---|---|---|---|---|---|
-| 1 | spatio-temporal continuity within a shot (no mid-shot jump, no one-frame flicker) | B1 | no | `evaluate_timeline`, `FrameClock` | `an` | small |
-| 2 | support, penetration, floating and foot skate | A1, B3 | yes: `contacts` on assets, `support` relation, a surface (`y`, a member's `support_top`, scene-space ground) | `node_box`, rig bones | contacts in the rig: `cutan`; the relation and surface: `an` | medium |
-| 3 | solidity between declared solids | A2 | yes: `solid` (default from depth band once scene space lands) | `node_box` | `an` | small |
-| 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small |
-| 5 | pre-render cadence lint from the IR against the style (tween durations, holds, easing list) | B6 | no (style specs carry it) | flat timeline, style spec | `cutan` | small |
-| 6 | causality and audio-visual tolerance for sound cues and dialogue | B7 | `cause` on timed cues | cues, anchors, word timings | `an` | small |
-| 7 | the light declaration with `shaded_side` art metadata, plus the art-brief hook | D1 | yes | declarations only | `an` (declaration), `cutan` (art brief) | small |
-| 8 | object permanence: presence across shots, persistent state, uniqueness | C1 | `persistent`, `time_jump` on a transition | scene timeline | `an` | medium |
-| 9 | the 30-degree rule over viewpoints | C4 | no (scene space) | viewpoints | `an` | small |
-| 10 | held items as welds with pick-up and release, checked through motion (closes cutan#98's shape for props) | A4 | `held` | `screen_position` | `an` (weld), `cutan` (hands) | medium |
-| 11 | rigidity and volume under squash | A5 | `deformable` | evaluated scales, bone rests | `an` | small |
-| 12 | eyeline and look-at | C5 | `looks_at` | face nodes | `cutan` | medium |
-| 13 | smoothness, arcs, anticipation and overlap as measured style targets | B2, B5 | style targets | evaluated trajectories | `cutan` (targets), `an` (measure) | medium |
-| 14 | gravity: hover, ballistic, hang | B4 | `gravity`, `airborne` | evaluated trajectories | `an` | medium |
-| 15 | ground-plane perspective on hand overrides | A6 | no (scene space) | contacts, horizon | `an` | small |
-| 16 | contact shadows as a derived node | D2 | `shadow` | contacts, light | `an` | medium |
+| Rank | Lint | Entry | Needs a new declaration? | Inputs today | Home | Size | Shipped |
+|---|---|---|---|---|---|---|---|
+| 1 | spatio-temporal continuity within a shot (no mid-shot jump, no one-frame flicker) | B1 | no | `evaluate_timeline`, `FrameClock` | `an` | small | an#508 |
+| 2 | support, penetration, floating and foot skate | A1, B3 | yes: `contacts` on assets, `support` relation, a surface (`y`, a member's `support_top`, scene-space ground) | `node_box`, rig bones | contacts in the rig: `cutan`; the relation and surface: `an` | medium |  |
+| 3 | solidity between declared solids | A2 | yes: `solid` (default from depth band once scene space lands) | `node_box` | `an` | small |  |
+| 4 | draw order monotone in depth and stable across shots | A3 | no (with scene space) | compiled tree, `z` | `an` | small |  |
+| 5 | pre-render cadence lint from the IR against the style (tween durations, holds, easing list) | B6 | no (style specs carry it) | flat timeline, style spec | `cutan` | small |  |
+| 6 | causality and audio-visual tolerance for sound cues and dialogue | B7 | `cause` on timed cues | cues, anchors, word timings | `an` | small |  |
+| 7 | the light declaration with `shaded_side` art metadata, plus the art-brief hook | D1 | yes | declarations only | `an` (declaration), `cutan` (art brief) | small |  |
+| 8 | object permanence: presence across shots, persistent state, uniqueness | C1 | `persistent`, `time_jump` on a transition | scene timeline | `an` | medium |  |
+| 9 | the 30-degree rule over viewpoints | C4 | no (scene space) | viewpoints | `an` | small |  |
+| 10 | held items as welds with pick-up and release, checked through motion (closes cutan#98's shape for props) | A4 | `held` | `screen_position` | `an` (weld), `cutan` (hands) | medium |  |
+| 11 | rigidity and volume under squash | A5 | `deformable` | evaluated scales, bone rests | `an` | small |  |
+| 12 | eyeline and look-at | C5 | `looks_at` | face nodes | `cutan` | medium |  |
+| 13 | smoothness, arcs, anticipation and overlap as measured style targets | B2, B5 | style targets | evaluated trajectories | `cutan` (targets), `an` (measure) | medium |  |
+| 14 | gravity: hover, ballistic, hang | B4 | `gravity`, `airborne` | evaluated trajectories | `an` | medium |  |
+| 15 | ground-plane perspective on hand overrides | A6 | no (scene space) | contacts, horizon | `an` | small |  |
+| 16 | contact shadows as a derived node | D2 | `shadow` | contacts, light | `an` | medium |  |
 
 Three remarks for the split. Ranks 1, 3, 4, 6, 9 and 11 are pure core and touch no genre file, so they can be one worker in one `an` worktree, disjoint from scene space's files (`an/ir/space.py`, `an/stage/space.py`) if the checks live in a new module (`an/ir/constraints.py` or wherever the lead's ADR puts the declaration schema) rather than appended to `validate.py`. Rank 2 is the one with the biggest payoff and the one most entangled with `puppet-research`'s solver (contacts are the solver's unilateral constraints) and with scene space (the surface is a world object): it should be specified jointly before either builds. Rank 5 is the cheapest win for the styles and sits entirely in `cutan`.
 
