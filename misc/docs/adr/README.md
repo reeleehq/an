@@ -13,3 +13,4 @@ Format: Context → Decision → Alternatives considered → Consequences → Fi
 | 0004 | [Incremental re-processing through a content-addressed build graph](0004-incremental-reprocessing.md) | Accepted, 2026-10-01 |
 | 0005 | [A persistent asset library: flat ids, immutable versions, content-addressed files, derived capability facets](0005-asset-library.md) | Accepted, 2026-10-01 |
 | 0006 | [The shared structured-animation contract is authored in `an` and published as a data package](0006-contract-ssot.md) | Accepted, 2026-10-01 (maintainer's choice) |
+| 0008 | [A constraint layer under structured animation: bodies, joints, drivers and frames, solved per frame](0008-constraint-layer.md) | Proposed, 2026-10-21 |
