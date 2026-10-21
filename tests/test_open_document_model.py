@@ -726,6 +726,9 @@ def test_the_report_order_is_pinned():
         "voices",
         "dialogue_lines",
         "dialogue_fits",
+        # an#497: the constraint layer's lints (an.verify.constraints), after everything that was here
+        "continuity",
+        "solidity",
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
@@ -740,6 +743,7 @@ def test_the_report_order_is_pinned():
         # the asset library's pin checks (an#240), after everything that was here
         "library_pins",
         "library_checkouts",
+        "draw_order",  # an#510
     ]
 
 
