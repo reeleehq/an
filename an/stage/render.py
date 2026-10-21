@@ -445,7 +445,9 @@ def texture_source(src_rel: str, mall: Mapping[str, Any]) -> tuple[Path | None, 
     (`an.stage.cache_key.texture_digests`), so the bytes keyed are the bytes
     drawn — a change to where art is read from (the asset library's reference
     mode, ADR 0005) changes both or neither (an#316 review). ``why`` is one of
-    ``"prefix"``, ``"store"`` (absent or in-memory) and ``"missing"``.
+    ``"prefix"``, ``"store"`` (absent or in-memory), ``"outside"`` (a src that
+    leaves the ASSET's own folder under the store: absolute, through ``..``,
+    or a link to anywhere else — never read, an#483) and ``"missing"``.
     """
     prefix = next((p for p in ASSET_SRC_PREFIX_TO_STORE if src_rel.startswith(p)), None)
     if prefix is None:
@@ -456,7 +458,11 @@ def texture_source(src_rel: str, mall: Mapping[str, Any]) -> tuple[Path | None, 
         return None, "store"
     # A raster src carries its digest as a query (an#211); the file is the
     # path before it.
-    source = Path(root) / strip_version(src_rel)[len(prefix) :]
+    from an.stage.rig import _asset_file
+
+    source = _asset_file(root, strip_version(src_rel)[len(prefix) :])
+    if source is None:
+        return None, "outside"
     if not source.exists():
         return None, "missing"
     return source, ""
@@ -519,6 +525,22 @@ def _stage_scene_assets(
             warnings.warn(
                 f"texture {alias!r} resolves to the {store_name!r} store, which has "
                 "no filesystem root (absent or in-memory); it cannot be staged.",
+                CutoutAssetWarning,
+                stacklevel=2,
+            )
+            continue
+
+        if why == "outside":
+            store_name = next(
+                v for k, v in ASSET_SRC_PREFIX_TO_STORE.items() if src_rel.startswith(k)
+            )
+            warnings.warn(
+                f"texture {alias!r} declared as {src_rel!r} is not a path inside its "
+                f"asset's own folder in the {store_name!r} store (absolute, leaving it "
+                "through `..`, or a link to anywhere else). Nothing outside an asset's "
+                "folder is read, so nothing is staged for it and the render will fail "
+                "at load rather than draw a stand-in. Put the art in the asset's folder "
+                "and name it relatively.",
                 CutoutAssetWarning,
                 stacklevel=2,
             )

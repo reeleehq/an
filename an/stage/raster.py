@@ -40,6 +40,8 @@ compiler says so once.
 from __future__ import annotations
 
 import hashlib
+import io
+import re
 import struct
 from functools import lru_cache
 from pathlib import Path
@@ -49,12 +51,15 @@ from xml.etree import ElementTree as ET
 __all__ = [
     "RASTER_SUFFIXES",
     "RasterFormatError",
+    "SVG_FORBIDDEN_ELEMENTS",
     "art_size",
     "content_digest",
     "has_alpha",
     "image_size",
     "is_raster",
+    "is_svg_content",
     "strip_version",
+    "svg_problems",
     "versioned_src",
 ]
 
@@ -239,6 +244,108 @@ def art_size(source: str | Path) -> tuple[float, float]:
     if is_raster(source):
         return image_size(source)
     return svg_raster_size(source)
+
+
+# --- what an SVG may hold (an#483) ------------------------------------------------
+
+#: SVG elements no asset may carry: code, a foreign document the rasteriser
+#: would lay out, and an embedded picture (a raster part is a PNG of its own,
+#: an#211: an ``<image>`` hides its pixels from every check and may reach
+#: outside the file) — the production-pack lint's own set.
+SVG_FORBIDDEN_ELEMENTS: frozenset[str] = frozenset({"script", "foreignObject", "image"})
+#: An SVG attribute value that reaches outside the file (or embeds data the
+#: checks cannot see): an ``href`` to anything but a ``#fragment``, a
+#: ``url()`` of the same, a scheme or a protocol-relative address.
+_OUTSIDE_VALUE = re.compile(r"url\(\s*['\"]?(?!#)")
+_OUTSIDE_PREFIXES: tuple[str, ...] = ("data:", "//", "http:", "https:", "file:")
+_SVG_NS = "{http://www.w3.org/2000/svg}"
+#: How many leading bytes are parsed to decide whether a file is SVG: enough
+#: for an XML declaration, a DOCTYPE with an internal subset, and comments.
+_SNIFF_BYTES = 65536
+
+
+def is_svg_content(source: str | Path | bytes) -> bool:
+    r"""Whether ``source`` (a path, or bytes) IS an SVG document, by content:
+    an XML document whose root element is ``<svg>``, whatever the file is
+    called — read by parsing its head up to the first element, so a
+    declaration, a DOCTYPE with an internal subset, comments, processing
+    instructions and a UTF-16 encoding are all seen through.
+
+    >>> is_svg_content(b'<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"/>')
+    True
+    >>> is_svg_content(b'<!DOCTYPE svg [<!ENTITY x "y">]><!-- c --><svg/>')
+    True
+    >>> is_svg_content(b"\x89PNG\r\n"), is_svg_content(b"<html><svg/></html>")
+    (False, False)
+    """
+    data = source if isinstance(source, bytes) else _head(source)
+    try:
+        for _event, element in ET.iterparse(io.BytesIO(data), events=("start",)):
+            return element.tag in (f"{_SVG_NS}svg", "svg")
+    except ET.ParseError:
+        return False  # not XML, or no element in its head
+    return False
+
+
+def _head(source: str | Path) -> bytes:
+    with open(source, "rb") as f:
+        return f.read(_SNIFF_BYTES)
+
+
+def svg_problems(source: Any) -> list[str]:
+    """What an SVG asset holds that no asset may: ``<script>`` or
+    ``<foreignObject>``, and any link outside the file (an ``href`` or ``url()``
+    to anything but ``#id``, a ``data:``/``http:``/``file:`` address, a
+    ``<style>`` that imports). Empty when the file is self-contained. A file
+    that is not well-formed XML is one problem saying so. Reads ``source`` with
+    :func:`svg_raster_size`'s parser (a path, bytes, or a parsed tree).
+
+    >>> svg_problems('<svg xmlns="http://www.w3.org/2000/svg"><rect fill="url(#g)"/></svg>')
+    []
+    >>> svg_problems('<svg xmlns="http://www.w3.org/2000/svg"><script>x()</script>'
+    ...              '<image href="http://x/y.png"/></svg>')
+    ['forbidden element(s): image, script', "links outside the file: 'http://x/y.png' (only `#id` links are allowed)"]
+    >>> svg_problems(b"<svg" + b" " * 5000 + b"/>")  # bytes of any length are the document
+    []
+    """
+    try:
+        if isinstance(source, bytes):
+            root = ET.fromstring(source)
+        elif isinstance(source, str) and source.lstrip().startswith("<"):
+            root = ET.fromstring(source)  # the document itself, not a path
+        else:
+            root = _parse_svg(source).getroot()
+    except (ET.ParseError, OSError, ValueError) as e:
+        return [f"not valid XML: {e}"]
+    problems: list[str] = []
+    tags = {el.tag.replace(_SVG_NS, "") for el in root.iter()}
+    forbidden = sorted(tags & SVG_FORBIDDEN_ELEMENTS)
+    if forbidden:
+        problems.append(f"forbidden element(s): {', '.join(forbidden)}")
+    outside = _outside_links(root)
+    if outside:
+        listed = ", ".join(repr(v) for v in outside[:3])
+        more = f" and {len(outside) - 3} more" if len(outside) > 3 else ""
+        problems.append(
+            f"links outside the file: {listed}{more} (only `#id` links are allowed)"
+        )
+    return problems
+
+
+def _outside_links(root: ET.Element) -> list[str]:
+    found: list[str] = []
+    for el in root.iter():
+        for name, value in el.attrib.items():
+            text = value.strip()
+            if name.endswith("href") and not text.startswith("#"):
+                found.append(text)
+            elif _OUTSIDE_VALUE.search(text) or text.startswith(_OUTSIDE_PREFIXES):
+                found.append(text)
+        if el.tag.replace(_SVG_NS, "") == "style" and re.search(
+            r"@import|url\(\s*['\"]?(?!#)", el.text or ""
+        ):
+            found.append("<style> imports or loads a URL")
+    return found
 
 
 #: The query key a raster texture's ``src`` carries its digest under. The

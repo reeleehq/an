@@ -37,6 +37,7 @@ from an.stage.rig import (
     rig_problems,
     rig_rest_problems,
 )
+from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
 from an.verify._base import VerificationReport
 
 #: The descriptor file a prop folder holds (the props store's sidecar name).
@@ -105,7 +106,18 @@ def validate_prop(
     drawn_any = False
     for slot_name, attachments in (skin.slots if skin is not None else {}).items():
         for att_name, att in attachments.items():
-            if not (directory / att.path).is_file():
+            problem = asset_ref_problem(att.path)
+            file = inside_folder(directory, att.path) if problem is None else None
+            if problem is not None or file is None:
+                # Outside the folder (by name, or through a link): never read (an#483).
+                report.add(
+                    BLOCKING,
+                    att.path,
+                    f"{who}: slot {slot_name!r} attachment {att_name!r} names "
+                    f"{att.path!r}, which {problem or 'resolves outside the folder (a link)'}: "
+                    f"{ASSET_REF_RULE}",
+                )
+            elif not file.is_file():
                 report.add(
                     BLOCKING,
                     att.path,

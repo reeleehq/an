@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Collection, Literal, Mapping
 
 from pydantic import ValidationError
@@ -1130,15 +1131,20 @@ def _check_framing(
 
 
 def _plane_art_size(root, ref, plane) -> tuple[float, float] | None:
-    """The measured extent of an image plane's art, or ``None``."""
+    """The measured extent of an image plane's art, or ``None`` (also for a
+    ``src`` outside the asset's folder, which is never read: an#483)."""
     if plane.art.kind != "image" or not plane.art.src or root is None:
         return None
     from pathlib import Path
 
     from an.stage.raster import art_size
+    from an.stores._common import inside_folder
 
+    path = inside_folder(Path(root) / str(ref), plane.art.src)
+    if path is None:
+        return None
     try:
-        return art_size(Path(root) / str(ref) / plane.art.src)
+        return art_size(path)
     except (OSError, ValueError):
         return None
 
@@ -1990,6 +1996,129 @@ def _check_rig_document(
                 )
 
 
+def _core_asset_refs(ctx: ValidationContext) -> None:
+    """Every path an entity's asset document names stays inside the asset's
+    folder, and every SVG it names is self-contained (an#483).
+
+    A plane's ``art.src``, a rig part's ``path``, a ``source_svg`` and the
+    files ``colour_roles`` keys name are judged by NAME first
+    (:func:`an.stores._common.asset_ref_problem`: an absolute path, a ``..``,
+    a URL is an error and is never read), then, for a store with a folder,
+    by where they resolve (a link out of the folder is the same error), and a
+    file that IS an SVG — by content, whatever its suffix — must hold no
+    ``<script>``, ``<foreignObject>`` or ``<image>`` and no link outside itself
+    (:func:`an.stage.raster.svg_problems`). The files are read once per asset;
+    the findings are reported on every shot that uses it, so a strict
+    pre-flight that skips shots with errors never compiles the shot anyway.
+    """
+    shot, path, report, stores = ctx.shot, ctx.path, ctx.report, ctx.stores
+    for j, entity in enumerate(shot.entities):
+        store_name = (
+            "environments"
+            if entity.kind == "environment"
+            else rig_stores().get(entity.kind, (None,))[0]
+        )
+        if store_name is None or entity.store != store_name:
+            continue
+        store = stores.get(store_name)
+        if store is None:
+            continue  # store not supplied → this check did not run
+        problems = ctx.cached(
+            ("asset_refs", store_name, entity.ref),
+            lambda: _asset_ref_problems(store, entity.ref),
+        )
+        where = f"{path}/entities/{j}"
+        for problem in problems:
+            report.add("error", where, f"{entity.kind} ref {entity.ref!r}: {problem}")
+
+
+def _asset_ref_problems(store: Any, ref: str) -> list[str]:
+    """What is wrong with the files the asset ``ref``'s document names
+    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is."""
+    from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
+
+    try:
+        raw = store[ref] if ref in store else None
+    except (KeyError, TypeError):
+        raw = None
+    if not isinstance(raw, Mapping):
+        return []  # a missing or malformed document is `entity_refs`' finding
+    root = getattr(store, "_root", None)
+    folder = Path(root) / str(ref) if root is not None else None
+    out: list[str] = []
+    for label, rel in _asset_references(raw):
+        who = f"{label} names {rel!r}, which"
+        problem = asset_ref_problem(rel)
+        if problem is not None:
+            out.append(f"{who} {problem}: {ASSET_REF_RULE}")
+            continue
+        if folder is None:
+            continue
+        file = inside_folder(folder, rel)
+        if file is None:
+            out.append(f"{who} resolves outside the asset's folder (a link): {ASSET_REF_RULE}")
+            continue
+        out += [
+            f"{who} is SVG that {found} — an asset is self-contained: no code, "
+            "no picture inside, no outside file, no embedded data"
+            for found in _svg_file_problems(file)
+        ]
+    return out
+
+
+def _asset_references(doc: Mapping) -> list[tuple[str, str]]:
+    """``(what, path)`` for every file path ``doc`` names: an environment's
+    image planes (``planes/<name>/art/src``), a rig's attachments
+    (``skins/<skin>/slots/<slot>/<attachment>/path``), a character's
+    ``source_svg`` and the files its ``colour_roles`` keys name.
+
+    >>> _asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},
+    ...                               {"name": "fill", "art": {"kind": "fill"}}]})
+    [('plane sky', 'sky.png')]
+    >>> _asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
+    ...                    "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
+    [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
+    """
+    out: list[tuple[str, str]] = []
+    for plane in doc.get("planes") or ():
+        if not isinstance(plane, Mapping):
+            continue
+        art = plane.get("art") or {}
+        src = art.get("src") if isinstance(art, Mapping) else None
+        if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
+            out.append((f"plane {plane.get('name', '?')}", src))
+    for skin in (doc.get("skins") or {}).values():
+        slots = (skin or {}).get("slots") or {} if isinstance(skin, Mapping) else {}
+        for slot_name, attachments in slots.items():
+            if not isinstance(attachments, Mapping):
+                continue
+            for att_name, att in attachments.items():
+                rel = att.get("path") if isinstance(att, Mapping) else None
+                if isinstance(rel, str) and rel:
+                    out.append((f"part {slot_name}/{att_name}", rel))
+    source_svg = doc.get("source_svg")
+    if isinstance(source_svg, str) and source_svg:
+        out.append(("source_svg", source_svg))
+    roles = doc.get("colour_roles")
+    if isinstance(roles, Mapping):
+        out += [(f"colour_roles {k}", k) for k in roles if isinstance(k, str) and k]
+    return out
+
+
+def _svg_file_problems(file: "Path") -> list[str]:
+    """:func:`an.stage.raster.svg_problems` of ``file`` when it IS an SVG by
+    content (any suffix), else ``[]``; an unreadable or absent file is another
+    check's finding."""
+    from an.stage.raster import is_svg_content, svg_problems
+
+    try:
+        if not file.is_file() or not is_svg_content(file):
+            return []
+        return svg_problems(file)
+    except OSError:
+        return []
+
+
 def _core_voices(ctx: ValidationContext) -> None:
     """Dialogue voice refs resolve? The line's own voice_ref, else the one its
     speaker is bound to — the resolver the audio pipeline speaks with (an#194)."""
@@ -2383,6 +2512,12 @@ def _register_core_checks() -> None:
         SemanticCheck("action_targets", _core_action_targets, order=90),
         SemanticCheck("field_kinds", _core_field_kinds, order=95),
         SemanticCheck("entity_refs", _core_entity_refs, order=100),
+        SemanticCheck(
+            "asset_refs",
+            _core_asset_refs,
+            order=101,
+            description="every path an asset names stays inside its folder; its SVG is self-contained",
+        ),
         SemanticCheck("voices", _core_voices, order=110),
         SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
         SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),

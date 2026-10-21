@@ -6,6 +6,8 @@ Reference for the `an` skill (`../SKILL.md`: the index and the essentials).
 
 Text, paths, plane environments and StylePacks are pydantic documents; `model_dump(mode="json")` into the project's store writes the file the compiler reads (`assets/props/<key>/prop.json`, `assets/environments/<key>/meta.json`, `assets/styles/<key>.json`). The dump holds only what you set, so it always loads back.
 
+Every file an asset names (a plane's `art.src`, a part's `path`, a `source_svg`, a `colour_roles` key) is a clean relative path inside that asset's own folder, written with `/` and no `./` or `..` (`plates/sky.png`, `parts/body.svg`): an absolute path, a URL, a `..`, a backslash or a link to anywhere outside the folder is an `an validate` error and is never read, and an SVG an asset names must be self-contained (no `<script>`, `<foreignObject>` or `<image>`, no link outside `#id`, no embedded `data:`; a picture is a PNG part of its own). Copy outside art into the asset folder first.
+
 <!-- skill-test: recipe -->
 ```python
 from pathlib import Path
