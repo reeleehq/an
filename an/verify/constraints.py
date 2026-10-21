@@ -40,6 +40,9 @@ The core's constraints:
 - ``continuity`` (an#508, catalogue B1): a node does not jump within a shot
   unless a ``set`` says so, and a value is not held for less than a frame.
   :func:`discontinuities` is the pure function under it.
+- ``solidity`` (an#509, catalogue A2): two solids (characters and props) whose
+  boxes overlap, with no ``stage.after`` between them, are drawn through each
+  other. :func:`solid_overlaps` is the pure function under it.
 """
 
 from __future__ import annotations
@@ -60,6 +63,7 @@ __all__ = [
     "Constraint",
     "CONSTRAINTS",
     "CONTINUITY",
+    "SOLIDITY",
     "Discontinuity",
     "ShortHold",
     "compiled_shot",
@@ -518,8 +522,177 @@ CONTINUITY = Constraint(
     description="a node does not jump within a shot unless a set says so (an#508)",
 )
 
+# -----------------------------------------------------------------------------
+# solidity (an#509): two solids are not drawn through each other
+# -----------------------------------------------------------------------------
+
+#: Entity kinds that are not solids: a backdrop and a voice occupy no place a
+#: body could be pushed out of.
+NON_SOLID_KINDS: frozenset[str] = frozenset({"environment", "voice"})
+#: Prop descriptor kinds that are drawings laid over the scene (a route on a map,
+#: a title), not things a body could stand in: never solids.
+DRAWING_DESCRIPTOR_KINDS: frozenset[str] = frozenset(
+    {"PathDescriptor", "TextDescriptor"}
+)
+#: The ``AssetRef.overrides`` key that opts one entity out (a glow, a balloon).
+SOLID_OVERRIDE: str = "solid"
+#: How much of the smaller box the other may cover before it is penetration: a
+#: fraction of the smaller box's area. Boxes are upper bounds on what is painted
+#: (a character's box takes in a swung arm), so a touch is not a finding.
+SOLIDITY_TOLERANCE: float = 0.25
+#: Seconds between the instants a shot is sampled at (the last frame is always one).
+SOLIDITY_SAMPLE_S: float = 0.25
+
+
+@dataclass(frozen=True)
+class Overlap:
+    """Two solids ``a`` and ``b`` whose boxes cover ``fraction`` of the smaller one at ``at``."""
+
+    a: str
+    b: str
+    at: float
+    fraction: float
+
+
+def _union_box(
+    boxes: list[tuple[float, float, float, float]],
+) -> tuple[float, float, float, float]:
+    return (
+        min(b[0] for b in boxes),
+        min(b[1] for b in boxes),
+        max(b[2] for b in boxes),
+        max(b[3] for b in boxes),
+    )
+
+
+def _covered_fraction(a: tuple[float, ...], b: tuple[float, ...]) -> float:
+    """The share of the smaller box's area the other covers (0 when they miss).
+
+    >>> _covered_fraction((0, 0, 10, 10), (5, 0, 15, 10))
+    0.5
+    >>> _covered_fraction((0, 0, 10, 10), (20, 0, 30, 10))
+    0.0
+    >>> _covered_fraction((0, 0, 10, 10), (2, 2, 4, 4))
+    1.0
+    """
+    w = min(a[2], b[2]) - max(a[0], b[0])
+    h = min(a[3], b[3]) - max(a[1], b[1])
+    if w <= 0 or h <= 0:
+        return 0.0
+    smaller = min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
+    return w * h / smaller if smaller > 0 else 0.0
+
+
+def _is_solid(entity: Any) -> bool:
+    overrides = entity.overrides or {}
+    return (
+        entity.kind not in NON_SOLID_KINDS
+        and overrides.get(SOLID_OVERRIDE) is not False
+    )
+
+
+def _is_ordered(a: Any, b: Any) -> bool:
+    """Either one is drawn after something (``stage.after``): an overlap is occlusion."""
+    return any(e.stage is not None and e.stage.after is not None for e in (a, b))
+
+
+def _sample_times(duration: float) -> list[float]:
+    n = int(duration / SOLIDITY_SAMPLE_S)
+    times = [i * SOLIDITY_SAMPLE_S for i in range(n + 1)]
+    if duration - times[-1] > SAME_INSTANT_S:
+        times.append(duration)
+    return times
+
+
+def solid_overlaps(
+    doc: Any,
+    entities: list[Any],
+    *,
+    duration: float,
+    tolerance: float = SOLIDITY_TOLERANCE,
+) -> list[Overlap]:
+    """Per unordered pair of solids among ``entities`` (AssetRefs), the first
+    sampled instant their boxes overlap by more than ``tolerance``, with the
+    worst overlap seen up to the end of the shot as ``fraction``.
+
+    An entity's box is the union of its visuals' boxes (:func:`an.stage.timeline.node_box`,
+    through the pose and the camera at that instant).
+    """
+    from an.stage.timeline import node_box, timeline_from_scene
+    from an.stage.tree import walk_document
+    from an.timing.timeline import evaluate_timeline
+
+    solids = [e for e in entities if _is_solid(e)]
+    if len(solids) < 2:
+        return []
+    drawn = {
+        e.id: [
+            path
+            for path, node in walk_document(doc)
+            if node.visual is not None and (path == e.id or path.startswith(f"{e.id}/"))
+        ]
+        for e in solids
+    }
+    timeline = timeline_from_scene(doc)
+    first: dict[tuple[str, str], Overlap] = {}
+    worst: dict[tuple[str, str], float] = {}
+    for t in _sample_times(duration):
+        pose = evaluate_timeline(timeline, t)
+        boxes = {}
+        for e in solids:
+            found = [
+                b for p in drawn[e.id] if (b := node_box(doc, p, pose=pose)) is not None
+            ]
+            if found:
+                boxes[e.id] = _union_box(found)
+        for i, a in enumerate(solids):
+            for b in solids[i + 1 :]:
+                if a.id not in boxes or b.id not in boxes or _is_ordered(a, b):
+                    continue
+                frac = _covered_fraction(boxes[a.id], boxes[b.id])
+                key = (a.id, b.id)
+                if frac > tolerance:
+                    worst[key] = max(worst.get(key, 0.0), frac)
+                    first.setdefault(key, Overlap(a.id, b.id, t, frac))
+    return [Overlap(o.a, o.b, o.at, worst[(o.a, o.b)]) for o in first.values()]
+
+
+def check_solidity(ctx: Any) -> None:
+    """The core's ``solidity`` check (an#509) over the compiled shot."""
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    props = (ctx.stores or {}).get("props")
+
+    def is_drawing(entity: Any) -> bool:
+        if entity.kind != "prop" or props is None:
+            return False
+        try:
+            return (props[entity.ref] or {}).get("kind") in DRAWING_DESCRIPTOR_KINDS
+        except Exception:  # noqa: BLE001 - a prop the store cannot read is reported elsewhere
+            return False
+
+    entities = [e for e in ctx.shot.entities if not is_drawing(e)]
+    for o in solid_overlaps(doc, entities, duration=float(ctx.shot.duration)):
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/entities",
+            f"{o.a!r} and {o.b!r} overlap from {o.at:.2f} s, covering up to "
+            f"{o.fraction:.0%} of the smaller: two solids drawn through each other. "
+            f"Keep them apart, say which is in front with `stage.after`, or mark one "
+            f"`overrides: {{{SOLID_OVERRIDE}: false}}` if it is not a solid.",
+        )
+
+
+SOLIDITY = Constraint(
+    "solidity",
+    check_solidity,
+    description="two solids are not drawn through each other unless one is placed after (an#509)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
-CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY,)
+CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY)
 
 
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:

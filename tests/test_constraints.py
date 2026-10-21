@@ -19,7 +19,7 @@ from an.verify.constraints import Constraint, discontinuities
 
 ROOT = Path(__file__).resolve().parents[1]
 LAMP = ROOT / "misc" / "bench" / "corpus" / "prop_swap"
-ONLY = {"continuity"}
+ONLY = {"continuity", "solidity"}
 
 
 def _lint(tmp_path: Path, actions, *, duration=2.0, extra=None):
@@ -154,3 +154,49 @@ def test_the_core_corpus_reports_no_continuity_finding(name, tmp_path):
         only=ONLY,
     )
     assert _msgs(report) == []
+
+
+# -- solidity (an#509) ------------------------------------------------------
+
+
+def _two_lamps(tmp_path: Path, *, second: dict | None = None, at=(0.0, 90.0)):
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    project = load(root)
+    first = project.scene.timeline[0]
+    lamp = first.entities[0].model_dump()
+    twin = {
+        **lamp,
+        "id": "twin",
+        "stage": {"at": list(at), "scale": 0.55},
+        **(second or {}),
+    }
+    shot = Shot.model_validate({**first.model_dump(), "entities": [lamp, twin]})
+    scene = project.scene.model_copy(update={"timeline": [shot]})
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"solidity"},
+    )
+
+
+def test_solidity_is_registered_under_the_core_owner():
+    assert "solidity" in check_names(owner=CORE_OWNER)
+
+
+def test_two_overlapping_props_are_one_warning_naming_both(tmp_path):
+    (msg,) = _msgs(_two_lamps(tmp_path))
+    assert "'lamp'" in msg and "'twin'" in msg and "stage.after" in msg
+
+
+def test_props_far_apart_say_nothing(tmp_path):
+    assert _msgs(_two_lamps(tmp_path, at=(900.0, 90.0))) == []
+
+
+def test_an_after_on_either_makes_the_overlap_occlusion(tmp_path):
+    stage = {"at": [0.0, 90.0], "scale": 0.55, "after": "lamp"}
+    assert _msgs(_two_lamps(tmp_path, second={"stage": stage})) == []
+
+
+def test_a_solid_false_override_opts_out(tmp_path):
+    assert _msgs(_two_lamps(tmp_path, second={"overrides": {"solid": False}})) == []
