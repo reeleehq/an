@@ -1,0 +1,116 @@
+{
+ "two_bone_ik": {
+  "solves": 1000,
+  "worst_tip_error_px": 5.344919554275465e-13,
+  "us_per_solve": 7.067113998346031
+ },
+ "fabrik": {
+  "3_links_tol_0.1": {
+   "median_iterations": 3.0,
+   "max_iterations": 86,
+   "hit_cap": 0,
+   "worst_error_px": 0.09998659413979492,
+   "us_per_solve": 43.24418492615223
+  },
+  "3_links_tol_0.001": {
+   "median_iterations": 6.0,
+   "max_iterations": 500,
+   "hit_cap": 1,
+   "worst_error_px": 0.0380523594912431,
+   "us_per_solve": 129.92681004106998
+  },
+  "5_links_tol_0.1": {
+   "median_iterations": 3.0,
+   "max_iterations": 141,
+   "hit_cap": 0,
+   "worst_error_px": 0.09978769518700253,
+   "us_per_solve": 64.2195000546053
+  },
+  "5_links_tol_0.001": {
+   "median_iterations": 4.0,
+   "max_iterations": 87,
+   "hit_cap": 0,
+   "worst_error_px": 0.0009890737620328767,
+   "us_per_solve": 97.50810510013252
+  },
+  "8_links_tol_0.1": {
+   "median_iterations": 3.0,
+   "max_iterations": 33,
+   "hit_cap": 0,
+   "worst_error_px": 0.09977861651198203,
+   "us_per_solve": 127.00266990577802
+  },
+  "8_links_tol_0.001": {
+   "median_iterations": 5.0,
+   "max_iterations": 132,
+   "hit_cap": 0,
+   "worst_error_px": 0.000989242237515678,
+   "us_per_solve": 220.7295151310973
+  },
+  "16_links_tol_0.1": {
+   "median_iterations": 4.0,
+   "max_iterations": 64,
+   "hit_cap": 0,
+   "worst_error_px": 0.09912875832812418,
+   "us_per_solve": 476.20054509025067
+  },
+  "16_links_tol_0.001": {
+   "median_iterations": 6.0,
+   "max_iterations": 409,
+   "hit_cap": 0,
+   "worst_error_px": 0.0009988395858585401,
+   "us_per_solve": 821.9605498015881
+  }
+ },
+ "settle_hanging_chain": {
+  "3_sticks": {
+   "rounds": 301,
+   "ms": 25.220344017725438,
+   "tip_x_over_length": 0.00035849531363593847,
+   "same_digest_on_rerun": true,
+   "worst_stick_error_px": 0.020189909532032146
+  },
+  "6_sticks": {
+   "rounds": 602,
+   "ms": 116.98543198872358,
+   "tip_x_over_length": 0.00037785168567304223,
+   "same_digest_on_rerun": true,
+   "worst_stick_error_px": 0.12274624181051763
+  },
+  "12_sticks": {
+   "rounds": 1203,
+   "ms": 268.84275302290916,
+   "tip_x_over_length": 0.00038103714710659506,
+   "same_digest_on_rerun": true,
+   "worst_stick_error_px": 0.32682845296272234
+  }
+ },
+ "pose_mode_per_frame_6_sticks_moving_pin": {
+  "frames": 48,
+  "median_rounds": 302.0,
+  "max_rounds": 330,
+  "ms_per_frame": 45.548524291613525
+ },
+ "marionette_dynamic_240_frames": {
+  "particles": 11,
+  "sticks": 10,
+  "strings": 5,
+  "hinge_limits": 4,
+  "seconds_total": 0.34100213000783697,
+  "ms_per_frame": 1.4208422083659873,
+  "worst_constraint_error_px_after_last_iteration": 0.3625997188776253,
+  "worst_hinge_limit_violation_deg": 0.010135647094993443,
+  "same_digest_on_rerun": true
+ },
+ "marionette_pose_settle_hands_pinned": {
+  "rounds": 575,
+  "ms": 275.30304499669,
+  "hand_l_at_target": true,
+  "worst_stick_error_px": 0.16300052113092534,
+  "feet_below_pelvis": true
+ },
+ "baking": {
+  "channels": 30,
+  "samples_at_24fps_10s_if_one_key_per_frame": 7200
+ }
+}
