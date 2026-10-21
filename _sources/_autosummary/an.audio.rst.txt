@@ -9,6 +9,7 @@ an.audio
    .. autosummary::
    
       word_timings_to_visemes
+      import_recordings
       default_tts
       default_lipsync
       produce_audio_for_dialogue
@@ -31,6 +32,7 @@ an.audio
       WordTimingProvider
       NullLipSync
       OfflineTTS
+      RecordedTTS
       ElevenLabsTTS
       MacSayTTS
    
@@ -51,8 +53,10 @@ an.audio
    offline_tts
    pipeline
    providers
+   recorded
    rhubarb_lipsync
    takes
+   transcripts
    tts
    voice_design
    voices

@@ -9,7 +9,8 @@ Phase 3 ships:
   (`OfflineLipSync` deterministic char-to-viseme, `RhubarbLipSync`,
   `WhisperLipSync`) moved to `cutan` with the cut-out genre (an#225); the old
   names still resolve from here, with a warning.
-- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`).
+- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`); `RecordedTTS`, a
+  performer’s imported takes (`an voices import`, [`an.audio.recorded`](an.audio.recorded.html.md#module-an.audio.recorded)).
 - Orchestration: `produce_audio_for_dialogue` /
   `produce_audio_for_scene` walk a SceneIR, synthesize, persist to mall,
   stamp viseme tracks back onto the IR.
@@ -21,11 +22,12 @@ without external services.
 
 | [`word_timings_to_visemes`](#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`import_recordings`](#an.audio.import_recordings)(project, audio, \*[, ...])      | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
 | [`default_tts`](#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
 | [`default_lipsync`](#an.audio.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
 | [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
 | [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
-| [`make_tts`](#an.audio.make_tts)(name)                                    | Instantiate a TTS provider by name.                                                                                                                                                                                     |
+| [`make_tts`](#an.audio.make_tts)(name, \*[, mall])                        | Instantiate a TTS provider by name.                                                                                                                                                                                     |
 | [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
 | [`known_tts_names`](#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                                                                                                                                                                               |
 | [`known_lipsync_names`](#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                                                                                                                                                                           |
@@ -42,14 +44,23 @@ without external services.
 | [`WordTimingProvider`](#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
 | [`NullLipSync`](#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
 | [`OfflineTTS`](#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.         |
+| [`RecordedTTS`](#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it. |
 | [`ElevenLabsTTS`](#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
 | [`MacSayTTS`](#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
 
-### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
+### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### words *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The clip’s word timings — `(word, start_s, end_s)` from the clip’s
+start — when the provider knows them (a recorded take imported with a
+timed transcript: [`an.audio.recorded`](an.audio.recorded.html.md#module-an.audio.recorded)); `None` otherwise. A
+lip-sync provider that aligns from words prefers these to its own
+transcription, and the audio pipeline stamps them on the line.
 
 ### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
@@ -234,6 +245,64 @@ provider is a stand-in the render says so loudly (an#305).
 * **Type:**
   Its audio is silence
 
+### *class* an.audio.RecordedTTS(, recordings=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The `recorded` TTS provider: a line’s audio is the take imported for it.
+
+Built by [`an.audio.providers.make_tts()`](an.audio.providers.html.md#an.audio.providers.make_tts) with the project mall, so it
+reads `mall["recordings"]`; the pipeline hands it each line’s text and
+voice through [`synthesis_options()`](#an.audio.RecordedTTS.synthesis_options) (which keys the line by its take’s
+digest) and [`synthesize()`](#an.audio.RecordedTTS.synthesize). A line with no take raises
+`RecordingMissingError` before anything else is touched — a recorded
+voice never falls back to a synthesized one.
+
+```pycon
+>>> RecordedTTS().check_available()
+Traceback (most recent call last):
+    ...
+an.audio.recorded.RecordedVoicesError: the recorded provider has no recordings store ...
+```
+
+#### list_voices()
+
+One entry per voice that has takes in the store.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same bytes, and nothing is billed (an#311).
+
+#### synthesis_options(voice_doc, , emotion=None, direction=None, text=None, voice_id=None)
+
+`{"recording": <digest>}` of the take this line has — the audio key
+follows the take, so a re-recorded line is new audio.
+
+A line with no take is refused HERE, when the pipeline resolves every
+line’s request before the first synthesis: nothing of the scene is
+produced for a recorded voice that is missing a take. Without a line
+(`an validate` asks about the voice alone) there is nothing to refuse.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id='default', , recording=None, \*\*kw)
+
+The take of `text` in `voice_id` (by `recording` digest when given), with its words.
+
+* **Return type:**
+  [`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+#### words_for_clip(clip)
+
+The stored words of the take whose bytes `clip` carries, or `None`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -318,6 +387,34 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
+### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, match_threshold=0.75, write=True)
+
+Import a performer’s recording(s) as the voice of their lines (an#490).
+
+`audio` names the takes (a file, several, a directory, a glob): a whole
+take holding several lines, or one file per line. `transcript` is
+optional: SRT, WebVTT, TextGrid or word JSON time the lines so nothing is
+transcribed; a plain transcript (`speaker: text` lines) pairs one line per
+file, or is timed against `transcribe`’s words for a whole take; with no
+transcript at all the take is transcribed and its segments are the lines.
+
+Each line is cut out, matched to the scene’s dialogue by its words
+(`match_threshold`), stored in `mall["recordings"]` with its provenance
+(`license` is required: the code you vouch for; `recorded_by` names the
+performer), and the speaker’s character is bound to a recorded voice
+document (`voice`, default `<speaker>_recorded`). Takes matching no line
+are added to `shot` (or the first shot of a scene with no dialogue). The
+gap heard between two lines of one file becomes the later line’s `pause`.
+
+`denoise` (`"afftdn"` / `"anlmdn"`) cleans each file first, through
+ffmpeg. `transcribe` is the transcriber seam (`path -> segments`); its
+default is `scribed_transcriber()` with `transcriber` as the backend
+and `diarize` for speaker labels, built only when a take needs it.
+`write=False` runs everything but writes nothing (a dry run).
+
+* **Return type:**
+  [`ImportReport`](an.audio.recorded.html.md#an.audio.recorded.ImportReport)
+
 ### an.audio.known_lipsync_names()
 
 Return the registered LipSync provider names.
@@ -351,11 +448,19 @@ True
 * **Return type:**
   [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.make_tts(name)
+### an.audio.make_tts(name, , mall=None)
 
 Instantiate a TTS provider by name.
 
-Raises `ValueError` for unknown names with a list of known options.
+`mall` (the project mall) reaches the factories that take it — the
+`recorded` provider reads the project’s `recordings` store; the others
+are built as before. Raises `ValueError` for unknown names with a list of
+known options.
+
+```pycon
+>>> make_tts("recorded").name
+'recorded'
+```
 
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
@@ -468,17 +573,19 @@ audio’s actual length.
 
 ### Modules
 
-| [`cli`](an.audio.cli.html.md#module-an.audio.cli)                       | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
-|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`effects`](an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
-| [`elevenlabs_tts`](an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
-| [`lipsync`](an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                     |
-| [`loudness`](an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).          |
-| [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
-| [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                            |
-| [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
-| [`providers`](an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                     |
-| [`takes`](an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
-| [`tts`](an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                      |
-| [`voice_design`](an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.      |
-| [`voices`](an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
+| [`cli`](an.audio.cli.html.md#module-an.audio.cli)                       | `an voices ...` — browse a TTS provider's voices from the shell (an#209).                                                                                      |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`effects`](an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).                                                                               |
+| [`elevenlabs_tts`](an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                                                                                            |
+| [`lipsync`](an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                                                                                               |
+| [`loudness`](an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).                                                                                    |
+| [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.                                                                                         |
+| [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                                                                                                      |
+| [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.                                                                                        |
+| [`providers`](an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                                                                                               |
+| [`recorded`](an.audio.recorded.html.md#module-an.audio.recorded)             | Recorded voices: a performer's takes as the voice of a character (an#490).                                                                                     |
+| [`takes`](an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.                                                                           |
+| [`transcripts`](an.audio.transcripts.html.md#module-an.audio.transcripts)       | Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words. |
+| [`tts`](an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                                                                                                |
+| [`voice_design`](an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.                                                                                |
+| [`voices`](an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).                                                                                    |

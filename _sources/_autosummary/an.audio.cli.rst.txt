@@ -11,4 +11,5 @@ an.audio.cli
       browse_voices
       format_voices
       retake
+      import_recorded
    

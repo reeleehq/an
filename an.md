@@ -1,4 +1,4 @@
-> built 2026-10-21 00:02 UTC from 1870889 (main) · an 0.1.242. Details: build_info.json
+> built 2026-10-21 00:33 UTC from 1bf4b10 (main) · an 0.1.243. Details: build_info.json
 
 # index.html.md
 
@@ -2028,6 +2028,9 @@ provider factories.
 > an voices design <project>                      # design options from each voice’s notes (billed)
 > an voices choose <project> jerry_voice B –by noel   # the writer’s pick becomes the voice_id (recorded)
 > an voices cast <project> paul_voice <voice_id> –by noel   # a voice picked by hand, recorded the same way
+> an voices import <project> takes/ –transcript takes/ –license cc-by-4.0 –recorded-by “J. Doe”
+
+> > # a performer’s recording becomes the voice (an#490)
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
 `rescore` and `reroll` are the only ways a recorded best-of-N take is
@@ -2036,10 +2039,11 @@ the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])         | The voices `provider` exposes, optionally filtered by `search`.         |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                           | One line per voice: `voice_id  name  (labels)`.                         |
-| [`retake`](_autosummary/an.audio.cli.html.md#an.audio.cli.retake)(project, line, \*[, rescore, tts, make]) | Release the recorded takes of the lines of `project` containing `line`. |
+| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])         | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
+|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                           | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
+| [`retake`](_autosummary/an.audio.cli.html.md#an.audio.cli.retake)(project, line, \*[, rescore, tts, make]) | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
+| [`import_recorded`](_autosummary/an.audio.cli.html.md#an.audio.cli.import_recorded)(project, audio[, ...])          | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
 
 ### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
 
@@ -2071,6 +2075,28 @@ One line per voice: `voice_id  name  (labels)`.
 >>> print(format_voices([VoiceMeta("abc", "Ada", "x", extra={"labels": {"accent": "british"}})]))
 abc  Ada  (accent=british)
 ```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False)
+
+Import a performer’s recording as the voice of its lines: each line is cut out,
+matched to the scene’s dialogue (or added to –shot), stored with its provenance,
+and the speaker’s character speaks with it — nothing synthesized, nothing billed.
+
+project: the project directory
+audio: the take(s): a file, a directory, a glob, or comma-separated files (one take with several lines, or one file per line)
+transcript: SRT / WebVTT / TextGrid / word JSON (timed: no transcribing) or plain `speaker: text` lines; a directory pairs by stem
+speaker: the one character every take belongs to
+speakers: label=character pairs for a transcript’s or diarizer’s labels and file stems, e.g. spk_0=carl,spk_1=ned
+shot: the shot new lines go into (takes matching no scene line)
+voice: the recorded voice document to bind (default <speaker>_recorded)
+denoise: clean each file first (ffmpeg afftdn)
+license: REQUIRED — the licence or permission code you vouch for (cc0-1.0, cc-by-4.0, all-rights-reserved, unknown)
+recorded_by: who recorded the take (the performer), for the credits
+transcriber: the scribed backend when a take must be transcribed (default: scribed’s default)
+diarize: ask the transcriber for speaker labels (map them with –speakers)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -2705,7 +2731,8 @@ Phase 3 ships:
   (`OfflineLipSync` deterministic char-to-viseme, `RhubarbLipSync`,
   `WhisperLipSync`) moved to `cutan` with the cut-out genre (an#225); the old
   names still resolve from here, with a warning.
-- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`).
+- Real providers: `ElevenLabsTTS` (needs `ELEVEN_API_KEY`); `RecordedTTS`, a
+  performer’s imported takes (`an voices import`, [`an.audio.recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)).
 - Orchestration: `produce_audio_for_dialogue` /
   `produce_audio_for_scene` walk a SceneIR, synthesize, persist to mall,
   stamp viseme tracks back onto the IR.
@@ -2717,11 +2744,12 @@ without external services.
 
 | [`word_timings_to_visemes`](_autosummary/an.audio.html.md#an.audio.word_timings_to_visemes)(words, \*, ...[, ...])    | Distribute viseme keyframes across word boundaries.                                                                                                                                                                     |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`import_recordings`](_autosummary/an.audio.html.md#an.audio.import_recordings)(project, audio, \*[, ...])      | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                 |
 | [`default_tts`](_autosummary/an.audio.html.md#an.audio.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                 |
 | [`default_lipsync`](_autosummary/an.audio.html.md#an.audio.default_lipsync)()                                 | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync). |
 | [`produce_audio_for_dialogue`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                       |
 | [`produce_audio_for_scene`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                     |
-| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name)                                    | Instantiate a TTS provider by name.                                                                                                                                                                                     |
+| [`make_tts`](_autosummary/an.audio.html.md#an.audio.make_tts)(name, \*[, mall])                        | Instantiate a TTS provider by name.                                                                                                                                                                                     |
 | [`make_lipsync`](_autosummary/an.audio.html.md#an.audio.make_lipsync)(name, \*[, language])                | Instantiate a LipSync provider by name.                                                                                                                                                                                 |
 | [`known_tts_names`](_autosummary/an.audio.html.md#an.audio.known_tts_names)()                                 | Return the registered TTS provider names.                                                                                                                                                                               |
 | [`known_lipsync_names`](_autosummary/an.audio.html.md#an.audio.known_lipsync_names)()                             | Return the registered LipSync provider names.                                                                                                                                                                           |
@@ -2738,14 +2766,23 @@ without external services.
 | [`WordTimingProvider`](_autosummary/an.audio.html.md#an.audio.WordTimingProvider)(\*args, \*\*kwargs)            | Audio → `[(word, start_s, end_s), ...]`.                                 |
 | [`NullLipSync`](_autosummary/an.audio.html.md#an.audio.NullLipSync)()                                     | The lip-sync provider of a core without a genre: no mouth shapes at all. |
 | [`OfflineTTS`](_autosummary/an.audio.html.md#an.audio.OfflineTTS)(\*[, sample_rate, channels, ...])      | Default TTS provider: silent WAV of length proportional to text.         |
+| [`RecordedTTS`](_autosummary/an.audio.html.md#an.audio.RecordedTTS)(\*[, recordings])                     | The `recorded` TTS provider: a line's audio is the take imported for it. |
 | [`ElevenLabsTTS`](_autosummary/an.audio.html.md#an.audio.ElevenLabsTTS)(\*[, api_key, model_id, ...])       | ElevenLabs-backed TTSProvider.                                           |
 | [`MacSayTTS`](_autosummary/an.audio.html.md#an.audio.MacSayTTS)(\*[, default_voice_id, ...])            | macOS `say`-backed TTSProvider.                                          |
 
-### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
+### *class* an.audio.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### words *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The clip’s word timings — `(word, start_s, end_s)` from the clip’s
+start — when the provider knows them (a recorded take imported with a
+timed transcript: [`an.audio.recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)); `None` otherwise. A
+lip-sync provider that aligns from words prefers these to its own
+transcription, and the audio pipeline stamps them on the line.
 
 ### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
@@ -2930,6 +2967,64 @@ provider is a stand-in the render says so loudly (an#305).
 * **Type:**
   Its audio is silence
 
+### *class* an.audio.RecordedTTS(, recordings=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The `recorded` TTS provider: a line’s audio is the take imported for it.
+
+Built by [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) with the project mall, so it
+reads `mall["recordings"]`; the pipeline hands it each line’s text and
+voice through [`synthesis_options()`](_autosummary/an.audio.html.md#an.audio.RecordedTTS.synthesis_options) (which keys the line by its take’s
+digest) and [`synthesize()`](_autosummary/an.audio.html.md#an.audio.RecordedTTS.synthesize). A line with no take raises
+`RecordingMissingError` before anything else is touched — a recorded
+voice never falls back to a synthesized one.
+
+```pycon
+>>> RecordedTTS().check_available()
+Traceback (most recent call last):
+    ...
+an.audio.recorded.RecordedVoicesError: the recorded provider has no recordings store ...
+```
+
+#### list_voices()
+
+One entry per voice that has takes in the store.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same bytes, and nothing is billed (an#311).
+
+#### synthesis_options(voice_doc, , emotion=None, direction=None, text=None, voice_id=None)
+
+`{"recording": <digest>}` of the take this line has — the audio key
+follows the take, so a re-recorded line is new audio.
+
+A line with no take is refused HERE, when the pipeline resolves every
+line’s request before the first synthesis: nothing of the scene is
+produced for a recorded voice that is missing a take. Without a line
+(`an validate` asks about the voice alone) there is nothing to refuse.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id='default', , recording=None, \*\*kw)
+
+The take of `text` in `voice_id` (by `recording` digest when given), with its words.
+
+* **Return type:**
+  [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+#### words_for_clip(clip)
+
+The stored words of the take whose bytes `clip` carries, or `None`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### *class* an.audio.TTSProvider(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -3014,6 +3109,34 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
+### an.audio.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, match_threshold=0.75, write=True)
+
+Import a performer’s recording(s) as the voice of their lines (an#490).
+
+`audio` names the takes (a file, several, a directory, a glob): a whole
+take holding several lines, or one file per line. `transcript` is
+optional: SRT, WebVTT, TextGrid or word JSON time the lines so nothing is
+transcribed; a plain transcript (`speaker: text` lines) pairs one line per
+file, or is timed against `transcribe`’s words for a whole take; with no
+transcript at all the take is transcribed and its segments are the lines.
+
+Each line is cut out, matched to the scene’s dialogue by its words
+(`match_threshold`), stored in `mall["recordings"]` with its provenance
+(`license` is required: the code you vouch for; `recorded_by` names the
+performer), and the speaker’s character is bound to a recorded voice
+document (`voice`, default `<speaker>_recorded`). Takes matching no line
+are added to `shot` (or the first shot of a scene with no dialogue). The
+gap heard between two lines of one file becomes the later line’s `pause`.
+
+`denoise` (`"afftdn"` / `"anlmdn"`) cleans each file first, through
+ffmpeg. `transcribe` is the transcriber seam (`path -> segments`); its
+default is `scribed_transcriber()` with `transcriber` as the backend
+and `diarize` for speaker labels, built only when a take needs it.
+`write=False` runs everything but writes nothing (a dry run).
+
+* **Return type:**
+  [`ImportReport`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.ImportReport)
+
 ### an.audio.known_lipsync_names()
 
 Return the registered LipSync provider names.
@@ -3047,11 +3170,19 @@ True
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.make_tts(name)
+### an.audio.make_tts(name, , mall=None)
 
 Instantiate a TTS provider by name.
 
-Raises `ValueError` for unknown names with a list of known options.
+`mall` (the project mall) reaches the factories that take it — the
+`recorded` provider reads the project’s `recordings` store; the others
+are built as before. Raises `ValueError` for unknown names with a list of
+known options.
+
+```pycon
+>>> make_tts("recorded").name
+'recorded'
+```
 
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
@@ -3164,20 +3295,22 @@ audio’s actual length.
 
 ### Modules
 
-| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                       | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
-|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
-| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
-| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                     |
-| [`loudness`](_autosummary/an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).          |
-| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
-| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                            |
-| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
-| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                     |
-| [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
-| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                      |
-| [`voice_design`](_autosummary/an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.      |
-| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
+| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                       | `an voices ...` — browse a TTS provider's voices from the shell (an#209).                                                                                      |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)               | Voice effects: a deterministic transform applied to a synthesized line (an#163).                                                                               |
+| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts) | ElevenLabsTTS — real speech via the ElevenLabs API.                                                                                                            |
+| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)               | Lip-sync provider protocol + viseme dataclasses.                                                                                                               |
+| [`loudness`](_autosummary/an.audio.loudness.html.md#module-an.audio.loudness)             | Voice loudness: one integrated loudness for every voice of a film (an#315).                                                                                    |
+| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)       | MacSayTTS — audible offline speech via macOS's built-in `say` command.                                                                                         |
+| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)       | OfflineTTS — produces silent audio of plausible duration.                                                                                                      |
+| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)             | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.                                                                                        |
+| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)           | Provider factory: name → concrete TTS/LipSync provider instance.                                                                                               |
+| [`recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)             | Recorded voices: a performer's takes as the voice of a character (an#490).                                                                                     |
+| [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                   | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.                                                                           |
+| [`transcripts`](_autosummary/an.audio.transcripts.html.md#module-an.audio.transcripts)       | Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words. |
+| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                       | TTS provider protocol + supporting dataclasses.                                                                                                                |
+| [`voice_design`](_autosummary/an.audio.voice_design.html.md#module-an.audio.voice_design)     | Design a project's voices from their written notes, then let the writer choose.                                                                                |
+| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                 | Which voice speaks a dialogue line: the character → voice binding (an#194).                                                                                    |
 
 
 # _autosummary/an.audio.lipsync.html.md
@@ -4248,10 +4381,11 @@ specific classes.
 
 ### Module Attributes
 
-| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)   | The language a provider aligns for when the caller says nothing.     |
-|---------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`LIPSYNC_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.LIPSYNC_FACTORIES)  | The lip-sync providers the core itself offers.                       |
-| [`DFLT_LIPSYNC`](_autosummary/an.audio.providers.html.md#an.audio.providers.DFLT_LIPSYNC)       | The provider `default_lipsync()` prefers when a genre registered it. |
+| [`TTS_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.TTS_FACTORIES)     | A factory takes no arguments, or `mall=` when the provider reads a project store (`recorded`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes it only to those that accept it.   |
+|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_LANGUAGE`](_autosummary/an.audio.providers.html.md#an.audio.providers.DEFAULT_LANGUAGE)  | The language a provider aligns for when the caller says nothing.                                                                                                                                     |
+| [`LIPSYNC_FACTORIES`](_autosummary/an.audio.providers.html.md#an.audio.providers.LIPSYNC_FACTORIES) | The lip-sync providers the core itself offers.                                                                                                                                                       |
+| [`DFLT_LIPSYNC`](_autosummary/an.audio.providers.html.md#an.audio.providers.DFLT_LIPSYNC)      | The provider `default_lipsync()` prefers when a genre registered it.                                                                                                                                 |
 
 ### Functions
 
@@ -4260,7 +4394,7 @@ specific classes.
 | [`known_tts_names`](_autosummary/an.audio.providers.html.md#an.audio.providers.known_tts_names)()                  | Return the registered TTS provider names.                                     |
 | [`lipsync_factories`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories)()                | Every lip-sync factory by name: the core's, then the loaded genres' services. |
 | [`make_lipsync`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.                                       |
-| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.                                           |
+| [`make_tts`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts)(name, \*[, mall])         | Instantiate a TTS provider by name.                                           |
 
 ### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
@@ -4276,6 +4410,11 @@ The provider `default_lipsync()` prefers when a genre registered it.
 The lip-sync providers the core itself offers. A genre adds its own through
 the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
 `whisper`); see [`lipsync_factories()`](_autosummary/an.audio.providers.html.md#an.audio.providers.lipsync_factories).
+
+### an.audio.providers.TTS_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[..., [TTSProvider](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)]]* *= {'elevenlabs': <function <lambda>>, 'mac_say': <function <lambda>>, 'offline': <function <lambda>>, 'recorded': <function \_recorded_factory>}*
+
+A factory takes no arguments, or `mall=` when the provider reads a project
+store (`recorded`): [`make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) passes it only to those that accept it.
 
 ### an.audio.providers.known_lipsync_names()
 
@@ -4317,14 +4456,404 @@ True
 * **Return type:**
   [`LipSyncProvider`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.providers.make_tts(name)
+### an.audio.providers.make_tts(name, , mall=None)
 
 Instantiate a TTS provider by name.
 
-Raises `ValueError` for unknown names with a list of known options.
+`mall` (the project mall) reaches the factories that take it — the
+`recorded` provider reads the project’s `recordings` store; the others
+are built as before. Raises `ValueError` for unknown names with a list of
+known options.
+
+```pycon
+>>> make_tts("recorded").name
+'recorded'
+```
 
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
+
+
+# _autosummary/an.audio.recorded.html.md
+
+# an.audio.recorded
+
+Recorded voices: a performer’s takes as the voice of a character (an#490).
+
+A production that records its actors has the voices already; nothing should be
+synthesized, billed, or approximated. This module makes a recording a
+first-class input, through the seams the audio pipeline already has:
+
+- **The take is a voice.** [`RecordedTTS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedTTS) is a [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
+  named `recorded` whose “synthesis” is a lookup in the project’s
+  `recordings` store ([`RecordingsStore`](_autosummary/an.stores.recordings.html.md#an.stores.recordings.RecordingsStore)). A voice
+  document that declares `provider: recorded` is spoken by it (an#305), so
+  takes, effects, leveling, captions, the shot cache and `an render` work
+  unchanged, and nothing is billed: the provider declares `billed = False`
+  and `repeatable = True`. Its `synthesis_options` hook keys each line by
+  the digest of the take it has for it, so a re-recorded line is a new audio
+  key, never a stale cache hit.
+- **The words travel with the clip.** A take imported with a timed transcript
+  (or transcribed) knows its word timings; they are stored with it, handed to
+  the pipeline on [`words`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip.words), and a lip-sync
+  provider that aligns from words (`cutan`’s) uses them instead of its own
+  transcription — the mouth follows the performance.
+- **Import** ([`import_recordings()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings), `an voices import`): one or more
+  audio files — a whole take with several lines, or one file per line — with an
+  optional transcript (SRT, WebVTT, TextGrid, word JSON or plain text:
+  [`an.audio.transcripts`](_autosummary/an.audio.transcripts.html.md#module-an.audio.transcripts)). Each line of the recording is cut out, matched
+  > to the scene’s dialogue by its words (a line the scene does not have yet is
+  > added to the shot you name), and stored with its provenance: who recorded it,
+  > under which licence or permission, from which file and span. The speaker’s
+  > character is bound to the recorded voice; the gap heard between two lines
+  > becomes the next line’s `pause`, so the shot’s timing follows the recording.
+
+Seams, each one keyword argument of [`import_recordings()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings):
+
+- `transcribe`: a callable `path -> segments` for a take that comes with no
+  timed transcript; the default is scribed’s facade (`pip install
+  "an[recorded]"`, then a backend of your choice — words and, where the
+  backend has it, speakers). Not needed for one file per line or a timed
+  transcript: those paths run with no model at all.
+- `denoise`: off; a strategy name runs the matching ffmpeg filter
+  ([`DENOISE_FILTERS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DENOISE_FILTERS)) before anything else; `voxy.refprep.condition` is
+  the fuller conditioning when you want more.
+- Speaker attribution: `speaker` (one performer), `speakers` (a label →
+  character map, for a diarizer’s or a transcript’s labels and file stems), the
+  transcript’s own `speaker:` prefixes, the file’s stem, or the scene line
+  the words match.
+
+```pycon
+>>> from an.audio.tts import AudioClip
+>>> tts = RecordedTTS()
+>>> tts.name, tts.billed, tts.repeatable
+('recorded', False, True)
+>>> normalize_key_text("Hello, there!") == normalize_key_text("hello there")
+True
+```
+
+### Module Attributes
+
+| [`PROVIDER_NAME`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.PROVIDER_NAME)         | what a voice document's `provider` says.                                                                                  |
+|------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`RECORDINGS_STORE`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RECORDINGS_STORE)      | The mall store the takes live in (`assets/recordings/<key>/`).                                                            |
+| [`RECORDING_OPTION`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RECORDING_OPTION)      | The `synthesize` keyword (and audio-key option) naming the take by digest.                                                |
+| [`RECORD_VERSION`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RECORD_VERSION)        | The shape of a record in the store; raised when a field changes meaning.                                                  |
+| [`RECORDED_VOICE_SUFFIX`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RECORDED_VOICE_SUFFIX) | The voice document a speaker's takes are bound to, when `voice` names none.                                               |
+| [`DFLT_MATCH_THRESHOLD`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DFLT_MATCH_THRESHOLD)  | How alike (`difflib` ratio over normalized words) a take's words and a scene line must be for the take to be that line's. |
+| [`DENOISE_FILTERS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DENOISE_FILTERS)       | `denoise` strategies → the ffmpeg filter that runs (voxy.refprep's table).                                                |
+| [`DFLT_DENOISE`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DFLT_DENOISE)          | The strategy a bare request for denoising means.                                                                          |
+
+### Functions
+
+| [`import_recordings`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings)(project, audio, \*[, ...])   | Import a performer's recording(s) as the voice of their lines (an#490).                                                                                                                                                                                                                                      |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`add_recording`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.add_recording)(store, \*, voice, speaker, ...)  | Put a take (WAV `audio` of `speaker` saying `text`, spoken for `voice`) in `store` with its provenance; `(key, record)`.                                                                                                                                                                                     |
+| [`find_recording`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.find_recording)(store, voice, text)             | The newest take of `text` for `voice` in `store`, as `(key, record)`; `None` if none.                                                                                                                                                                                                                        |
+| [`recording_by_digest`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.recording_by_digest)(store, sha256, \*[, text]) | The take whose audio has `sha256`, as `(key, record)`; `None` if none.                                                                                                                                                                                                                                       |
+| [`read_recording`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.read_recording)(store, key)                     | `(record, wav_bytes)` for `key`, the bytes checked against the record's digest.                                                                                                                                                                                                                              |
+| [`recording_key`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.recording_key)(speaker, text, sha256)           | A readable, unique store key: `<speaker>--<words>--<digest prefix>`.                                                                                                                                                                                                                                         |
+| [`normalize_key_text`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.normalize_key_text)(text)                       | The form a line's text is matched by: [`normalize_text()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_text).                                                                                                                                                                 |
+| [`audio_paths`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.audio_paths)(audio)                             | The audio files `audio` names: a file, a directory (its audio files, sorted), a glob, a comma-separated list, or a sequence of those.                                                                                                                                                                        |
+| [`scribed_transcriber`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.scribed_transcriber)([backend, diarize])        | The default transcriber: scribed's facade with word timestamps (and speaker labels when `diarize` and the backend has them).                                                                                                                                                                                 |
+| [`load_wav`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.load_wav)(path, \*[, denoise])                  | `path` as 16-bit PCM WAV bytes: a PCM WAV is taken as it is; anything else (MP3, M4A, a video's audio) is decoded with ffmpeg to mono at `IMPORT_SAMPLE_RATE`; `denoise` (a key of [`DENOISE_FILTERS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DENOISE_FILTERS)) runs that filter first, which also goes through ffmpeg. |
+| [`cut_wav`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.cut_wav)(wav, start, end)                       | The frames of `wav` between `start` and `end` seconds, as a WAV of the same format.                                                                                                                                                                                                                          |
+| [`wav_seconds`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.wav_seconds)(wav)                               | The length of a PCM WAV, seconds.                                                                                                                                                                                                                                                                            |
+
+### Classes
+
+| [`RecordedTTS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedTTS)(\*[, recordings])                | The `recorded` TTS provider: a line's audio is the take imported for it.                                    |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`ImportedTake`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.ImportedTake)(key, speaker, voice, text, ...) | One take the import stored, and where it went.                                                              |
+| [`ImportReport`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.ImportReport)([takes, voices, warnings])      | What [`import_recordings()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings) did; `str()` is the CLI's output. |
+
+### Exceptions
+
+| [`RecordedVoicesError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedVoicesError)         | An import, or a lookup of a take, that cannot proceed; the message says what to do.   |
+|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`RecordingMissingError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordingMissingError)       | A line spoken by a recorded voice has no take in the store.                           |
+| [`TranscriberUnavailableError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.TranscriberUnavailableError) | A take needs transcribing and no transcriber can run here.                            |
+
+### an.audio.recorded.DENOISE_FILTERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'afftdn': 'afftdn', 'anlmdn': 'anlmdn'}*
+
+`denoise` strategies → the ffmpeg filter that runs (voxy.refprep’s table).
+
+### an.audio.recorded.DFLT_DENOISE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'afftdn'*
+
+The strategy a bare request for denoising means.
+
+### an.audio.recorded.DFLT_MATCH_THRESHOLD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.75*
+
+How alike (`difflib` ratio over normalized words) a take’s words and a
+scene line must be for the take to be that line’s.
+
+### *class* an.audio.recorded.ImportReport(takes=list(), voices=list(), warnings=list())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`import_recordings()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.import_recordings) did; `str()` is the CLI’s output.
+
+### *class* an.audio.recorded.ImportedTake(key, speaker, voice, text, duration, source_file, span, words, line, added=False, pause=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One take the import stored, and where it went.
+
+#### added *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
+
+`True` when the line was ADDED to the scene by this import.
+
+#### line *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+`"<shot id>/<line index>"` of the scene line it is the audio of.
+
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The `pause` written on the line from the recording, if any.
+
+### an.audio.recorded.PROVIDER_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'recorded'*
+
+what a voice document’s `provider` says.
+
+* **Type:**
+  The TTS provider’s name
+
+### an.audio.recorded.RECORDED_VOICE_SUFFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_recorded'*
+
+The voice document a speaker’s takes are bound to, when `voice` names none.
+
+### an.audio.recorded.RECORDINGS_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'recordings'*
+
+The mall store the takes live in (`assets/recordings/<key>/`).
+
+### an.audio.recorded.RECORDING_OPTION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'recording'*
+
+The `synthesize` keyword (and audio-key option) naming the take by digest.
+
+### an.audio.recorded.RECORD_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+The shape of a record in the store; raised when a field changes meaning.
+
+### *class* an.audio.recorded.RecordedTTS(, recordings=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The `recorded` TTS provider: a line’s audio is the take imported for it.
+
+Built by [`an.audio.providers.make_tts()`](_autosummary/an.audio.providers.html.md#an.audio.providers.make_tts) with the project mall, so it
+reads `mall["recordings"]`; the pipeline hands it each line’s text and
+voice through [`synthesis_options()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedTTS.synthesis_options) (which keys the line by its take’s
+digest) and [`synthesize()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedTTS.synthesize). A line with no take raises
+[`RecordingMissingError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordingMissingError) before anything else is touched — a recorded
+voice never falls back to a synthesized one.
+
+```pycon
+>>> RecordedTTS().check_available()
+Traceback (most recent call last):
+    ...
+an.audio.recorded.RecordedVoicesError: the recorded provider has no recordings store ...
+```
+
+#### list_voices()
+
+One entry per voice that has takes in the store.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same bytes, and nothing is billed (an#311).
+
+#### synthesis_options(voice_doc, , emotion=None, direction=None, text=None, voice_id=None)
+
+`{"recording": <digest>}` of the take this line has — the audio key
+follows the take, so a re-recorded line is new audio.
+
+A line with no take is refused HERE, when the pipeline resolves every
+line’s request before the first synthesis: nothing of the scene is
+produced for a recorded voice that is missing a take. Without a line
+(`an validate` asks about the voice alone) there is nothing to refuse.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id='default', , recording=None, \*\*kw)
+
+The take of `text` in `voice_id` (by `recording` digest when given), with its words.
+
+* **Return type:**
+  [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+#### words_for_clip(clip)
+
+The stored words of the take whose bytes `clip` carries, or `None`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### *exception* an.audio.recorded.RecordedVoicesError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+An import, or a lookup of a take, that cannot proceed; the message says what to do.
+
+### *exception* an.audio.recorded.RecordingMissingError
+
+Bases: [`RecordedVoicesError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedVoicesError)
+
+A line spoken by a recorded voice has no take in the store.
+
+### *exception* an.audio.recorded.TranscriberUnavailableError
+
+Bases: [`RecordedVoicesError`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RecordedVoicesError)
+
+A take needs transcribing and no transcriber can run here.
+
+### an.audio.recorded.add_recording(store, , voice, speaker, text, audio, source, words=None, imported_at=None)
+
+Put a take (WAV `audio` of `speaker` saying `text`, spoken for
+`voice`) in `store` with its provenance; `(key, record)`.
+
+`source` is required: a recording with no recorded origin is exactly the
+asset `an credits` cannot vouch for.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
+
+### an.audio.recorded.audio_paths(audio)
+
+The audio files `audio` names: a file, a directory (its audio files,
+sorted), a glob, a comma-separated list, or a sequence of those.
+
+```pycon
+>>> audio_paths([])
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+### an.audio.recorded.cut_wav(wav, start, end)
+
+The frames of `wav` between `start` and `end` seconds, as a WAV of the same format.
+
+```pycon
+>>> import struct
+>>> buf = io.BytesIO()
+>>> with wave.open(buf, "wb") as w:
+...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(100)
+...     w.writeframes(struct.pack("<100h", *range(100)))
+>>> round(wav_seconds(cut_wav(buf.getvalue(), 0.25, 0.5)), 2)
+0.25
+```
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.audio.recorded.find_recording(store, voice, text)
+
+The newest take of `text` for `voice` in `store`, as `(key, record)`; `None` if none.
+
+Texts are compared normalized (case and punctuation aside), so a comma
+added in `scene.md` does not orphan the take.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.recorded.import_recordings(project, audio, , transcript=None, speaker=None, speakers=None, shot=None, voice=None, denoise=None, license=None, recorded_by=None, transcribe=None, transcriber=None, diarize=False, match_threshold=0.75, write=True)
+
+Import a performer’s recording(s) as the voice of their lines (an#490).
+
+`audio` names the takes (a file, several, a directory, a glob): a whole
+take holding several lines, or one file per line. `transcript` is
+optional: SRT, WebVTT, TextGrid or word JSON time the lines so nothing is
+transcribed; a plain transcript (`speaker: text` lines) pairs one line per
+file, or is timed against `transcribe`’s words for a whole take; with no
+transcript at all the take is transcribed and its segments are the lines.
+
+Each line is cut out, matched to the scene’s dialogue by its words
+(`match_threshold`), stored in `mall["recordings"]` with its provenance
+(`license` is required: the code you vouch for; `recorded_by` names the
+performer), and the speaker’s character is bound to a recorded voice
+document (`voice`, default `<speaker>_recorded`). Takes matching no line
+are added to `shot` (or the first shot of a scene with no dialogue). The
+gap heard between two lines of one file becomes the later line’s `pause`.
+
+`denoise` (`"afftdn"` / `"anlmdn"`) cleans each file first, through
+ffmpeg. `transcribe` is the transcriber seam (`path -> segments`); its
+default is [`scribed_transcriber()`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.scribed_transcriber) with `transcriber` as the backend
+and `diarize` for speaker labels, built only when a take needs it.
+`write=False` runs everything but writes nothing (a dry run).
+
+* **Return type:**
+  [`ImportReport`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.ImportReport)
+
+### an.audio.recorded.load_wav(path, , denoise=None)
+
+`path` as 16-bit PCM WAV bytes: a PCM WAV is taken as it is; anything
+else (MP3, M4A, a video’s audio) is decoded with ffmpeg to mono at
+`IMPORT_SAMPLE_RATE`; `denoise` (a key of [`DENOISE_FILTERS`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.DENOISE_FILTERS))
+runs that filter first, which also goes through ffmpeg.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.audio.recorded.normalize_key_text(text)
+
+The form a line’s text is matched by: [`normalize_text()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_text).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.recorded.read_recording(store, key)
+
+`(record, wav_bytes)` for `key`, the bytes checked against the record’s digest.
+
+The licence is attached to the digest: different bytes under the key are a
+take nobody vouched for, and are refused.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+### an.audio.recorded.recording_by_digest(store, sha256, , text=None)
+
+The take whose audio has `sha256`, as `(key, record)`; `None` if none.
+
+The same bytes may be stored under two records (a take re-imported with its
+text corrected): `text` picks the record whose text it is, so the line
+gets its own words.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.recorded.recording_key(speaker, text, sha256)
+
+A readable, unique store key: `<speaker>--<words>--<digest prefix>`.
+
+```pycon
+>>> recording_key("carl", "Hello, there!", "1a2b3c4d5e6f")
+'carl--hello-there--1a2b3c4d'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.recorded.scribed_transcriber(backend=None, , diarize=False)
+
+The default transcriber: scribed’s facade with word timestamps (and
+speaker labels when `diarize` and the backend has them). The import is
+lazy: a take with a timed transcript never needs it.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]]
+
+### an.audio.recorded.wav_seconds(wav)
+
+The length of a PCM WAV, seconds.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
 
 # _autosummary/an.audio.takes.html.md
@@ -4779,6 +5308,324 @@ Write `record` under `key` (stable, indented JSON); no store, no record.
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
+# _autosummary/an.audio.transcripts.html.md
+
+# an.audio.transcripts
+
+Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain
+text read into timed segments, and a known text matched to a transcriber’s words.
+
+Every package in the fleet writes subtitles ([`an.captions`](_autosummary/an.captions.html.md#module-an.captions), `mixing.srt`,
+scribed’s `Transcript.srt`); this module is the reading direction, for a
+performer’s recording that arrives with its words already written down. Three
+shapes come in:
+
+- **timed segments** — SRT, WebVTT, a word-timed JSON, a TextGrid: each line
+  of dialogue has a start and an end in the recording, so the take can be cut
+  at them with no model at all;
+- **plain text** — the lines, one per line, optionally `speaker: text` (the
+  `scene.md` grammar). No times: either each line is its own audio file, or
+  a transcriber’s timed words are matched to the text ([`align_words()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words));
+- **a transcriber’s result** — any object shaped like scribed’s `Transcript`
+  (segments with `text`/`start`/`end`/`speaker`/`words`), read by
+  [`from_transcript_object()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.from_transcript_object).
+
+All times are seconds from the start of the recording they describe.
+
+```pycon
+>>> segs = parse_transcript("1\n00:00:01,000 --> 00:00:02,500\ncarl: Hello there.\n\n"
+...                         "2\n00:00:03,000 --> 00:00:03,800\nned: Hi.\n")
+>>> [(s.speaker, s.text, s.start, s.end) for s in segs]
+[('carl', 'Hello there.', 1.0, 2.5), ('ned', 'Hi.', 3.0, 3.8)]
+>>> aligned = align_words(["Hello", "there,", "friend"],
+...                       [("hello", 0.5, 0.9), ("there", 0.9, 1.2), ("fred", 1.3, 1.6)])
+>>> aligned.words
+[('Hello', 0.5, 0.9), ('there,', 0.9, 1.2), ('friend', 1.3, 1.6)]
+>>> aligned.matched, aligned.total
+(2, 3)
+```
+
+### Module Attributes
+
+| [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS)   | The transcript formats read here, in detection order.   |
+|------------------------------------------------------------|---------------------------------------------------------|
+
+### Functions
+
+| [`detect_format`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.detect_format)(text, \*[, suffix])           | Which of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.                                                                                                                                                                                                       |
+|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`parse_transcript`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_transcript)(source, \*[, fmt])         | Read `source` — a path to a transcript file, or the transcript text itself — into segments.                                                                                                                                                                                                                                    |
+| [`parse_srt`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_srt)(text)                             | SubRip cues → timed segments; a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                                           |
+| [`parse_vtt`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_vtt)(text)                             | WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                             |
+| [`parse_plain`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_plain)(text)                           | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                                                                    |
+| [`parse_json`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_json)(obj)                             | A word-timed JSON → segments.                                                                                                                                                                                                                                                                                                  |
+| [`parse_textgrid`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_textgrid)(text)                        | A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.                                                                                                                                                                                                                                               |
+| [`from_transcript_object`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.from_transcript_object)(obj)                 | A transcriber's result — scribed's `Transcript` or anything shaped like it (iterable segments with `text`, `start`, `end`, `speaker` and `words` having `text`/`start`/`end`) — as segments.                                                                                                                                   |
+| [`parse_timestamp`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.parse_timestamp)(value)                      | `HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.                                                                                                                                                                                                                                                                        |
+| [`normalize_tokens`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_tokens)(text)                      | The words of `text` for matching: case-folded, punctuation dropped, an apostrophe inside a word kept.                                                                                                                                                                                                                          |
+| [`normalize_text`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_text)(text)                        | [`normalize_tokens()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).                                                                                                                                                                                                  |
+| [`align_words`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words)(reference, timed, \*[, bounds]) | Time the `reference` words (the text the performer was meant to say) by a transcriber's `timed` words of the same audio.                                                                                                                                                                                                       |
+| [`segment_lines`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.segment_lines)(lines, timed, \*[, bounds])   | Time untimed `lines` (a plain transcript) by a transcriber's `timed` words of the whole recording: the lines' words are aligned as one text ([`align_words()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words)) and handed back per line, each line spanning its first word's start to its last word's end, with its own `words`. |
+| [`cut_spans`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.cut_spans)(segments, \*, total[, pad_s])     | Where to cut the recording for each timed segment: its span widened by `pad_s` on each side, never past the midpoint to its neighbour or the recording's ends (`total` seconds).                                                                                                                                               |
+| [`rebase_words`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.rebase_words)(words, start)                  | `words` re-timed from `start` (a cut's start): the clip-relative words a line keeps.                                                                                                                                                                                                                                           |
+
+### Classes
+
+| [`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)(text[, start, end, ...])   | One spoken line of a transcript: its text, and when and who, if known.                                                                                                                     |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`AlignedWords`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.AlignedWords)(words, matched, total)          | [`align_words()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words)'s result: the reference words timed, and how many of them a transcribed word actually anchored (the rest are interpolated). |
+
+### *class* an.audio.transcripts.AlignedWords(words, matched, total)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+[`align_words()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words)’s result: the reference words timed, and how many
+of them a transcribed word actually anchored (the rest are interpolated).
+
+#### *property* coverage *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The share of reference words anchored by a transcribed word, 0..1.
+
+### an.audio.transcripts.FORMATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('vtt', 'textgrid', 'json', 'srt', 'plain')*
+
+The transcript formats read here, in detection order.
+
+### *class* an.audio.transcripts.TranscriptSegment(text, start=None, end=None, speaker=None, words=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One spoken line of a transcript: its text, and when and who, if known.
+
+`start`/`end` are seconds from the recording’s start, `None` for an
+untimed (plain) transcript; `words` are the segment’s own word timings
+when the format carries them (word JSON, TextGrid), else `None`.
+
+#### *property* timed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether both `start` and `end` are known.
+
+### an.audio.transcripts.align_words(reference, timed, , bounds=None)
+
+Time the `reference` words (the text the performer was meant to say) by a
+transcriber’s `timed` words of the same audio.
+
+Reference words that a transcribed word matches (same normalized form, in
+sequence — [`difflib.SequenceMatcher`](https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher)) take that word’s times. A run
+the transcriber heard differently (`friend` heard as `fred`) is spread
+over the misheard words’ span; a run it did not hear at all is spread over
+the gap to the next anchor, in proportion to word length — so a misheard or
+dropped word still gets a plausible slot. `bounds` (`(start, end)` of
+the audio) time the ends when no anchor does; without it the first and last
+transcribed words do. Words come back in reference order with
+non-decreasing starts.
+
+```pycon
+>>> align_words(["I", "did", "NOT", "ask"], [("i", 0.0, 0.1), ("did", 0.1, 0.3), ("ask", 0.6, 0.9)]).words
+[('I', 0.0, 0.1), ('did', 0.1, 0.3), ('NOT', 0.3, 0.6), ('ask', 0.6, 0.9)]
+```
+
+* **Return type:**
+  [`AlignedWords`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.AlignedWords)
+
+### an.audio.transcripts.cut_spans(segments, , total, pad_s=0.05)
+
+Where to cut the recording for each timed segment: its span widened by
+`pad_s` on each side, never past the midpoint to its neighbour or the
+recording’s ends (`total` seconds).
+
+```pycon
+>>> segs = [TranscriptSegment("a", 1.0, 2.0), TranscriptSegment("b", 2.04, 3.0)]
+>>> cut_spans(segs, total=3.02)
+[(0.95, 2.02), (2.02, 3.02)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.audio.transcripts.detect_format(text, , suffix='')
+
+Which of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.
+
+```pycon
+>>> detect_format("WEBVTT\n\n00:01.000 --> 00:02.000\nhi")
+'vtt'
+>>> detect_format("1\n00:00:01,000 --> 00:00:02,000\nhi"), detect_format("hi there")
+('srt', 'plain')
+>>> detect_format('{"segments": []}'), detect_format("", suffix=".TextGrid")
+('json', 'textgrid')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.transcripts.from_transcript_object(obj)
+
+A transcriber’s result — scribed’s `Transcript` or anything shaped like
+it (iterable segments with `text`, `start`, `end`, `speaker` and
+`words` having `text`/`start`/`end`) — as segments.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> t = [NS(text="Hi there", start=0.2, end=0.9, speaker="A",
+...         words=[NS(text="Hi", start=0.2, end=0.4), NS(text="there", start=0.5, end=0.9)])]
+>>> from_transcript_object(t)[0].words
+(('Hi', 0.2, 0.4), ('there', 0.5, 0.9))
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.normalize_text(text)
+
+[`normalize_tokens()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.transcripts.normalize_tokens(text)
+
+The words of `text` for matching: case-folded, punctuation dropped,
+an apostrophe inside a word kept.
+
+```pycon
+>>> normalize_tokens("Hello, there — it's ME!")
+['hello', 'there', "it's", 'me']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.audio.transcripts.parse_json(obj)
+
+A word-timed JSON → segments. Accepted: `{"segments": [...]}` or a list
+of segments, each `{"text", "start", "end", "speaker", "words": [{"text"|"word",
+"start", "end"}, ...]}` (`start_ms`/`end_ms` are read too, and a word may
+be a `[text, start, end]` list); or a bare list of words, read as one segment.
+
+```pycon
+>>> segs = parse_json({"segments": [{"speaker": "carl", "words": [
+...     {"word": "Hello", "start": 0.5, "end": 0.9}, ["there", 0.9, 1.2]]}]})
+>>> segs[0].text, segs[0].start, segs[0].end, segs[0].words
+('Hello there', 0.5, 1.2, (('Hello', 0.5, 0.9), ('there', 0.9, 1.2)))
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_plain(text)
+
+One non-empty line per segment, untimed; `speaker: text` names the speaker.
+
+```pycon
+>>> [s.speaker for s in parse_plain("carl: Hi.\n\nJust a line.\n")]
+['carl', None]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_srt(text)
+
+SubRip cues → timed segments; a `speaker:` prefix names the speaker.
+
+```pycon
+>>> parse_srt("1\n00:00:00,500 --> 00:00:01,000\nHi\nthere\n")
+[TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_textgrid(text)
+
+A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.
+
+The words come from a tier named `words` (else the first interval tier);
+a tier named `utterances`/`lines`/`sentences` gives one segment per
+non-empty interval, with the words inside it; without one, the whole grid
+is one segment.
+
+```pycon
+>>> tg = ('File type = "ooTextFile"\nObject class = "TextGrid"\nxmin = 0\nxmax = 2\n'
+...       'tiers? <exists>\nsize = 1\nitem []:\n    item [1]:\n        class = "IntervalTier"\n'
+...       '        name = "words"\n        xmin = 0\n        xmax = 2\n        intervals: size = 3\n'
+...       '        intervals [1]:\n            xmin = 0\n            xmax = 0.5\n            text = ""\n'
+...       '        intervals [2]:\n            xmin = 0.5\n            xmax = 0.9\n            text = "hello"\n'
+...       '        intervals [3]:\n            xmin = 0.9\n            xmax = 1.3\n            text = "there"\n')
+>>> parse_textgrid(tg)
+[TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)))]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_timestamp(value)
+
+`HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.
+
+```pycon
+>>> parse_timestamp("00:01:02,500"), parse_timestamp("01:02.5"), parse_timestamp("7.25")
+(62.5, 62.5, 7.25)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.audio.transcripts.parse_transcript(source, , fmt=None)
+
+Read `source` — a path to a transcript file, or the transcript text
+itself — into segments. `fmt` (one of [`FORMATS`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.FORMATS)) overrides detection.
+
+```pycon
+>>> parse_transcript("carl: Hello.\nned: Hi.")[1]
+TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.parse_vtt(text)
+
+WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.
+
+```pycon
+>>> parse_vtt("WEBVTT\n\n00:01.000 --> 00:02.000\n<v Carl>Hello</v>\n")
+[TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+### an.audio.transcripts.rebase_words(words, start)
+
+`words` re-timed from `start` (a cut’s start): the clip-relative words a line keeps.
+
+```pycon
+>>> rebase_words([("hi", 1.0, 1.4)], 0.95)
+(('hi', 0.05, 0.45),)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.transcripts.segment_lines(lines, timed, , bounds=None)
+
+Time untimed `lines` (a plain transcript) by a transcriber’s `timed`
+words of the whole recording: the lines’ words are aligned as one text
+([`align_words()`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.align_words)) and handed back per line, each line spanning its
+first word’s start to its last word’s end, with its own `words`.
+
+```pycon
+>>> lines = parse_plain("carl: Hello there.\nned: Hi.")
+>>> timed = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("hi", 2.0, 2.3)]
+>>> [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]
+[('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](_autosummary/an.audio.transcripts.html.md#an.audio.transcripts.TranscriptSegment)]
+
+
 # _autosummary/an.audio.tts.html.md
 
 # an.audio.tts
@@ -4792,11 +5639,19 @@ TTS provider protocol + supporting dataclasses.
 | [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)(\*args, \*\*kwargs)            | Text-to-speech provider.                           |
 | [`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)(voice_id, name, provider[, ...]) | Metadata for a TTS voice as exposed by a provider. |
 
-### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
+### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### words *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The clip’s word timings — `(word, start_s, end_s)` from the clip’s
+start — when the provider knows them (a recorded take imported with a
+timed transcript: [`an.audio.recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)); `None` otherwise. A
+lip-sync provider that aligns from words prefers these to its own
+transcription, and the audio pipeline stamps them on the line.
 
 ### *class* an.audio.tts.TTSProvider(\*args, \*\*kwargs)
 
@@ -6292,7 +7147,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -6511,7 +7366,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -12967,8 +13822,9 @@ Walk a project mall and gather every recorded `AssetSource`.
 `only` restricts the walk to those `store/key` names (what a render
 used, [`credits_for_scene()`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)) — nothing else is read.
 
-Four stores carry provenance: characters, **props** (an#108),
-**environments** (an#110) and **sounds**. Each was added by the PR that gave that store
+Five stores carry provenance: characters, **props** (an#108),
+**environments** (an#110), **sounds** and **recordings** (a performer’s
+takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
 store holding third-party plates does not return less information, it
 returns an affirmative false statement to exactly the people who need the
@@ -16577,7 +17433,7 @@ False
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -18101,7 +18957,7 @@ False
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -19607,7 +20463,7 @@ False
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -34436,7 +35292,7 @@ Per-environment directory store (meta + sidecar art).
 Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
-(characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
+(characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
 content-keyed shot cache),
 final output and its caption sidecar, the agent’s decision log, and the asset
@@ -34452,7 +35308,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'contact_sheets', 'decisions',
 ...         'environments', 'library_lock', 'measurements', 'output',
-...         'pictures', 'previews', 'props', 'render_reports', 'scenes',
+...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',
 ...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
 ...         'visemes', 'voices',
 ...     ]
@@ -34474,6 +35330,7 @@ True
 | [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                                                                                         |
 | [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                                                                                               |
 | [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                                                                                        |
+| [`RecordingsStore`](_autosummary/an.stores.html.md#an.stores.RecordingsStore)(root_dir)      | Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.                                                                                                                                             |
 | [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                                                                                  |
 | [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                                                                                            |
 | [`TakesArtifactStore`](_autosummary/an.stores.html.md#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).                                                                 |
@@ -34613,6 +35470,16 @@ Per-prop directory store.
 'Desk lamp'
 ```
 
+### *class* an.stores.RecordingsStore(root_dir)
+
+Bases: `AudioSidecarStore`
+
+Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.
+
+#### ENTRY_NOUN *= 'recording'*
+
+What an entry is called in error messages.
+
 ### *class* an.stores.RenderReportStore(root_dir)
 
 Bases: `_BlobStore`
@@ -34658,7 +35525,7 @@ Per-shot rendered mp4s.
 
 ### *class* an.stores.SoundsStore(root_dir)
 
-Bases: `JsonSidecarStore`
+Bases: `AudioSidecarStore`
 
 Per-sound directory store.
 
@@ -34679,6 +35546,10 @@ its header for the duration a fade-out needs, deterministically.
 
 * **Type:**
   The sidecar holding the audio bytes. WAV only in v1
+
+#### ENTRY_NOUN *= 'sound'*
+
+What an entry is called in error messages.
 
 ### *class* an.stores.SourcesStore(root_dir)
 
@@ -34733,18 +35604,19 @@ in-memory `dict` for tests).
 
 ### Modules
 
-| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.                |
-|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                     |
-| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.           |
-| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.                   |
-| [`library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from.     |
-| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                               |
-| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.             |
-| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.          |
-| [`sources`](_autosummary/an.stores.sources.html.md#module-an.stores.sources)           | The project's opaque scene sources: files a whole-shot renderer runs as they are. |
-| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).          |
-| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                    |
+| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.                       |
+|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                            |
+| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.                  |
+| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.                          |
+| [`library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from.            |
+| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                                      |
+| [`recordings`](_autosummary/an.stores.recordings.html.md#module-an.stores.recordings)     | Recordings store — one directory per recorded take: `recording.json` beside `audio.wav`. |
+| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.                    |
+| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.                 |
+| [`sources`](_autosummary/an.stores.sources.html.md#module-an.stores.sources)           | The project's opaque scene sources: files a whole-shot renderer runs as they are.        |
+| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).                 |
+| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                           |
 
 
 # _autosummary/an.stores.library_lock.html.md
@@ -34905,6 +35777,48 @@ Per-prop directory store.
 ```
 
 
+# _autosummary/an.stores.recordings.html.md
+
+# an.stores.recordings
+
+Recordings store — one directory per recorded take: `recording.json` beside `audio.wav`.
+
+A recording is a performer’s take of one dialogue line, imported from an audio
+file (`an voices import`, [`an.audio.recorded`](_autosummary/an.audio.recorded.html.md#module-an.audio.recorded)). Like a sound, it is bytes
+that end up in a film a user ships, so its record carries provenance and rights
+(`source`, an [`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource): who recorded it, under which
+licence or permission, from which file and span) and the digest of the bytes the
+licence is attached to; `an credits` walks this store like the others. The
+record also says which voice and line the take belongs to and, when they are
+known, the words it contains and when ([`an.audio.recorded.RECORD_VERSION`](_autosummary/an.audio.recorded.html.md#an.audio.recorded.RECORD_VERSION)
+names the shape).
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = RecordingsStore(d)
+...     store['carl--hello--1a2b3c4d'] = {'voice': 'carl_recorded', 'text': 'Hello.'}
+...     store.write_audio('carl--hello--1a2b3c4d', b'RIFF....')
+...     store['carl--hello--1a2b3c4d']['text'], store.read_audio('carl--hello--1a2b3c4d')
+('Hello.', b'RIFF....')
+```
+
+### Classes
+
+| [`RecordingsStore`](_autosummary/an.stores.recordings.html.md#an.stores.recordings.RecordingsStore)(root_dir)   | Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.   |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### *class* an.stores.recordings.RecordingsStore(root_dir)
+
+Bases: `AudioSidecarStore`
+
+Per-take directory store: `<key>/recording.json` + `<key>/audio.wav`.
+
+#### ENTRY_NOUN *= 'recording'*
+
+What an entry is called in error messages.
+
+
 # _autosummary/an.stores.scenes.html.md
 
 # an.stores.scenes
@@ -35006,7 +35920,7 @@ caller builds a path by hand (pillar 7). `an.sounds` is the typed front door.
 
 ### *class* an.stores.sounds.SoundsStore(root_dir)
 
-Bases: `JsonSidecarStore`
+Bases: `AudioSidecarStore`
 
 Per-sound directory store.
 
@@ -35027,6 +35941,10 @@ its header for the duration a fade-out needs, deterministically.
 
 * **Type:**
   The sidecar holding the audio bytes. WAV only in v1
+
+#### ENTRY_NOUN *= 'sound'*
+
+What an entry is called in error messages.
 
 
 # _autosummary/an.stores.sources.html.md
@@ -39162,20 +40080,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-21 00:02 UTC** from commit <a href="https://github.com/reeleehq/an/commit/18708899107cf65621ab6bdce8bb26c5af197da7"><code>1870889</code></a> on branch <code>main</code>, for **an 0.1.242** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-21 00:33 UTC** from commit <a href="https://github.com/reeleehq/an/commit/1bf4b10a30eed3718449d9bdb85f99941db57847"><code>1bf4b10</code></a> on branch <code>main</code>, for **an 0.1.243** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.242) is ahead of the latest release on PyPI (0.1.241): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/18708899107cf65621ab6bdce8bb26c5af197da7"><code>18708899107cf65621ab6bdce8bb26c5af197da7</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/1bf4b10a30eed3718449d9bdb85f99941db57847"><code>1bf4b10a30eed3718449d9bdb85f99941db57847</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.242</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.243</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -39184,9 +40100,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/39518180106">39518180106</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/39521242654">39521242654</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>9ffefd6bcdca11153ae400d2ba0e4fdc3907b3b5</code> (in the history of the built commit) |
+| Event commit | <code>c5298f0781a69d58744585530b253b544f1aa751</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -39211,13 +40127,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.241/">0.1.241</a>, older than the documented version (0.1.242).
+Latest release: <a href="https://pypi.org/project/an/0.1.243/">0.1.243</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 18708899107cf65621ab6bdce8bb26c5af197da7
+git checkout 1bf4b10a30eed3718449d9bdb85f99941db57847
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

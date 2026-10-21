@@ -8,6 +8,7 @@ an.audio.providers
 
    .. autosummary::
    
+      TTS_FACTORIES
       DEFAULT_LANGUAGE
       LIPSYNC_FACTORIES
       DFLT_LIPSYNC

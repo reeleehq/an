@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=14ec15e6"></script>
+    <script src="../_static/documentation_options.js?v=b09491ff"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.242" />
+  <meta name="docsearch:version" content="0.1.243" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,7 +338,9 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
@@ -508,6 +510,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.recordings.html">an.stores.recordings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
@@ -615,7 +618,8 @@
 (<code class="docutils literal notranslate"><span class="pre">OfflineLipSync</span></code> deterministic char-to-viseme, <code class="docutils literal notranslate"><span class="pre">RhubarbLipSync</span></code>,
 <code class="docutils literal notranslate"><span class="pre">WhisperLipSync</span></code>) moved to <code class="docutils literal notranslate"><span class="pre">cutan</span></code> with the cut-out genre (an#225); the old
 names still resolve from here, with a warning.</p></li>
-<li><p>Real providers: <code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code> (needs <code class="docutils literal notranslate"><span class="pre">ELEVEN_API_KEY</span></code>).</p></li>
+<li><p>Real providers: <code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code> (needs <code class="docutils literal notranslate"><span class="pre">ELEVEN_API_KEY</span></code>); <code class="docutils literal notranslate"><span class="pre">RecordedTTS</span></code>, a
+performer’s imported takes (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">import</span></code>, <a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.recorded</span></code></a>).</p></li>
 <li><p>Orchestration: <code class="docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code> /
 <code class="docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code> walk a SceneIR, synthesize, persist to mall,
 stamp viseme tracks back onto the IR.</p></li>
@@ -628,28 +632,31 @@ without external services.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.word_timings_to_visemes" title="an.audio.word_timings_to_visemes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">word_timings_to_visemes</span></code></a>(words, *, ...[, ...])</p></td>
 <td><p>Distribute viseme keyframes across word boundaries.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.default_tts" title="an.audio.default_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_tts</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.import_recordings" title="an.audio.import_recordings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_recordings</span></code></a>(project, audio, *[, ...])</p></td>
+<td><p>Import a performer's recording(s) as the voice of their lines (an#490).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.default_tts" title="an.audio.default_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_tts</span></code></a>()</p></td>
 <td><p>The default TTS provider: <code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.default_lipsync" title="an.audio.default_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_lipsync</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.default_lipsync" title="an.audio.default_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_lipsync</span></code></a>()</p></td>
 <td><p>The default lip-sync provider: the loaded genre's <code class="docutils literal notranslate"><span class="pre">offline</span></code> one (the deterministic char-to-viseme provider of <code class="docutils literal notranslate"><span class="pre">cutan</span></code>), else <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.NullLipSync" title="an.audio.lipsync.NullLipSync"><code class="xref py py-class docutils literal notranslate"><span class="pre">NullLipSync</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.produce_audio_for_dialogue" title="an.audio.produce_audio_for_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code></a>(dialogue[, mall, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.produce_audio_for_dialogue" title="an.audio.produce_audio_for_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code></a>(dialogue[, mall, ...])</p></td>
 <td><p>Synthesize audio + visemes for one dialogue line.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.produce_audio_for_scene" title="an.audio.produce_audio_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code></a>(scene[, mall, tts, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.produce_audio_for_scene" title="an.audio.produce_audio_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code></a>(scene[, mall, tts, ...])</p></td>
 <td><p>Walk every dialogue line, synthesize, and stamp viseme tracks back.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.make_tts" title="an.audio.make_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_tts</span></code></a>(name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.make_tts" title="an.audio.make_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_tts</span></code></a>(name, *[, mall])</p></td>
 <td><p>Instantiate a TTS provider by name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.make_lipsync" title="an.audio.make_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_lipsync</span></code></a>(name, *[, language])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.make_lipsync" title="an.audio.make_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_lipsync</span></code></a>(name, *[, language])</p></td>
 <td><p>Instantiate a LipSync provider by name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.known_tts_names" title="an.audio.known_tts_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_tts_names</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.known_tts_names" title="an.audio.known_tts_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_tts_names</span></code></a>()</p></td>
 <td><p>Return the registered TTS provider names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.known_lipsync_names" title="an.audio.known_lipsync_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_lipsync_names</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.known_lipsync_names" title="an.audio.known_lipsync_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_lipsync_names</span></code></a>()</p></td>
 <td><p>Return the registered LipSync provider names.</p></td>
 </tr>
 </tbody>
@@ -685,10 +692,13 @@ without external services.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.OfflineTTS" title="an.audio.OfflineTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a>(*[, sample_rate, channels, ...])</p></td>
 <td><p>Default TTS provider: silent WAV of length proportional to text.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.ElevenLabsTTS" title="an.audio.ElevenLabsTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a>(*[, api_key, model_id, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.RecordedTTS" title="an.audio.RecordedTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a>(*[, recordings])</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">recorded</span></code> TTS provider: a line's audio is the take imported for it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.ElevenLabsTTS" title="an.audio.ElevenLabsTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a>(*[, api_key, model_id, ...])</p></td>
 <td><p>ElevenLabs-backed TTSProvider.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.MacSayTTS" title="an.audio.MacSayTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MacSayTTS</span></code></a>(*[, default_voice_id, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.MacSayTTS" title="an.audio.MacSayTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MacSayTTS</span></code></a>(*[, default_voice_id, ...])</p></td>
 <td><p>macOS <code class="docutils literal notranslate"><span class="pre">say</span></code>-backed TTSProvider.</p></td>
 </tr>
 </tbody>
@@ -696,11 +706,21 @@ without external services.</p>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.AudioClip">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">AudioClip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">44100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#AudioClip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.AudioClip" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">AudioClip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">44100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#AudioClip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.AudioClip" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A rendered audio clip, on disk or in memory.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.AudioClip.words">
+<span class="sig-name descname"><span class="pre">words</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.audio.AudioClip.words" title="Link to this definition">#</a></dt>
+<dd><p>The clip’s word timings — <code class="docutils literal notranslate"><span class="pre">(word,</span> <span class="pre">start_s,</span> <span class="pre">end_s)</span></code> from the clip’s
+start — when the provider knows them (a recorded take imported with a
+timed transcript: <a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.recorded</span></code></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise. A
+lip-sync provider that aligns from words prefers these to its own
+transcription, and the audio pipeline stamps them on the line.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -941,6 +961,82 @@ provider is a stand-in the render says so loudly (an#305).</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">RecordedTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">recordings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.RecordedTTS" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">recorded</span></code> TTS provider: a line’s audio is the take imported for it.</p>
+<p>Built by <a class="reference internal" href="an.audio.providers.html#an.audio.providers.make_tts" title="an.audio.providers.make_tts"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.providers.make_tts()</span></code></a> with the project mall, so it
+reads <code class="docutils literal notranslate"><span class="pre">mall[&quot;recordings&quot;]</span></code>; the pipeline hands it each line’s text and
+voice through <a class="reference internal" href="#an.audio.RecordedTTS.synthesis_options" title="an.audio.RecordedTTS.synthesis_options"><code class="xref py py-meth docutils literal notranslate"><span class="pre">synthesis_options()</span></code></a> (which keys the line by its take’s
+digest) and <a class="reference internal" href="#an.audio.RecordedTTS.synthesize" title="an.audio.RecordedTTS.synthesize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">synthesize()</span></code></a>. A line with no take raises
+<code class="xref py py-class docutils literal notranslate"><span class="pre">RecordingMissingError</span></code> before anything else is touched — a recorded
+voice never falls back to a synthesized one.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RecordedTTS</span><span class="p">()</span><span class="o">.</span><span class="n">check_available</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">an.audio.recorded.RecordedVoicesError</span>: <span class="n">the recorded provider has no recordings store ...</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS.list_voices">
+<span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.RecordedTTS.list_voices" title="Link to this definition">#</a></dt>
+<dd><p>One entry per voice that has takes in the store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.VoiceMeta" title="an.audio.tts.VoiceMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceMeta</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS.repeatable">
+<span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.RecordedTTS.repeatable" title="Link to this definition">#</a></dt>
+<dd><p>The same request gives the same bytes, and nothing is billed (an#311).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS.synthesis_options">
+<span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">emotion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.RecordedTTS.synthesis_options" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;recording&quot;:</span> <span class="pre">&lt;digest&gt;}</span></code> of the take this line has — the audio key
+follows the take, so a re-recorded line is new audio.</p>
+<p>A line with no take is refused HERE, when the pipeline resolves every
+line’s request before the first synthesis: nothing of the scene is
+produced for a recorded voice that is missing a take. Without a line
+(<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> asks about the voice alone) there is nothing to refuse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">recording</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.RecordedTTS.synthesize" title="Link to this definition">#</a></dt>
+<dd><p>The take of <code class="docutils literal notranslate"><span class="pre">text</span></code> in <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> (by <code class="docutils literal notranslate"><span class="pre">recording</span></code> digest when given), with its words.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.RecordedTTS.words_for_clip">
+<span class="sig-name descname"><span class="pre">words_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.words_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.RecordedTTS.words_for_clip" title="Link to this definition">#</a></dt>
+<dd><p>The stored words of the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.audio.TTSProvider">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">TTSProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/tts.html#TTSProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.TTSProvider" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
@@ -1053,6 +1149,35 @@ deterministic char-to-viseme provider of <code class="docutils literal notransla
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.import_recordings">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">import_recordings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speakers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denoise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recorded_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcribe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcriber</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diarize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#import_recordings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.import_recordings" title="Link to this definition">#</a></dt>
+<dd><p>Import a performer’s recording(s) as the voice of their lines (an#490).</p>
+<p><code class="docutils literal notranslate"><span class="pre">audio</span></code> names the takes (a file, several, a directory, a glob): a whole
+take holding several lines, or one file per line. <code class="docutils literal notranslate"><span class="pre">transcript</span></code> is
+optional: SRT, WebVTT, TextGrid or word JSON time the lines so nothing is
+transcribed; a plain transcript (<code class="docutils literal notranslate"><span class="pre">speaker:</span> <span class="pre">text</span></code> lines) pairs one line per
+file, or is timed against <code class="docutils literal notranslate"><span class="pre">transcribe</span></code>’s words for a whole take; with no
+transcript at all the take is transcribed and its segments are the lines.</p>
+<p>Each line is cut out, matched to the scene’s dialogue by its words
+(<code class="docutils literal notranslate"><span class="pre">match_threshold</span></code>), stored in <code class="docutils literal notranslate"><span class="pre">mall[&quot;recordings&quot;]</span></code> with its provenance
+(<code class="docutils literal notranslate"><span class="pre">license</span></code> is required: the code you vouch for; <code class="docutils literal notranslate"><span class="pre">recorded_by</span></code> names the
+performer), and the speaker’s character is bound to a recorded voice
+document (<code class="docutils literal notranslate"><span class="pre">voice</span></code>, default <code class="docutils literal notranslate"><span class="pre">&lt;speaker&gt;_recorded</span></code>). Takes matching no line
+are added to <code class="docutils literal notranslate"><span class="pre">shot</span></code> (or the first shot of a scene with no dialogue). The
+gap heard between two lines of one file becomes the later line’s <code class="docutils literal notranslate"><span class="pre">pause</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">denoise</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;afftdn&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;anlmdn&quot;</span></code>) cleans each file first, through
+ffmpeg. <code class="docutils literal notranslate"><span class="pre">transcribe</span></code> is the transcriber seam (<code class="docutils literal notranslate"><span class="pre">path</span> <span class="pre">-&gt;</span> <span class="pre">segments</span></code>); its
+default is <code class="xref py py-func docutils literal notranslate"><span class="pre">scribed_transcriber()</span></code> with <code class="docutils literal notranslate"><span class="pre">transcriber</span></code> as the backend
+and <code class="docutils literal notranslate"><span class="pre">diarize</span></code> for speaker labels, built only when a take needs it.
+<code class="docutils literal notranslate"><span class="pre">write=False</span></code> runs everything but writes nothing (a dry run).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.recorded.html#an.audio.recorded.ImportReport" title="an.audio.recorded.ImportReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportReport</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.known_lipsync_names">
 <span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">known_lipsync_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/providers.html#known_lipsync_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.known_lipsync_names" title="Link to this definition">#</a></dt>
 <dd><p>Return the registered LipSync provider names.</p>
@@ -1096,9 +1221,16 @@ name that nothing provides is an error that says how to get it.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.make_tts">
-<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">make_tts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/providers.html#make_tts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.make_tts" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">make_tts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/providers.html#make_tts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.make_tts" title="Link to this definition">#</a></dt>
 <dd><p>Instantiate a TTS provider by name.</p>
-<p>Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for unknown names with a list of known options.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mall</span></code> (the project mall) reaches the factories that take it — the
+<code class="docutils literal notranslate"><span class="pre">recorded</span></code> provider reads the project’s <code class="docutils literal notranslate"><span class="pre">recordings</span></code> store; the others
+are built as before. Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for unknown names with a list of
+known options.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">make_tts</span><span class="p">(</span><span class="s2">"recorded"</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'recorded'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.tts.html#an.audio.tts.TTSProvider" title="an.audio.tts.TTSProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">TTSProvider</span></code></a></span></p>
@@ -1242,8 +1374,14 @@ audio’s actual length.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
 <td><p>Provider factory: name → concrete TTS/LipSync provider instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.recorded.html#module-an.audio.recorded" title="an.audio.recorded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recorded</span></code></a></p></td>
+<td><p>Recorded voices: a performer's takes as the voice of a character (an#490).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
 <td><p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcripts</span></code></a></p></td>
+<td><p>Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain text read into timed segments, and a known text matched to a transcriber's words.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
@@ -1306,7 +1444,10 @@ audio’s actual length.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.AudioClip"><code class="docutils literal notranslate"><span class="pre">AudioClip</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.AudioClip"><code class="docutils literal notranslate"><span class="pre">AudioClip</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.AudioClip.words"><code class="docutils literal notranslate"><span class="pre">AudioClip.words</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.billed"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.billed_characters"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed_characters()</span></code></a></li>
@@ -1337,6 +1478,14 @@ audio’s actual length.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.OfflineTTS.silent"><code class="docutils literal notranslate"><span class="pre">OfflineTTS.silent</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS"><code class="docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.list_voices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.repeatable</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesis_options()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RecordedTTS.words_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.words_for_clip()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.TTSProvider"><code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.TTSProvider.list_voices"><code class="docutils literal notranslate"><span class="pre">TTSProvider.list_voices()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.TTSProvider.synthesize"><code class="docutils literal notranslate"><span class="pre">TTSProvider.synthesize()</span></code></a></li>
@@ -1351,6 +1500,7 @@ audio’s actual length.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.default_lipsync"><code class="docutils literal notranslate"><span class="pre">default_lipsync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.default_tts"><code class="docutils literal notranslate"><span class="pre">default_tts()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.import_recordings"><code class="docutils literal notranslate"><span class="pre">import_recordings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.known_lipsync_names"><code class="docutils literal notranslate"><span class="pre">known_lipsync_names()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.known_tts_names"><code class="docutils literal notranslate"><span class="pre">known_tts_names()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.make_lipsync"><code class="docutils literal notranslate"><span class="pre">make_lipsync()</span></code></a></li>

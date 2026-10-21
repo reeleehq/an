@@ -38,7 +38,9 @@
 - [an.audio.offline_tts](an.audio.offline_tts.html.md): OfflineTTS — produces silent audio of plausible duration. No network, no keys.
 - [an.audio.pipeline](an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
+- [an.audio.recorded](an.audio.recorded.html.md): Recorded voices: a performer’s takes as the voice of a character (an#490).
 - [an.audio.takes](an.audio.takes.html.md): Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
+- [an.audio.transcripts](an.audio.transcripts.html.md): Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain
 - [an.audio.tts](an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
 - [an.audio.voice_design](an.audio.voice_design.html.md): Design a project’s voices from their written notes, then let the writer choose.
 - [an.audio.voices](an.audio.voices.html.md): Which voice speaks a dialogue line: the character → voice binding (an#194).
@@ -182,6 +184,7 @@
 - [an.stores.environments](an.stores.environments.html.md): Environments store — backgrounds, set pieces, and prop bundles.
 - [an.stores.library_lock](an.stores.library_lock.html.md): The project lockfile: which library version each checked-out asset came from.
 - [an.stores.props](an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
+- [an.stores.recordings](an.stores.recordings.html.md): Recordings store — one directory per recorded take: &#96;recording.json&#96; beside &#96;audio.wav&#96;.
 - [an.stores.scenes](an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
 - [an.stores.sounds](an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
 - [an.stores.sources](an.stores.sources.html.md): The project’s opaque scene sources: files a whole-shot renderer runs as they are.

@@ -1,0 +1,52 @@
+an.audio.recorded
+=================
+
+.. automodule:: an.audio.recorded
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PROVIDER_NAME
+      RECORDINGS_STORE
+      RECORDING_OPTION
+      RECORD_VERSION
+      RECORDED_VOICE_SUFFIX
+      DFLT_MATCH_THRESHOLD
+      DENOISE_FILTERS
+      DFLT_DENOISE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      import_recordings
+      add_recording
+      find_recording
+      recording_by_digest
+      read_recording
+      recording_key
+      normalize_key_text
+      audio_paths
+      scribed_transcriber
+      load_wav
+      cut_wav
+      wav_seconds
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RecordedTTS
+      ImportedTake
+      ImportReport
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RecordedVoicesError
+      RecordingMissingError
+      TranscriberUnavailableError
+   

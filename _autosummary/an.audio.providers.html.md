@@ -16,10 +16,11 @@ specific classes.
 
 ### Module Attributes
 
-| [`DEFAULT_LANGUAGE`](#an.audio.providers.DEFAULT_LANGUAGE)   | The language a provider aligns for when the caller says nothing.     |
-|---------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`LIPSYNC_FACTORIES`](#an.audio.providers.LIPSYNC_FACTORIES)  | The lip-sync providers the core itself offers.                       |
-| [`DFLT_LIPSYNC`](#an.audio.providers.DFLT_LIPSYNC)       | The provider `default_lipsync()` prefers when a genre registered it. |
+| [`TTS_FACTORIES`](#an.audio.providers.TTS_FACTORIES)     | A factory takes no arguments, or `mall=` when the provider reads a project store (`recorded`): [`make_tts()`](#an.audio.providers.make_tts) passes it only to those that accept it.   |
+|--------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_LANGUAGE`](#an.audio.providers.DEFAULT_LANGUAGE)  | The language a provider aligns for when the caller says nothing.                                                                                                                                     |
+| [`LIPSYNC_FACTORIES`](#an.audio.providers.LIPSYNC_FACTORIES) | The lip-sync providers the core itself offers.                                                                                                                                                       |
+| [`DFLT_LIPSYNC`](#an.audio.providers.DFLT_LIPSYNC)      | The provider `default_lipsync()` prefers when a genre registered it.                                                                                                                                 |
 
 ### Functions
 
@@ -28,7 +29,7 @@ specific classes.
 | [`known_tts_names`](#an.audio.providers.known_tts_names)()                  | Return the registered TTS provider names.                                     |
 | [`lipsync_factories`](#an.audio.providers.lipsync_factories)()                | Every lip-sync factory by name: the core's, then the loaded genres' services. |
 | [`make_lipsync`](#an.audio.providers.make_lipsync)(name, \*[, language]) | Instantiate a LipSync provider by name.                                       |
-| [`make_tts`](#an.audio.providers.make_tts)(name)                     | Instantiate a TTS provider by name.                                           |
+| [`make_tts`](#an.audio.providers.make_tts)(name, \*[, mall])         | Instantiate a TTS provider by name.                                           |
 
 ### an.audio.providers.DEFAULT_LANGUAGE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'en'*
 
@@ -44,6 +45,11 @@ The provider `default_lipsync()` prefers when a genre registered it.
 The lip-sync providers the core itself offers. A genre adds its own through
 the `lipsync.<name>` service (`cutan`: `offline`, `rhubarb`,
 `whisper`); see [`lipsync_factories()`](#an.audio.providers.lipsync_factories).
+
+### an.audio.providers.TTS_FACTORIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[..., [TTSProvider](an.audio.tts.html.md#an.audio.tts.TTSProvider)]]* *= {'elevenlabs': <function <lambda>>, 'mac_say': <function <lambda>>, 'offline': <function <lambda>>, 'recorded': <function \_recorded_factory>}*
+
+A factory takes no arguments, or `mall=` when the provider reads a project
+store (`recorded`): [`make_tts()`](#an.audio.providers.make_tts) passes it only to those that accept it.
 
 ### an.audio.providers.known_lipsync_names()
 
@@ -85,11 +91,19 @@ True
 * **Return type:**
   [`LipSyncProvider`](an.audio.lipsync.html.md#an.audio.lipsync.LipSyncProvider)
 
-### an.audio.providers.make_tts(name)
+### an.audio.providers.make_tts(name, , mall=None)
 
 Instantiate a TTS provider by name.
 
-Raises `ValueError` for unknown names with a list of known options.
+`mall` (the project mall) reaches the factories that take it — the
+`recorded` provider reads the project’s `recordings` store; the others
+are built as before. Raises `ValueError` for unknown names with a list of
+known options.
+
+```pycon
+>>> make_tts("recorded").name
+'recorded'
+```
 
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)

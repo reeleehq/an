@@ -1,0 +1,12 @@
+an.stores.recordings
+====================
+
+.. automodule:: an.stores.recordings
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RecordingsStore
+   

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=14ec15e6"></script>
+    <script src="../../_static/documentation_options.js?v=b09491ff"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.242" />
+  <meta name="docsearch:version" content="0.1.243" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1059,8 +1059,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``only`` restricts the walk to those ``store/key`` names (what a render</span>
 <span class="sd">    used, :func:`credits_for_scene`) — nothing else is read.</span>
 
-<span class="sd">    Four stores carry provenance: characters, **props** (an#108),</span>
-<span class="sd">    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store</span>
+<span class="sd">    Five stores carry provenance: characters, **props** (an#108),</span>
+<span class="sd">    **environments** (an#110), **sounds** and **recordings** (a performer's</span>
+<span class="sd">    takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store</span>
 <span class="sd">    real art, which is the rule rather than a coincidence — a walk that skips a</span>
 <span class="sd">    store holding third-party plates does not return less information, it</span>
 <span class="sd">    returns an affirmative false statement to exactly the people who need the</span>
@@ -1072,7 +1073,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    record from `metadata.dicebear_*`, which no other store has ever written.</span>
 <span class="sd">    """</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">CreditsReport</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">store_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">,</span> <span class="s2">"environments"</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">store_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">,</span> <span class="s2">"environments"</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">,</span> <span class="s2">"recordings"</span><span class="p">):</span>
         <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -1671,14 +1672,18 @@ window.runMermaid = runMermaid;</script>
                             <span class="s2">"label it carried speaks only for the bytes it was "</span>
                             <span class="s2">"declared on"</span>
                             <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">changed</span>
-                            <span class="k">else</span> <span class="s2">"a factory stamp the factory's own record of what "</span>
-                            <span class="s2">"it drew does not confirm"</span>
-                            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unconfirmed</span>
-                            <span class="k">else</span> <span class="s2">"the stamp on this part no longer matches its bytes "</span>
-                            <span class="s2">"(re-drawn or re-carved)"</span>
-                            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span>
-                            <span class="k">else</span> <span class="s2">"no stamp pins these bytes, and the descriptor's "</span>
-                            <span class="s2">"source was written by a generator, not a person"</span>
+                            <span class="k">else</span> <span class="p">(</span>
+                                <span class="s2">"a factory stamp the factory's own record of what "</span>
+                                <span class="s2">"it drew does not confirm"</span>
+                                <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unconfirmed</span>
+                                <span class="k">else</span> <span class="p">(</span>
+                                    <span class="s2">"the stamp on this part no longer matches its bytes "</span>
+                                    <span class="s2">"(re-drawn or re-carved)"</span>
+                                    <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span>
+                                    <span class="k">else</span> <span class="s2">"no stamp pins these bytes, and the descriptor's "</span>
+                                    <span class="s2">"source was written by a generator, not a person"</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
                         <span class="p">),</span>
                     <span class="p">},</span>
                 <span class="p">),</span>
@@ -1888,6 +1893,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">provider</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"provider"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">provider</span> <span class="ow">or</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">OWN_SPEECH_PROVIDERS</span><span class="p">:</span>
             <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">_recorded_provider_name</span><span class="p">():</span>
+            <span class="c1"># A recorded voice's speech is its takes, each credited from the</span>
+            <span class="c1"># recordings store with the performer and the permission recorded</span>
+            <span class="c1"># at import (:func:`_recorded_takes_used`) — not synthesized speech.</span>
+            <span class="k">continue</span>
         <span class="n">said</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">SPEECH_EXTRA_MODEL</span><span class="p">:</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_id"</span><span class="p">),</span>
             <span class="s2">"voice"</span><span class="p">:</span> <span class="n">voice</span><span class="p">,</span>
@@ -1928,6 +1938,34 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_recorded_provider_name</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROVIDER_NAME</span>
+
+    <span class="k">return</span> <span class="n">PROVIDER_NAME</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_recorded_takes_used</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">scene</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``recordings/&lt;key&gt;`` of every take a line of a recorded voice plays</span>
+<span class="sd">    (an#490): the performer and the permission a render owes for that line."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.recorded</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_recording</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">declared_provider</span><span class="p">,</span> <span class="n">line_voice_id</span>
+
+    <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"recordings"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">recorded</span> <span class="o">=</span> <span class="n">_recorded_provider_name</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="s2">"dialogue"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="n">voice</span> <span class="o">=</span> <span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">declared_provider</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice</span><span class="p">)</span> <span class="o">!=</span> <span class="n">recorded</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="n">find_recording</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">voice</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"recordings/</span><span class="si">{</span><span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <div class="viewcode-block" id="credits_for_scene">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.credits_for_scene">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">credits_for_scene</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">scene</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
@@ -1947,6 +1985,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
         <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">used</span> <span class="o">|=</span> <span class="n">_recorded_takes_used</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
     <span class="n">full</span> <span class="o">=</span> <span class="n">collect_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">only</span><span class="o">=</span><span class="n">used</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">CreditsReport</span><span class="p">(</span>
         <span class="n">entries</span><span class="o">=</span><span class="p">[</span>

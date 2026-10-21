@@ -278,7 +278,7 @@ False
 * **Return type:**
   [`ValidationReport`](#an.ir.validate.ValidationReport)
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, only=None, fps=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, available_styles=None, available_recordings=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 

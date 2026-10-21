@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.audio.recorded.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.audio.recorded.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.audio.recorded &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=b09491ff"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.audio.recorded';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.audio.takes" href="an.audio.takes.html" />
+    <link rel="prev" title="an.audio.providers" href="an.audio.providers.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.243" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.core_corpus.html">an.bench.core_corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.capabilities.html">an.capabilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.capabilities.subjects.html">an.capabilities.subjects</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.cli.html">an.library.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.federation.html">an.library.federation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.mcp.html">an.mcp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.server.html">an.mcp.server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props_cli.html">an.props_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.seeds.html">an.semantic.seeds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_anchors.html">an.sound_anchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_fetch.html">an.sound_fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds_cli.html">an.sounds_cli</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.gradients.html">an.stage.gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_wobble.html">an.stage.path_wobble</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.recordings.html">an.stores.recordings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.audio.html" class="nav-link">an.audio</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.recorded</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.audio.recorded">
+<span id="an-audio-recorded"></span><h1>an.audio.recorded<a class="headerlink" href="#module-an.audio.recorded" title="Link to this heading">#</a></h1>
+<p>Recorded voices: a performer’s takes as the voice of a character (an#490).</p>
+<p>A production that records its actors has the voices already; nothing should be
+synthesized, billed, or approximated. This module makes a recording a
+first-class input, through the seams the audio pipeline already has:</p>
+<ul>
+<li><p><strong>The take is a voice.</strong> <a class="reference internal" href="#an.audio.recorded.RecordedTTS" title="an.audio.recorded.RecordedTTS"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a> is a <a class="reference internal" href="an.audio.tts.html#an.audio.tts.TTSProvider" title="an.audio.tts.TTSProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">TTSProvider</span></code></a>
+named <code class="docutils literal notranslate"><span class="pre">recorded</span></code> whose “synthesis” is a lookup in the project’s
+<code class="docutils literal notranslate"><span class="pre">recordings</span></code> store (<a class="reference internal" href="an.stores.recordings.html#an.stores.recordings.RecordingsStore" title="an.stores.recordings.RecordingsStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecordingsStore</span></code></a>). A voice
+document that declares <code class="docutils literal notranslate"><span class="pre">provider:</span> <span class="pre">recorded</span></code> is spoken by it (an#305), so
+takes, effects, leveling, captions, the shot cache and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> work
+unchanged, and nothing is billed: the provider declares <code class="docutils literal notranslate"><span class="pre">billed</span> <span class="pre">=</span> <span class="pre">False</span></code>
+and <code class="docutils literal notranslate"><span class="pre">repeatable</span> <span class="pre">=</span> <span class="pre">True</span></code>. Its <code class="docutils literal notranslate"><span class="pre">synthesis_options</span></code> hook keys each line by
+the digest of the take it has for it, so a re-recorded line is a new audio
+key, never a stale cache hit.</p></li>
+<li><p><strong>The words travel with the clip.</strong> A take imported with a timed transcript
+(or transcribed) knows its word timings; they are stored with it, handed to
+the pipeline on <a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip.words" title="an.audio.tts.AudioClip.words"><code class="xref py py-attr docutils literal notranslate"><span class="pre">words</span></code></a>, and a lip-sync
+provider that aligns from words (<code class="docutils literal notranslate"><span class="pre">cutan</span></code>’s) uses them instead of its own
+transcription — the mouth follows the performance.</p></li>
+<li><p><strong>Import</strong> (<a class="reference internal" href="#an.audio.recorded.import_recordings" title="an.audio.recorded.import_recordings"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_recordings()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">import</span></code>): one or more
+audio files — a whole take with several lines, or one file per line — with an
+optional transcript (SRT, WebVTT, TextGrid, word JSON or plain text:
+<a class="reference internal" href="an.audio.transcripts.html#module-an.audio.transcripts" title="an.audio.transcripts"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.transcripts</span></code></a>). Each line of the recording is cut out, matched</p>
+<blockquote>
+<div><p>to the scene’s dialogue by its words (a line the scene does not have yet is
+added to the shot you name), and stored with its provenance: who recorded it,
+under which licence or permission, from which file and span. The speaker’s
+character is bound to the recorded voice; the gap heard between two lines
+becomes the next line’s <code class="docutils literal notranslate"><span class="pre">pause</span></code>, so the shot’s timing follows the recording.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Seams, each one keyword argument of <a class="reference internal" href="#an.audio.recorded.import_recordings" title="an.audio.recorded.import_recordings"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_recordings()</span></code></a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">transcribe</span></code>: a callable <code class="docutils literal notranslate"><span class="pre">path</span> <span class="pre">-&gt;</span> <span class="pre">segments</span></code> for a take that comes with no
+timed transcript; the default is scribed’s facade (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span>
+<span class="pre">&quot;an[recorded]&quot;</span></code>, then a backend of your choice — words and, where the
+backend has it, speakers). Not needed for one file per line or a timed
+transcript: those paths run with no model at all.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">denoise</span></code>: off; a strategy name runs the matching ffmpeg filter
+(<a class="reference internal" href="#an.audio.recorded.DENOISE_FILTERS" title="an.audio.recorded.DENOISE_FILTERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DENOISE_FILTERS</span></code></a>) before anything else; <code class="docutils literal notranslate"><span class="pre">voxy.refprep.condition</span></code> is
+the fuller conditioning when you want more.</p></li>
+<li><p>Speaker attribution: <code class="docutils literal notranslate"><span class="pre">speaker</span></code> (one performer), <code class="docutils literal notranslate"><span class="pre">speakers</span></code> (a label →
+character map, for a diarizer’s or a transcript’s labels and file stems), the
+transcript’s own <code class="docutils literal notranslate"><span class="pre">speaker:</span></code> prefixes, the file’s stem, or the scene line
+the words match.</p></li>
+</ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span> <span class="o">=</span> <span class="n">RecordedTTS</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">billed</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">repeatable</span>
+<span class="go">('recorded', False, True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_key_text</span><span class="p">(</span><span class="s2">"Hello, there!"</span><span class="p">)</span> <span class="o">==</span> <span class="n">normalize_key_text</span><span class="p">(</span><span class="s2">"hello there"</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.PROVIDER_NAME" title="an.audio.recorded.PROVIDER_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROVIDER_NAME</span></code></a></p></td>
+<td><p>what a voice document's <code class="docutils literal notranslate"><span class="pre">provider</span></code> says.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.RECORDINGS_STORE" title="an.audio.recorded.RECORDINGS_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RECORDINGS_STORE</span></code></a></p></td>
+<td><p>The mall store the takes live in (<code class="docutils literal notranslate"><span class="pre">assets/recordings/&lt;key&gt;/</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.RECORDING_OPTION" title="an.audio.recorded.RECORDING_OPTION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RECORDING_OPTION</span></code></a></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> keyword (and audio-key option) naming the take by digest.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.RECORD_VERSION" title="an.audio.recorded.RECORD_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RECORD_VERSION</span></code></a></p></td>
+<td><p>The shape of a record in the store; raised when a field changes meaning.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.RECORDED_VOICE_SUFFIX" title="an.audio.recorded.RECORDED_VOICE_SUFFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RECORDED_VOICE_SUFFIX</span></code></a></p></td>
+<td><p>The voice document a speaker's takes are bound to, when <code class="docutils literal notranslate"><span class="pre">voice</span></code> names none.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.DFLT_MATCH_THRESHOLD" title="an.audio.recorded.DFLT_MATCH_THRESHOLD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MATCH_THRESHOLD</span></code></a></p></td>
+<td><p>How alike (<code class="docutils literal notranslate"><span class="pre">difflib</span></code> ratio over normalized words) a take's words and a scene line must be for the take to be that line's.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.DENOISE_FILTERS" title="an.audio.recorded.DENOISE_FILTERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DENOISE_FILTERS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">denoise</span></code> strategies → the ffmpeg filter that runs (voxy.refprep's table).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.DFLT_DENOISE" title="an.audio.recorded.DFLT_DENOISE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_DENOISE</span></code></a></p></td>
+<td><p>The strategy a bare request for denoising means.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.import_recordings" title="an.audio.recorded.import_recordings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_recordings</span></code></a>(project, audio, *[, ...])</p></td>
+<td><p>Import a performer's recording(s) as the voice of their lines (an#490).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.add_recording" title="an.audio.recorded.add_recording"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_recording</span></code></a>(store, *, voice, speaker, ...)</p></td>
+<td><p>Put a take (WAV <code class="docutils literal notranslate"><span class="pre">audio</span></code> of <code class="docutils literal notranslate"><span class="pre">speaker</span></code> saying <code class="docutils literal notranslate"><span class="pre">text</span></code>, spoken for <code class="docutils literal notranslate"><span class="pre">voice</span></code>) in <code class="docutils literal notranslate"><span class="pre">store</span></code> with its provenance; <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.find_recording" title="an.audio.recorded.find_recording"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_recording</span></code></a>(store, voice, text)</p></td>
+<td><p>The newest take of <code class="docutils literal notranslate"><span class="pre">text</span></code> for <code class="docutils literal notranslate"><span class="pre">voice</span></code> in <code class="docutils literal notranslate"><span class="pre">store</span></code>, as <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> if none.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.recording_by_digest" title="an.audio.recorded.recording_by_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recording_by_digest</span></code></a>(store, sha256, *[, text])</p></td>
+<td><p>The take whose audio has <code class="docutils literal notranslate"><span class="pre">sha256</span></code>, as <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> if none.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.read_recording" title="an.audio.recorded.read_recording"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_recording</span></code></a>(store, key)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(record,</span> <span class="pre">wav_bytes)</span></code> for <code class="docutils literal notranslate"><span class="pre">key</span></code>, the bytes checked against the record's digest.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.recording_key" title="an.audio.recorded.recording_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recording_key</span></code></a>(speaker, text, sha256)</p></td>
+<td><p>A readable, unique store key: <code class="docutils literal notranslate"><span class="pre">&lt;speaker&gt;--&lt;words&gt;--&lt;digest</span> <span class="pre">prefix&gt;</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.normalize_key_text" title="an.audio.recorded.normalize_key_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_key_text</span></code></a>(text)</p></td>
+<td><p>The form a line's text is matched by: <a class="reference internal" href="an.audio.transcripts.html#an.audio.transcripts.normalize_text" title="an.audio.transcripts.normalize_text"><code class="xref py py-func docutils literal notranslate"><span class="pre">normalize_text()</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.audio_paths" title="an.audio.recorded.audio_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">audio_paths</span></code></a>(audio)</p></td>
+<td><p>The audio files <code class="docutils literal notranslate"><span class="pre">audio</span></code> names: a file, a directory (its audio files, sorted), a glob, a comma-separated list, or a sequence of those.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.scribed_transcriber" title="an.audio.recorded.scribed_transcriber"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scribed_transcriber</span></code></a>([backend, diarize])</p></td>
+<td><p>The default transcriber: scribed's facade with word timestamps (and speaker labels when <code class="docutils literal notranslate"><span class="pre">diarize</span></code> and the backend has them).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.load_wav" title="an.audio.recorded.load_wav"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_wav</span></code></a>(path, *[, denoise])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">path</span></code> as 16-bit PCM WAV bytes: a PCM WAV is taken as it is; anything else (MP3, M4A, a video's audio) is decoded with ffmpeg to mono at <code class="xref py py-data docutils literal notranslate"><span class="pre">IMPORT_SAMPLE_RATE</span></code>; <code class="docutils literal notranslate"><span class="pre">denoise</span></code> (a key of <a class="reference internal" href="#an.audio.recorded.DENOISE_FILTERS" title="an.audio.recorded.DENOISE_FILTERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DENOISE_FILTERS</span></code></a>) runs that filter first, which also goes through ffmpeg.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.cut_wav" title="an.audio.recorded.cut_wav"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_wav</span></code></a>(wav, start, end)</p></td>
+<td><p>The frames of <code class="docutils literal notranslate"><span class="pre">wav</span></code> between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> seconds, as a WAV of the same format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.wav_seconds" title="an.audio.recorded.wav_seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wav_seconds</span></code></a>(wav)</p></td>
+<td><p>The length of a PCM WAV, seconds.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.RecordedTTS" title="an.audio.recorded.RecordedTTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a>(*[, recordings])</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">recorded</span></code> TTS provider: a line's audio is the take imported for it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.ImportedTake" title="an.audio.recorded.ImportedTake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImportedTake</span></code></a>(key, speaker, voice, text, ...)</p></td>
+<td><p>One take the import stored, and where it went.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.ImportReport" title="an.audio.recorded.ImportReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImportReport</span></code></a>([takes, voices, warnings])</p></td>
+<td><p>What <a class="reference internal" href="#an.audio.recorded.import_recordings" title="an.audio.recorded.import_recordings"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_recordings()</span></code></a> did; <code class="docutils literal notranslate"><span class="pre">str()</span></code> is the CLI's output.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.RecordedVoicesError" title="an.audio.recorded.RecordedVoicesError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordedVoicesError</span></code></a></p></td>
+<td><p>An import, or a lookup of a take, that cannot proceed; the message says what to do.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.recorded.RecordingMissingError" title="an.audio.recorded.RecordingMissingError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordingMissingError</span></code></a></p></td>
+<td><p>A line spoken by a recorded voice has no take in the store.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.recorded.TranscriberUnavailableError" title="an.audio.recorded.TranscriberUnavailableError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TranscriberUnavailableError</span></code></a></p></td>
+<td><p>A take needs transcribing and no transcriber can run here.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.DENOISE_FILTERS">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">DENOISE_FILTERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'afftdn':</span> <span class="pre">'afftdn',</span> <span class="pre">'anlmdn':</span> <span class="pre">'anlmdn'}</span></span><a class="headerlink" href="#an.audio.recorded.DENOISE_FILTERS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">denoise</span></code> strategies → the ffmpeg filter that runs (voxy.refprep’s table).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.DFLT_DENOISE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">DFLT_DENOISE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'afftdn'</span></span><a class="headerlink" href="#an.audio.recorded.DFLT_DENOISE" title="Link to this definition">#</a></dt>
+<dd><p>The strategy a bare request for denoising means.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.DFLT_MATCH_THRESHOLD">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">DFLT_MATCH_THRESHOLD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.75</span></span><a class="headerlink" href="#an.audio.recorded.DFLT_MATCH_THRESHOLD" title="Link to this definition">#</a></dt>
+<dd><p>How alike (<code class="docutils literal notranslate"><span class="pre">difflib</span></code> ratio over normalized words) a take’s words and a
+scene line must be for the take to be that line’s.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.recorded.ImportReport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">ImportReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">takes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">list()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#ImportReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.ImportReport" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What <a class="reference internal" href="#an.audio.recorded.import_recordings" title="an.audio.recorded.import_recordings"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_recordings()</span></code></a> did; <code class="docutils literal notranslate"><span class="pre">str()</span></code> is the CLI’s output.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.recorded.ImportedTake">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">ImportedTake</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#ImportedTake"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.ImportedTake" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One take the import stored, and where it went.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.recorded.ImportedTake.added">
+<span class="sig-name descname"><span class="pre">added</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#an.audio.recorded.ImportedTake.added" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> when the line was ADDED to the scene by this import.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.recorded.ImportedTake.line">
+<span class="sig-name descname"><span class="pre">line</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.audio.recorded.ImportedTake.line" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;shot</span> <span class="pre">id&gt;/&lt;line</span> <span class="pre">index&gt;&quot;</span></code> of the scene line it is the audio of.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.recorded.ImportedTake.pause">
+<span class="sig-name descname"><span class="pre">pause</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#an.audio.recorded.ImportedTake.pause" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">pause</span></code> written on the line from the recording, if any.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.PROVIDER_NAME">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">PROVIDER_NAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'recorded'</span></span><a class="headerlink" href="#an.audio.recorded.PROVIDER_NAME" title="Link to this definition">#</a></dt>
+<dd><p>what a voice document’s <code class="docutils literal notranslate"><span class="pre">provider</span></code> says.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The TTS provider’s name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.RECORDED_VOICE_SUFFIX">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RECORDED_VOICE_SUFFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_recorded'</span></span><a class="headerlink" href="#an.audio.recorded.RECORDED_VOICE_SUFFIX" title="Link to this definition">#</a></dt>
+<dd><p>The voice document a speaker’s takes are bound to, when <code class="docutils literal notranslate"><span class="pre">voice</span></code> names none.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.RECORDINGS_STORE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RECORDINGS_STORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'recordings'</span></span><a class="headerlink" href="#an.audio.recorded.RECORDINGS_STORE" title="Link to this definition">#</a></dt>
+<dd><p>The mall store the takes live in (<code class="docutils literal notranslate"><span class="pre">assets/recordings/&lt;key&gt;/</span></code>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.RECORDING_OPTION">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RECORDING_OPTION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'recording'</span></span><a class="headerlink" href="#an.audio.recorded.RECORDING_OPTION" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> keyword (and audio-key option) naming the take by digest.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.recorded.RECORD_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RECORD_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.recorded.RECORD_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>The shape of a record in the store; raised when a field changes meaning.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RecordedTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">recordings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">recorded</span></code> TTS provider: a line’s audio is the take imported for it.</p>
+<p>Built by <a class="reference internal" href="an.audio.providers.html#an.audio.providers.make_tts" title="an.audio.providers.make_tts"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.providers.make_tts()</span></code></a> with the project mall, so it
+reads <code class="docutils literal notranslate"><span class="pre">mall[&quot;recordings&quot;]</span></code>; the pipeline hands it each line’s text and
+voice through <a class="reference internal" href="#an.audio.recorded.RecordedTTS.synthesis_options" title="an.audio.recorded.RecordedTTS.synthesis_options"><code class="xref py py-meth docutils literal notranslate"><span class="pre">synthesis_options()</span></code></a> (which keys the line by its take’s
+digest) and <a class="reference internal" href="#an.audio.recorded.RecordedTTS.synthesize" title="an.audio.recorded.RecordedTTS.synthesize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">synthesize()</span></code></a>. A line with no take raises
+<a class="reference internal" href="#an.audio.recorded.RecordingMissingError" title="an.audio.recorded.RecordingMissingError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecordingMissingError</span></code></a> before anything else is touched — a recorded
+voice never falls back to a synthesized one.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RecordedTTS</span><span class="p">()</span><span class="o">.</span><span class="n">check_available</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">an.audio.recorded.RecordedVoicesError</span>: <span class="n">the recorded provider has no recordings store ...</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.list_voices">
+<span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.list_voices" title="Link to this definition">#</a></dt>
+<dd><p>One entry per voice that has takes in the store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.VoiceMeta" title="an.audio.tts.VoiceMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceMeta</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.repeatable">
+<span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.recorded.RecordedTTS.repeatable" title="Link to this definition">#</a></dt>
+<dd><p>The same request gives the same bytes, and nothing is billed (an#311).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.synthesis_options">
+<span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice_doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">emotion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.synthesis_options" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{&quot;recording&quot;:</span> <span class="pre">&lt;digest&gt;}</span></code> of the take this line has — the audio key
+follows the take, so a re-recorded line is new audio.</p>
+<p>A line with no take is refused HERE, when the pipeline resolves every
+line’s request before the first synthesis: nothing of the scene is
+produced for a recorded voice that is missing a take. Without a line
+(<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> asks about the voice alone) there is nothing to refuse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">recording</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.synthesize" title="Link to this definition">#</a></dt>
+<dd><p>The take of <code class="docutils literal notranslate"><span class="pre">text</span></code> in <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> (by <code class="docutils literal notranslate"><span class="pre">recording</span></code> digest when given), with its words.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedTTS.words_for_clip">
+<span class="sig-name descname"><span class="pre">words_for_clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedTTS.words_for_clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedTTS.words_for_clip" title="Link to this definition">#</a></dt>
+<dd><p>The stored words of the take whose bytes <code class="docutils literal notranslate"><span class="pre">clip</span></code> carries, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordedVoicesError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RecordedVoicesError</span></span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordedVoicesError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordedVoicesError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>An import, or a lookup of a take, that cannot proceed; the message says what to do.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.recorded.RecordingMissingError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">RecordingMissingError</span></span><a class="reference internal" href="../_modules/an/audio/recorded.html#RecordingMissingError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.RecordingMissingError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.audio.recorded.RecordedVoicesError" title="an.audio.recorded.RecordedVoicesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecordedVoicesError</span></code></a></p>
+<p>A line spoken by a recorded voice has no take in the store.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.recorded.TranscriberUnavailableError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">TranscriberUnavailableError</span></span><a class="reference internal" href="../_modules/an/audio/recorded.html#TranscriberUnavailableError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.TranscriberUnavailableError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.audio.recorded.RecordedVoicesError" title="an.audio.recorded.RecordedVoicesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecordedVoicesError</span></code></a></p>
+<p>A take needs transcribing and no transcriber can run here.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.add_recording">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">add_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imported_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#add_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.add_recording" title="Link to this definition">#</a></dt>
+<dd><p>Put a take (WAV <code class="docutils literal notranslate"><span class="pre">audio</span></code> of <code class="docutils literal notranslate"><span class="pre">speaker</span></code> saying <code class="docutils literal notranslate"><span class="pre">text</span></code>, spoken for
+<code class="docutils literal notranslate"><span class="pre">voice</span></code>) in <code class="docutils literal notranslate"><span class="pre">store</span></code> with its provenance; <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">source</span></code> is required: a recording with no recorded origin is exactly the
+asset <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> cannot vouch for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.audio_paths">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">audio_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#audio_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.audio_paths" title="Link to this definition">#</a></dt>
+<dd><p>The audio files <code class="docutils literal notranslate"><span class="pre">audio</span></code> names: a file, a directory (its audio files,
+sorted), a glob, a comma-separated list, or a sequence of those.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">audio_paths</span><span class="p">([])</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.cut_wav">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">cut_wav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wav</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#cut_wav"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.cut_wav" title="Link to this definition">#</a></dt>
+<dd><p>The frames of <code class="docutils literal notranslate"><span class="pre">wav</span></code> between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> seconds, as a WAV of the same format.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">w</span><span class="o">.</span><span class="n">setnchannels</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">w</span><span class="o">.</span><span class="n">setsampwidth</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span> <span class="n">w</span><span class="o">.</span><span class="n">setframerate</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;100h"</span><span class="p">,</span> <span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">wav_seconds</span><span class="p">(</span><span class="n">cut_wav</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">0.25</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.find_recording">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">find_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#find_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.find_recording" title="Link to this definition">#</a></dt>
+<dd><p>The newest take of <code class="docutils literal notranslate"><span class="pre">text</span></code> for <code class="docutils literal notranslate"><span class="pre">voice</span></code> in <code class="docutils literal notranslate"><span class="pre">store</span></code>, as <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> if none.</p>
+<p>Texts are compared normalized (case and punctuation aside), so a comma
+added in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> does not orphan the take.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.import_recordings">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">import_recordings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speakers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denoise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">license</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recorded_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcribe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcriber</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diarize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#import_recordings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.import_recordings" title="Link to this definition">#</a></dt>
+<dd><p>Import a performer’s recording(s) as the voice of their lines (an#490).</p>
+<p><code class="docutils literal notranslate"><span class="pre">audio</span></code> names the takes (a file, several, a directory, a glob): a whole
+take holding several lines, or one file per line. <code class="docutils literal notranslate"><span class="pre">transcript</span></code> is
+optional: SRT, WebVTT, TextGrid or word JSON time the lines so nothing is
+transcribed; a plain transcript (<code class="docutils literal notranslate"><span class="pre">speaker:</span> <span class="pre">text</span></code> lines) pairs one line per
+file, or is timed against <code class="docutils literal notranslate"><span class="pre">transcribe</span></code>’s words for a whole take; with no
+transcript at all the take is transcribed and its segments are the lines.</p>
+<p>Each line is cut out, matched to the scene’s dialogue by its words
+(<code class="docutils literal notranslate"><span class="pre">match_threshold</span></code>), stored in <code class="docutils literal notranslate"><span class="pre">mall[&quot;recordings&quot;]</span></code> with its provenance
+(<code class="docutils literal notranslate"><span class="pre">license</span></code> is required: the code you vouch for; <code class="docutils literal notranslate"><span class="pre">recorded_by</span></code> names the
+performer), and the speaker’s character is bound to a recorded voice
+document (<code class="docutils literal notranslate"><span class="pre">voice</span></code>, default <code class="docutils literal notranslate"><span class="pre">&lt;speaker&gt;_recorded</span></code>). Takes matching no line
+are added to <code class="docutils literal notranslate"><span class="pre">shot</span></code> (or the first shot of a scene with no dialogue). The
+gap heard between two lines of one file becomes the later line’s <code class="docutils literal notranslate"><span class="pre">pause</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">denoise</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;afftdn&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;anlmdn&quot;</span></code>) cleans each file first, through
+ffmpeg. <code class="docutils literal notranslate"><span class="pre">transcribe</span></code> is the transcriber seam (<code class="docutils literal notranslate"><span class="pre">path</span> <span class="pre">-&gt;</span> <span class="pre">segments</span></code>); its
+default is <a class="reference internal" href="#an.audio.recorded.scribed_transcriber" title="an.audio.recorded.scribed_transcriber"><code class="xref py py-func docutils literal notranslate"><span class="pre">scribed_transcriber()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">transcriber</span></code> as the backend
+and <code class="docutils literal notranslate"><span class="pre">diarize</span></code> for speaker labels, built only when a take needs it.
+<code class="docutils literal notranslate"><span class="pre">write=False</span></code> runs everything but writes nothing (a dry run).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.audio.recorded.ImportReport" title="an.audio.recorded.ImportReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportReport</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.load_wav">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">load_wav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">denoise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#load_wav"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.load_wav" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">path</span></code> as 16-bit PCM WAV bytes: a PCM WAV is taken as it is; anything
+else (MP3, M4A, a video’s audio) is decoded with ffmpeg to mono at
+<code class="xref py py-data docutils literal notranslate"><span class="pre">IMPORT_SAMPLE_RATE</span></code>; <code class="docutils literal notranslate"><span class="pre">denoise</span></code> (a key of <a class="reference internal" href="#an.audio.recorded.DENOISE_FILTERS" title="an.audio.recorded.DENOISE_FILTERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">DENOISE_FILTERS</span></code></a>)
+runs that filter first, which also goes through ffmpeg.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.normalize_key_text">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">normalize_key_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#normalize_key_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.normalize_key_text" title="Link to this definition">#</a></dt>
+<dd><p>The form a line’s text is matched by: <a class="reference internal" href="an.audio.transcripts.html#an.audio.transcripts.normalize_text" title="an.audio.transcripts.normalize_text"><code class="xref py py-func docutils literal notranslate"><span class="pre">normalize_text()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.read_recording">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">read_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#read_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.read_recording" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(record,</span> <span class="pre">wav_bytes)</span></code> for <code class="docutils literal notranslate"><span class="pre">key</span></code>, the bytes checked against the record’s digest.</p>
+<p>The licence is attached to the digest: different bytes under the key are a
+take nobody vouched for, and are refused.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.recording_by_digest">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">recording_by_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#recording_by_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.recording_by_digest" title="Link to this definition">#</a></dt>
+<dd><p>The take whose audio has <code class="docutils literal notranslate"><span class="pre">sha256</span></code>, as <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">record)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> if none.</p>
+<p>The same bytes may be stored under two records (a take re-imported with its
+text corrected): <code class="docutils literal notranslate"><span class="pre">text</span></code> picks the record whose text it is, so the line
+gets its own words.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.recording_key">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">recording_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speaker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#recording_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.recording_key" title="Link to this definition">#</a></dt>
+<dd><p>A readable, unique store key: <code class="docutils literal notranslate"><span class="pre">&lt;speaker&gt;--&lt;words&gt;--&lt;digest</span> <span class="pre">prefix&gt;</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">recording_key</span><span class="p">(</span><span class="s2">"carl"</span><span class="p">,</span> <span class="s2">"Hello, there!"</span><span class="p">,</span> <span class="s2">"1a2b3c4d5e6f"</span><span class="p">)</span>
+<span class="go">'carl--hello-there--1a2b3c4d'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.scribed_transcriber">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">scribed_transcriber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">diarize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#scribed_transcriber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.scribed_transcriber" title="Link to this definition">#</a></dt>
+<dd><p>The default transcriber: scribed’s facade with word timestamps (and
+speaker labels when <code class="docutils literal notranslate"><span class="pre">diarize</span></code> and the backend has them). The import is
+lazy: a take with a timed transcript never needs it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference internal" href="an.audio.transcripts.html#an.audio.transcripts.TranscriptSegment" title="an.audio.transcripts.TranscriptSegment"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranscriptSegment</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.recorded.wav_seconds">
+<span class="sig-prename descclassname"><span class="pre">an.audio.recorded.</span></span><span class="sig-name descname"><span class="pre">wav_seconds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wav</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/recorded.html#wav_seconds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.recorded.wav_seconds" title="Link to this definition">#</a></dt>
+<dd><p>The length of a PCM WAV, seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.audio.providers.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.audio.providers</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.audio.takes.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.audio.takes</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.DENOISE_FILTERS"><code class="docutils literal notranslate"><span class="pre">DENOISE_FILTERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.DFLT_DENOISE"><code class="docutils literal notranslate"><span class="pre">DFLT_DENOISE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.DFLT_MATCH_THRESHOLD"><code class="docutils literal notranslate"><span class="pre">DFLT_MATCH_THRESHOLD</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.ImportReport"><code class="docutils literal notranslate"><span class="pre">ImportReport</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.ImportedTake"><code class="docutils literal notranslate"><span class="pre">ImportedTake</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.ImportedTake.added"><code class="docutils literal notranslate"><span class="pre">ImportedTake.added</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.ImportedTake.line"><code class="docutils literal notranslate"><span class="pre">ImportedTake.line</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.ImportedTake.pause"><code class="docutils literal notranslate"><span class="pre">ImportedTake.pause</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.PROVIDER_NAME"><code class="docutils literal notranslate"><span class="pre">PROVIDER_NAME</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORDED_VOICE_SUFFIX"><code class="docutils literal notranslate"><span class="pre">RECORDED_VOICE_SUFFIX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORDINGS_STORE"><code class="docutils literal notranslate"><span class="pre">RECORDINGS_STORE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORDING_OPTION"><code class="docutils literal notranslate"><span class="pre">RECORDING_OPTION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RECORD_VERSION"><code class="docutils literal notranslate"><span class="pre">RECORD_VERSION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS"><code class="docutils literal notranslate"><span class="pre">RecordedTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.list_voices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.repeatable</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesis_options()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.synthesize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedTTS.words_for_clip"><code class="docutils literal notranslate"><span class="pre">RecordedTTS.words_for_clip()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordedVoicesError"><code class="docutils literal notranslate"><span class="pre">RecordedVoicesError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.RecordingMissingError"><code class="docutils literal notranslate"><span class="pre">RecordingMissingError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.TranscriberUnavailableError"><code class="docutils literal notranslate"><span class="pre">TranscriberUnavailableError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.add_recording"><code class="docutils literal notranslate"><span class="pre">add_recording()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.audio_paths"><code class="docutils literal notranslate"><span class="pre">audio_paths()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.cut_wav"><code class="docutils literal notranslate"><span class="pre">cut_wav()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.find_recording"><code class="docutils literal notranslate"><span class="pre">find_recording()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.import_recordings"><code class="docutils literal notranslate"><span class="pre">import_recordings()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.load_wav"><code class="docutils literal notranslate"><span class="pre">load_wav()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.normalize_key_text"><code class="docutils literal notranslate"><span class="pre">normalize_key_text()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.read_recording"><code class="docutils literal notranslate"><span class="pre">read_recording()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.recording_by_digest"><code class="docutils literal notranslate"><span class="pre">recording_by_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.recording_key"><code class="docutils literal notranslate"><span class="pre">recording_key()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.scribed_transcriber"><code class="docutils literal notranslate"><span class="pre">scribed_transcriber()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.recorded.wav_seconds"><code class="docutils literal notranslate"><span class="pre">wav_seconds()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.audio.recorded.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

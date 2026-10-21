@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=14ec15e6"></script>
+    <script src="_static/documentation_options.js?v=b09491ff"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.242" />
+  <meta name="docsearch:version" content="0.1.243" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -751,9 +751,13 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.add_audio">add_audio() (in module an.media.mp4)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.add_recording">add_recording() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.sounds.html#an.sounds.add_sound">add_sound() (in module an.sounds)</a>
 </li>
       <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.add_sound_from_url">add_sound_from_url() (in module an.sound_fetch)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.ImportedTake.added">added (an.audio.recorded.ImportedTake attribute)</a>
 </li>
       <li><a href="_autosummary/an.timing.html#an.timing.Address">Address (class in an.timing)</a>
 
@@ -793,6 +797,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.audio.html#an.audio.LipSyncProvider.align">(an.audio.LipSyncProvider method)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.align_words">align_words() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.AlignedWords">AlignedWords (class in an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.CameraShake.amplitude">amplitude (an.ir.schema.CameraShake attribute)</a>
 </li>
       <li>
@@ -1027,10 +1035,24 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li>
+    an.audio.recorded
+
+      <ul>
+        <li><a href="_autosummary/an.audio.recorded.html#module-an.audio.recorded">module</a>
+</li>
+      </ul></li>
+      <li>
     an.audio.takes
 
       <ul>
         <li><a href="_autosummary/an.audio.takes.html#module-an.audio.takes">module</a>
+</li>
+      </ul></li>
+      <li>
+    an.audio.transcripts
+
+      <ul>
+        <li><a href="_autosummary/an.audio.transcripts.html#module-an.audio.transcripts">module</a>
 </li>
       </ul></li>
       <li>
@@ -1621,6 +1643,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.media.supersample.html#module-an.media.supersample">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     an.motion
 
@@ -1628,8 +1652,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.motion.html#module-an.motion">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     an.orchestrate
 
@@ -2037,6 +2059,13 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li>
+    an.stores.recordings
+
+      <ul>
+        <li><a href="_autosummary/an.stores.recordings.html#module-an.stores.recordings">module</a>
+</li>
+      </ul></li>
+      <li>
     an.stores.scenes
 
       <ul>
@@ -2429,6 +2458,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.audio.pipeline.html#an.audio.pipeline.AUDIO_OUTPUT_STORES">AUDIO_OUTPUT_STORES (in module an.audio.pipeline)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.audio_paths">audio_paths() (in module an.audio.recorded)</a>
 </li>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.AUDIO_SAMPLE_RATE">AUDIO_SAMPLE_RATE (in module an.media.mp4)</a>
 </li>
@@ -2928,12 +2959,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.tree.html#an.stage.tree.child_prefix">child_prefix() (in module an.stage.tree)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.semantic.html#an.semantic.Choice">Choice (class in an.semantic)</a>
 </li>
       <li><a href="_autosummary/an.audio.voice_design.html#an.audio.voice_design.choose_project_voice">choose_project_voice() (in module an.audio.voice_design)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.adapters.manim_adapter.html#an.adapters.manim_adapter.choose_quality">choose_quality() (in module an.adapters.manim_adapter)</a>
 </li>
       <li><a href="_autosummary/an.audio.takes.html#an.audio.takes.choose_take">choose_take() (in module an.audio.takes)</a>
@@ -3170,6 +3201,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.formats.html#an.formats.CounterFormatError">CounterFormatError</a>
 </li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.AlignedWords.coverage">coverage (an.audio.transcripts.AlignedWords property)</a>
+</li>
       <li><a href="_autosummary/an.motion.html#an.motion.crawl">crawl() (in module an.motion)</a>
 </li>
       <li><a href="_autosummary/an.library.stores.html#an.library.stores.LocalFiles.create_only">create_only() (an.library.stores.LocalFiles method)</a>
@@ -3224,7 +3257,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.ir.validate.html#an.ir.validate.CUT_CONTINUITY_TOLERANCE">CUT_CONTINUITY_TOLERANCE (in module an.ir.validate)</a>
 </li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.cut_spans">cut_spans() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.sound_fetch.html#an.sound_fetch.cut_to_wav">cut_to_wav() (in module an.sound_fetch)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.cut_wav">cut_wav() (in module an.audio.recorded)</a>
 </li>
       <li><a href="_autosummary/an.stage.cache_key.html#an.stage.cache_key.cutout_environment">cutout_environment() (in module an.stage.cache_key)</a>
 </li>
@@ -3434,6 +3471,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.bench.imageio.html#an.bench.imageio.delivered_pix_fmt">delivered_pix_fmt() (in module an.bench.imageio)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.DENOISE_FILTERS">DENOISE_FILTERS (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.bench.stage.html#an.bench.stage.PlaneTrack.depth">depth (an.bench.stage.PlaneTrack attribute)</a>
 
       <ul>
@@ -3448,10 +3487,10 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.build.derived.html#an.build.derived.DerivedStores">DerivedStores (class in an.build.derived)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.build.derived.html#an.build.derived.DerivedStoresRegistrationError">DerivedStoresRegistrationError</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.engines.html#an.engines.describe">describe() (in module an.engines)</a>
 
       <ul>
@@ -3494,6 +3533,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.build.html#an.build.ShotKeyInputs.details">(an.build.ShotKeyInputs attribute)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.detect_format">detect_format() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.verify.media.html#an.verify.media.detect_silence">detect_silence() (in module an.verify.media)</a>
 </li>
       <li><a href="_autosummary/an.determinism.html#an.determinism.determinism_enforced">determinism_enforced() (in module an.determinism)</a>
@@ -3504,11 +3545,15 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.fidelity.html#an.stage.fidelity.DFLT_ASPECT_TOLERANCE">DFLT_ASPECT_TOLERANCE (in module an.stage.fidelity)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.DFLT_DENOISE">DFLT_DENOISE (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.bench.corpus.html#an.bench.corpus.DFLT_FIXTURES">DFLT_FIXTURES (in module an.bench.corpus)</a>
 </li>
       <li><a href="_autosummary/an.paint.html#an.paint.DFLT_GRADIENT_ANGLE">DFLT_GRADIENT_ANGLE (in module an.paint)</a>
 </li>
       <li><a href="_autosummary/an.audio.providers.html#an.audio.providers.DFLT_LIPSYNC">DFLT_LIPSYNC (in module an.audio.providers)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.DFLT_MATCH_THRESHOLD">DFLT_MATCH_THRESHOLD (in module an.audio.recorded)</a>
 </li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.DFLT_SHAKE_DURATION">DFLT_SHAKE_DURATION (in module an.ir.schema)</a>
 </li>
@@ -3770,12 +3815,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.timing.address.html#an.timing.address.ENTITY_FIELD_SEP">ENTITY_FIELD_SEP (in module an.timing.address)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.genres.html#an.genres.entity_space_resolver">entity_space_resolver() (in module an.genres)</a>
 </li>
       <li><a href="_autosummary/an.stage.serialize.html#an.stage.serialize.CutoutSceneMetaJSON.entity_spaces">entity_spaces (an.stage.serialize.CutoutSceneMetaJSON attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.entity_spaces_of">entity_spaces_of() (in module an.stage.compile)</a>
 </li>
       <li><a href="_autosummary/an.styles.html#an.styles.StylePack.entity_surfaces">entity_surfaces (an.styles.StylePack attribute)</a>
@@ -3808,6 +3853,16 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="_autosummary/an.build.html#an.build.ShotCache.entry_ids">(an.build.ShotCache method)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/an.stores.recordings.html#an.stores.recordings.RecordingsStore.ENTRY_NOUN">ENTRY_NOUN (an.stores.recordings.RecordingsStore attribute)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.stores.html#an.stores.RecordingsStore.ENTRY_NOUN">(an.stores.RecordingsStore attribute)</a>
+</li>
+        <li><a href="_autosummary/an.stores.sounds.html#an.stores.sounds.SoundsStore.ENTRY_NOUN">(an.stores.sounds.SoundsStore attribute)</a>
+</li>
+        <li><a href="_autosummary/an.stores.html#an.stores.SoundsStore.ENTRY_NOUN">(an.stores.SoundsStore attribute)</a>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.genres.html#an.genres.ENTRY_POINT_GROUP">ENTRY_POINT_GROUP (in module an.genres)</a>
@@ -4002,6 +4057,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.adapters.html#an.adapters.RendererRegistry.find_for">find_for() (an.adapters.RendererRegistry method)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.find_recording">find_recording() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.verify.html#an.verify.Finding">Finding (class in an.verify)</a>
 </li>
       <li><a href="_autosummary/an.render.html#an.render.FINDING_GROUPS">FINDING_GROUPS (in module an.render)</a>
@@ -4058,10 +4115,10 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.stage.path_geometry.html#an.stage.path_geometry.flatten_curve">flatten_curve() (in module an.stage.path_geometry)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.ir.compose.html#an.ir.compose.FlattenContext">FlattenContext (class in an.ir.compose)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.bench.metrics.html#an.bench.metrics.FLICKER_DELTA_TOL">FLICKER_DELTA_TOL (in module an.bench.metrics)</a>
 </li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Captions.font">font (an.ir.schema.Captions attribute)</a>
@@ -4103,6 +4160,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.bench.mutants.html#an.bench.mutants.format_results">format_results() (in module an.bench.mutants)</a>
 </li>
       <li><a href="_autosummary/an.audio.cli.html#an.audio.cli.format_voices">format_voices() (in module an.audio.cli)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.FORMATS">FORMATS (in module an.audio.transcripts)</a>
 </li>
       <li><a href="_autosummary/an.stage.cache_key.html#an.stage.cache_key.FORWARDING_CALLS">FORWARDING_CALLS (in module an.stage.cache_key)</a>
 </li>
@@ -4219,6 +4278,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.semantic.html#an.semantic.Entry.from_json">from_json() (an.semantic.Entry class method)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.from_transcript_object">from_transcript_object() (in module an.audio.transcripts)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -4419,6 +4480,18 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.stage.raster.html#an.stage.raster.image_size">image_size() (in module an.stage.raster)</a>
 </li>
       <li><a href="_autosummary/an.library.stores.html#an.library.stores.ImmutableBlobs">ImmutableBlobs (class in an.library.stores)</a>
+</li>
+      <li><a href="_autosummary/an.audio.cli.html#an.audio.cli.import_recorded">import_recorded() (in module an.audio.cli)</a>
+</li>
+      <li><a href="_autosummary/an.audio.html#an.audio.import_recordings">import_recordings() (in module an.audio)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.import_recordings">(in module an.audio.recorded)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.ImportedTake">ImportedTake (class in an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.ImportReport">ImportReport (class in an.audio.recorded)</a>
 </li>
       <li><a href="_autosummary/an.genres.html#an.genres.IN_DISTRIBUTION_GENRES">IN_DISTRIBUTION_GENRES (in module an.genres)</a>
 </li>
@@ -4824,15 +4897,17 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.library.rights.html#an.library.rights.LICENSE_CLASS_ORDER">LICENSE_CLASS_ORDER (in module an.library.rights)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.ir.assets.html#an.ir.assets.license_restriction">license_restriction() (in module an.ir.assets)</a>
 </li>
       <li><a href="_autosummary/an.ir.assets.html#an.ir.assets.LicenseClass">LicenseClass (in module an.ir.assets)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.audio.loudness.html#an.audio.loudness.limit_peaks">limit_peaks() (in module an.audio.loudness)</a>
 </li>
       <li><a href="_autosummary/an.audio.loudness.html#an.audio.loudness.LIMITER_WINDOW_S">LIMITER_WINDOW_S (in module an.audio.loudness)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.ImportedTake.line">line (an.audio.recorded.ImportedTake attribute)</a>
 </li>
       <li><a href="_autosummary/an.audio.voices.html#an.audio.voices.line_voice_id">line_voice_id() (in module an.audio.voices)</a>
 </li>
@@ -4854,6 +4929,10 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="_autosummary/an.audio.html#an.audio.ElevenLabsTTS.list_voices">(an.audio.ElevenLabsTTS method)</a>
+</li>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS.list_voices">(an.audio.recorded.RecordedTTS method)</a>
+</li>
+        <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS.list_voices">(an.audio.RecordedTTS method)</a>
 </li>
         <li><a href="_autosummary/an.audio.tts.html#an.audio.tts.TTSProvider.list_voices">(an.audio.tts.TTSProvider method)</a>
 </li>
@@ -4883,6 +4962,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.bench.golden.html#an.bench.golden.load_manifest">load_manifest() (in module an.bench.golden)</a>
 </li>
       <li><a href="_autosummary/an.bench.compare.html#an.bench.compare.load_row">load_row() (in module an.bench.compare)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.load_wav">load_wav() (in module an.audio.recorded)</a>
 </li>
       <li><a href="_autosummary/an.bench.golden.html#an.bench.golden.FrameRef.local_index">local_index (an.bench.golden.FrameRef attribute)</a>
 </li>
@@ -5446,7 +5527,11 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="_autosummary/an.audio.providers.html#module-an.audio.providers">an.audio.providers</a>
 </li>
+        <li><a href="_autosummary/an.audio.recorded.html#module-an.audio.recorded">an.audio.recorded</a>
+</li>
         <li><a href="_autosummary/an.audio.takes.html#module-an.audio.takes">an.audio.takes</a>
+</li>
+        <li><a href="_autosummary/an.audio.transcripts.html#module-an.audio.transcripts">an.audio.transcripts</a>
 </li>
         <li><a href="_autosummary/an.audio.tts.html#module-an.audio.tts">an.audio.tts</a>
 </li>
@@ -5734,6 +5819,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="_autosummary/an.stores.props.html#module-an.stores.props">an.stores.props</a>
 </li>
+        <li><a href="_autosummary/an.stores.recordings.html#module-an.stores.recordings">an.stores.recordings</a>
+</li>
         <li><a href="_autosummary/an.stores.scenes.html#module-an.stores.scenes">an.stores.scenes</a>
 </li>
         <li><a href="_autosummary/an.stores.sounds.html#module-an.stores.sounds">an.stores.sounds</a>
@@ -5867,10 +5954,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.node_box">node_box() (in module an.stage.timeline)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.node_path_suggestions">node_path_suggestions() (in module an.stage.compile)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.adapters.cutout.html#an.adapters.cutout.NodeJSON">NodeJSON (class in an.adapters.cutout)</a>
 
       <ul>
@@ -5887,7 +5974,13 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.audio.effects.html#an.audio.effects.normalize_effects">normalize_effects() (in module an.audio.effects)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.normalize_key_text">normalize_key_text() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.audio.takes.html#an.audio.takes.normalize_takes">normalize_takes() (in module an.audio.takes)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_text">normalize_text() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_tokens">normalize_tokens() (in module an.audio.transcripts)</a>
 </li>
       <li><a href="_autosummary/an.audio.elevenlabs_tts.html#an.audio.elevenlabs_tts.normalize_voice_settings">normalize_voice_settings() (in module an.audio.elevenlabs_tts)</a>
 </li>
@@ -6063,6 +6156,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.formats.html#an.formats.parse_format">parse_format() (in module an.formats)</a>
 </li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_json">parse_json() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_plain">parse_plain() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.library.html#an.library.parse_ref">parse_ref() (in module an.library)</a>
 
       <ul>
@@ -6073,7 +6170,17 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.build.gc.html#an.build.gc.parse_size">parse_size() (in module an.build.gc)</a>
 </li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_srt">parse_srt() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_textgrid">parse_textgrid() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_timestamp">parse_timestamp() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.stage.compile.html#an.stage.compile.parse_tint">parse_tint() (in module an.stage.compile)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_transcript">parse_transcript() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_vtt">parse_vtt() (in module an.audio.transcripts)</a>
 </li>
       <li><a href="_autosummary/an.stage.fidelity.html#an.stage.fidelity.part_fidelity">part_fidelity() (in module an.stage.fidelity)</a>
 </li>
@@ -6127,9 +6234,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.base.html#an.base.PathStr">PathStr (in module an.base)</a>
 </li>
-      <li><a href="_autosummary/an.html#an.Dialogue.pause">pause (an.Dialogue attribute)</a>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.ImportedTake.pause">pause (an.audio.recorded.ImportedTake attribute)</a>
 
       <ul>
+        <li><a href="_autosummary/an.html#an.Dialogue.pause">(an.Dialogue attribute)</a>
+</li>
         <li><a href="_autosummary/an.ir.html#an.ir.Dialogue.pause">(an.ir.Dialogue attribute)</a>
 </li>
         <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Dialogue.pause">(an.ir.schema.Dialogue attribute)</a>
@@ -6257,12 +6366,12 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.styles.html#an.styles.StylePack.policy">(an.styles.StylePack attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.semantic.html#an.semantic.Policy">Policy (class in an.semantic)</a>
 </li>
       <li><a href="_autosummary/an.motion.html#an.motion.pop_in">pop_in() (in module an.motion)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.render.html#an.render.portable_text">portable_text() (in module an.render)</a>
 </li>
       <li><a href="_autosummary/an.timing.clip.html#an.timing.clip.Pose">Pose (in module an.timing.clip)</a>
@@ -6459,6 +6568,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.audio.voices.html#an.audio.voices.PROVIDER_KEY">PROVIDER_KEY (in module an.audio.voices)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.PROVIDER_NAME">PROVIDER_NAME (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.ir.assets.html#an.ir.assets.provider_terms_restriction">provider_terms_restriction() (in module an.ir.assets)</a>
 </li>
       <li><a href="_autosummary/an.ir.assets.html#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS">PROVIDER_TERMS_RESTRICTIONS (in module an.ir.assets)</a>
@@ -6573,6 +6684,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.bench.png.html#an.bench.png.read_png_dimensions">(in module an.bench.png)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.read_recording">read_recording() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.audio.takes.html#an.audio.takes.read_takes_record">read_takes_record() (in module an.audio.takes)</a>
 </li>
       <li><a href="_autosummary/an.bench.compare.html#an.bench.compare.readable_sweep">readable_sweep() (in module an.bench.compare)</a>
@@ -6585,6 +6698,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.build.html#an.build.ShotPlan.reads">(an.build.ShotPlan attribute)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.rebase_words">rebase_words() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.audio.effects.html#an.audio.effects.SilenceTrim.record">record() (an.audio.effects.SilenceTrim method)</a>
 </li>
       <li><a href="_autosummary/an.audio.voice_design.html#an.audio.voice_design.record_choice">record_choice() (in module an.audio.voice_design)</a>
@@ -6603,10 +6718,38 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.library.floor.html#an.library.floor.record_statement">record_statement() (in module an.library.floor)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RECORD_VERSION">RECORD_VERSION (in module an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RECORDED_VOICE_SUFFIX">RECORDED_VOICE_SUFFIX (in module an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS">RecordedTTS (class in an.audio)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS">(class in an.audio.recorded)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedVoicesError">RecordedVoicesError</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.recording_by_digest">recording_by_digest() (in module an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.recording_key">recording_key() (in module an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RECORDING_OPTION">RECORDING_OPTION (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.build.html#an.build.RecordingMall">RecordingMall (class in an.build)</a>
 
       <ul>
         <li><a href="_autosummary/an.build.reads.html#an.build.reads.RecordingMall">(class in an.build.reads)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordingMissingError">RecordingMissingError</a>
+</li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RECORDINGS_STORE">RECORDINGS_STORE (in module an.audio.recorded)</a>
+</li>
+      <li><a href="_autosummary/an.stores.html#an.stores.RecordingsStore">RecordingsStore (class in an.stores)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.stores.recordings.html#an.stores.recordings.RecordingsStore">(class in an.stores.recordings)</a>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.build.reads.html#an.build.reads.RecordingStore">RecordingStore (class in an.build.reads)</a>
@@ -6859,6 +7002,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.RENDER_WORK_RELPATH">RENDER_WORK_RELPATH (in module an.bench.core_corpus)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.adapters.html#an.adapters.RenderContext">RenderContext (class in an.adapters)</a>
 </li>
       <li><a href="_autosummary/an.ir.schema.html#an.ir.schema.Shot.renderer">renderer (an.ir.schema.Shot attribute)</a>
@@ -6873,8 +7018,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.base.html#an.base.RendererName">RendererName (in module an.base)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.adapters.html#an.adapters.RendererRegistry">RendererRegistry (class in an.adapters)</a>
 </li>
       <li><a href="_autosummary/an.render.html#an.render.RenderError">RenderError</a>
@@ -6899,6 +7042,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.audio.offline_tts.html#an.audio.offline_tts.OfflineTTS.repeatable">(an.audio.offline_tts.OfflineTTS attribute)</a>
 </li>
         <li><a href="_autosummary/an.audio.html#an.audio.OfflineTTS.repeatable">(an.audio.OfflineTTS attribute)</a>
+</li>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS.repeatable">(an.audio.recorded.RecordedTTS attribute)</a>
+</li>
+        <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS.repeatable">(an.audio.RecordedTTS attribute)</a>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.genres.html#an.genres.CompilePass.replace">replace (an.genres.CompilePass attribute)</a>
@@ -7279,6 +7426,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.screen_position">screen_position() (in module an.stage.timeline)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.scribed_transcriber">scribed_transcriber() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.library.html#an.library.search_path">search_path() (in module an.library)</a>
 
       <ul>
@@ -7299,6 +7448,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.timing.kinds.html#an.timing.kinds.Segment">(class in an.timing.kinds)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.segment_lines">segment_lines() (in module an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.genres.html#an.genres.SemanticCheck">SemanticCheck (class in an.genres)</a>
 
       <ul>
@@ -7615,10 +7766,10 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.timing.spaces.html#an.timing.spaces.space_resolver">space_resolver() (in module an.timing.spaces)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.timing.html#an.timing.SpaceError">SpaceError</a>, <a href="_autosummary/an.timing.spaces.html#an.timing.spaces.SpaceError">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.timing.spaces.html#an.timing.spaces.SpaceLike">SpaceLike (in module an.timing.spaces)</a>
 </li>
       <li><a href="_autosummary/an.stage.serialize.html#an.stage.serialize.CutoutSceneMetaJSON.spaces">spaces (an.stage.serialize.CutoutSceneMetaJSON attribute)</a>
@@ -7996,6 +8147,10 @@ window.runMermaid = runMermaid;</script>
       <ul>
         <li><a href="_autosummary/an.audio.html#an.audio.ElevenLabsTTS.synthesis_options">(an.audio.ElevenLabsTTS method)</a>
 </li>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS.synthesis_options">(an.audio.recorded.RecordedTTS method)</a>
+</li>
+        <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS.synthesis_options">(an.audio.RecordedTTS method)</a>
+</li>
         <li><a href="_autosummary/an.audio.pipeline.html#an.audio.pipeline.synthesis_options">(in module an.audio.pipeline)</a>
 </li>
       </ul></li>
@@ -8003,6 +8158,10 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="_autosummary/an.audio.html#an.audio.ElevenLabsTTS.synthesize">(an.audio.ElevenLabsTTS method)</a>
+</li>
+        <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS.synthesize">(an.audio.recorded.RecordedTTS method)</a>
+</li>
+        <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS.synthesize">(an.audio.RecordedTTS method)</a>
 </li>
         <li><a href="_autosummary/an.audio.tts.html#an.audio.tts.TTSProvider.synthesize">(an.audio.tts.TTSProvider method)</a>
 </li>
@@ -8137,6 +8296,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.media.grid.html#an.media.grid.tile">tile() (in module an.media.grid)</a>
 </li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.TranscriptSegment.timed">timed (an.audio.transcripts.TranscriptSegment property)</a>
+</li>
       <li><a href="_autosummary/an.engines.html#an.engines.TimeDriven">TimeDriven (class in an.engines)</a>
 
       <ul>
@@ -8165,14 +8326,14 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.timeline_from_scene">timeline_from_scene() (in module an.stage.timeline)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.adapters.cutout.html#an.adapters.cutout.TimelineJSON">TimelineJSON (class in an.adapters.cutout)</a>
 
       <ul>
         <li><a href="_autosummary/an.stage.serialize.html#an.stage.serialize.TimelineJSON">(class in an.stage.serialize)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.build.html#an.build.BuildReport.timing_table">timing_table() (an.build.BuildReport method)</a>
 
       <ul>
@@ -8241,6 +8402,10 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.verify.media.html#an.verify.media.transcribe">transcribe() (in module an.verify.media)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.TranscriberUnavailableError">TranscriberUnavailableError</a>
+</li>
+      <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.TranscriptSegment">TranscriptSegment (class in an.audio.transcripts)</a>
+</li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.Transform2D">Transform2D (class in an.stage.timeline)</a>
 </li>
       <li><a href="_autosummary/an.stage.timeline.html#an.stage.timeline.transform_of">transform_of() (in module an.stage.timeline)</a>
@@ -8290,6 +8455,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.live_api.html#an.live_api.TRUTHY_VALUES">TRUTHY_VALUES (in module an.live_api)</a>
 </li>
       <li><a href="_autosummary/an.audio.pipeline.html#an.audio.pipeline.tts_chooser">tts_chooser() (in module an.audio.pipeline)</a>
+</li>
+      <li><a href="_autosummary/an.audio.providers.html#an.audio.providers.TTS_FACTORIES">TTS_FACTORIES (in module an.audio.providers)</a>
 </li>
       <li><a href="_autosummary/an.audio.html#an.audio.TTSProvider">TTSProvider (class in an.audio)</a>
 
@@ -8681,6 +8848,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.sounds.html#an.sounds.wav_info">wav_info() (in module an.sounds)</a>
 </li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.wav_seconds">wav_seconds() (in module an.audio.recorded)</a>
+</li>
       <li><a href="_autosummary/an.sounds.html#an.sounds.well_formed_wav">well_formed_wav() (in module an.sounds)</a>
 </li>
       <li><a href="_autosummary/an.adapters.html#an.adapters.WhiteboardRenderer">WhiteboardRenderer (class in an.adapters)</a>
@@ -8751,12 +8920,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.path_wobble.html#an.stage.path_wobble.WOBBLE_SAMPLES_PER_WAVELENGTH">WOBBLE_SAMPLES_PER_WAVELENGTH (in module an.stage.path_wobble)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.PathDescriptor.wobble_seed">wobble_seed (an.stage.paths.PathDescriptor attribute)</a>
 </li>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.PathDescriptor.wobble_wavelength">wobble_wavelength (an.stage.paths.PathDescriptor attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.stage.paths.html#an.stage.paths.PathDescriptor.wobble_wavelength_px">wobble_wavelength_px (an.stage.paths.PathDescriptor property)</a>
 </li>
       <li><a href="_autosummary/an.stage.path_wobble.html#an.stage.path_wobble.wobble_with_vertices">wobble_with_vertices() (in module an.stage.path_wobble)</a>
@@ -8775,12 +8944,24 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.audio.lipsync.html#an.audio.lipsync.word_timings_to_visemes">(in module an.audio.lipsync)</a>
 </li>
       </ul></li>
-      <li><a href="_autosummary/an.captions.html#an.captions.CaptionPage.words">words (an.captions.CaptionPage property)</a>
+      <li><a href="_autosummary/an.audio.html#an.audio.AudioClip.words">words (an.audio.AudioClip attribute)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.audio.tts.html#an.audio.tts.AudioClip.words">(an.audio.tts.AudioClip attribute)</a>
 </li>
+        <li><a href="_autosummary/an.captions.html#an.captions.CaptionPage.words">(an.captions.CaptionPage property)</a>
+</li>
+      </ul></li>
       <li><a href="_autosummary/an.audio.lipsync.html#an.audio.lipsync.WordTimingProvider.words_for">words_for() (an.audio.lipsync.WordTimingProvider method)</a>
 
       <ul>
         <li><a href="_autosummary/an.audio.html#an.audio.WordTimingProvider.words_for">(an.audio.WordTimingProvider method)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/an.audio.recorded.html#an.audio.recorded.RecordedTTS.words_for_clip">words_for_clip() (an.audio.recorded.RecordedTTS method)</a>
+
+      <ul>
+        <li><a href="_autosummary/an.audio.html#an.audio.RecordedTTS.words_for_clip">(an.audio.RecordedTTS method)</a>
 </li>
       </ul></li>
       <li><a href="_autosummary/an.audio.lipsync.html#an.audio.lipsync.WordTiming">WordTiming (in module an.audio.lipsync)</a>

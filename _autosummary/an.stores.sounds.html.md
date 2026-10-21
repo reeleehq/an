@@ -16,7 +16,7 @@ caller builds a path by hand (pillar 7). `an.sounds` is the typed front door.
 
 ### *class* an.stores.sounds.SoundsStore(root_dir)
 
-Bases: `JsonSidecarStore`
+Bases: `AudioSidecarStore`
 
 Per-sound directory store.
 
@@ -37,3 +37,7 @@ its header for the duration a fade-out needs, deterministically.
 
 * **Type:**
   The sidecar holding the audio bytes. WAV only in v1
+
+#### ENTRY_NOUN *= 'sound'*
+
+What an entry is called in error messages.

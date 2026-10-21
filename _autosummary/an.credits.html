@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=14ec15e6"></script>
+    <script src="../_static/documentation_options.js?v=b09491ff"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.242" />
+  <meta name="docsearch:version" content="0.1.243" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,7 +338,9 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
@@ -508,6 +510,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.recordings.html">an.stores.recordings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
@@ -779,8 +782,9 @@ author reads about the mp4 is that it must not be published.</p>
 <dd><p>Walk a project mall and gather every recorded <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">only</span></code> restricts the walk to those <code class="docutils literal notranslate"><span class="pre">store/key</span></code> names (what a render
 used, <a class="reference internal" href="#an.credits.credits_for_scene" title="an.credits.credits_for_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">credits_for_scene()</span></code></a>) — nothing else is read.</p>
-<p>Four stores carry provenance: characters, <strong>props</strong> (an#108),
-<strong>environments</strong> (an#110) and <strong>sounds</strong>. Each was added by the PR that gave that store
+<p>Five stores carry provenance: characters, <strong>props</strong> (an#108),
+<strong>environments</strong> (an#110), <strong>sounds</strong> and <strong>recordings</strong> (a performer’s
+takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
 store holding third-party plates does not return less information, it
 returns an affirmative false statement to exactly the people who need the

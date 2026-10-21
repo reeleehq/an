@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="transcripts.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.audio.transcripts &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../../../_static/documentation_options.js?v=b09491ff"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/audio/transcripts';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.243" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.transcripts</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.audio.transcripts</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Transcripts as INPUT: SRT, WebVTT, Praat TextGrid, word-timed JSON and plain</span>
+<span class="sd">text read into timed segments, and a known text matched to a transcriber's words.</span>
+
+<span class="sd">Every package in the fleet writes subtitles (:mod:`an.captions`, ``mixing.srt``,</span>
+<span class="sd">scribed's ``Transcript.srt``); this module is the reading direction, for a</span>
+<span class="sd">performer's recording that arrives with its words already written down. Three</span>
+<span class="sd">shapes come in:</span>
+
+<span class="sd">- **timed segments** — SRT, WebVTT, a word-timed JSON, a TextGrid: each line</span>
+<span class="sd">  of dialogue has a start and an end in the recording, so the take can be cut</span>
+<span class="sd">  at them with no model at all;</span>
+<span class="sd">- **plain text** — the lines, one per line, optionally ``speaker: text`` (the</span>
+<span class="sd">  ``scene.md`` grammar). No times: either each line is its own audio file, or</span>
+<span class="sd">  a transcriber's timed words are matched to the text (:func:`align_words`);</span>
+<span class="sd">- **a transcriber's result** — any object shaped like scribed's ``Transcript``</span>
+<span class="sd">  (segments with ``text``/``start``/``end``/``speaker``/``words``), read by</span>
+<span class="sd">  :func:`from_transcript_object`.</span>
+
+<span class="sd">All times are seconds from the start of the recording they describe.</span>
+
+<span class="sd">&gt;&gt;&gt; segs = parse_transcript("1\\n00:00:01,000 --&gt; 00:00:02,500\\ncarl: Hello there.\\n\\n"</span>
+<span class="sd">...                         "2\\n00:00:03,000 --&gt; 00:00:03,800\\nned: Hi.\\n")</span>
+<span class="sd">&gt;&gt;&gt; [(s.speaker, s.text, s.start, s.end) for s in segs]</span>
+<span class="sd">[('carl', 'Hello there.', 1.0, 2.5), ('ned', 'Hi.', 3.0, 3.8)]</span>
+<span class="sd">&gt;&gt;&gt; aligned = align_words(["Hello", "there,", "friend"],</span>
+<span class="sd">...                       [("hello", 0.5, 0.9), ("there", 0.9, 1.2), ("fred", 1.3, 1.6)])</span>
+<span class="sd">&gt;&gt;&gt; aligned.words</span>
+<span class="sd">[('Hello', 0.5, 0.9), ('there,', 0.9, 1.2), ('friend', 1.3, 1.6)]</span>
+<span class="sd">&gt;&gt;&gt; aligned.matched, aligned.total</span>
+<span class="sd">(2, 3)</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">difflib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"FORMATS"</span><span class="p">,</span>
+    <span class="s2">"TranscriptSegment"</span><span class="p">,</span>
+    <span class="s2">"AlignedWords"</span><span class="p">,</span>
+    <span class="s2">"detect_format"</span><span class="p">,</span>
+    <span class="s2">"parse_transcript"</span><span class="p">,</span>
+    <span class="s2">"parse_srt"</span><span class="p">,</span>
+    <span class="s2">"parse_vtt"</span><span class="p">,</span>
+    <span class="s2">"parse_plain"</span><span class="p">,</span>
+    <span class="s2">"parse_json"</span><span class="p">,</span>
+    <span class="s2">"parse_textgrid"</span><span class="p">,</span>
+    <span class="s2">"from_transcript_object"</span><span class="p">,</span>
+    <span class="s2">"parse_timestamp"</span><span class="p">,</span>
+    <span class="s2">"normalize_tokens"</span><span class="p">,</span>
+    <span class="s2">"normalize_text"</span><span class="p">,</span>
+    <span class="s2">"align_words"</span><span class="p">,</span>
+    <span class="s2">"segment_lines"</span><span class="p">,</span>
+    <span class="s2">"cut_spans"</span><span class="p">,</span>
+    <span class="s2">"rebase_words"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: One word's slice in time, ``(text, start_s, end_s)`` — ``an.audio.lipsync.WordTiming``.</span>
+<span class="n">WordTiming</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+
+<span class="c1">#: The transcript formats read here, in detection order.</span>
+<span class="n">FORMATS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"vtt"</span><span class="p">,</span> <span class="s2">"textgrid"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="s2">"srt"</span><span class="p">,</span> <span class="s2">"plain"</span><span class="p">)</span>
+
+<span class="c1">#: File suffixes that name a format outright.</span>
+<span class="n">_SUFFIX_FORMATS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">".srt"</span><span class="p">:</span> <span class="s2">"srt"</span><span class="p">,</span>
+    <span class="s2">".vtt"</span><span class="p">:</span> <span class="s2">"vtt"</span><span class="p">,</span>
+    <span class="s2">".webvtt"</span><span class="p">:</span> <span class="s2">"vtt"</span><span class="p">,</span>
+    <span class="s2">".textgrid"</span><span class="p">:</span> <span class="s2">"textgrid"</span><span class="p">,</span>
+    <span class="s2">".json"</span><span class="p">:</span> <span class="s2">"json"</span><span class="p">,</span>
+    <span class="s2">".txt"</span><span class="p">:</span> <span class="s2">"plain"</span><span class="p">,</span>
+    <span class="s2">".md"</span><span class="p">:</span> <span class="s2">"plain"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">#: Silence kept on each side of a cut line, seconds (the performer's breath,</span>
+<span class="c1">#: not the gap: the gap becomes the next line's ``pause``).</span>
+<span class="n">DFLT_CUT_PAD_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+<span class="n">_TIME_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"^\s*(?:(?P&lt;h&gt;\d+):)?(?P&lt;m&gt;\d{1,2}):(?P&lt;s&gt;\d{1,2})(?:[.,](?P&lt;ms&gt;\d{1,3}))?\s*$"</span>
+<span class="p">)</span>
+<span class="n">_SECONDS_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\s*(?P&lt;s&gt;\d+(?:\.\d*)?|\.\d+)\s*s?\s*$"</span><span class="p">)</span>
+<span class="n">_ARROW_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\s*(?P&lt;a&gt;[^\s]+)\s+--&gt;\s+(?P&lt;b&gt;[^\s]+)(?P&lt;rest&gt;.*)$"</span><span class="p">)</span>
+<span class="n">_SRT_CUE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"\d{1,2}:\d</span><span class="si">{2}</span><span class="s2">:\d</span><span class="si">{2}</span><span class="s2">[,.]\d{1,3}\s+--&gt;\s+\d{1,2}:\d</span><span class="si">{2}</span><span class="s2">:\d</span><span class="si">{2}</span><span class="s2">[,.]\d{1,3}"</span>
+<span class="p">)</span>
+<span class="c1">#: ``speaker: text`` — the same speaker shape as a ``scene.md`` dialogue line.</span>
+<span class="n">_SPEAKER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\s*(?P&lt;speaker&gt;[\w-]+)\s*:\s*(?P&lt;text&gt;.*)$"</span><span class="p">)</span>
+<span class="n">_VTT_VOICE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;v(?:\.[^\s&gt;]*)?\s+(?P&lt;name&gt;[^&gt;]+)&gt;"</span><span class="p">)</span>
+<span class="n">_TAG_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;[^&gt;]+&gt;"</span><span class="p">)</span>
+<span class="n">_TOKEN_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^\W_]+(?:'[^\W_]+)*"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TranscriptSegment">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.TranscriptSegment">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TranscriptSegment</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One spoken line of a transcript: its text, and when and who, if known.</span>
+
+<span class="sd">    ``start``/``end`` are seconds from the recording's start, ``None`` for an</span>
+<span class="sd">    untimed (plain) transcript; ``words`` are the segment's own word timings</span>
+<span class="sd">    when the format carries them (word JSON, TextGrid), else ``None``.</span>
+<span class="sd">    """</span>
+
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">words</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether both ``start`` and ``end`` are known."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="AlignedWords">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.AlignedWords">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AlignedWords</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":func:`align_words`'s result: the reference words timed, and how many</span>
+<span class="sd">    of them a transcribed word actually anchored (the rest are interpolated)."""</span>
+
+    <span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span>
+    <span class="n">matched</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The share of reference words anchored by a transcribed word, 0..1."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="k">else</span> <span class="mf">1.0</span></div>
+
+
+
+<span class="c1"># --- reading ------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="detect_format">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.detect_format">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_format</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which of :data:`FORMATS` ``text`` is, by its file suffix first, then its content.</span>
+
+<span class="sd">    &gt;&gt;&gt; detect_format("WEBVTT\\n\\n00:01.000 --&gt; 00:02.000\\nhi")</span>
+<span class="sd">    'vtt'</span>
+<span class="sd">    &gt;&gt;&gt; detect_format("1\\n00:00:01,000 --&gt; 00:00:02,000\\nhi"), detect_format("hi there")</span>
+<span class="sd">    ('srt', 'plain')</span>
+<span class="sd">    &gt;&gt;&gt; detect_format('{"segments": []}'), detect_format("", suffix=".TextGrid")</span>
+<span class="sd">    ('json', 'textgrid')</span>
+<span class="sd">    """</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="n">_SUFFIX_FORMATS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fmt</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"WEBVTT"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"vtt"</span>
+    <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'File type = "ooTextFile"'</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">'"IntervalTier"'</span> <span class="ow">in</span> <span class="n">head</span><span class="p">[:</span><span class="mi">4000</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="s2">"textgrid"</span>
+    <span class="k">if</span> <span class="n">head</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"{"</span><span class="p">,</span> <span class="s2">"["</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"json"</span>
+    <span class="k">if</span> <span class="n">_SRT_CUE_RE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"srt"</span>
+    <span class="k">return</span> <span class="s2">"plain"</span></div>
+
+
+
+<div class="viewcode-block" id="parse_transcript">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_transcript">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_transcript</span><span class="p">(</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Read ``source`` — a path to a transcript file, or the transcript text</span>
+<span class="sd">    itself — into segments. ``fmt`` (one of :data:`FORMATS`) overrides detection.</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_transcript("carl: Hello.\\nned: Hi.")[1]</span>
+<span class="sd">    TranscriptSegment(text='Hi.', start=None, end=None, speaker='ned', words=None)</span>
+<span class="sd">    """</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">4096</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8-sig"</span><span class="p">)</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt</span> <span class="ow">or</span> <span class="n">detect_format</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">"srt"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_srt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">"vtt"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_vtt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">"json"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_json</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">"textgrid"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_textgrid</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">"plain"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_plain</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown transcript format </span><span class="si">{</span><span class="n">fmt</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="n">FORMATS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_timestamp">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_timestamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_timestamp</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``HH:MM:SS,mmm`` / ``MM:SS.mmm`` / plain seconds → seconds.</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_timestamp("00:01:02,500"), parse_timestamp("01:02.5"), parse_timestamp("7.25")</span>
+<span class="sd">    (62.5, 62.5, 7.25)</span>
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_TIME_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"ms"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"0"</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"h"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3600</span>
+            <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"m"</span><span class="p">))</span> <span class="o">*</span> <span class="mi">60</span>
+            <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"s"</span><span class="p">))</span>
+            <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_SECONDS_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"s"</span><span class="p">))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"not a timestamp: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_speaker_and_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``'carl: Hello'`` → ``('carl', 'Hello')``; a line with no ``speaker:`` prefix keeps ``None``."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_SPEAKER_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"speaker"</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cue_blocks</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="n">block</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"</span><span class="se">\r</span><span class="s2">"</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">block</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">block</span>
+            <span class="n">block</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">block</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_timed_cue</span><span class="p">(</span><span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">TranscriptSegment</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A cue block (an optional id line, the time line, the text) → a segment."""</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="n">arrow</span> <span class="o">=</span> <span class="n">_ARROW_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arrow</span><span class="p">:</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">parse_timestamp</span><span class="p">(</span><span class="n">arrow</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)),</span>
+                <span class="n">parse_timestamp</span><span class="p">(</span><span class="n">arrow</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">speaker</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">voice</span> <span class="o">=</span> <span class="n">_VTT_VOICE_RE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">voice</span><span class="p">:</span>
+                <span class="n">speaker</span> <span class="o">=</span> <span class="n">voice</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">_TAG_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">speaker</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">speaker</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">TranscriptSegment</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="parse_srt">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_srt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_srt</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""SubRip cues → timed segments; a ``speaker:`` prefix names the speaker.</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_srt("1\\n00:00:00,500 --&gt; 00:00:01,000\\nHi\\nthere\\n")</span>
+<span class="sd">    [TranscriptSegment(text='Hi there', start=0.5, end=1.0, speaker=None, words=None)]</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">_cue_blocks</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">cue</span> <span class="o">=</span> <span class="n">_timed_cue</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cue</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="parse_vtt">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_vtt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_vtt</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""WebVTT cues → timed segments; ``&lt;v Name&gt;`` or a ``speaker:`` prefix names the speaker.</span>
+
+<span class="sd">    &gt;&gt;&gt; parse_vtt("WEBVTT\\n\\n00:01.000 --&gt; 00:02.000\\n&lt;v Carl&gt;Hello&lt;/v&gt;\\n")</span>
+<span class="sd">    [TranscriptSegment(text='Hello', start=1.0, end=2.0, speaker='Carl', words=None)]</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">_cue_blocks</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"WEBVTT"</span><span class="p">,</span> <span class="s2">"NOTE"</span><span class="p">,</span> <span class="s2">"STYLE"</span><span class="p">,</span> <span class="s2">"REGION"</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="n">cue</span> <span class="o">=</span> <span class="n">_timed_cue</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cue</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="parse_plain">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_plain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_plain</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""One non-empty line per segment, untimed; ``speaker: text`` names the speaker.</span>
+
+<span class="sd">    &gt;&gt;&gt; [s.speaker for s in parse_plain("carl: Hi.\\n\\nJust a line.\\n")]</span>
+<span class="sd">    ['carl', None]</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">speaker</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">body</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TranscriptSegment</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_number</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="n">keys</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">obj</span> <span class="ow">and</span> <span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="o">/</span> <span class="mf">1000.0</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"_ms"</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_word_from</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WordTiming</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"text"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"word"</span><span class="p">))</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">_number</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="s2">"start_ms"</span><span class="p">),</span> <span class="n">_number</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">,</span> <span class="s2">"end_ms"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">text</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="parse_json">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_json</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A word-timed JSON → segments. Accepted: ``{"segments": [...]}`` or a list</span>
+<span class="sd">    of segments, each ``{"text", "start", "end", "speaker", "words": [{"text"|"word",</span>
+<span class="sd">    "start", "end"}, ...]}`` (``start_ms``/``end_ms`` are read too, and a word may</span>
+<span class="sd">    be a ``[text, start, end]`` list); or a bare list of words, read as one segment.</span>
+
+<span class="sd">    &gt;&gt;&gt; segs = parse_json({"segments": [{"speaker": "carl", "words": [</span>
+<span class="sd">    ...     {"word": "Hello", "start": 0.5, "end": 0.9}, ["there", 0.9, 1.2]]}]})</span>
+<span class="sd">    &gt;&gt;&gt; segs[0].text, segs[0].start, segs[0].end, segs[0].words</span>
+<span class="sd">    ('Hello there', 0.5, 1.2, (('Hello', 0.5, 0.9), ('there', 0.9, 1.2)))</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"segments"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">items</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">items</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"a transcript JSON needs a 'segments' (or 'words') list"</span>
+                <span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"words"</span><span class="p">:</span> <span class="n">items</span><span class="p">}]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">items</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">_word_from</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"words"</span><span class="p">:</span> <span class="n">items</span><span class="p">}]</span>  <span class="c1"># a bare list of words: one line</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a transcript segment must be an object, got </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">(</span><span class="n">_word_from</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span> <span class="k">if</span> <span class="n">w</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">_number</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="s2">"start_ms"</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">_number</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">,</span> <span class="s2">"end_ms"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">words</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
+        <span class="n">speaker</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"speaker"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">speaker</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">words</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"words"</span><span class="p">),</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">speaker</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"speaker"</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">"words"</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">w</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"speaker"</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">speaker_</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">speaker</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">if</span> <span class="n">speaker</span> <span class="k">else</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">TranscriptSegment</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                    <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                    <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                    <span class="n">speaker</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">speaker_</span><span class="p">)</span> <span class="k">if</span> <span class="n">speaker_</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">words</span><span class="o">=</span><span class="n">words</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="n">_TG_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s1">'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P&lt;name&gt;[^"]*)"'</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
+<span class="p">)</span>
+<span class="n">_TG_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s1">'xmin\s*=\s*(?P&lt;a&gt;[\d.]+)\s*\n\s*xmax\s*=\s*(?P&lt;b&gt;[\d.]+)\s*\n\s*text\s*=\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
+<span class="p">)</span>
+<span class="n">_TG_SHORT_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'"IntervalTier"\s*\n\s*"(?P&lt;name&gt;[^"]*)"\s*\n'</span><span class="p">)</span>
+<span class="n">_TG_SHORT_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s1">'(?P&lt;a&gt;\d+(?:\.\d+)?)\s*\n\s*(?P&lt;b&gt;\d+(?:\.\d+)?)\s*\n\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
+<span class="p">)</span>
+<span class="c1">#: Tier names whose intervals are the LINES (one segment each), by preference.</span>
+<span class="n">_TG_LINE_TIERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"utterances"</span><span class="p">,</span>
+    <span class="s2">"utterance"</span><span class="p">,</span>
+    <span class="s2">"lines"</span><span class="p">,</span>
+    <span class="s2">"line"</span><span class="p">,</span>
+    <span class="s2">"sentences"</span><span class="p">,</span>
+    <span class="s2">"sentence"</span><span class="p">,</span>
+    <span class="s2">"segments"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#: Tier names whose intervals are the WORDS, by preference.</span>
+<span class="n">_TG_WORD_TIERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"word"</span><span class="p">,</span> <span class="s2">"ortho"</span><span class="p">,</span> <span class="s2">"orthography"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_textgrid_tiers</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``{tier name: [(xmin, xmax, text), ...]}`` for every interval tier, long or short format."""</span>
+    <span class="n">tiers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">long_form</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_TG_TIER_RE</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="n">heads</span> <span class="o">=</span> <span class="n">long_form</span> <span class="k">if</span> <span class="n">long_form</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">_TG_SHORT_TIER_RE</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="n">interval_re</span> <span class="o">=</span> <span class="n">_TG_INTERVAL_RE</span> <span class="k">if</span> <span class="n">long_form</span> <span class="k">else</span> <span class="n">_TG_SHORT_INTERVAL_RE</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">head</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">heads</span><span class="p">):</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span>
+            <span class="n">head</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="p">:</span> <span class="n">heads</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">heads</span><span class="p">)</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)),</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"t"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'""'</span><span class="p">,</span> <span class="s1">'"'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">interval_re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">long_form</span><span class="p">:</span>
+            <span class="n">intervals</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">intervals</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="k">if</span> <span class="n">intervals</span> <span class="ow">and</span> <span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                <span class="k">else</span> <span class="n">intervals</span>
+            <span class="p">)</span>
+        <span class="n">tiers</span><span class="p">[</span><span class="n">head</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)]</span> <span class="o">=</span> <span class="n">intervals</span>
+    <span class="k">return</span> <span class="n">tiers</span>
+
+
+<div class="viewcode-block" id="parse_textgrid">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.parse_textgrid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_textgrid</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.</span>
+
+<span class="sd">    The words come from a tier named ``words`` (else the first interval tier);</span>
+<span class="sd">    a tier named ``utterances``/``lines``/``sentences`` gives one segment per</span>
+<span class="sd">    non-empty interval, with the words inside it; without one, the whole grid</span>
+<span class="sd">    is one segment.</span>
+
+<span class="sd">    &gt;&gt;&gt; tg = ('File type = "ooTextFile"\\nObject class = "TextGrid"\\nxmin = 0\\nxmax = 2\\n'</span>
+<span class="sd">    ...       'tiers? &lt;exists&gt;\\nsize = 1\\nitem []:\\n    item [1]:\\n        class = "IntervalTier"\\n'</span>
+<span class="sd">    ...       '        name = "words"\\n        xmin = 0\\n        xmax = 2\\n        intervals: size = 3\\n'</span>
+<span class="sd">    ...       '        intervals [1]:\\n            xmin = 0\\n            xmax = 0.5\\n            text = ""\\n'</span>
+<span class="sd">    ...       '        intervals [2]:\\n            xmin = 0.5\\n            xmax = 0.9\\n            text = "hello"\\n'</span>
+<span class="sd">    ...       '        intervals [3]:\\n            xmin = 0.9\\n            xmax = 1.3\\n            text = "there"\\n')</span>
+<span class="sd">    &gt;&gt;&gt; parse_textgrid(tg)</span>
+<span class="sd">    [TranscriptSegment(text='hello there', start=0.5, end=1.3, speaker=None, words=(('hello', 0.5, 0.9), ('there', 0.9, 1.3)))]</span>
+<span class="sd">    """</span>
+    <span class="n">tiers</span> <span class="o">=</span> <span class="n">_textgrid_tiers</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tiers</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"no IntervalTier found in the TextGrid"</span><span class="p">)</span>
+    <span class="n">lowered</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">}</span>
+    <span class="n">word_tier</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">lowered</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_TG_WORD_TIERS</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lowered</span><span class="p">),</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">tiers</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">[</span><span class="n">word_tier</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">and</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"sil"</span><span class="p">,</span> <span class="s2">"sp"</span><span class="p">,</span> <span class="s2">"&lt;unk&gt;"</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">line_tier</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">lowered</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_TG_LINE_TIERS</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lowered</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">line_tier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">TranscriptSegment</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">),</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">words</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">words</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">[</span><span class="n">line_tier</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">inside</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span> <span class="k">if</span> <span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">a</span> <span class="o">-</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="n">w</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">b</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="n">speaker</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_speaker_and_text</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TranscriptSegment</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="n">inside</span> <span class="ow">or</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="from_transcript_object">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.from_transcript_object">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_transcript_object</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A transcriber's result — scribed's ``Transcript`` or anything shaped like</span>
+<span class="sd">    it (iterable segments with ``text``, ``start``, ``end``, ``speaker`` and</span>
+<span class="sd">    ``words`` having ``text``/``start``/``end``) — as segments.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; t = [NS(text="Hi there", start=0.2, end=0.9, speaker="A",</span>
+<span class="sd">    ...         words=[NS(text="Hi", start=0.2, end=0.4), NS(text="there", start=0.5, end=0.9)])]</span>
+<span class="sd">    &gt;&gt;&gt; from_transcript_object(t)[0].words</span>
+<span class="sd">    (('Hi', 0.2, 0.4), ('there', 0.5, 0.9))</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">TranscriptSegment</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">obj</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"segments"</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="n">TranscriptSegment</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="s2">"words"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">speaker</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="s2">"speaker"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TranscriptSegment</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">else</span> <span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">words</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">end</span><span class="o">=</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">words</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">speaker</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">speaker</span><span class="p">)</span> <span class="k">if</span> <span class="n">speaker</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">words</span><span class="o">=</span><span class="n">words</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="c1"># --- matching words ------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="normalize_tokens">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_tokens">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The words of ``text`` for matching: case-folded, punctuation dropped,</span>
+<span class="sd">    an apostrophe inside a word kept.</span>
+
+<span class="sd">    &gt;&gt;&gt; normalize_tokens("Hello, there — it's ME!")</span>
+<span class="sd">    ['hello', 'there', "it's", 'me']</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="normalize_text">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":func:`normalize_tokens` joined by single spaces (what two lines are compared by)."""</span>
+    <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">normalize_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="align_words">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.align_words">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">align_words</span><span class="p">(</span>
+    <span class="n">reference</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">timed</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AlignedWords</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Time the ``reference`` words (the text the performer was meant to say) by a</span>
+<span class="sd">    transcriber's ``timed`` words of the same audio.</span>
+
+<span class="sd">    Reference words that a transcribed word matches (same normalized form, in</span>
+<span class="sd">    sequence — :class:`difflib.SequenceMatcher`) take that word's times. A run</span>
+<span class="sd">    the transcriber heard differently (``friend`` heard as ``fred``) is spread</span>
+<span class="sd">    over the misheard words' span; a run it did not hear at all is spread over</span>
+<span class="sd">    the gap to the next anchor, in proportion to word length — so a misheard or</span>
+<span class="sd">    dropped word still gets a plausible slot. ``bounds`` (``(start, end)`` of</span>
+<span class="sd">    the audio) time the ends when no anchor does; without it the first and last</span>
+<span class="sd">    transcribed words do. Words come back in reference order with</span>
+<span class="sd">    non-decreasing starts.</span>
+
+<span class="sd">    &gt;&gt;&gt; align_words(["I", "did", "NOT", "ask"], [("i", 0.0, 0.1), ("did", 0.1, 0.3), ("ask", 0.6, 0.9)]).words</span>
+<span class="sd">    [('I', 0.0, 0.1), ('did', 0.1, 0.3), ('NOT', 0.3, 0.6), ('ask', 0.6, 0.9)]</span>
+<span class="sd">    """</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_text</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">]</span>
+    <span class="n">asr</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_text</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">timed</span><span class="p">]</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounds</span> <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">timed</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounds</span> <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="k">if</span> <span class="n">timed</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">matched</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">prev_end</span> <span class="o">=</span> <span class="n">first</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">spread</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">nonlocal</span> <span class="n">prev_end</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">prev_end</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span> <span class="ow">or</span> <span class="mf">1.0</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">lo</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">length</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="n">length</span>
+        <span class="n">prev_end</span> <span class="o">=</span> <span class="n">hi</span>
+
+    <span class="n">opcodes</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">SequenceMatcher</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">asr</span><span class="p">,</span> <span class="n">autojunk</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">get_opcodes</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">j1</span><span class="p">,</span> <span class="n">j2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">opcodes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"equal"</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i2</span> <span class="o">-</span> <span class="n">i1</span><span class="p">):</span>
+                <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span> <span class="o">+</span> <span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span> <span class="o">+</span> <span class="n">k</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">prev_end</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reference</span><span class="p">[</span><span class="n">i1</span> <span class="o">+</span> <span class="n">k</span><span class="p">],</span> <span class="n">start</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">)))</span>
+                <span class="n">prev_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+                <span class="n">matched</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"replace"</span><span class="p">:</span>
+            <span class="n">spread</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"delete"</span><span class="p">:</span>
+            <span class="c1"># Not heard at all: the gap up to the next transcribed word, or the end.</span>
+            <span class="n">nxt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">op</span><span class="p">[</span><span class="mi">3</span><span class="p">]][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcodes</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="k">if</span> <span class="n">op</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">op</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span>
+                <span class="n">last</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">spread</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">),</span> <span class="n">prev_end</span><span class="p">,</span> <span class="n">nxt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># "insert": words the transcriber heard that the text lacks — time passes</span>
+            <span class="n">prev_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">prev_end</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span> <span class="k">if</span> <span class="n">j2</span> <span class="o">&gt;</span> <span class="n">j1</span> <span class="k">else</span> <span class="n">prev_end</span>
+    <span class="k">return</span> <span class="n">AlignedWords</span><span class="p">(</span><span class="n">words</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">matched</span><span class="o">=</span><span class="n">matched</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="segment_lines">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.segment_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">segment_lines</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span>
+    <span class="n">timed</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Time untimed ``lines`` (a plain transcript) by a transcriber's ``timed``</span>
+<span class="sd">    words of the whole recording: the lines' words are aligned as one text</span>
+<span class="sd">    (:func:`align_words`) and handed back per line, each line spanning its</span>
+<span class="sd">    first word's start to its last word's end, with its own ``words``.</span>
+
+<span class="sd">    &gt;&gt;&gt; lines = parse_plain("carl: Hello there.\\nned: Hi.")</span>
+<span class="sd">    &gt;&gt;&gt; timed = [("hello", 0.5, 0.9), ("there", 0.9, 1.3), ("hi", 2.0, 2.3)]</span>
+<span class="sd">    &gt;&gt;&gt; [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]</span>
+<span class="sd">    [('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]</span>
+<span class="sd">    """</span>
+    <span class="n">per_line</span> <span class="o">=</span> <span class="p">[[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">toks</span> <span class="ow">in</span> <span class="n">per_line</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">toks</span><span class="p">]</span>
+    <span class="n">aligned</span> <span class="o">=</span> <span class="n">align_words</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="n">timed</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span><span class="o">.</span><span class="n">words</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">toks</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">per_line</span><span class="p">):</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aligned</span><span class="p">[</span><span class="n">cursor</span> <span class="p">:</span> <span class="n">cursor</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)])</span>
+        <span class="n">cursor</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># nothing to say: no slice of the recording is its own</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">TranscriptSegment</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">speaker</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span>
+                <span class="n">words</span><span class="o">=</span><span class="n">words</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="cut_spans">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.cut_spans">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cut_spans</span><span class="p">(</span>
+    <span class="n">segments</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TranscriptSegment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">pad_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_CUT_PAD_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Where to cut the recording for each timed segment: its span widened by</span>
+<span class="sd">    ``pad_s`` on each side, never past the midpoint to its neighbour or the</span>
+<span class="sd">    recording's ends (``total`` seconds).</span>
+
+<span class="sd">    &gt;&gt;&gt; segs = [TranscriptSegment("a", 1.0, 2.0), TranscriptSegment("b", 2.04, 3.0)]</span>
+<span class="sd">    &gt;&gt;&gt; cut_spans(segs, total=3.02)</span>
+<span class="sd">    [(0.95, 2.02), (2.02, 3.02)]</span>
+<span class="sd">    """</span>
+    <span class="n">spans</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">seg</span><span class="o">.</span><span class="n">timed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"segment </span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> has no times to cut at"</span><span class="p">)</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">seg</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">pad_s</span><span class="p">)</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">seg</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">pad_s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">segments</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">timed</span><span class="p">:</span>
+            <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="p">(</span><span class="n">segments</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">seg</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="ow">and</span> <span class="n">segments</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">timed</span><span class="p">:</span>
+            <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">segments</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">spans</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">round</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">),</span> <span class="mi">6</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">spans</span></div>
+
+
+
+<div class="viewcode-block" id="rebase_words">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.rebase_words">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rebase_words</span><span class="p">(</span>
+    <span class="n">words</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``words`` re-timed from ``start`` (a cut's start): the clip-relative words a line keeps.</span>
+
+<span class="sd">    &gt;&gt;&gt; rebase_words([("hi", 1.0, 1.4)], 0.95)</span>
+<span class="sd">    (('hi', 0.05, 0.45),)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">words</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="n">a2</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="mi">6</span><span class="p">))))</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

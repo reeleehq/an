@@ -127,8 +127,9 @@ Walk a project mall and gather every recorded `AssetSource`.
 `only` restricts the walk to those `store/key` names (what a render
 used, [`credits_for_scene()`](#an.credits.credits_for_scene)) — nothing else is read.
 
-Four stores carry provenance: characters, **props** (an#108),
-**environments** (an#110) and **sounds**. Each was added by the PR that gave that store
+Five stores carry provenance: characters, **props** (an#108),
+**environments** (an#110), **sounds** and **recordings** (a performer’s
+takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
 store holding third-party plates does not return less information, it
 returns an affirmative false statement to exactly the people who need the

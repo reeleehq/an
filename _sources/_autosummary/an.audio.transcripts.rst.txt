@@ -1,0 +1,39 @@
+an.audio.transcripts
+====================
+
+.. automodule:: an.audio.transcripts
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FORMATS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      detect_format
+      parse_transcript
+      parse_srt
+      parse_vtt
+      parse_plain
+      parse_json
+      parse_textgrid
+      from_transcript_object
+      parse_timestamp
+      normalize_tokens
+      normalize_text
+      align_words
+      segment_lines
+      cut_spans
+      rebase_words
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TranscriptSegment
+      AlignedWords
+   

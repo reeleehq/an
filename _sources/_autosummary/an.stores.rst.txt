@@ -21,6 +21,7 @@ an.stores
       PropsStore
       ScenesStore
       SoundsStore
+      RecordingsStore
       AudioArtifactStore
       VisemeArtifactStore
       TakesArtifactStore
@@ -47,6 +48,7 @@ an.stores
    environments
    library_lock
    props
+   recordings
    scenes
    sounds
    sources

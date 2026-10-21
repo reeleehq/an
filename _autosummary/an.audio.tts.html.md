@@ -9,11 +9,19 @@ TTS provider protocol + supporting dataclasses.
 | [`TTSProvider`](#an.audio.tts.TTSProvider)(\*args, \*\*kwargs)            | Text-to-speech provider.                           |
 | [`VoiceMeta`](#an.audio.tts.VoiceMeta)(voice_id, name, provider[, ...]) | Metadata for a TTS voice as exposed by a provider. |
 
-### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None)
+### *class* an.audio.tts.AudioClip(path=None, bytes_=None, duration=0.0, sample_rate=44100, channels=1, voice_id=None, transcript=None, words=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
+
+#### words *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The clip’s word timings — `(word, start_s, end_s)` from the clip’s
+start — when the provider knows them (a recorded take imported with a
+timed transcript: [`an.audio.recorded`](an.audio.recorded.html.md#module-an.audio.recorded)); `None` otherwise. A
+lip-sync provider that aligns from words prefers these to its own
+transcription, and the audio pipeline stamps them on the line.
 
 ### *class* an.audio.tts.TTSProvider(\*args, \*\*kwargs)
 
