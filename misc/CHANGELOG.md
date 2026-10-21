@@ -5,6 +5,8 @@ day per chunk of work; keep entries terse.
 
 ## 2026-10-21
 
+- docs: research note `misc/docs/research/planes_of_movement.md` (nested frames of reference: multiplane to tf2, the couplings catalogue, the model behind ADR 0008 decision 5 and an#501-#506) with its doctested starter `planes_of_movement_frames.py`.
+
 - Research (#497): `misc/docs/constraints_catalogue.md`, the catalogue of structural constraints beyond joints (support, solidity, draw order from depth, attachment, rigidity, continuity, cadence, causality, permanence, light): for each, what it prevents, the declaration, the deterministic check, the solver term and the existing check it subsumes; ranked build list for the constraint layer.
 - **ADR 0008 proposed: a constraint layer under structured animation** (an#497, the epic): bodies (units of rigidity), joints (pin, hinge, slide, weld, distance, contact; a rig's bones are joints; `attached` is a weld; `body_attachment` sockets are pins), drivers (every `set`/`tween`/`play` is a position target; `force` and optional gravity are new), frames of reference (parent + motion, composed before ADR 0007's `Projection`; amends 0007: motion may be declared in any frame), solved per frame by a deterministic pure-numpy `an.kinematics` behind a `solver=` seam in a `solve` compile pass between `face` and `camera_follow`; one `Constraint` interface (a lint first, a solver term when it has one) for the structural-consistency catalogue. Core/genre split per ADR 0001; no new package in v1. Document only, no code.
 
