@@ -19,7 +19,7 @@ from an.verify.constraints import Constraint, discontinuities
 
 ROOT = Path(__file__).resolve().parents[1]
 LAMP = ROOT / "misc" / "bench" / "corpus" / "prop_swap"
-ONLY = {"continuity", "solidity", "draw_order"}
+ONLY = {"continuity", "solidity", "draw_order", "jump_cut"}
 
 
 def _lint(tmp_path: Path, actions, *, duration=2.0, extra=None):
@@ -228,10 +228,76 @@ def test_draw_order_is_registered_at_finish():
     assert "draw_order" in check_names(owner=CORE_OWNER)
 
 
-def test_the_same_two_painted_in_the_other_order_is_one_warning_naming_both_shots(tmp_path):
+def test_the_same_two_painted_in_the_other_order_is_one_warning_naming_both_shots(
+    tmp_path,
+):
     (msg,) = _msgs(_two_shot_order(tmp_path))
     assert "'lamp'" in msg and "'twin'" in msg and "'one'" in msg and "'two'" in msg
 
 
 def test_a_changed_after_makes_the_flip_deliberate(tmp_path):
     assert _msgs(_two_shot_order(tmp_path, swapped_after="twin")) == []
+
+
+# -- jump cut, the 30-degree rule (catalogue C4) ------------------------------
+
+
+def _jump_cut_report(tmp_path: Path, first: dict, second: dict):
+    from an.ir.schema import Meta, Resolution, SceneIR, Viewpoint, World, WorldMember
+
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    world = World(
+        members=[
+            WorldMember(
+                kind="prop",
+                id="lamp",
+                store="props",
+                ref="lamp",
+                at=(0.0, 0.4, 4.0),
+                height=0.8,
+            )
+        ],
+        viewpoints={
+            "a": Viewpoint(subject="lamp", focal=300.0, **first),
+            "b": Viewpoint(subject="lamp", focal=300.0, **second),
+        },
+    )
+    shots = [
+        Shot(id=n, renderer="cutout", duration=1.0, viewpoint=n) for n in ("a", "b")
+    ]
+    scene = SceneIR(
+        meta=Meta(fps=24, resolution=Resolution(width=320, height=240)),
+        world=world,
+        timeline=shots,
+    )
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"jump_cut"},
+    )
+
+
+def test_the_same_framing_twice_is_a_jump_cut(tmp_path):
+    (msg,) = _msgs(_jump_cut_report(tmp_path, {"size": "medium"}, {"size": "medium"}))
+    assert "'a'" in msg and "'b'" in msg and "jump cut" in msg
+
+
+def test_a_change_of_shot_size_is_not_a_jump_cut(tmp_path):
+    assert (
+        _msgs(_jump_cut_report(tmp_path, {"size": "medium"}, {"size": "close_up"}))
+        == []
+    )
+
+
+def test_a_turn_of_thirty_degrees_is_not_a_jump_cut(tmp_path):
+    assert (
+        _msgs(
+            _jump_cut_report(
+                tmp_path,
+                {"size": "medium"},
+                {"size": "medium", "look": (45.0, 0.0, 0.0)},
+            )
+        )
+        == []
+    )

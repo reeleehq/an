@@ -313,7 +313,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** ADR 0007's `screen_direction` check (the line); the 30-degree rule is a second check on the same two viewpoints.
 
-**Status.** Partial (line, in flight); the 30-degree rule is missing and cheap.
+**Status.** The 30-degree rule shipped as the `jump_cut` check (`an/verify/constraints.py`): consecutive shots whose viewpoints frame the same world subject warn when the look directions differ by under 30° and the subject's apparent size by under x1.3. The line (i) is `screen_direction`.
 
 #### C5. Eyelines and gaze
 

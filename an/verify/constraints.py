@@ -47,6 +47,9 @@ The core's constraints:
   shot and the other way in a later one, with no change of ``stage.after``
   between them. :func:`order_flips` is the pure function under it. (The
   within-shot half, painted order against world depth, is not built.)
+- ``jump_cut`` (catalogue C4, the 30-degree rule): two consecutive shots of one
+  subject from nearly the same angle and size. :func:`jump_cut_between` is the
+  pure function under it.
 """
 
 from __future__ import annotations
@@ -69,6 +72,7 @@ __all__ = [
     "CONTINUITY",
     "SOLIDITY",
     "DRAW_ORDER",
+    "JUMP_CUT",
     "Discontinuity",
     "ShortHold",
     "compiled_shot",
@@ -789,8 +793,123 @@ DRAW_ORDER = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# jump_cut (catalogue C4): the 30-degree rule over viewpoints
+# -----------------------------------------------------------------------------
+
+#: Two views of one subject that differ by less than this in look direction are
+#: close enough to be a jump cut when the size does not change either (degrees).
+JUMP_CUT_ANGLE_DEG: float = 30.0
+#: ... and by less than this ratio in the subject's apparent size (larger / smaller):
+#: about one shot-size step (a close-up fills 1.57 times a medium).
+JUMP_CUT_SIZE_RATIO: float = 1.3
+
+
+def _centroid(points: list[tuple[float, float, float]]) -> tuple[float, float, float]:
+    n = len(points)
+    return tuple(sum(p[i] for p in points) / n for i in range(3))  # type: ignore[return-value]
+
+
+def jump_cut_between(
+    a: Any, b: Any, subject: list[tuple[float, float, float]]
+) -> tuple[float, float] | None:
+    """``(angle in degrees, size ratio)`` between two :class:`an.ir.world.Projection`
+    views of ``subject`` (world points), when it is a jump cut: both under the
+    limits. ``None`` otherwise, and when the subject is not in front of both.
+
+    >>> from an.ir.world import Projection
+    >>> def eye(x, z=0.0):
+    ...     return Projection(at=(x, 0.0, z), forward=(0.0, 0.0, 1.0), right=(1.0, 0.0, 0.0), down=(0.0, 1.0, 0.0), focal=1000.0)
+    >>> jump_cut_between(eye(0.0), eye(0.0, z=1.0), [(0.0, 0.0, 10.0)])
+    (0.0, 1.1111111111111112)
+    >>> jump_cut_between(eye(0.0), eye(0.0, z=6.0), [(0.0, 0.0, 10.0)]) is None   # 2.5x closer
+    True
+    """
+    import math
+
+    c = _centroid(subject)
+    va, vb = a.view(c), b.view(c)
+    if va[2] <= 0 or vb[2] <= 0:
+        return None
+    dot = sum(x * y for x, y in zip(a.forward, b.forward))
+    angle = math.degrees(math.acos(max(-1.0, min(1.0, dot))))
+    sa, sb = a.focal / va[2], b.focal / vb[2]
+    ratio = max(sa, sb) / min(sa, sb)
+    return (
+        (angle, ratio)
+        if angle < JUMP_CUT_ANGLE_DEG and ratio < JUMP_CUT_SIZE_RATIO
+        else None
+    )
+
+
+def check_jump_cut(ctx: Any) -> None:
+    """The core's ``jump_cut`` check: consecutive shots framing the same subject."""
+    world = ctx.scene.world
+    if world is None:
+        return
+    from an.ir.world import resolve_viewpoint, viewpoint_of
+    from an.stage.world import member_extents
+
+    res = ctx.scene.meta.resolution
+    width, height = int(res.width), int(res.height)
+    extents = ctx.cached(
+        "constraints.extents",
+        lambda: member_extents(
+            world, ctx.stores, width=width, height=height, problems={}
+        ),
+    )
+    at = {m.id: m.at for m in world.members if m.at is not None}
+    views: list[tuple[frozenset[str], Any] | None] = []
+    for shot in ctx.scene.timeline:
+        try:
+            vp = viewpoint_of(world, shot.viewpoint)
+            if vp is None or vp.subject is None:
+                views.append(None)
+                continue
+            subject = frozenset(
+                [vp.subject] if isinstance(vp.subject, str) else vp.subject
+            )
+            if not subject <= at.keys():
+                views.append(None)
+                continue
+            views.append(
+                (
+                    subject,
+                    resolve_viewpoint(
+                        world, vp, extents=extents, width=width, height=height
+                    ),
+                )
+            )
+        except Exception:  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check
+            views.append(None)
+    for i in range(1, len(views)):
+        before, after = views[i - 1], views[i]
+        if before is None or after is None or before[0] != after[0]:
+            continue
+        hit = jump_cut_between(before[1], after[1], [at[m] for m in sorted(after[0])])
+        if hit is None:
+            continue
+        angle, ratio = hit
+        prev, shot = ctx.scene.timeline[i - 1], ctx.scene.timeline[i]
+        ctx.report.add(
+            "warning",
+            f"timeline/{i}/viewpoint",
+            f"shots {prev.id!r} and {shot.id!r} frame {', '.join(sorted(after[0]))} from nearly the "
+            f"same view ({angle:.0f}° apart, size x{ratio:.2f}): a jump cut. Move the camera "
+            f"at least {JUMP_CUT_ANGLE_DEG:.0f}° or change the size by x{JUMP_CUT_SIZE_RATIO:g} or more.",
+        )
+
+
+JUMP_CUT = Constraint(
+    "jump_cut",
+    check_jump_cut,
+    stage="finish",
+    description="consecutive shots of one subject differ by 30 degrees or a shot size",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
-CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY, DRAW_ORDER)
+CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY, DRAW_ORDER, JUMP_CUT)
 
 
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:

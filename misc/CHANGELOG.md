@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-21
+- **`jump_cut` lint** (catalogue C4, an#519 rank 9): consecutive shots of one world subject, from viewpoints under 30° apart in look direction and under x1.3 in apparent size, are one `an validate` warning.
 - **`draw_order` lint** (an#510, part ii): a pair of entities painted one way in one shot and the other way in a later one, with no change of `stage.after` for either, is one `an validate` warning naming both shots. World members are skipped (depth derives their order); the within-shot check against world depth is still open on an#510.
 - **`solidity` lint** (an#509, an#497): two solids (characters and props; not planes, voices, path or text props) whose boxes overlap by more than a quarter of the smaller one, sampled every 0.25 s, with no `stage.after` on either, are one `an validate` warning naming both; `overrides: {solid: false}` opts an entity out.
 - **Constraint interface and the `continuity` lint** (an#508, an#497): `an.verify.constraints.Constraint` (name, check, optional solver `term`, `semantic_check()`), the first check on it, `continuity` (a node jumping within a shot without a `set`, a value held under a frame), registered when `an.ir` is imported; `an.verify` imports lazily so `import an` stays light.
