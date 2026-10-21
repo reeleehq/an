@@ -1,6 +1,6 @@
-"""``an space …``: the scene's space from the shell (ADR 0007).
+"""``an world …``: the scene's world from the shell (ADR 0007).
 
-Thin projections of :mod:`an.stage.space`, wired into the CLI by
+Thin projections of :mod:`an.stage.world`, wired into the CLI by
 :data:`an.tools._dispatch_namespaces`.
 """
 
@@ -12,7 +12,7 @@ __all__ = ["show"]
 
 
 def show(project_dir: str, shot: str = "", json: bool = False) -> str:
-    """Print every framed shot as the compiler sees it: each entity's placement derived from the scene's space, and what the world added, replaced or could not place.
+    """Print every framed shot as the compiler sees it: each entity's placement derived from the scene's world, and what the world added, replaced or could not place.
 
     The derived placements are never written to the project; this is how you
     read them. A shot without a viewpoint is not listed: it is placed by hand,
@@ -22,11 +22,15 @@ def show(project_dir: str, shot: str = "", json: bool = False) -> str:
     shot: one shot id (default: every framed shot)
     json: print the report as JSON instead of text
     """
+    from an.ir.world import WorldError
     from an.project import load
-    from an.stage.space import lower_scene, space_report
+    from an.stage.world import lower_scene, world_report
 
     project = load(project_dir)
-    rows = space_report(lower_scene(project.scene, project.mall))
+    try:
+        rows = world_report(lower_scene(project.scene, project.mall))
+    except WorldError as e:
+        raise SystemExit(f"the scene's world cannot be lowered: {e}") from None
     if shot:
         rows = [r for r in rows if r["shot"] == shot]
         if not rows:
@@ -38,7 +42,7 @@ def show(project_dir: str, shot: str = "", json: bool = False) -> str:
     lines: list[str] = []
     if not rows:
         lines.append(
-            "no framed shot: the scene has no `space`, or no shot names a `viewpoint`"
+            "no framed shot: the scene has no `world`, or no shot names a `viewpoint`"
         )
     for row in rows:
         vp = row["viewpoint"]

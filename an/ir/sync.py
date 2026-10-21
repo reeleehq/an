@@ -68,7 +68,7 @@ from an.genres.registry import (
     dialogue_sugars,
     register_action_kind,
 )
-from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, Space
+from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot, World
 from an.util import _read_text, _write_json, _write_text
 
 
@@ -162,12 +162,17 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     if title and "title" not in meta_data:
         meta_data["title"] = title
     meta = Meta(**meta_data)
-    # The scene's space (ADR 0007): a ```yaml space``` block before the shots.
-    space_data = _extract_yaml_block(global_text, "space")
-    space = Space(**space_data) if space_data is not None else None
+    # The scene's world (ADR 0007): a ```yaml world``` block before the shots.
+    world_data = _extract_yaml_block(global_text, "world")
+    world = World(**world_data) if world_data is not None else None
 
     shots: list[Shot] = []
     for shot_id, renderer, body in parts["__shots__"]:
+        if _extract_yaml_block(body, "world") is not None:
+            raise SceneMarkdownError(
+                f"shot {shot_id!r} holds a ```yaml world``` block: the world is the "
+                "scene's, written once before the first shot heading (ADR 0007)."
+            )
         shot_yaml = _extract_yaml_block(body, "shot") or {}
         dialogue_block = _extract_dialogue_block(body, shot_id=shot_id)
         entities_block = _extract_entities_block(body)
@@ -202,7 +207,7 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     if meta.duration == 0.0:
         meta.duration = sum(s.duration for s in shots)
 
-    return SceneIR(meta=meta, timeline=shots, space=space)
+    return SceneIR(meta=meta, timeline=shots, world=world)
 
 
 def _extract_title(md_text: str) -> str:
@@ -734,9 +739,9 @@ def ir_to_markdown(scene: SceneIR) -> str:
     """
     parts: list[str] = [_md_title_line(scene) + "\n"]
     parts.append(_md_fence(_META_FENCE, _md_meta_body(scene)) + "\n")
-    space_body = _md_space_body(scene)
-    if space_body is not None:
-        parts.append(_md_fence(_SPACE_FENCE, space_body) + "\n")
+    world_body = _md_world_body(scene)
+    if world_body is not None:
+        parts.append(_md_fence(_WORLD_FENCE, world_body) + "\n")
 
     if scene.meta.notes:
         parts.append(scene.meta.notes.rstrip() + "\n")
@@ -751,10 +756,10 @@ def ir_to_markdown(scene: SceneIR) -> str:
 FenceKey = tuple[str, "str | None"]
 
 _META_FENCE: FenceKey = ("yaml", "meta")
-#: The scene's space (ADR 0007), written after the meta block when set.
-_SPACE_FENCE: FenceKey = ("yaml", "space")
+#: The scene's world (ADR 0007), written after the meta block when set.
+_WORLD_FENCE: FenceKey = ("yaml", "world")
 #: The blocks before the first shot, in the order the writer emits them.
-_HEAD_FENCES: tuple[FenceKey, ...] = (_META_FENCE, _SPACE_FENCE)
+_HEAD_FENCES: tuple[FenceKey, ...] = (_META_FENCE, _WORLD_FENCE)
 
 #: The blocks the writer emits per shot, in the order it emits them.
 _SHOT_FENCES: tuple[FenceKey, ...] = (
@@ -818,23 +823,23 @@ def _md_meta_body(scene: SceneIR) -> str:
     return yaml.safe_dump(meta_dict, sort_keys=False).rstrip()
 
 
-def _md_space_body(scene: SceneIR) -> str | None:
-    """The ```yaml space`` block's body, or ``None`` when the scene has no
-    space: written only when set, like every field added after the first
+def _md_world_body(scene: SceneIR) -> str | None:
+    """The ```yaml world`` block's body, or ``None`` when the scene has no
+    world: written only when set, like every field added after the first
     documents were stored."""
-    if scene.space is None:
+    if scene.world is None:
         return None
     return yaml.safe_dump(
-        scene.space.model_dump(exclude_none=True), sort_keys=False
+        scene.world.model_dump(exclude_none=True), sort_keys=False
     ).rstrip()
 
 
 def _md_head_blocks(scene: SceneIR) -> dict[FenceKey, str]:
     """The blocks the writer emits before the first shot."""
     blocks = {_META_FENCE: _md_meta_body(scene)}
-    space_body = _md_space_body(scene)
-    if space_body is not None:
-        blocks[_SPACE_FENCE] = space_body
+    world_body = _md_world_body(scene)
+    if world_body is not None:
+        blocks[_WORLD_FENCE] = world_body
     return blocks
 
 

@@ -119,10 +119,13 @@ def _refuse_rights_conflicts(project: Project) -> None:
     import warnings
 
     from an.credits import conflict_line, credits_for_scene
+    from an.stage.world import lowered_or_same
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # the credits walk's own, reported at the end
-        conflicts = credits_for_scene(project.mall, project.scene).conflicts
+        conflicts = credits_for_scene(
+            project.mall, lowered_or_same(project.scene, project.mall)
+        ).conflicts
     if conflicts:
         listed = "; ".join(f"{a}: {conflict_line(c)}" for a, c in conflicts)
         raise RenderError(
@@ -1080,10 +1083,10 @@ def _prepare_shots(
         warn_findings(findings)
 
     # The scene as the compiler sees it (ADR 0007): every framed shot's
-    # placements derived from the space, on the settled copy and before
+    # placements derived from the world, on the settled copy and before
     # anything compiles (the cue anchors, the keys, the shots). Never written
     # back: the project keeps what the author wrote.
-    from an.stage.space import lower_scene
+    from an.stage.world import lower_scene
 
     scene = lower_scene(scene, project.mall, fps=effective_fps).scene
 

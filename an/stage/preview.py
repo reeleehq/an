@@ -158,7 +158,7 @@ def _compile_scene_to(
     retime_dialogue(
         scene, timed_shots_only=True
     )  # an edited pause plays where it says (an#187)
-    from an.stage.space import lower_scene
+    from an.stage.world import lower_scene
 
     scene = lower_scene(scene, project.mall).scene  # ADR 0007: what `an render` draws
     if not scene.timeline:

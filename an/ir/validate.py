@@ -14,6 +14,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Collection, Literal, Mapping
@@ -29,7 +30,7 @@ from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
 from an.ir.schema import CueAnchor, SceneIR
-from an.ir.space import SpaceError, has_space
+from an.ir.world import WorldError, has_world
 from an.base import SUPPORTED_RENDERERS
 from an.genres.registry import (
     CORE_OWNER,
@@ -1394,9 +1395,9 @@ class ValidationContext:
     index: int | None = None
     memo: dict[Any, Any] = field(default_factory=dict)
     #: The scene as the compiler sees it (ADR 0007): every framed shot's
-    #: placements derived from the space (:class:`an.ir.space.Lowered`).
-    #: ``None`` when the scene has no space, or its viewpoints could not be
-    #: resolved (reported as an error at ``space``); then ``shots`` are the
+    #: placements derived from the world (:class:`an.ir.world.Lowered`).
+    #: ``None`` when the scene has no world, or its viewpoints could not be
+    #: resolved (reported as an error at ``world``); then ``shots`` are the
     #: scene's own. The ``shot`` checks run on these shots: a member the world
     #: adds is an entity to them, and its actions have a target.
     lowered: Any = None
@@ -1408,7 +1409,7 @@ class ValidationContext:
 
     @property
     def shots(self) -> list:
-        """The shots the compiler would compile: lowered when there is a space."""
+        """The shots the compiler would compile: lowered when there is a world."""
         return list(
             self.lowered.scene.timeline
             if self.lowered is not None
@@ -1499,28 +1500,61 @@ def validate_semantic(
 
     for check in selected("scene"):
         _run_check(check, ctx)
-    if has_space(scene):
+    if has_world(scene):
         try:
             ctx.lowered = _lowered(ctx)
-        except SpaceError as e:
-            ctx.report.add("error", "space", str(e))
+        except WorldError as e:
+            ctx.report.add("error", "world", str(e))
+        except Exception as e:  # noqa: BLE001 — a finding, never a traceback (ADR 0007)
+            ctx.report.add(
+                "error", "world", f"the scene's world could not be lowered: {e}"
+            )
     for i, shot in enumerate(ctx.shots):
         ctx.shot, ctx.index = shot, i
+        first = len(ctx.report.findings)
         for check in selected("shot"):
             _run_check(check, ctx)
+        _name_authored_entities(ctx, i, first)
     ctx.shot = ctx.index = None
     for check in selected("finish"):
         _run_check(check, ctx)
     return ctx.report
 
 
+_ENTITY_PATH_RE = re.compile(r"^(timeline/(\d+)/entities)/(\d+)(.*)$")
+
+
+def _name_authored_entities(ctx: ValidationContext, index: int, first: int) -> None:
+    """A shot check on a LOWERED shot indexes the lowered entity list, which
+    is ordered by depth and holds members the world added; the author's
+    ``scene.json`` and `an iterate`'s patches index the authored list. Rewrite
+    ``timeline/<i>/entities/<j>`` in the findings added since ``first`` to the
+    author's index, or to ``entities/~<id>`` for an entity the world added
+    (nothing to patch: it has no line in the file)."""
+    lowered = ctx.lowered
+    if lowered is None or index not in lowered.origins:
+        return
+    origins = lowered.origins[index]
+    entities = lowered.scene.timeline[index].entities
+    for finding in ctx.report.findings[first:]:
+        m = _ENTITY_PATH_RE.match(finding.ir_path)
+        if m is None or int(m.group(2)) != index:
+            continue
+        j = int(m.group(3))
+        if j >= len(origins):
+            continue
+        origin = origins[j]
+        tail = f"{origin}" if origin is not None else f"~{entities[j].id}"
+        finding.ir_path = f"{m.group(1)}/{tail}{m.group(4)}"
+
+
 def _lowered(ctx: ValidationContext) -> Any:
-    """The scene lowered through its space (ADR 0007), computed once. The
+    """The scene lowered through its world (ADR 0007), computed once. The
     stage measures the members' extents by compiling each one's specimen; a
     stand-in's warnings are the compile's own, not this read's."""
     import warnings
 
-    from an.stage.space import lower_scene
+    from an.stage.world import lower_scene
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1861,12 +1895,12 @@ def _core_field_kinds(ctx: ValidationContext) -> None:
     the same policy the compiler's keyframe check uses, so validate and compile
     agree (review-244 S7). A string on a stage node's ``x`` is refused here, as
     the compiler refuses it. Entities with no registered kind are reported by
-    ``entity_kinds``; an entity kind with no space (a voice) has no fields."""
+    ``entity_kinds``; an entity kind with no world (a voice) has no fields."""
     from an.genres import entity_space_resolver
 
     from an.stage.compile import retire_front_spelling
 
-    # The spelling the compiler reads (an#343), so the space resolved is the
+    # The spelling the compiler reads (an#343), so the world resolved is the
     # environment's, not "the stage" for an unknown root.
     shot, _ = retire_front_spelling(ctx.shot)
     space_of = entity_space_resolver(shot.entities)
@@ -2535,8 +2569,8 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
         prev, shot = shots[i - 1], shots[i]
         # The cast and the props, not a travel's streams: scenery streaming
         # past changes sides with everything, and that is the point of it.
-        space = ctx.scene.space
-        members = {m.id for m in space.members} if space is not None else set()
+        world = ctx.scene.world
+        members = {m.id for m in world.members} if world is not None else set()
         authored = {
             e.id
             for s in ctx.scene.timeline[i - 1 : i + 1]
@@ -2567,26 +2601,26 @@ def _core_screen_direction(ctx: ValidationContext) -> None:
                     )
 
 
-def _core_space(ctx: ValidationContext) -> None:
-    """The scene's space names what exists (ADR 0007): registered member
-    kinds, and viewpoints whose `subject`/`hide` are members of the space. A size that
+def _core_world(ctx: ValidationContext) -> None:
+    """The scene's world names what exists (ADR 0007): registered member
+    kinds, and viewpoints whose `subject`/`hide` are members of the world. A size that
     cannot be measured and a viewpoint that cannot be resolved are reported
     with the shot that uses them."""
-    space = ctx.scene.space
-    if space is None:
+    world = ctx.scene.world
+    if world is None:
         return
     from an.genres.registry import entity_kind
 
-    ids = {m.id for m in space.members}
-    for j, member in enumerate(space.members):
+    ids = {m.id for m in world.members}
+    for j, member in enumerate(world.members):
         if entity_kind(member.kind) is None:
             ctx.report.add(
                 "error",
-                f"space/members/{j}",
+                f"world/members/{j}",
                 f"member {member.id!r} has kind {member.kind!r}, which no loaded genre "
                 "registers (the core has environment, prop and voice; a genre adds its own).",
             )
-    for name, vp in space.viewpoints.items():
+    for name, vp in world.viewpoints.items():
         subjects = (
             [vp.subject] if isinstance(vp.subject, str) else list(vp.subject or [])
         )
@@ -2594,14 +2628,14 @@ def _core_space(ctx: ValidationContext) -> None:
             if sid not in ids:
                 ctx.report.add(
                     "error",
-                    f"space/viewpoints/{name}",
+                    f"world/viewpoints/{name}",
                     f"viewpoint {name!r} frames {sid!r}, which is not a member.",
                 )
         for hid in vp.hide:
             if hid not in ids:
                 ctx.report.add(
                     "error",
-                    f"space/viewpoints/{name}",
+                    f"world/viewpoints/{name}",
                     f"viewpoint {name!r} hides {hid!r}, which is not a member.",
                 )
 
@@ -2619,8 +2653,8 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
         return
     for n in ctx.lowered.notes_for(ctx.index):
         ctx.report.add(n.severity, f"{ctx.path}/entities", f"{n.entity!r}: {n.message}")
-    space = ctx.scene.space
-    travel = space.travel if space is not None else None
+    world = ctx.scene.world
+    travel = world.travel if world is not None else None
     env_store = ctx.stores.get("environments")
     if travel is None or env_store is None:
         return
@@ -2652,7 +2686,7 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                 ctx.report.add(
                     "warning",
                     f"{ctx.path}/entities",
-                    f"plane {path!r} is under a travelling view but `space.travel.plates` "
+                    f"plane {path!r} is under a travelling view but `world.travel.plates` "
                     "does not say what it holds: list it under `far` (the sky, the horizon, "
                     "the far range: nothing nearer, which the streams draw) or `vehicle` "
                     "(rigid with the camera: the cabin, the dashboard).",
@@ -2706,8 +2740,8 @@ def _register_core_checks() -> None:
         SemanticCheck("easings", _core_easings, stage="scene", order=30),
         SemanticCheck("has_shots", _core_has_shots, stage="scene", order=40),
         SemanticCheck(
-            "space",
-            _core_space,
+            "world",
+            _core_world,
             stage="scene",
             order=50,
             description="the scene's space names members and kinds that exist",

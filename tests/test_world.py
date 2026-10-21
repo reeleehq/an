@@ -1,4 +1,4 @@
-"""The scene space (ADR 0007): one world, shots as viewpoints onto it, the
+"""The scene world (ADR 0007): one world, shots as viewpoints onto it, the
 lowering to `stage` placements and stream tweens, and the continuity lints.
 
 The fixture is the `prop_swap` corpus project (a lamp prop), which keeps every
@@ -25,19 +25,19 @@ from an.ir.schema import (
     Resolution,
     SceneIR,
     Shot,
-    Space,
-    SpaceMember,
+    World,
+    WorldMember,
     StagePlacement,
     Stream,
     Travel,
     Viewpoint,
 )
-from an.ir.space import (
+from an.ir.world import (
     Projection,
-    SpaceError,
+    WorldError,
     fit_channel,
-    has_space,
-    lower_space,
+    has_world,
+    lower_world,
     member_placements,
     resolve_viewpoint,
     stream_instances,
@@ -55,8 +55,8 @@ BOX = (-5.0, -20.0, 5.0, 0.0)
 W, H = 320.0, 240.0
 
 
-def _lamp(id: str, **world) -> SpaceMember:
-    return SpaceMember(kind="prop", id=id, store="props", ref="lamp", **world)
+def _lamp(id: str, **world) -> WorldMember:
+    return WorldMember(kind="prop", id=id, store="props", ref="lamp", **world)
 
 
 def _project(tmp_path: Path, corpus: Path = LAMP):
@@ -75,7 +75,7 @@ def _validate(project, scene):
 
 def _two_lamps_scene(**timeline_kwargs) -> SceneIR:
     """Two lamps side by side two units away, and a viewpoint at the origin."""
-    space = Space(
+    world = World(
         members=[
             _lamp("left", at=(-0.5, 0.4, 2.0), height=0.8),
             _lamp("right", at=(0.5, 0.4, 2.0), height=0.8),
@@ -87,7 +87,7 @@ def _two_lamps_scene(**timeline_kwargs) -> SceneIR:
     )
     return SceneIR(
         meta=Meta(fps=24, resolution=Resolution(width=int(W), height=int(H))),
-        space=space,
+        world=world,
         **timeline_kwargs,
     )
 
@@ -99,9 +99,9 @@ EXTENTS = {"left": BOX, "right": BOX, "hat": BOX, "pole": BOX}
 
 
 def test_a_scene_without_a_space_dumps_as_before():
-    assert "space" not in json.loads(SceneIR().model_dump_json())
+    assert "world" not in json.loads(SceneIR().model_dump_json())
     assert "viewpoint" not in json.loads(Shot(id="s").model_dump_json())
-    assert not has_space(SceneIR(timeline=[Shot(id="s")]))
+    assert not has_world(SceneIR(timeline=[Shot(id="s")]))
 
 
 def test_scene_md_round_trips_the_space_and_the_viewpoints():
@@ -123,7 +123,7 @@ def test_scene_md_round_trips_the_space_and_the_viewpoints():
             Shot(id="c", duration=0.5),
         ]
     )
-    scene.space.travel = Travel(
+    scene.world.travel = Travel(
         speed=4.0,
         far=30.0,
         streams=[Stream(id="pole", ref="lamp", height=1.5, every=(3.0, 5.0), lane=1.2)],
@@ -131,9 +131,9 @@ def test_scene_md_round_trips_the_space_and_the_viewpoints():
     )
     scene.meta.duration = 2.5  # what the reader fills in from the shots
     md = ir_to_markdown(scene)
-    assert "```yaml space" in md and "viewpoint: two" in md
+    assert "```yaml world" in md and "viewpoint: two" in md
     back = markdown_to_ir(md)
-    assert back.space == scene.space
+    assert back.world == scene.world
     assert [s.viewpoint for s in back.timeline] == [s.viewpoint for s in scene.timeline]
     assert ir_to_markdown(back) == md
 
@@ -142,12 +142,12 @@ def test_subject_survives_yaml_because_on_would_not():
     """`on:` is a YAML boolean (`on: paul` reads as `True: paul`); the field is `subject`."""
     md = ir_to_markdown(_two_lamps_scene(timeline=[Shot(id="a", viewpoint="right_cu")]))
     assert "subject: right" in md
-    assert markdown_to_ir(md).space.viewpoints["right_cu"].subject == "right"
+    assert markdown_to_ir(md).world.viewpoints["right_cu"].subject == "right"
 
 
 def test_merge_markdown_inserts_the_space_block_after_meta_and_keeps_prose():
     before = _two_lamps_scene(timeline=[Shot(id="a", duration=1.0)])
-    before.space = None
+    before.world = None
     existing = ir_to_markdown(before).replace(
         "## Shot a", "Some prose the author wrote.\n\n## Shot a"
     )
@@ -156,10 +156,10 @@ def test_merge_markdown_inserts_the_space_block_after_meta_and_keeps_prose():
     assert "Some prose the author wrote." in merged
     assert (
         merged.index("```yaml meta")
-        < merged.index("```yaml space")
+        < merged.index("```yaml world")
         < merged.index("## Shot a")
     )
-    assert markdown_to_ir(merged).space == after.space
+    assert markdown_to_ir(merged).world == after.world
 
 
 @pytest.mark.parametrize(
@@ -174,7 +174,7 @@ def test_merge_markdown_inserts_the_space_block_after_meta_and_keeps_prose():
 )
 def test_a_member_has_one_way_to_be_placed(bad, says):
     with pytest.raises(ValueError, match=re.escape(says)):
-        SpaceMember(kind="prop", id="x", store="props", ref="lamp", **bad)
+        WorldMember(kind="prop", id="x", store="props", ref="lamp", **bad)
 
 
 @pytest.mark.parametrize(
@@ -194,16 +194,16 @@ def test_a_viewpoint_has_one_front_door(bad, says):
 
 def test_the_space_refuses_duplicates_and_dangling_attachments():
     with pytest.raises(ValueError, match="duplicate ids"):
-        Space(
+        World(
             members=[
                 _lamp("a", at=(0, 0, 1), height=1),
                 _lamp("a", at=(0, 0, 2), height=1),
             ]
         )
     with pytest.raises(ValueError, match="not a member"):
-        Space(members=[_lamp("a", attached=Attachment(to="ghost"))])
+        World(members=[_lamp("a", attached=Attachment(to="ghost"))])
     with pytest.raises(ValueError, match="cycle"):
-        Space(
+        World(
             members=[
                 _lamp("a", attached=Attachment(to="b")),
                 _lamp("b", attached=Attachment(to="a")),
@@ -216,12 +216,12 @@ def test_the_space_refuses_duplicates_and_dangling_attachments():
 
 def test_size_on_screen_falls_with_depth():
     scene = _two_lamps_scene()
-    scene.space.members.append(_lamp("far", at=(0.5, 0.4, 8.0), height=0.8))
+    scene.world.members.append(_lamp("far", at=(0.5, 0.4, 8.0), height=0.8))
     eye = resolve_viewpoint(
-        scene.space, "two", extents={**EXTENTS, "far": BOX}, width=W, height=H
+        scene.world, "two", extents={**EXTENTS, "far": BOX}, width=W, height=H
     )
     placed = member_placements(
-        scene.space, eye, extents={**EXTENTS, "far": BOX}, width=W, height=H
+        scene.world, eye, extents={**EXTENTS, "far": BOX}, width=W, height=H
     )
     assert placed["right"].scale == pytest.approx(4 * placed["far"].scale)
     assert placed["right"].at[0] == pytest.approx(4 * placed["far"].at[0])
@@ -264,15 +264,15 @@ def test_a_close_up_is_the_same_world_seen_from_nearer():
     """Distances and sizes scale together: the close-up keeps the two-shot's layout."""
     scene = _two_lamps_scene()
     two = member_placements(
-        scene.space,
-        resolve_viewpoint(scene.space, "two", extents=EXTENTS, width=W, height=H),
+        scene.world,
+        resolve_viewpoint(scene.world, "two", extents=EXTENTS, width=W, height=H),
         extents=EXTENTS,
         width=W,
         height=H,
     )
     cu = member_placements(
-        scene.space,
-        resolve_viewpoint(scene.space, "right_cu", extents=EXTENTS, width=W, height=H),
+        scene.world,
+        resolve_viewpoint(scene.world, "right_cu", extents=EXTENTS, width=W, height=H),
         extents=EXTENTS,
         width=W,
         height=H,
@@ -301,8 +301,8 @@ def test_a_two_shot_fits_both_subjects_in_the_frame():
     scene = _two_lamps_scene()
     vp = Viewpoint(subject=["left", "right"], size="full", focal=300.0)
     placed = member_placements(
-        scene.space,
-        resolve_viewpoint(scene.space, vp, extents=EXTENTS, width=W, height=H),
+        scene.world,
+        resolve_viewpoint(scene.world, vp, extents=EXTENTS, width=W, height=H),
         extents=EXTENTS,
         width=W,
         height=H,
@@ -332,7 +332,7 @@ def test_shots_without_a_viewpoint_are_untouched():
             )
         ]
     )
-    lowered = lower_space(scene, extents=EXTENTS)
+    lowered = lower_world(scene, extents=EXTENTS)
     assert lowered.scene.timeline[0] is scene.timeline[0]
     assert lowered.notes == []
 
@@ -348,7 +348,7 @@ def test_the_world_adds_what_the_frame_shows_and_fills_what_is_listed():
             )
         ]
     )
-    lowered = lower_space(scene, extents=EXTENTS)
+    lowered = lower_world(scene, extents=EXTENTS)
     shot = lowered.scene.timeline[0]
     assert [e.id for e in shot.entities] == ["left", "right"]
     assert shot.entities[0].stage.at == pytest.approx((-75.0, 60.0)) and shot.entities[
@@ -369,9 +369,9 @@ def test_hide_and_the_frame_leave_members_out():
             )
         ]
     )
-    scene.space.members.append(_lamp("behind", at=(0.0, 0.0, -1.0), height=0.8))
-    scene.space.members.append(_lamp("offside", at=(40.0, 0.0, 2.0), height=0.8))
-    lowered = lower_space(scene, extents={**EXTENTS, "behind": BOX, "offside": BOX})
+    scene.world.members.append(_lamp("behind", at=(0.0, 0.0, -1.0), height=0.8))
+    scene.world.members.append(_lamp("offside", at=(40.0, 0.0, 2.0), height=0.8))
+    lowered = lower_world(scene, extents={**EXTENTS, "behind": BOX, "offside": BOX})
     assert [e.id for e in lowered.scene.timeline[0].entities] == ["right"]
 
 
@@ -386,7 +386,7 @@ def test_a_hand_placement_wins_and_is_noted():
     scene = _two_lamps_scene(
         timeline=[Shot(id="two", viewpoint="two", entities=[by_hand])]
     )
-    lowered = lower_space(scene, extents=EXTENTS)
+    lowered = lower_world(scene, extents=EXTENTS)
     right = next(e for e in lowered.scene.timeline[0].entities if e.id == "right")
     assert right.stage.at == (40.0, 0.0) and right.stage.scale == 9.0
     (hand,) = [n for n in lowered.notes if n.kind == "hand"]
@@ -402,16 +402,16 @@ def test_a_hand_placement_wins_and_is_noted():
     scene = _two_lamps_scene(
         timeline=[Shot(id="two", viewpoint="two", entities=[agreed])]
     )
-    assert [n.kind for n in lower_space(scene, extents=EXTENTS).notes] == ["added"]
+    assert [n.kind for n in lower_world(scene, extents=EXTENTS).notes] == ["added"]
 
 
 def test_attached_members_follow_the_host():
     scene = _two_lamps_scene(timeline=[Shot(id="two", viewpoint="two")])
-    scene.space.members += [
+    scene.world.members += [
         _lamp("hat", attached=Attachment(to="right", at=(0.0, -20.0), scale=0.5)),
         _lamp("hands", attached=Attachment(to="right")),  # placed by another pass
     ]
-    shot = lower_space(scene, extents=EXTENTS).scene.timeline[0]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     by_id = {e.id: e for e in shot.entities}
     assert by_id["hat"].stage.at == pytest.approx((75.0, 60.0 - 6.0 * 20.0)) and by_id[
         "hat"
@@ -426,7 +426,7 @@ def test_attached_members_follow_the_host():
         stage=StagePlacement(at=(40.0, 0.0), scale=2.0),
     )
     scene.timeline[0] = Shot(id="two", viewpoint="two", entities=[by_hand])
-    shot = lower_space(scene, extents=EXTENTS).scene.timeline[0]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     hat = next(e for e in shot.entities if e.id == "hat")
     assert hat.stage.at == pytest.approx(
         (40.0, -40.0)
@@ -457,9 +457,9 @@ def test_draw_order_is_depth_with_environments_first_and_the_rest_on_top():
             )
         ]
     )
-    scene.space.members.insert(0, _lamp("near", at=(0.0, 0.4, 1.0), height=0.8))
-    scene.space.members.append(_lamp("far", at=(0.0, 0.4, 9.0), height=0.8))
-    shot = lower_space(
+    scene.world.members.insert(0, _lamp("near", at=(0.0, 0.4, 1.0), height=0.8))
+    scene.world.members.append(_lamp("far", at=(0.0, 0.4, 9.0), height=0.8))
+    shot = lower_world(
         scene, extents={**EXTENTS, "near": BOX, "far": BOX}
     ).scene.timeline[0]
     assert [e.id for e in shot.entities] == [
@@ -474,15 +474,15 @@ def test_draw_order_is_depth_with_environments_first_and_the_rest_on_top():
 
 def test_an_unknown_viewpoint_or_subject_raises_a_space_error():
     scene = _two_lamps_scene(timeline=[Shot(id="a", viewpoint="nowhere")])
-    with pytest.raises(SpaceError, match="unknown viewpoint 'nowhere'"):
-        lower_space(scene, extents=EXTENTS)
-    with pytest.raises(SpaceError, match="not a member"):
+    with pytest.raises(WorldError, match="unknown viewpoint 'nowhere'"):
+        lower_world(scene, extents=EXTENTS)
+    with pytest.raises(WorldError, match="not a member"):
         resolve_viewpoint(
-            scene.space, Viewpoint(subject="nobody"), extents=EXTENTS, width=W, height=H
+            scene.world, Viewpoint(subject="nobody"), extents=EXTENTS, width=W, height=H
         )
-    with pytest.raises(SpaceError, match="cannot be measured"):
+    with pytest.raises(WorldError, match="cannot be measured"):
         resolve_viewpoint(
-            scene.space, "right_cu", extents={"right": None}, width=W, height=H
+            scene.world, "right_cu", extents={"right": None}, width=W, height=H
         )
 
 
@@ -491,10 +491,10 @@ def test_an_unknown_viewpoint_or_subject_raises_a_space_error():
 
 def _travel_scene(*shots: Shot, yaw: float = 0.0) -> SceneIR:
     scene = _two_lamps_scene(timeline=list(shots))
-    scene.space.viewpoints["road"] = Viewpoint(
+    scene.world.viewpoints["road"] = Viewpoint(
         at=(0.0, -1.0, 0.0), look=(yaw, 0.0, 0.0), focal=300.0
     )
-    scene.space.travel = Travel(
+    scene.world.travel = Travel(
         speed=4.0,
         far=30.0,
         near=0.5,
@@ -538,7 +538,7 @@ def test_streams_keep_phase_across_the_cut():
         Shot(id="s1", duration=2.0, viewpoint="road"),
         Shot(id="s2", duration=2.0, viewpoint="road"),
     )
-    lowered = lower_space(scene, extents=EXTENTS)
+    lowered = lower_world(scene, extents=EXTENTS)
     s1, s2 = lowered.scene.timeline
     common = sorted(
         {e.id for e in s1.entities} & {e.id for e in s2.entities} - {"left", "right"}
@@ -558,7 +558,7 @@ def test_streams_keep_phase_across_the_cut():
 
 def test_a_side_window_scrolls_in_one_linear_stretch():
     scene = _travel_scene(Shot(id="s1", duration=2.0, viewpoint="road"), yaw=90.0)
-    shot = lower_space(scene, extents=EXTENTS).scene.timeline[0]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
     poles = [e.id for e in shot.entities if e.id.startswith("pole_")]
     assert poles
     for eid in poles:
@@ -583,23 +583,23 @@ def test_the_fit_tracks_the_projection_within_tolerance():
 
 
 def test_a_lowered_travelling_shot_compiles_and_moves_as_the_world_says(tmp_path):
-    from an.ir.space import _mul, _unit
+    from an.ir.world import _mul, _unit
     from an.stage.compile import compile_shot
     from an.stage.timeline import screen_position, timeline_from_scene
     from an.timing import evaluate_timeline
 
     project = _project(tmp_path)
     scene = _travel_scene(Shot(id="s1", duration=2.0, viewpoint="road"))
-    lowered = lower_space(scene, extents=EXTENTS)
+    lowered = lower_world(scene, extents=EXTENTS)
     shot = lowered.scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         doc = compile_shot(shot, mall=project.mall, width=int(W), height=int(H), fps=24)
     timeline = timeline_from_scene(doc)
-    eye = resolve_viewpoint(scene.space, "road", extents=EXTENTS, width=W, height=H)
+    eye = resolve_viewpoint(scene.world, "road", extents=EXTENTS, width=W, height=H)
     instances = dict(
         stream_instances(
-            scene.space.travel.streams[0], scene.space.travel, s_min=-100.0, s_max=100.0
+            scene.world.travel.streams[0], scene.world.travel, s_min=-100.0, s_max=100.0
         )
     )
     checked = 0
@@ -656,14 +656,14 @@ def test_validate_reports_the_lowering_and_resolves_actions_on_added_members(tmp
 def test_validate_names_an_unknown_viewpoint_and_subject(tmp_path):
     project = _project(tmp_path)
     scene = _two_lamps_scene(timeline=[Shot(id="a", viewpoint="nowhere")])
-    scene.space.viewpoints["bad"] = Viewpoint(subject="nobody", hide=["ghost"])
+    scene.world.viewpoints["bad"] = Viewpoint(subject="nobody", hide=["ghost"])
     report = _validate(project, scene)
     errors = [
         (f.ir_path, f.description) for f in report.findings if f.severity == "error"
     ]
-    assert any(path == "space" and "nowhere" in d for path, d in errors)
-    assert any(path == "space/viewpoints/bad" and "nobody" in d for path, d in errors)
-    assert any(path == "space/viewpoints/bad" and "ghost" in d for path, d in errors)
+    assert any(path == "world" and "nowhere" in d for path, d in errors)
+    assert any(path == "world/viewpoints/bad" and "nobody" in d for path, d in errors)
+    assert any(path == "world/viewpoints/bad" and "ghost" in d for path, d in errors)
 
 
 def test_cut_continuity_is_silent_across_two_viewpoints_and_loud_within_one(tmp_path):
@@ -764,7 +764,7 @@ def test_plates_under_a_travel_must_be_declared(tmp_path):
     assert any("'set/sky'" in d for d in undeclared) and any(
         "'set/hill'" in d for d in undeclared
     )
-    scene.space.travel.plates = {
+    scene.world.travel.plates = {
         "far": ["set/sky"],
         "vehicle": ["set/hill", "set/rail"],
     }
@@ -802,7 +802,7 @@ def test_every_entry_point_lowers_the_scene_before_compiling():
 
 
 def test_an_space_show_prints_the_lowered_shots(tmp_path, capsys):
-    from an.space_cli import show
+    from an.world_cli import show
 
     project = _project(tmp_path)
     scene = _two_lamps_scene(
@@ -819,3 +819,223 @@ def test_an_space_show_prints_the_lowered_shots(tmp_path, capsys):
     assert "the world adds it" in text and "left" in text and "right" in text
     as_json = json.loads(show(str(project.root), json=True))
     assert [row["shot"] for row in as_json] == ["two"]
+
+
+# --- what the adversarial review found (ADR 0007 review, 2026-10-21) ----------------
+
+
+def test_a_member_whose_art_cannot_compile_is_a_finding_not_a_traceback(tmp_path):
+    """B1: a missing ref, an unregistered kind or no stores at all: validate reports."""
+    project = _project(tmp_path)
+    scene = _two_lamps_scene(timeline=[Shot(id="two", duration=0.5, viewpoint="two")])
+    scene.world.members.append(
+        _lamp("ghost", at=(0.0, 0.4, 2.0), height=0.8).model_copy(
+            update={"ref": "no_such_prop"}
+        )
+    )
+    report = _validate(project, scene)
+    said = [f.description for f in report.findings if "'ghost'" in f.description]
+    assert said and any(
+        "could not be measured" in d and "no_such_prop" in d for d in said
+    )
+    assert not any("Traceback" in d for d in said)
+    # no stores at all: the lowering cannot measure, and still does not raise
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        bare = validate_semantic(scene)
+    assert any("'left'" in f.description for f in bare.findings)
+    # an unknown kind is the world check's finding, and the lowering survives it
+    scene.world.members.append(
+        WorldMember(
+            kind="alien",
+            id="zed",
+            store="props",
+            ref="lamp",
+            at=(0.0, 0.0, 2.0),
+            height=1.0,
+        )
+    )
+    report = _validate(project, scene)
+    assert any(
+        f.ir_path.startswith("world/members/") and "alien" in f.description
+        for f in report.findings
+    )
+    from an.world_cli import show
+
+    (project.root / "scene.md").write_text(ir_to_markdown(scene), encoding="utf-8")
+    shutil.rmtree(project.root / "ir")
+    assert "## two" in show(str(project.root))
+
+
+def test_a_travel_reuses_entities_and_refuses_past_its_budget():
+    """B2: entities are slots bounded by the depth range, not by the shot's length; a
+    lowering past `max_actions` is refused with the knobs named."""
+    from an.ir.world import stream_slots
+
+    scene = _travel_scene(Shot(id="long", duration=40.0, viewpoint="road"))
+    stream, travel = scene.world.travel.streams[0], scene.world.travel
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    poles = [e for e in shot.entities if e.id.startswith("pole_")]
+    assert 0 < len(poles) <= stream_slots(stream, travel) == 11
+    passes = sum(
+        1
+        for f in flatten(parallel(*shot.actions))
+        if getattr(f.action, "property", "") == "alpha" and f.action.value == 1.0
+    )
+    assert passes > len(poles), "a slot draws several instances one after another"
+    scene.world.travel = travel.model_copy(update={"max_actions": 50})
+    with pytest.raises(WorldError, match="max_actions"):
+        lower_world(scene, extents=EXTENTS)
+
+
+def test_lowering_is_idempotent():
+    """S1: a lowered scene lowered again gains no entity and no action."""
+    scene = _travel_scene(Shot(id="s1", duration=2.0, viewpoint="road"))
+    once = lower_world(scene, extents=EXTENTS).scene
+    twice = lower_world(once, extents=EXTENTS).scene
+    assert [e.id for e in twice.timeline[0].entities] == [
+        e.id for e in once.timeline[0].entities
+    ]
+    assert len(twice.timeline[0].actions) == len(once.timeline[0].actions)
+
+
+def test_the_listing_wins_over_hide_and_says_so():
+    """S2: a member the viewpoint hides but the shot lists stays, with a note."""
+    scene = _two_lamps_scene(
+        timeline=[
+            Shot(
+                id="a",
+                viewpoint=Viewpoint(at=(0.0, 0.0, 0.0), focal=300.0, hide=["left"]),
+                entities=[AssetRef(kind="prop", id="left", store="props", ref="lamp")],
+            )
+        ]
+    )
+    lowered = lower_world(scene, extents=EXTENTS)
+    assert [e.id for e in lowered.scene.timeline[0].entities] == ["left", "right"]
+    assert any(
+        n.kind == "listed" and n.entity == "left" and "listing wins" in n.message
+        for n in lowered.notes
+    )
+
+
+def test_a_hand_at_keeps_the_worlds_scale_unless_a_scale_is_set():
+    """S3: `stage: {at: [...]}` nudges a member; its size stays the world's (the
+    default scale 1.0 means the world's), and what is attached to it follows."""
+    scene = _two_lamps_scene(
+        timeline=[
+            Shot(
+                id="two",
+                viewpoint="two",
+                entities=[
+                    AssetRef(
+                        kind="prop",
+                        id="right",
+                        store="props",
+                        ref="lamp",
+                        stage=StagePlacement(at=(76.0, 60.0)),
+                    )
+                ],
+            )
+        ]
+    )
+    scene.world.members.append(
+        _lamp("hat", attached=Attachment(to="right", at=(0.0, -20.0), scale=0.5))
+    )
+    lowered = lower_world(scene, extents=EXTENTS)
+    by_id = {e.id: e for e in lowered.scene.timeline[0].entities}
+    assert by_id["right"].stage.at == (76.0, 60.0) and by_id[
+        "right"
+    ].stage.scale == pytest.approx(6.0)
+    assert by_id["hat"].stage.at == pytest.approx((76.0, 60.0 - 6.0 * 20.0)) and by_id[
+        "hat"
+    ].stage.scale == pytest.approx(3.0)
+    # a nudge of a pixel is within tolerance: no hand note
+    assert not any(n.kind == "hand" for n in lowered.notes)
+
+
+def test_a_composition_over_two_depths_frames_both():
+    """S4: the camera stands back far enough for the NEAREST subject."""
+    scene = _two_lamps_scene()
+    scene.world.members.append(_lamp("close", at=(0.0, 0.4, 0.5), height=0.8))
+    vp = Viewpoint(subject=["close", "right"], size="full", focal=300.0)
+    eye = resolve_viewpoint(
+        scene.world, vp, extents={**EXTENTS, "close": BOX}, width=W, height=H
+    )
+    placed = member_placements(
+        scene.world, eye, extents={**EXTENTS, "close": BOX}, width=W, height=H
+    )
+    assert placed["close"].in_frame and placed["right"].in_frame
+    assert placed["close"].depth > 0 and placed["right"].depth > placed["close"].depth
+
+
+def test_an_added_attached_member_carries_its_attachment():
+    """S5: a pass that places a body prop from its host finds the host on the entity."""
+    from an.ir.world import ATTACHED_OVERRIDE
+
+    scene = _two_lamps_scene(timeline=[Shot(id="two", viewpoint="two")])
+    scene.world.members.append(_lamp("hands", attached=Attachment(to="right")))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    hands = next(e for e in shot.entities if e.id == "hands")
+    assert hands.stage is None and hands.overrides[ATTACHED_OVERRIDE] == {"to": "right"}
+
+
+def test_findings_on_a_framed_shot_name_the_authors_entities(tmp_path):
+    """S8: a finding's `entities/<j>` is the author's index, or `~<id>` for one the
+    world added, never the lowered list's index."""
+    project = _project(tmp_path)
+    # `right` is listed first by the author but drawn after `left`... both at one depth,
+    # so the lowered order is the listed order; an added member comes with `~`.
+    scene = _two_lamps_scene(
+        timeline=[
+            Shot(
+                id="two",
+                duration=0.5,
+                viewpoint="two",
+                entities=[
+                    AssetRef(
+                        kind="prop",
+                        id="right",
+                        store="props",
+                        ref="lamp",
+                        stage=StagePlacement(after="nobody"),
+                    )
+                ],
+            )
+        ]
+    )
+    report = _validate(project, scene)
+    after = [f for f in report.findings if "nobody" in f.description]
+    assert after and after[0].ir_path.startswith("timeline/0/entities/0")
+    scene.world.members.append(
+        _lamp("ghost", at=(0.0, 0.4, 2.0), height=0.8).model_copy(
+            update={"ref": "no_such_prop", "units_per_px": 0.04, "height": None}
+        )
+    )
+    report = _validate(project, scene)
+    ghost = [
+        f for f in report.findings if f.ir_path.startswith("timeline/0/entities/~ghost")
+    ]
+    assert ghost, [f.ir_path + " " + f.description[:60] for f in report.findings]
+
+
+def test_short_film_starts_are_refused():
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="a", viewpoint="two"), Shot(id="b", viewpoint="two")]
+    )
+    with pytest.raises(WorldError, match="film_starts"):
+        lower_world(scene, extents=EXTENTS, film_starts=[0.0])
+
+
+def test_a_world_block_inside_a_shot_is_refused():
+    from an.ir.sync import SceneMarkdownError
+
+    md = ir_to_markdown(_two_lamps_scene(timeline=[Shot(id="a", duration=1.0)]))
+    head, _, tail = md.partition("## Shot a")
+    moved = (
+        head.replace("```yaml world", "```yaml notworld")
+        + "## Shot a"
+        + tail
+        + "\n```yaml world\nmembers: []\n```\n"
+    )
+    with pytest.raises(SceneMarkdownError, match="before the first shot"):
+        markdown_to_ir(moved)

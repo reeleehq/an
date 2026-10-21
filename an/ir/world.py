@@ -1,6 +1,6 @@
-"""One world, many shots: the scene space's geometry and its lowering (ADR 0007).
+"""One world, many shots: the scene world's geometry and its lowering (ADR 0007).
 
-A scene may declare a **space** (`SceneIR.space`): members at world positions
+A scene may declare a **world** (`SceneIR.world`): members at world positions
 with a size, named viewpoints, and a travel. A shot with a **viewpoint** is a
 pinhole camera onto that world; this module turns the two into what the stage
 already understands — a `stage` placement per entity, and plain `set`/`tween`
@@ -21,15 +21,15 @@ and an entity of world size `S` whose art is `n` pixels tall at `stage.scale`
 camera: near things are large and rush past, far things are small and barely
 move, and a close-up is the same world seen from nearer.
 
->>> from an.ir.schema import Space, SpaceMember, Viewpoint
->>> space = Space(members=[
-...     SpaceMember(kind="prop", id="near", store="props", ref="p", at=(1.0, 0.0, 2.0), height=1.0),
-...     SpaceMember(kind="prop", id="far", store="props", ref="p", at=(1.0, 0.0, 20.0), height=1.0),
+>>> from an.ir.schema import World, WorldMember, Viewpoint
+>>> world = World(members=[
+...     WorldMember(kind="prop", id="near", store="props", ref="p", at=(1.0, 0.0, 2.0), height=1.0),
+...     WorldMember(kind="prop", id="far", store="props", ref="p", at=(1.0, 0.0, 20.0), height=1.0),
 ... ])
 >>> box = (-10.0, -20.0, 10.0, 0.0)             # 20 px tall art, feet at the origin
->>> eye = resolve_viewpoint(space, Viewpoint(at=(0.0, 0.0, 0.0), focal=1000.0),
+>>> eye = resolve_viewpoint(world, Viewpoint(at=(0.0, 0.0, 0.0), focal=1000.0),
 ...                         extents={"near": box, "far": box}, width=1280, height=720)
->>> placed = member_placements(space, eye, extents={"near": box, "far": box}, width=1280, height=720)
+>>> placed = member_placements(world, eye, extents={"near": box, "far": box}, width=1280, height=720)
 >>> placed["near"].at, round(placed["near"].scale, 2)
 ((500.0, 0.0), 25.0)
 >>> placed["far"].at, round(placed["far"].scale, 2)
@@ -40,24 +40,25 @@ from __future__ import annotations
 
 import math
 import random
+import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
 from an.ir.compose import delay, sequence, set_, tween
-from an.timing.easing import apply_easing
 from an.ir.schema import (
     DFLT_FOV_DEG,
     SHOT_SIZES,
     AssetRef,
     SceneIR,
     Shot,
-    Space,
-    SpaceMember,
     StagePlacement,
     Stream,
     Travel,
     Viewpoint,
+    World,
+    WorldMember,
 )
+from an.timing.easing import apply_easing
 
 __all__ = [
     "Box",
@@ -67,24 +68,26 @@ __all__ = [
     "Lowered",
     "Placed",
     "Projection",
-    "SpaceError",
-    "SpaceNote",
+    "WorldError",
+    "WorldNote",
+    "fit_channel",
     "focal_length",
-    "has_space",
-    "lower_space",
+    "has_world",
+    "lower_world",
     "member_placements",
     "resolve_viewpoint",
-    "fit_channel",
     "stream_instances",
+    "stream_slots",
     "viewpoint_of",
 ]
 
 #: A member's native extent: ``(x0, y0, x1, y1)`` in its art's pixels at
 #: ``stage.scale`` 1, relative to its placement point (a character's feet).
-#: ``None`` means it could not be measured (nothing drawn).
+#: ``None`` means it could not be measured (nothing drawn, or a compile that
+#: failed: the lowering's note says which).
 Box = tuple[float, float, float, float]
 #: ``{member or stream id: Box | None}``, measured by the stage
-#: (:func:`an.stage.space.member_extents`); the IR layer only reads it.
+#: (:func:`an.stage.world.member_extents`); the IR layer only reads it.
 Extents = Mapping[str, "Box | None"]
 Point3 = tuple[float, float, float]
 
@@ -94,28 +97,31 @@ HAND_PLACEMENT_TOLERANCE_PX: float = 2.0
 HAND_SCALE_TOLERANCE: float = 0.02
 #: A depth this small is "at the camera": nothing projects through it.
 _MIN_DEPTH: float = 1e-6
-#: Adaptive sampling never splits a stream's keys finer than this many frames.
+#: Adaptive fitting never splits a stream's segments finer than this many frames.
 _MIN_SAMPLE_FRAMES: float = 1.0
-#: The finest grid the sampler reaches, as a safety net for a pathological `g`.
+#: The finest split the fitter reaches, as a safety net for a pathological `g`.
 _MAX_SAMPLE_SPLITS: int = 14
 #: Two consecutive keys of one channel closer than this are one value.
 _FLAT_CHANNEL_EPS: float = 1e-6
+#: The key the lowering records a member's attachment under in the entity's
+#: ``overrides``, for a pass that places it from its host (ADR 0007).
+ATTACHED_OVERRIDE: str = "attached"
 
 
-class SpaceError(ValueError):
-    """A space or viewpoint that cannot be resolved (an unknown member, a
-    subject whose extent is unknown, a viewpoint name the space does not
-    have). The IR layer raises it; `an validate` reports it as an error and
-    the lowering is then skipped for that scene."""
+class WorldError(ValueError):
+    """A world or viewpoint that cannot be resolved (an unknown member, a
+    subject whose extent is unknown, a viewpoint name the world does not
+    have, a travel past its budget). The IR layer raises it; `an validate`
+    reports it as an error and the lowering is then skipped for that scene."""
 
 
-def has_space(scene: SceneIR) -> bool:
-    """Whether lowering would change anything: a space, or a shot with a viewpoint.
+def has_world(scene: SceneIR) -> bool:
+    """Whether lowering would change anything: a world, or a shot with a viewpoint.
 
-    >>> has_space(SceneIR())
+    >>> has_world(SceneIR())
     False
     """
-    return scene.space is not None or any(
+    return scene.world is not None or any(
         s.viewpoint is not None for s in scene.timeline
     )
 
@@ -167,18 +173,22 @@ def _mul(a: Point3, k: float) -> Point3:
 def _unit(a: Point3) -> Point3:
     n = math.sqrt(_dot(a, a))
     if n == 0.0:
-        raise SpaceError("a direction must not be the zero vector")
+        raise WorldError("a direction must not be the zero vector")
     return _mul(a, 1.0 / n)
 
 
 def _basis(yaw: float, pitch: float, roll: float) -> tuple[Point3, Point3, Point3]:
     """``(forward, right, down)`` for a look of ``yaw`` (turn right), ``pitch``
-    (look down) and ``roll`` (the picture turns clockwise), in degrees.
+    (look down) and ``roll`` (the PICTURE turns clockwise: what was on the
+    right moves to the bottom), in degrees.
 
     >>> [tuple(round(v, 6) + 0.0 for v in axis) for axis in _basis(0.0, 0.0, 0.0)]
     [(0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
     >>> [round(v, 6) + 0.0 for v in _basis(90.0, 0.0, 0.0)[0]]
     [1.0, 0.0, 0.0]
+    >>> eye = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)
+    >>> [round(v, 6) + 0.0 for v in eye.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom
+    [0.0, 10.0, 10.0]
     """
     t, p, r_ = (math.radians(a) for a in (yaw, pitch, roll))
     forward: Point3 = (
@@ -191,8 +201,8 @@ def _basis(yaw: float, pitch: float, roll: float) -> tuple[Point3, Point3, Point
     if r_:
         c, s = math.cos(r_), math.sin(r_)
         right, down = (
-            _add(_mul(right, c), _mul(down, s)),
-            _add(_mul(right, -s), _mul(down, c)),
+            _add(_mul(right, c), _mul(down, -s)),
+            _add(_mul(right, s), _mul(down, c)),
         )
     return forward, right, down
 
@@ -215,8 +225,8 @@ def _angles_for_vanish(
     and ``sy = −f·tan(pitch)``.
 
     >>> yaw, pitch = _angles_for_vanish((0.0, -262.0), 1372.0)
-    >>> round(yaw, 3), round(pitch, 2)
-    (-0.0, 10.81)
+    >>> round(yaw, 3) + 0.0, round(pitch, 2)
+    (0.0, 10.81)
     """
     pitch = -math.atan2(vanish[1], focal)
     yaw = -math.atan2(vanish[0] * math.cos(pitch), focal)
@@ -261,59 +271,59 @@ class Projection:
 
 
 def viewpoint_of(
-    space: Space | None, viewpoint: str | Viewpoint | None
+    world: World | None, viewpoint: str | Viewpoint | None
 ) -> Viewpoint | None:
-    """The shot's viewpoint as a model: a name is looked up in the space.
+    """The shot's viewpoint as a model: a name is looked up in the world.
 
-    >>> viewpoint_of(Space(viewpoints={"a": Viewpoint(focal=1.0)}), "a").focal
+    >>> viewpoint_of(World(viewpoints={"a": Viewpoint(focal=1.0)}), "a").focal
     1.0
     >>> viewpoint_of(None, "a")
     Traceback (most recent call last):
     ...
-    an.ir.space.SpaceError: shot names viewpoint 'a' but the scene has no `space`
+    an.ir.world.WorldError: shot names viewpoint 'a' but the scene has no `world`
     """
     if viewpoint is None:
         return None
     if isinstance(viewpoint, Viewpoint):
         return viewpoint
-    if space is None:
-        raise SpaceError(
-            f"shot names viewpoint {viewpoint!r} but the scene has no `space`"
+    if world is None:
+        raise WorldError(
+            f"shot names viewpoint {viewpoint!r} but the scene has no `world`"
         )
     try:
-        return space.viewpoints[viewpoint]
+        return world.viewpoints[viewpoint]
     except KeyError:
-        raise SpaceError(
-            f"unknown viewpoint {viewpoint!r}; the space names "
-            f"{sorted(space.viewpoints) or 'none'}"
+        raise WorldError(
+            f"unknown viewpoint {viewpoint!r}; the world names "
+            f"{sorted(world.viewpoints) or 'none'}"
         ) from None
 
 
-def _member(space: Space | None, member_id: str, *, where: str) -> SpaceMember:
-    for m in space.members if space is not None else ():
+def _member(world: World | None, member_id: str, *, where: str) -> WorldMember:
+    for m in world.members if world is not None else ():
         if m.id == member_id:
             return m
-    raise SpaceError(f"{where} names {member_id!r}, which is not a member of the space")
+    raise WorldError(f"{where} names {member_id!r}, which is not a member of the world")
 
 
 def _unit_scale(
-    member: SpaceMember | Stream, box: Box | None, *, where: str
+    member: WorldMember | Stream, box: Box | None, *, where: str
 ) -> float | None:
     """World units per native pixel: the member's size over its art's extent,
-    or its `scale` as given. ``None`` when the member is sized by its art and
-    the art could not be measured (a lint, not a crash)."""
-    if member.scale is not None:
-        return float(member.scale)
+    or its `units_per_px` as given. ``None`` when the member is sized by its
+    art and the art could not be measured (a lint, not a crash)."""
+    if member.units_per_px is not None:
+        return float(member.units_per_px)
     if box is None:
         return None
     w, h = box[2] - box[0], box[3] - box[1]
     if member.height is not None:
         if h <= 0:
-            raise SpaceError(f"{where}: its art has no height to size by")
+            raise WorldError(f"{where}: its art has no height to size by")
         return float(member.height) / h
     if member.width is not None:
         if w <= 0:
-            raise SpaceError(f"{where}: its art has no width to size by")
+            raise WorldError(f"{where}: its art has no width to size by")
         return float(member.width) / w
     return None
 
@@ -330,7 +340,7 @@ def _world_box(at: Point3, box: Box, m: float) -> tuple[float, float, float, flo
 
 
 def resolve_viewpoint(
-    space: Space | None,
+    world: World | None,
     viewpoint: str | Viewpoint,
     *,
     extents: Extents,
@@ -342,17 +352,18 @@ def resolve_viewpoint(
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
     with the subject's band (`SHOT_SIZES`), shifted so the band's centre lands
-    at ``subject_at``. The band of several subjects is their union, at their
-    mean depth, and it must fit the frame's width as well as its height.
+    at ``subject_at``. With several subjects the band is their union, aimed at
+    their mean depth, and the distance is what the NEAREST subject needs from
+    its own depth, so every subject fits the frame's height and width.
 
-    >>> from an.ir.schema import Space, SpaceMember
-    >>> space = Space(members=[SpaceMember(kind="prop", id="p", store="props", ref="p", at=(3.0, 0.0, 10.0), height=2.0)])
-    >>> eye = resolve_viewpoint(space, Viewpoint(subject="p", size="full", focal=900.0),
+    >>> from an.ir.schema import World, WorldMember
+    >>> world = World(members=[WorldMember(kind="prop", id="p", store="props", ref="p", at=(3.0, 0.0, 10.0), height=2.0)])
+    >>> eye = resolve_viewpoint(world, Viewpoint(subject="p", size="full", focal=900.0),
     ...                         extents={"p": (-10.0, -40.0, 10.0, 0.0)}, width=1600, height=900)
     >>> [round(v, 3) for v in eye.at]           # 2 units tall fills 0.9 × 900 px: 2.222 away, centred on the box
     [3.0, -1.0, 7.778]
     """
-    vp = viewpoint_of(space, viewpoint)
+    vp = viewpoint_of(world, viewpoint)
     assert vp is not None
     focal = focal_length(vp, width=width)
     yaw, pitch, roll = (float(a) for a in vp.look)
@@ -366,43 +377,54 @@ def resolve_viewpoint(
         return Projection(at, forward, right, down, focal)
 
     subjects = [vp.subject] if isinstance(vp.subject, str) else list(vp.subject)
+    forward, right, down = _basis(yaw, pitch, roll)
+    top, bottom, fill = SHOT_SIZES[vp.size or "full"]
     boxes: list[tuple[float, float, float, float]] = []
-    depths: list[float] = []
+    positions: list[Point3] = []
     for sid in subjects:
-        member = _member(space, sid, where="viewpoint `subject`")
+        member = _member(world, sid, where="viewpoint `subject`")
         if member.at is None:
-            raise SpaceError(
-                f"viewpoint subject {sid!r}: it is attached to {member.attached.to!r}; "  # type: ignore[union-attr]
-                "frame on the host instead"
+            raise WorldError(
+                f"viewpoint subject {sid!r}: it is attached to "
+                f"{member.attached.to!r}; frame on the host instead"  # type: ignore[union-attr]
             )
         box = extents.get(sid)
         m = _unit_scale(member, box, where=f"viewpoint subject {sid!r}")
         if box is None or m is None:
-            raise SpaceError(
-                f"viewpoint subject {sid!r}: its extent cannot be measured, so no shot "
-                "size fits it; give the viewpoint `distance` and `at`-less `look`, "
-                "or size the member by `height`/`width` with measurable art"
+            raise WorldError(
+                f"viewpoint subject {sid!r}: its extent cannot be measured, so no "
+                "shot size fits it; give the viewpoint `distance` and an `at`-less "
+                "`look`, or size the member by `height`/`width` with measurable art"
             )
-        boxes.append(_world_box(tuple(map(float, member.at)), box, m))  # type: ignore[arg-type]
-        depths.append(float(member.at[2]))
-    top, bottom, fill = SHOT_SIZES[vp.size or "full"]
+        position: Point3 = tuple(map(float, member.at))  # type: ignore[assignment]
+        boxes.append(_world_box(position, box, m))
+        positions.append(position)
     x0 = min(b[0] for b in boxes)
     x1 = max(b[2] for b in boxes)
     bands = [(b[1] + top * (b[3] - b[1]), b[1] + bottom * (b[3] - b[1])) for b in boxes]
     y0, y1 = min(b[0] for b in bands), max(b[1] for b in bands)
-    centre: Point3 = ((x0 + x1) / 2.0, (y0 + y1) / 2.0, sum(depths) / len(depths))
+    n = float(len(positions))
+    centre: Point3 = (
+        (x0 + x1) / 2.0,
+        (y0 + y1) / 2.0,
+        sum(p[2] for p in positions) / n,
+    )
     if vp.distance is not None:
         distance = float(vp.distance)
     else:
-        distance = max(
-            focal * (y1 - y0) / (fill * float(height)),
-            focal * (x1 - x0) / (fill * float(width)),
-            _MIN_DEPTH,
-        )
-    forward, right, down = _basis(yaw, pitch, roll)
+        # What each subject needs from ITS depth, the union's span on each axis.
+        needed_h = focal * (y1 - y0) / (fill * float(height))
+        needed_w = focal * (x1 - x0) / (fill * float(width))
+        distance = _MIN_DEPTH
+        for p in positions:
+            ahead = _dot(_sub(p, centre), forward)  # how far beyond the aim point
+            distance = max(distance, max(needed_h, needed_w) - ahead)
     sx, sy = (float(a) for a in vp.subject_at)
     at = _sub(
-        _sub(_sub(centre, _mul(forward, distance)), _mul(right, sx * distance / focal)),
+        _sub(
+            _sub(centre, _mul(forward, distance)),
+            _mul(right, sx * distance / focal),
+        ),
         _mul(down, sy * distance / focal),
     )
     return Projection(at, forward, right, down, focal)
@@ -417,7 +439,7 @@ class Placed:
 
     id: str
     #: Screen pixels from the frame centre; ``None`` when another pass places
-    #: it (attached without an offset).
+    #: it (attached without an offset) or it cannot be placed (see ``note``).
     at: tuple[float, float] | None
     scale: float | None
     depth: float | None
@@ -427,7 +449,7 @@ class Placed:
     #: ``world`` (projected), ``attached`` (from the host's placement),
     #: ``host`` (goes with the host, placed by nothing here), ``environment``.
     via: str
-    #: Why it is not placed by the world, when it is not (an unmeasured art).
+    #: Why it is not placed by the world, when it is not.
     note: str = ""
 
 
@@ -446,8 +468,21 @@ def _in_frame(
     return -hw <= at[0] <= hw and -hh <= at[1] <= hh
 
 
+def _screen_box(
+    at: tuple[float, float], scale: float, box: Box | None
+) -> tuple[float, float, float, float] | None:
+    if box is None:
+        return None
+    return (
+        at[0] + scale * box[0],
+        at[1] + scale * box[1],
+        at[0] + scale * box[2],
+        at[1] + scale * box[3],
+    )
+
+
 def member_placements(
-    space: Space,
+    world: World,
     projection: Projection,
     *,
     extents: Extents,
@@ -455,6 +490,7 @@ def member_placements(
     height: float,
     hide: Sequence[str] = (),
     hand: Mapping[str, tuple[tuple[float, float], float]] | None = None,
+    extent_problems: Mapping[str, str] | None = None,
 ) -> dict[str, Placed]:
     """Every member's placement under ``projection``: ``{id: Placed}``.
 
@@ -462,15 +498,25 @@ def member_placements(
     offset in the host's native units, times the host's scale); an
     environment is present with no placement. A member behind the camera
     is placed nowhere and is not in frame. ``hand`` is ``{id: (at, scale)}``
-    for members a shot placed by hand: that placement stands in for the
-    projected one (its depth stays the world's), so what is attached to it
-    follows the hand, as the compiler's own passes do.
+    for members a shot placed by hand, positioned or attached: that placement
+    stands in for the derived one (its depth stays the world's), so what is
+    attached to it follows the hand, as the compiler's own passes do.
+    ``extent_problems`` says why an extent could not be measured, for the note.
     """
     out: dict[str, Placed] = {}
     hidden = set(hide)
     hand = dict(hand or {})
+    problems = dict(extent_problems or {})
 
-    def place(member: SpaceMember) -> Placed:
+    def unmeasured(member: WorldMember) -> str:
+        why = problems.get(member.id)
+        return (
+            f"its art could not be measured ({why}); the shot leaves it out"
+            if why
+            else "its extent cannot be measured; give it `units_per_px`"
+        )
+
+    def place(member: WorldMember) -> Placed:
         if member.id in out:
             return out[member.id]
         if member.kind == "environment":
@@ -485,54 +531,51 @@ def member_placements(
             )
         elif member.attached is not None:
             host = place(
-                _member(space, member.attached.to, where=f"member {member.id!r}")
+                _member(world, member.attached.to, where=f"member {member.id!r}")
             )
             visible = host.in_frame and member.id not in hidden
-            if member.attached.at is None or host.at is None or host.scale is None:
+            if member.id in hand:
+                at, scale = hand[member.id]
+                box = extents.get(member.id)
+                p = Placed(
+                    member.id,
+                    at,
+                    scale,
+                    host.depth,
+                    _screen_box(at, scale, box),
+                    visible,
+                    "attached",
+                )
+            elif member.attached.at is None or host.at is None or host.scale is None:
                 p = Placed(member.id, None, None, host.depth, None, visible, "host")
             else:
                 dx, dy = (float(a) for a in member.attached.at)
                 at = (host.at[0] + host.scale * dx, host.at[1] + host.scale * dy)
                 scale = host.scale * float(member.attached.scale)
                 box = extents.get(member.id)
-                sbox = (
-                    (
-                        at[0] + scale * box[0],
-                        at[1] + scale * box[1],
-                        at[0] + scale * box[2],
-                        at[1] + scale * box[3],
-                    )
-                    if box is not None
-                    else None
+                p = Placed(
+                    member.id,
+                    at,
+                    scale,
+                    host.depth,
+                    _screen_box(at, scale, box),
+                    visible,
+                    "attached",
                 )
-                p = Placed(member.id, at, scale, host.depth, sbox, visible, "attached")
         else:
             assert member.at is not None
             box = extents.get(member.id)
             m = _unit_scale(member, box, where=f"member {member.id!r}")
             shot = projection.project(tuple(map(float, member.at)))  # type: ignore[arg-type]
             if shot is None or m is None:
-                note = (
-                    "behind the camera"
-                    if shot is None
-                    else "its extent cannot be measured; give it `scale`"
-                )
+                note = "behind the camera" if shot is None else unmeasured(member)
                 p = Placed(member.id, None, None, None, None, False, "world", note)
             else:
                 sx, sy, depth = shot
                 scale = m * projection.focal / depth
                 if member.id in hand:
                     (sx, sy), scale = hand[member.id]
-                sbox = (
-                    (
-                        sx + scale * box[0],
-                        sy + scale * box[1],
-                        sx + scale * box[2],
-                        sy + scale * box[3],
-                    )
-                    if box is not None
-                    else None
-                )
+                sbox = _screen_box((sx, sy), scale, box)
                 visible = member.id not in hidden and _in_frame(
                     (sx, sy), sbox, width=width, height=height
                 )
@@ -547,7 +590,7 @@ def member_placements(
         out[member.id] = p
         return p
 
-    for member in space.members:
+    for member in world.members:
         place(member)
     return out
 
@@ -572,6 +615,13 @@ def _range(v: float | tuple[float, float]) -> tuple[float, float]:
     )
 
 
+def _pitch(stream: Stream) -> tuple[float, float]:
+    """``(mean spacing, jitter)`` of a stream: consecutive spacings stay in
+    ``every``'s range."""
+    lo, hi = _range(stream.every)
+    return (lo + hi) / 2.0, (hi - lo) / 4.0
+
+
 def stream_instances(
     stream: Stream, travel: Travel, *, s_min: float, s_max: float
 ) -> list[tuple[int, Point3]]:
@@ -590,9 +640,7 @@ def stream_instances(
     """
     direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
     right_h = _unit((direction[2], 0.0, -direction[0]))
-    lo, hi = _range(stream.every)
-    pitch = (lo + hi) / 2.0
-    spread = (hi - lo) / 4.0
+    pitch, spread = _pitch(stream)
     lane_lo, lane_hi = _range(stream.lane)
     k0 = math.floor((s_min - spread) / pitch)
     k1 = math.ceil((s_max + spread) / pitch)
@@ -607,6 +655,27 @@ def stream_instances(
         )
         out.append((k, p))
     return out
+
+
+def stream_slots(stream: Stream, travel: Travel) -> int:
+    """How many entities a stream needs: one per instance that can be between
+    ``near`` and ``far`` at once, plus one. Instance ``k`` is drawn by slot
+    ``k mod slots``, so an entity is reused for the next instance once this
+    one has passed the camera — and the SAME world instance lands in the same
+    slot in every shot, which is what keeps a cut continuous.
+
+    >>> stream_slots(Stream(id="pole", ref="pole", height=6.0, every=12.0), Travel(speed=10.0, near=0.5, far=60.0))
+    6
+    """
+    pitch, spread = _pitch(stream)
+    return (
+        int(
+            math.ceil(
+                (float(travel.far) - float(travel.near)) / max(pitch - 2 * spread, 1e-9)
+            )
+        )
+        + 1
+    )
 
 
 def fit_channel(
@@ -679,15 +748,9 @@ def _on_screen_window(
 
     def on_screen(t: float) -> bool:
         sx, sy, scale = g(t)
-        if box is None:
-            return _in_frame((sx, sy), None, width=width, height=height)
-        sbox = (
-            sx + scale * box[0],
-            sy + scale * box[1],
-            sx + scale * box[2],
-            sy + scale * box[3],
+        return _in_frame(
+            (sx, sy), _screen_box((sx, sy), scale, box), width=width, height=height
         )
-        return _in_frame((sx, sy), sbox, width=width, height=height)
 
     n = max(1, int(math.ceil((b - a) / step)))
     times = [a + (b - a) * i / n for i in range(n + 1)]
@@ -699,35 +762,42 @@ def _on_screen_window(
     return times[first], times[last]
 
 
-def _stream_actions(
-    entity_id: str,
-    channels: Mapping[str, list[tuple[float, float, float, float, Any]]],
-    *,
-    show_at: float | None,
-    hide_at: float | None,
-) -> list[Any]:
-    """The instance's motion: a `set` of each channel at its first segment
-    and a tween per segment (a channel's flat stretches dropped), plus the
-    alpha that hides it before it is in range and after it has passed the
-    camera."""
+@dataclass(frozen=True)
+class _Pass:
+    """One world instance passing through one slot: its channels' segments
+    on ``[t_in, t_out]`` of the shot."""
+
+    t_in: float
+    t_out: float
+    channels: dict[str, list[tuple[float, float, float, float, Any]]]
+    first: tuple[float, float, float]
+
+
+def _pass_actions(entity_id: str, passes: list[_Pass], *, duration: float) -> list[Any]:
+    """The slot entity's motion: per pass, a `set` of each channel at its first
+    segment and a tween per segment (a channel's flat stretches dropped); the
+    entity hidden (`alpha`) before its first pass, between passes, and after
+    a pass that ends before the shot does."""
     actions: list[Any] = []
-    for prop, segments in channels.items():
-        if not segments:
-            continue
-        t0, _, v0, _, _ = segments[0]
-        actions.append(set_(entity_id, prop, v0, at=t0))
-        for ta, tb, va, vb, easing in segments:
-            if abs(va - vb) <= _FLAT_CHANNEL_EPS:
+    for i, p in enumerate(passes):
+        for prop, segments in p.channels.items():
+            if not segments:
                 continue
-            tw = tween(
-                entity_id, prop, to=vb, duration=tb - ta, from_=va, easing=easing
-            )
-            actions.append(sequence(delay(ta), tw) if ta > 0 else tw)
-    if show_at is not None and show_at > 0:
-        actions.append(set_(entity_id, "alpha", 0.0, at=0.0))
-        actions.append(set_(entity_id, "alpha", 1.0, at=show_at))
-    if hide_at is not None:
-        actions.append(set_(entity_id, "alpha", 0.0, at=hide_at))
+            t0, _, v0, _, _ = segments[0]
+            actions.append(set_(entity_id, prop, v0, at=t0))
+            for ta, tb, va, vb, easing in segments:
+                if abs(va - vb) <= _FLAT_CHANNEL_EPS:
+                    continue
+                tw = tween(
+                    entity_id, prop, to=vb, duration=tb - ta, from_=va, easing=easing
+                )
+                actions.append(sequence(delay(ta), tw) if ta > 0 else tw)
+        if i == 0 and p.t_in > 0:
+            actions.append(set_(entity_id, "alpha", 0.0, at=0.0))
+        if p.t_in > 0:
+            actions.append(set_(entity_id, "alpha", 1.0, at=p.t_in))
+        if p.t_out < duration:
+            actions.append(set_(entity_id, "alpha", 0.0, at=p.t_out))
     return actions
 
 
@@ -736,15 +806,21 @@ def _travel_entities(
     projection: Projection,
     *,
     extents: Extents,
+    extent_problems: Mapping[str, str],
     film_start: float,
     duration: float,
     fps: float,
     width: float,
     height: float,
+    skip: Sequence[str] = (),
 ) -> tuple[list[tuple[AssetRef, float]], list[Any], list[tuple[str, str]]]:
     """The stream instances a framed shot shows, as ``(entity, depth as the
     shot opens)`` and their actions, plus the problems found (unsized
-    streams) as ``(stream id, message)``."""
+    streams) as ``(stream id, message)``. Entities are SLOTS (`stream_slots`),
+    each drawing the instances that pass through it one after another, so
+    the entity count is bounded by the depth range and never by the shot's
+    length; ``skip`` names slot entities the shot already has (a lowered
+    scene lowered again adds nothing)."""
     direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
     speed = float(travel.speed)
     k_forward = _dot(direction, projection.forward)
@@ -753,23 +829,31 @@ def _travel_entities(
     s_lo = s_cam0 + speed * film_start - reach
     s_hi = s_cam0 + speed * (film_start + duration) + reach
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
+    tol = float(travel.tolerance_px)
     entities: list[tuple[AssetRef, float]] = []
     actions: list[Any] = []
     problems: list[tuple[str, str]] = []
+    skipped = set(skip)
     for stream in travel.streams:
         box = extents.get(stream.id)
         m = _unit_scale(stream, box, where=f"stream {stream.id!r}")
         if m is None:
+            why = extent_problems.get(stream.id)
             problems.append(
-                (stream.id, "its extent cannot be measured; give the stream `scale`")
+                (
+                    stream.id,
+                    f"its art could not be measured ({why}); the stream is left out"
+                    if why
+                    else "its extent cannot be measured; give the stream `units_per_px`",
+                )
             )
             continue
         ref_height = (box[3] - box[1]) if box is not None else 1.0
+        slots = stream_slots(stream, travel)
+        passes: dict[int, list[tuple[int, _Pass, float]]] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
-            depth0 = _dot(
-                _sub(p, projection.moved(_mul(direction, speed * film_start)).at),
-                projection.forward,
-            )
+            at_start = projection.moved(_mul(direction, speed * film_start))
+            depth0 = _dot(_sub(p, at_start.at), projection.forward)
             slope = -speed * k_forward
             if abs(slope) < _MIN_DEPTH:
                 if not (travel.near <= depth0 <= travel.far):
@@ -799,7 +883,6 @@ def _travel_entities(
             if window is None:
                 continue  # never on screen during this shot
             t_in, t_out = window
-            tol = float(travel.tolerance_px)
             channels = {
                 "x": fit_channel(
                     lambda t: g(t)[0], t_in, t_out, tolerance=tol, min_step=min_step
@@ -813,8 +896,15 @@ def _travel_entities(
                 lambda t: g(t)[2], t_in, t_out, tolerance=scale_tol, min_step=min_step
             )
             channels["scale_y"] = channels["scale_x"]
-            first = g(t_in)
-            entity_id = f"{stream.id}_{k}"
+            passes.setdefault(k % slots, []).append(
+                (k, _Pass(t_in, t_out, channels, g(t_in)), depth0)
+            )
+        for slot in sorted(passes):
+            entity_id = f"{stream.id}_{slot}"
+            if entity_id in skipped:
+                continue
+            ordered = sorted(passes[slot], key=lambda item: item[1].t_in)
+            first = ordered[0][1]
             entities.append(
                 (
                     AssetRef(
@@ -823,20 +913,26 @@ def _travel_entities(
                         store=stream.store,
                         ref=stream.ref,
                         stage=StagePlacement(
-                            at=(first[0], first[1]), scale=first[2], after=stream.after
+                            at=(first.first[0], first.first[1]),
+                            scale=first.first[2],
+                            after=stream.after,
                         ),
                     ),
-                    depth0,
+                    ordered[0][2],
                 )
             )
             actions.extend(
-                _stream_actions(
-                    entity_id,
-                    channels,
-                    show_at=t_in if t_in > 0 else None,
-                    hide_at=t_out if t_out < duration else None,
-                )
+                _pass_actions(entity_id, [p for _, p, _ in ordered], duration=duration)
             )
+    budget = int(travel.max_actions)
+    if len(actions) > budget:
+        raise WorldError(
+            f"this shot's travel lowers to {len(actions)} actions for "
+            f"{len(entities)} stream entities, past the travel's `max_actions` "
+            f"({budget}). Space the streams further apart (`every`), bring `far` "
+            f"in ({travel.far:g}), raise `tolerance_px` ({travel.tolerance_px:g}), "
+            f"cut the shot ({duration:g} s), or raise `max_actions` knowingly."
+        )
     return entities, actions, problems
 
 
@@ -844,9 +940,9 @@ def _travel_entities(
 
 
 @dataclass(frozen=True)
-class SpaceNote:
+class WorldNote:
     """One thing the lowering did or could not do for one shot, for
-    `an validate` (its severity) and `an space show`."""
+    `an validate` (its severity) and `an world show`."""
 
     shot: str
     index: int
@@ -858,12 +954,16 @@ class SpaceNote:
 
 @dataclass(frozen=True)
 class Lowered:
-    """The scene as the compiler will see it, and the notes to report."""
+    """The scene as the compiler will see it, the notes to report, and for
+    each framed shot where its lowered entities came from (``origins``: per
+    lowered entity index, the author's entity index, or ``None`` for one the
+    world added), so a finding on a lowered shot can name the author's line."""
 
     scene: SceneIR
-    notes: list[SpaceNote] = field(default_factory=list)
+    notes: list[WorldNote] = field(default_factory=list)
+    origins: dict[int, list[int | None]] = field(default_factory=dict)
 
-    def notes_for(self, index: int) -> list[SpaceNote]:
+    def notes_for(self, index: int) -> list[WorldNote]:
         return [n for n in self.notes if n.index == index]
 
 
@@ -877,89 +977,117 @@ def _film_starts(scene: SceneIR) -> list[float]:
     return starts
 
 
+def _fmt(at: tuple[float, float] | None) -> str:
+    if at is None:
+        return "(nowhere)"
+    return f"({at[0]:.4g}, {at[1]:.4g})"
+
+
 def _lower_shot(
     scene: SceneIR,
     index: int,
     *,
     extents: Extents,
+    extent_problems: Mapping[str, str],
     film_start: float,
     width: float,
     height: float,
     fps: float,
-) -> tuple[Shot, list[SpaceNote]]:
+) -> tuple[Shot, list[WorldNote], list[int | None]]:
     shot = scene.timeline[index]
-    space = scene.space
-    notes: list[SpaceNote] = []
+    world = scene.world
+    notes: list[WorldNote] = []
 
     def note(severity: str, kind: str, entity: str, message: str) -> None:
-        notes.append(SpaceNote(shot.id, index, severity, kind, entity, message))
+        notes.append(WorldNote(shot.id, index, severity, kind, entity, message))
 
-    vp = viewpoint_of(space, shot.viewpoint)
+    vp = viewpoint_of(world, shot.viewpoint)
     assert vp is not None
-    if space is None:
-        raise SpaceError(
-            f"shot {shot.id!r} has a viewpoint but the scene has no `space`"
+    if world is None:
+        raise WorldError(
+            f"shot {shot.id!r} has a viewpoint but the scene has no `world`"
         )
     for hid in vp.hide:
-        _member(space, hid, where=f"shot {shot.id!r} viewpoint `hide`")
+        _member(world, hid, where=f"shot {shot.id!r} viewpoint `hide`")
     projection = resolve_viewpoint(
-        space, vp, extents=extents, width=width, height=height
+        world, vp, extents=extents, width=width, height=height
     )
-    members = {m.id: m for m in space.members}
+    members = {m.id: m for m in world.members}
     listed = {e.id: j for j, e in enumerate(shot.entities)}
-    hand = {
-        e.id: ((float(e.stage.at[0]), float(e.stage.at[1])), float(e.stage.scale))
-        for e in shot.entities
-        if e.id in members and e.stage is not None and e.stage.at is not None
-    }
-    world = member_placements(
-        space, projection, extents=extents, width=width, height=height, hide=vp.hide
+    if world.travel is not None and any(
+        _is_slot_id(eid, world.travel) for eid in listed
+    ):
+        # The shot already holds a stream's slot entities: it IS a lowered shot
+        # (a validate of what the render draws), and a second pass would only
+        # re-sort what the first laid out. Nothing to add.
+        return shot, notes, list(range(len(shot.entities)))
+    common = dict(
+        extents=extents,
+        width=width,
+        height=height,
+        hide=vp.hide,
+        extent_problems=extent_problems,
     )
+    projected = member_placements(world, projection, **common)
+    # A hand `at` keeps the world's scale unless the author set one: a `scale`
+    # of exactly 1.0 is the field's default, and the default means "the world's".
+    hand: dict[str, tuple[tuple[float, float], float]] = {}
+    for e in shot.entities:
+        if e.id in members and e.stage is not None and e.stage.at is not None:
+            w = projected[e.id]
+            scale = float(e.stage.scale)
+            if scale == 1.0 and w.scale is not None:
+                scale = w.scale
+            hand[e.id] = ((float(e.stage.at[0]), float(e.stage.at[1])), scale)
     placed = (
-        member_placements(
-            space,
-            projection,
-            extents=extents,
-            width=width,
-            height=height,
-            hide=vp.hide,
-            hand=hand,
-        )
-        if hand
-        else world
+        member_placements(world, projection, hand=hand, **common) if hand else projected
     )
 
-    # The shot's own entities, filled in from the world where they let it.
-    ordered: list[tuple[tuple[float, float, float], AssetRef]] = []
-    envs: list[AssetRef] = [e for e in shot.entities if e.kind == "environment"]
+    ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]] = []
+    envs: list[tuple[AssetRef, int | None]] = [
+        (e, j) for j, e in enumerate(shot.entities) if e.kind == "environment"
+    ]
     for j, entity in enumerate(shot.entities):
         if entity.kind == "environment":
             continue
         p = placed.get(entity.id)
         if p is None or entity.id not in members:
             ordered.append(
-                ((2.0, float(j), 0.0), entity)
+                ((2.0, float(j), 0.0), entity, j)
             )  # not a member: on top, as listed
             continue
+        if entity.id in vp.hide:
+            note(
+                "info",
+                "listed",
+                entity.id,
+                "hidden by the viewpoint but listed by the shot: the listing wins",
+            )
         depth = p.depth if p.depth is not None else 0.0
         stage = entity.stage
         if stage is not None and stage.at is not None:
-            w = world[entity.id]
+            w = projected[entity.id]
             if w.at is not None and w.scale is not None:
                 off = math.hypot(stage.at[0] - w.at[0], stage.at[1] - w.at[1])
+                _, eff_scale = hand[entity.id]
                 if (
                     off > HAND_PLACEMENT_TOLERANCE_PX
-                    or abs(stage.scale - w.scale) > HAND_SCALE_TOLERANCE
+                    or abs(eff_scale - w.scale) > HAND_SCALE_TOLERANCE
                 ):
                     note(
                         "warning",
                         "hand",
                         entity.id,
-                        f"placed by hand at {_fmt(stage.at)} scale {stage.scale:g}; the world "
+                        f"placed by hand at {_fmt(stage.at)} scale {eff_scale:.3g}; the world "
                         f"puts it at {_fmt(w.at)} scale {w.scale:.3g}. The hand placement wins; "
                         "drop `stage.at` to follow the world, or move the member.",
                     )
-            ordered.append(((1.0, -depth, float(j)), entity))
+            _, eff_scale = hand[entity.id]
+            if eff_scale != float(stage.scale):
+                entity = entity.model_copy(
+                    update={"stage": stage.model_copy(update={"scale": eff_scale})}
+                )
+            ordered.append(((1.0, -depth, float(j)), entity, j))
             continue
         if p.via in ("world", "attached") and p.at is not None and p.scale is not None:
             if stage is not None and stage.scale != 1.0:
@@ -978,6 +1106,7 @@ def _lower_shot(
                 (
                     (1.0, -depth, float(j)),
                     entity.model_copy(update={"stage": new_stage}),
+                    j,
                 )
             )
             if not p.in_frame and entity.id not in vp.hide:
@@ -990,25 +1119,16 @@ def _lower_shot(
         else:
             if p.note:
                 note("warning", "unplaced", entity.id, p.note)
-            ordered.append(((1.0, -depth, float(j)), entity))
+            ordered.append(((1.0, -depth, float(j)), entity, j))
 
     # Members the frame shows that the shot did not list.
-    for mi, member in enumerate(space.members):
+    for mi, member in enumerate(world.members):
         if member.id in listed:
             continue
         p = placed[member.id]
         if member.kind == "environment":
             if p.in_frame:
-                envs.append(
-                    AssetRef(
-                        kind=member.kind,
-                        id=member.id,
-                        store=member.store,
-                        ref=member.ref,
-                        overrides=member.overrides,
-                        library=member.library,
-                    )
-                )
+                envs.append((_entity_of(member), None))
             continue
         if not p.in_frame:
             if p.note and member.id not in vp.hide:
@@ -1018,97 +1138,127 @@ def _lower_shot(
             stage = StagePlacement(at=p.at, scale=p.scale, after=member.after)
         else:
             stage = StagePlacement(after=member.after) if member.after else None
-        entity = AssetRef(
-            kind=member.kind,
-            id=member.id,
-            store=member.store,
-            ref=member.ref,
-            overrides=member.overrides,
-            library=member.library,
-            stage=stage,
-        )
+        entity = _entity_of(member, stage=stage)
         depth = p.depth if p.depth is not None else 0.0
-        ordered.append(((1.0, -depth, 1000.0 + mi), entity))
+        ordered.append(((1.0, -depth, 1000.0 + mi), entity, None))
         where = (
             f"at {_fmt(p.at)} scale {p.scale:.3g}"
             if p.at is not None
-            else f"with {members[p.id].attached.to!r}"
+            else f"with {member.attached.to!r}"
         )  # type: ignore[union-attr]
         note("info", "added", member.id, f"the world adds it {where}")
 
     actions = list(shot.actions)
-    if space.travel is not None:
+    if world.travel is not None:
         extra, extra_actions, problems = _travel_entities(
-            space.travel,
+            world.travel,
             projection,
             extents=extents,
+            extent_problems=extent_problems,
             film_start=film_start,
             duration=float(shot.duration),
             fps=fps,
             width=width,
             height=height,
+            skip=list(listed),
         )
-        # An instance is sorted by its depth as the shot opens; one that passes
-        # the cast mid-shot keeps that order (`after` slots a stream behind a
-        # plate, which is where a travelling view's streams belong).
+        # A slot is sorted by the depth of its first instance as the shot
+        # opens; `after` slots a stream behind a plate, which is where a
+        # travelling view's streams belong.
         for si, (entity, depth0) in enumerate(extra):
-            ordered.append(((1.0, -depth0, 10_000.0 + si), entity))
+            ordered.append(((1.0, -depth0, 10_000.0 + si), entity, None))
         actions.extend(extra_actions)
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
-    entities = envs + [e for _, e in ordered]
-    return shot.model_copy(update={"entities": entities, "actions": actions}), notes
+    entities = [e for e, _ in envs] + [e for _, e, _ in ordered]
+    origins = [j for _, j in envs] + [j for _, _, j in ordered]
+    return (
+        shot.model_copy(update={"entities": entities, "actions": actions}),
+        notes,
+        origins,
+    )
 
 
-def _fmt(at: tuple[float, float] | None) -> str:
-    if at is None:
-        return "(nowhere)"
-    return f"({at[0]:.4g}, {at[1]:.4g})"
+def _is_slot_id(entity_id: str, travel: Travel) -> bool:
+    """Whether ``entity_id`` is a stream slot's (``<stream id>_<k>``)."""
+    return any(
+        re.fullmatch(rf"{re.escape(stream.id)}_\d+", entity_id) is not None
+        for stream in travel.streams
+    )
 
 
-def lower_space(
+def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> AssetRef:
+    """The shot entity a world member becomes. An attached member carries its
+    attachment under ``overrides[ATTACHED_OVERRIDE]`` (``{to, at?, scale}``),
+    so a pass that places it from its host can find the host in the shot."""
+    overrides = dict(member.overrides or {})
+    if member.attached is not None:
+        overrides[ATTACHED_OVERRIDE] = member.attached.model_dump()
+    return AssetRef(
+        kind=member.kind,
+        id=member.id,
+        store=member.store,
+        ref=member.ref,
+        overrides=overrides or None,
+        library=member.library,
+        stage=stage,
+    )
+
+
+def lower_world(
     scene: SceneIR,
     *,
     extents: Extents,
     film_starts: Sequence[float] | None = None,
     fps: float | None = None,
+    extent_problems: Mapping[str, str] | None = None,
 ) -> Lowered:
-    """The scene with every framed shot's placements derived from the space.
+    """The scene with every framed shot's placements derived from the world.
 
     A shot without a viewpoint is returned as it is. For a framed shot: its
     listed entities keep their order of appearance among themselves but are
     drawn in depth order (far first) with the members the frame shows and the
     shot did not list; environments come first; listed entities that are not
     members go on top. A listed member's hand ``stage.at`` wins (a note says
-    when it disagrees with the world); one without is filled in. Under a
-    travel, the streams' instances are appended with their motion.
+    when it disagrees with the world; its ``scale`` is the world's unless set);
+    one without is filled in. A member the viewpoint hides is left out unless
+    the shot lists it: the listing wins, and a note says so. Under a travel,
+    the streams' slot entities are added with their motion; a scene already
+    lowered gains nothing from a second pass.
 
-    ``extents`` is what the stage measured (:func:`an.stage.space.member_extents`);
-    ``film_starts`` is where each shot starts in the film, so stream phase is
-    continuous across cuts (the shot sum by default).
+    ``extents`` is what the stage measured (:func:`an.stage.world.member_extents`),
+    ``extent_problems`` why some could not be; ``film_starts`` is where each
+    shot starts in the film, so stream phase is continuous across cuts (the
+    shot sum by default).
 
-    Raises :class:`SpaceError` for a viewpoint the space cannot resolve.
+    Raises :class:`WorldError` for a viewpoint the world cannot resolve.
 
-    >>> lower_space(SceneIR(), extents={}).scene.timeline
+    >>> lower_world(SceneIR(), extents={}).scene.timeline
     []
     """
-    if not has_space(scene):
+    if not has_world(scene):
         return Lowered(scene, [])
     starts = list(film_starts) if film_starts is not None else _film_starts(scene)
+    if len(starts) < len(scene.timeline):
+        raise WorldError(
+            f"film_starts has {len(starts)} entries for {len(scene.timeline)} shots"
+        )
     width = float(scene.meta.resolution.width)
     height = float(scene.meta.resolution.height)
     rate = float(fps if fps is not None else scene.meta.fps)
     shots: list[Shot] = []
-    notes: list[SpaceNote] = []
+    notes: list[WorldNote] = []
+    origins: dict[int, list[int | None]] = {}
     for i, shot in enumerate(scene.timeline):
         if shot.viewpoint is None:
             shots.append(shot)
             continue
-        lowered, shot_notes = _lower_shot(
+        lowered, shot_notes, shot_origins = _lower_shot(
             scene,
             i,
             extents=extents,
+            extent_problems=extent_problems or {},
             film_start=starts[i],
             width=width,
             height=height,
@@ -1116,4 +1266,5 @@ def lower_space(
         )
         shots.append(lowered)
         notes.extend(shot_notes)
-    return Lowered(scene.model_copy(update={"timeline": shots}), notes)
+        origins[i] = shot_origins
+    return Lowered(scene.model_copy(update={"timeline": shots}), notes, origins)

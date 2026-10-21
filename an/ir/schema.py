@@ -407,9 +407,9 @@ class AssetRef(_IRModel):
 
 
 # -----------------------------------------------------------------------------
-# The scene space (ADR 0007): one world, and shots as viewpoints onto it.
+# The scene world (ADR 0007): one world, and shots as viewpoints onto it.
 # The models are here beside `Camera`; the geometry and the lowering live in
-# `an.ir.space`, as the camera's resolver lives in `an.ir.camera`.
+# `an.ir.world`, as the camera's resolver lives in `an.ir.camera`.
 # -----------------------------------------------------------------------------
 
 #: A finite coordinate: pydantic writes `inf`/`nan` as JSON null and refuses
@@ -442,9 +442,14 @@ SHOT_SIZES: dict[str, tuple[float, float, float]] = {
 #: (the far plate's job, not a stream's).
 DFLT_TRAVEL_NEAR: float = 0.5
 DFLT_TRAVEL_FAR: float = 60.0
-#: How far a stream instance's screen position may stray from the sampled
-#: keys between two of them, in pixels: the sampling's tolerance.
+#: How far a stream instance's screen position may stray from the fitted
+#: tweens between two of their keys, in pixels: the fitting's tolerance.
 DFLT_TRAVEL_TOLERANCE_PX: float = 1.0
+#: The most actions one shot's travel may lower to before the lowering
+#: refuses and names the knobs: a 10 s road with three streams is about four
+#: thousand; a minute of dense road markings would be fifty thousand, which
+#: is a document the runtime pays for on every frame.
+DFLT_TRAVEL_MAX_ACTIONS: int = 20_000
 
 
 def _omit_none(data: Any, *keys: str) -> Any:
@@ -483,18 +488,18 @@ class Attachment(_IRModel):
         return _omit_none(data, "at")
 
 
-class SpaceMember(AssetRef):
-    """An entity of the scene's space: the same reference a shot's entity
+class WorldMember(AssetRef):
+    """An entity of the scene's world: the same reference a shot's entity
     carries, at a world position with a size (ADR 0007 decision 1).
 
-    >>> m = SpaceMember(kind="character", id="paul", store="characters", ref="paul",
+    >>> m = WorldMember(kind="character", id="paul", store="characters", ref="paul",
     ...                 at=(0.45, 0.65, 1.6), height=1.75)
     >>> m.at, m.height
     ((0.45, 0.65, 1.6), 1.75)
 
     ``at`` is where the entity's placement point stands (a character's feet,
     a prop's origin) in world units; exactly one of ``height``/``width`` (its
-    size in world units) or ``scale`` (world units per native pixel, for art
+    size in world units) or ``units_per_px`` (world units per native pixel, for art
     whose extent cannot be measured) sizes it. A member is ``attached`` to
     another instead of positioned, or it is an environment (present in every
     framed shot, placed by nothing: plates are per shot). ``after`` is the
@@ -505,20 +510,22 @@ class SpaceMember(AssetRef):
     at: Point3 | None = None
     height: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
-    scale: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    units_per_px: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     attached: Attachment | None = None
     after: str | None = None
 
     @model_validator(mode="after")
-    def _one_way_to_place_it(self) -> "SpaceMember":
-        where = f"space member {self.id!r}"
+    def _one_way_to_place_it(self) -> "WorldMember":
+        where = f"world member {self.id!r}"
         if self.stage is not None:
             raise ValueError(
                 f"{where} carries `stage`: a member is placed by each shot's "
                 "viewpoint. Give it `at: [x, y, z]` and a size instead."
             )
         sizes = [
-            k for k in ("height", "width", "scale") if getattr(self, k) is not None
+            k
+            for k in ("height", "width", "units_per_px")
+            if getattr(self, k) is not None
         ]
         if self.kind == "environment":
             if self.at is not None or self.attached is not None or sizes:
@@ -535,7 +542,7 @@ class SpaceMember(AssetRef):
         if self.at is not None and len(sizes) != 1:
             raise ValueError(
                 f"{where} needs exactly one of `height`, `width` (world units) or "
-                f"`scale` (world units per native pixel); it has {sizes or 'none'}."
+                f"`units_per_px` (world units per native pixel); it has {sizes or 'none'}."
             )
         if self.attached is not None and sizes:
             raise ValueError(
@@ -548,7 +555,7 @@ class SpaceMember(AssetRef):
         return self
 
     @model_serializer(mode="wrap")
-    def _omit_unset_space_fields(self, handler):
+    def _omit_unset_world_fields(self, handler):
         data = handler(self)
         return _omit_none(
             data,
@@ -557,14 +564,14 @@ class SpaceMember(AssetRef):
             "at",
             "height",
             "width",
-            "scale",
+            "units_per_px",
             "attached",
             "after",
         )
 
 
 class Viewpoint(_IRModel):
-    """A pinhole camera onto the space, or a composition that resolves to one
+    """A pinhole camera onto the world, or a composition that resolves to one
     (ADR 0007 decision 2).
 
     >>> Viewpoint(at=(0.0, 0.0, 0.0), vanish=(0.0, -262.0)).vanish
@@ -573,7 +580,7 @@ class Viewpoint(_IRModel):
     'close_up'
 
     A camera: ``at`` (world), its look as ``look: [yaw, pitch, roll]`` in
-    degrees (yaw turns right, pitch looks down, roll clockwise), or
+    degrees (yaw turns right, pitch looks down, roll turns the picture clockwise), or
     ``look_at`` (a world point), or ``vanish`` (where the ``+z`` direction
     lands on screen, in pixels from the frame centre: the road's vanishing
     point), and ``fov`` (horizontal, degrees) or ``focal`` (pixels).
@@ -683,7 +690,7 @@ class Stream(_IRModel):
     store: str = "props"
     height: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     width: float | None = Field(default=None, gt=0, allow_inf_nan=False)
-    scale: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    units_per_px: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     every: _Coord | tuple[_Coord, _Coord]
     lane: _Coord | tuple[_Coord, _Coord] = 0.0
     y: _Coord = 0.0
@@ -702,11 +709,13 @@ class Stream(_IRModel):
                 f"stream {self.id!r}: `every` must be positive (got {self.every!r})."
             )
         sizes = [
-            k for k in ("height", "width", "scale") if getattr(self, k) is not None
+            k
+            for k in ("height", "width", "units_per_px")
+            if getattr(self, k) is not None
         ]
         if len(sizes) != 1:
             raise ValueError(
-                f"stream {self.id!r} needs exactly one of `height`, `width` or `scale`."
+                f"stream {self.id!r} needs exactly one of `height`, `width` or `units_per_px`."
             )
         return self
 
@@ -724,7 +733,7 @@ class Stream(_IRModel):
                 data.pop("y", None)
             if self.seed == 0:
                 data.pop("seed", None)
-        return _omit_none(data, "height", "width", "scale", "after")
+        return _omit_none(data, "height", "width", "units_per_px", "after")
 
 
 #: What a plane under a travel may be declared as: at infinity, or rigid with
@@ -756,6 +765,7 @@ class Travel(_IRModel):
     tolerance_px: float = Field(
         default=DFLT_TRAVEL_TOLERANCE_PX, gt=0, allow_inf_nan=False
     )
+    max_actions: int = Field(default=DFLT_TRAVEL_MAX_ACTIONS, gt=0)
     streams: list[Stream] = Field(default_factory=list)
     plates: dict[str, list[str]] = Field(default_factory=dict)
 
@@ -797,6 +807,8 @@ class Travel(_IRModel):
                 data.pop("far", None)
             if self.tolerance_px == DFLT_TRAVEL_TOLERANCE_PX:
                 data.pop("tolerance_px", None)
+            if self.max_actions == DFLT_TRAVEL_MAX_ACTIONS:
+                data.pop("max_actions", None)
             if not self.streams:
                 data.pop("streams", None)
             if not self.plates:
@@ -804,44 +816,44 @@ class Travel(_IRModel):
         return data
 
 
-class Space(_IRModel):
+class World(_IRModel):
     """A scene's world: members at positions, the named viewpoints that are
     its coverage, and its travel (ADR 0007).
 
-    >>> space = Space(members=[
-    ...     SpaceMember(kind="character", id="jerry", store="characters", ref="jerry", at=(-0.45, 0.65, 1.6), height=1.75),
-    ...     SpaceMember(kind="prop", id="wheel", store="props", ref="wheel", attached=Attachment(to="jerry")),
+    >>> world = World(members=[
+    ...     WorldMember(kind="character", id="jerry", store="characters", ref="jerry", at=(-0.45, 0.65, 1.6), height=1.75),
+    ...     WorldMember(kind="prop", id="wheel", store="props", ref="wheel", attached=Attachment(to="jerry")),
     ... ], viewpoints={"two_shot": Viewpoint(at=(0.0, 0.0, 0.0))})
-    >>> [m.id for m in space.members], sorted(space.viewpoints)
+    >>> [m.id for m in world.members], sorted(world.viewpoints)
     (['jerry', 'wheel'], ['two_shot'])
     """
 
-    members: list[SpaceMember] = Field(default_factory=list)
+    members: list[WorldMember] = Field(default_factory=list)
     viewpoints: dict[str, Viewpoint] = Field(default_factory=dict)
     travel: Travel | None = None
 
     @model_validator(mode="after")
-    def _members_are_a_set(self) -> "Space":
+    def _members_are_a_set(self) -> "World":
         seen: dict[str, int] = {}
         for m in self.members:
             seen[m.id] = seen.get(m.id, 0) + 1
         dupes = sorted(k for k, n in seen.items() if n > 1)
         if dupes:
-            raise ValueError(f"space members with duplicate ids: {dupes}.")
+            raise ValueError(f"world members with duplicate ids: {dupes}.")
         for m in self.members:
             hops, host = 0, m
             while host.attached is not None:
                 nxt = seen.get(host.attached.to)
                 if nxt is None:
                     raise ValueError(
-                        f"space member {host.id!r} is attached to {host.attached.to!r}, "
+                        f"world member {host.id!r} is attached to {host.attached.to!r}, "
                         "which is not a member."
                     )
                 host = next(x for x in self.members if x.id == host.attached.to)
                 hops += 1
                 if hops > len(self.members):
                     raise ValueError(
-                        f"space member {m.id!r}: its attachments form a cycle."
+                        f"world member {m.id!r}: its attachments form a cycle."
                     )
         for name, vp in self.viewpoints.items():
             if not name or "/" in name:
@@ -1550,9 +1562,9 @@ class Shot(_IRModel):
     #: order, over the style pack's (``StylePack.policy``) and under an author's
     #: request — ``{"locomotion": ["loco.glide"]}``. ``None``: the style's.
     policy: dict[str, Any] | None = None
-    #: This shot's **viewpoint** onto the scene's space (ADR 0007): the name
-    #: of one of ``space.viewpoints`` or an inline :class:`Viewpoint`. ``None``
-    #: (the default, and every document written before the space existed)
+    #: This shot's **viewpoint** onto the scene's world (ADR 0007): the name
+    #: of one of ``world.viewpoints`` or an inline :class:`Viewpoint`. ``None``
+    #: (the default, and every document written before the world existed)
     #: means the shot is placed by hand, as it always was. Omitted from JSON
     #: when unset, like ``policy``.
     viewpoint: str | Viewpoint | None = None
@@ -1741,18 +1753,18 @@ class SceneIR(_IRModel):
     meta: Meta = Field(default_factory=Meta)
     assets: list[AssetRef] = Field(default_factory=list)
     timeline: list[Shot] = Field(default_factory=list)
-    #: The scene's **space** (ADR 0007): its members at world positions, its
+    #: The scene's **world** (ADR 0007): its members at world positions, its
     #: named viewpoints and its travel. ``None`` — the default, and every
-    #: document written before it existed — is no space at all: every shot is
+    #: document written before it existed — is no world at all: every shot is
     #: placed by hand. Omitted from JSON when unset (the `stage` rule), so no
     #: stored scene and no schema version moves.
-    space: Space | None = None
+    world: World | None = None
 
     @model_serializer(mode="wrap")
-    def _omit_unset_space(self, handler):
+    def _omit_unset_world(self, handler):
         data = handler(self)
-        if isinstance(data, dict) and self.space is None:
-            data.pop("space", None)
+        if isinstance(data, dict) and self.world is None:
+            data.pop("world", None)
         return data
 
 

@@ -1,7 +1,7 @@
-"""The stage's side of the scene space (ADR 0007): measuring a member's
+"""The stage's side of the scene world (ADR 0007): measuring a member's
 extent, and lowering a whole scene for the compiler.
 
-The IR layer (:mod:`an.ir.space`) projects points and sizes; what it cannot
+The IR layer (:mod:`an.ir.world`) projects points and sizes; what it cannot
 know is how big an entity's art is. This module measures that the way the
 runtime would draw it, without a browser: it compiles the entity's specimen
 shot alone and takes the union of its nodes' boxes
@@ -11,7 +11,7 @@ the same way, so a genre's rig and the core's props get one rule.
 
 :func:`lower_scene` is the one call the pipeline's entry points make
 (`an render`, `an preview`, `an probe`, `an validate`, the orchestrator):
-extents, film starts, then :func:`an.ir.space.lower_space`.
+extents, film starts, then :func:`an.ir.world.lower_world`.
 """
 
 from __future__ import annotations
@@ -19,10 +19,16 @@ from __future__ import annotations
 import warnings
 from typing import Any, Mapping
 
-from an.ir.schema import AssetRef, SceneIR, Space, stage_specimen
-from an.ir.space import Box, Lowered, SpaceError, has_space, lower_space
+from an.ir.schema import AssetRef, SceneIR, World, stage_specimen
+from an.ir.world import Box, Lowered, WorldError, has_world, lower_world
 
-__all__ = ["lower_scene", "member_extents", "native_box"]
+__all__ = [
+    "lower_scene",
+    "lowered_or_same",
+    "member_extents",
+    "native_box",
+    "world_report",
+]
 
 
 def native_box(
@@ -77,29 +83,43 @@ def native_box(
 
 
 def member_extents(
-    space: Space | None,
+    world: World | None,
     mall: Mapping[str, Mapping] | None,
     *,
     width: int,
     height: int,
+    problems: dict[str, str] | None = None,
 ) -> dict[str, Box | None]:
     """``{id: native box}`` for every positioned or attached member and every
-    stream of ``space`` (environments draw plates, not a box, and are left
-    out). A member whose art cannot be measured maps to ``None``.
+    stream of ``world`` (environments draw plates, not a box, and are left
+    out). A member whose art cannot be measured maps to ``None`` — a missing
+    ref, an unregistered kind, a compile that refuses — and ``problems`` (an
+    out-parameter, like the compiler's ``textures``) records why, so the
+    lowering can say it instead of a traceback (ADR 0007: validate reports).
     """
     out: dict[str, Box | None] = {}
-    if space is None:
+    if world is None:
         return out
-    for member in space.members:
+
+    def measure(ref: AssetRef) -> Box | None:
+        try:
+            return native_box(ref, mall, width=width, height=height)
+        except Exception as e:  # noqa: BLE001 — a measurement that cannot be made is a note
+            if problems is not None:
+                problems[ref.id] = f"{type(e).__name__}: {e}"
+            return None
+
+    for member in world.members:
         if member.kind == "environment":
             continue
-        out[member.id] = native_box(member, mall, width=width, height=height)
-    if space.travel is not None:
-        for stream in space.travel.streams:
-            ref = AssetRef(
-                kind=stream.kind, id=stream.id, store=stream.store, ref=stream.ref
+        out[member.id] = measure(member)
+    if world.travel is not None:
+        for stream in world.travel.streams:
+            out[stream.id] = measure(
+                AssetRef(
+                    kind=stream.kind, id=stream.id, store=stream.store, ref=stream.ref
+                )
             )
-            out[stream.id] = native_box(ref, mall, width=width, height=height)
     return out
 
 
@@ -111,25 +131,47 @@ def lower_scene(
     film_starts: list[float] | None = None,
 ) -> Lowered:
     """``scene`` as the compiler should see it: every framed shot's placements
-    derived from the space (:func:`an.ir.space.lower_space`), with the
+    derived from the world (:func:`an.ir.world.lower_world`), with the
     members' extents measured here and each shot's film start from the
     assembled timeline (so a travel's streams keep phase across cuts). A scene
-    without a space comes back as it is, at no cost.
+    without a world comes back as it is, at no cost.
 
-    Raises :class:`an.ir.space.SpaceError` for a viewpoint that cannot be
+    Raises :class:`an.ir.world.WorldError` for a viewpoint that cannot be
     resolved; `an validate` reports the same error instead of raising.
 
     >>> lower_scene(SceneIR(), {}).scene.timeline
     []
     """
-    if not has_space(scene):
+    if not has_world(scene):
         return Lowered(scene, [])
     width = int(scene.meta.resolution.width)
     height = int(scene.meta.resolution.height)
-    extents = member_extents(scene.space, mall, width=width, height=height)
+    problems: dict[str, str] = {}
+    extents = member_extents(
+        scene.world, mall, width=width, height=height, problems=problems
+    )
     if film_starts is None:
         film_starts = _film_starts(scene, fps=fps)
-    return lower_space(scene, extents=extents, film_starts=film_starts, fps=fps)
+    return lower_world(
+        scene,
+        extents=extents,
+        film_starts=film_starts,
+        fps=fps,
+        extent_problems=problems,
+    )
+
+
+def lowered_or_same(
+    scene: SceneIR, mall: Mapping[str, Mapping] | None, *, fps: float | None = None
+) -> SceneIR:
+    """The lowered scene, or ``scene`` itself when it has no world or its
+    world cannot be lowered: for the walks that must see what a framed shot
+    draws (credits, publishability) but are not where a world error is
+    reported (validate is)."""
+    try:
+        return lower_scene(scene, mall, fps=fps).scene
+    except Exception:  # noqa: BLE001 — reported by validate, not here
+        return scene
 
 
 def _film_starts(scene: SceneIR, *, fps: float | None) -> list[float] | None:
@@ -148,8 +190,8 @@ def _film_starts(scene: SceneIR, *, fps: float | None) -> list[float] | None:
     return [laid_out.start_seconds(i) for i in range(len(scene.timeline))]
 
 
-def space_report(lowered: Lowered) -> list[dict[str, Any]]:
-    """What `an space show` prints: per framed shot, its entities as the
+def world_report(lowered: Lowered) -> list[dict[str, Any]]:
+    """What `an world show` prints: per framed shot, its entities as the
     compiler sees them (id, kind, at, scale, after) and the lowering's notes."""
     rows: list[dict[str, Any]] = []
     for i, shot in enumerate(lowered.scene.timeline):
