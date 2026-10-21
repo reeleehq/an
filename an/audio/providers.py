@@ -13,19 +13,31 @@ specific classes.
 
 from __future__ import annotations
 
-from typing import Callable
+import inspect
+from collections.abc import Mapping
+from typing import Any, Callable
 
 from an.audio.elevenlabs_tts import ElevenLabsTTS
 from an.audio.lipsync import LipSyncProvider, NullLipSync
 from an.audio.mac_say_tts import MacSayTTS
 from an.audio.offline_tts import OfflineTTS
+from an.audio.recorded import RecordedTTS, RECORDINGS_STORE
 from an.audio.tts import TTSProvider
 
 
-TTS_FACTORIES: dict[str, Callable[[], TTSProvider]] = {
+def _recorded_factory(*, mall: Mapping[str, Any] | None = None) -> RecordedTTS:
+    """The ``recorded`` provider over the project's recordings store (an#490)."""
+    store = mall.get(RECORDINGS_STORE) if mall is not None else None
+    return RecordedTTS(recordings=store)
+
+
+#: A factory takes no arguments, or ``mall=`` when the provider reads a project
+#: store (``recorded``): :func:`make_tts` passes it only to those that accept it.
+TTS_FACTORIES: dict[str, Callable[..., TTSProvider]] = {
     "offline": lambda: OfflineTTS(),
     "elevenlabs": lambda: ElevenLabsTTS(),
     "mac_say": lambda: MacSayTTS(),
+    "recorded": _recorded_factory,
 }
 
 #: The language a provider aligns for when the caller says nothing. Only
@@ -50,17 +62,36 @@ def lipsync_factories() -> dict[str, Callable[..., LipSyncProvider]]:
     return {**services("lipsync."), **LIPSYNC_FACTORIES}
 
 
-def make_tts(name: str) -> TTSProvider:
+def _accepts(factory: Callable[..., Any], keyword: str) -> bool:
+    try:
+        params = inspect.signature(factory).parameters
+    except (TypeError, ValueError):  # a builtin, a C callable: assume not
+        return False
+    return keyword in params or any(
+        p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
+    )
+
+
+def make_tts(name: str, *, mall: Mapping[str, Any] | None = None) -> TTSProvider:
     """Instantiate a TTS provider by name.
 
-    Raises ``ValueError`` for unknown names with a list of known options.
+    ``mall`` (the project mall) reaches the factories that take it — the
+    ``recorded`` provider reads the project's ``recordings`` store; the others
+    are built as before. Raises ``ValueError`` for unknown names with a list of
+    known options.
+
+    >>> make_tts("recorded").name
+    'recorded'
     """
     try:
-        return TTS_FACTORIES[name]()
+        factory = TTS_FACTORIES[name]
     except KeyError:
         raise ValueError(
             f"unknown TTS provider {name!r}; known: {sorted(TTS_FACTORIES)}"
         ) from None
+    if mall is not None and _accepts(factory, "mall"):
+        return factory(mall=mall)
+    return factory()
 
 
 def make_lipsync(name: str, *, language: str = DEFAULT_LANGUAGE) -> LipSyncProvider:

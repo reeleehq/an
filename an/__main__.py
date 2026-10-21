@@ -57,6 +57,7 @@ from typing import Any, Callable
 import typer
 
 from an.audio.pipeline import AudioPipelineError
+from an.audio.recorded import RecordedVoicesError
 from an.ir.migrate import DocumentMigrationError
 from an.ir.sync import SceneMarkdownError, SceneValidationError
 from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
@@ -113,6 +114,7 @@ def help_text(func: Callable[..., Any]) -> str | None:
 #: as a sentence and exits 1; everything else keeps its traceback, because a
 #: traceback is the right output for a bug and the wrong output for a typo.
 _REFUSALS: tuple[type[BaseException], ...] = (
+    RecordedVoicesError,
     DocumentMigrationError,
     SceneMarkdownError,
     SceneValidationError,

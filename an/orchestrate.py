@@ -148,6 +148,7 @@ def validate_project(
         available_styles=project.mall.get("styles"),
         available_sounds=project.mall.get("sounds"),
         available_library_lock=project.mall.get("library_lock"),
+        available_recordings=project.mall.get("recordings"),
         fps=fps,
     )
     report = schema_report.merge(semantic_report)

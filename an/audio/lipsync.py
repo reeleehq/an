@@ -109,8 +109,14 @@ class NullLipSync:
     billed: bool = False
 
     def align(self, audio: AudioClip, transcript: str) -> VisemeTrack:
+        # No mouth to draw, but a clip that knows its words (a recorded take)
+        # keeps them: captions and the line's `word_timings` read them.
+        words = getattr(audio, "words", None)
         return VisemeTrack(
-            visemes=[], convention=self.convention, duration=audio.duration
+            visemes=[],
+            convention=self.convention,
+            duration=audio.duration,
+            words=list(words) if words else None,
         )
 
 

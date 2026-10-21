@@ -154,6 +154,39 @@ class JsonSidecarStore(MutableMapping):
         return f"{type(self).__name__}({str(self._root)!r})"
 
 
+class AudioSidecarStore(JsonSidecarStore):
+    """A :class:`JsonSidecarStore` whose entries carry one WAV sidecar.
+
+    The metadata is the mapping's value; the audio is read and written through
+    :meth:`read_audio` / :meth:`write_audio`, so no caller builds a path by hand
+    (pillar 7). Sounds (``an.stores.sounds``) and recorded takes
+    (``an.stores.recordings``) are the two.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     store = AudioSidecarStore(d)
+    ...     store['x'] = {'description': 'a take'}
+    ...     store.write_audio('x', b'RIFF....')
+    ...     store.read_audio('x')
+    b'RIFF....'
+    """
+
+    #: The sidecar holding the audio bytes. WAV only: a header states the length
+    #: without decoding anything.
+    AUDIO_NAME = "audio.wav"
+    #: What an entry is called in error messages.
+    ENTRY_NOUN = "entry"
+
+    def read_audio(self, key: str) -> bytes:
+        path = self._entry_dir(key) / self.AUDIO_NAME
+        if not path.exists():
+            raise KeyError(f"{self.ENTRY_NOUN} {key!r} has no audio sidecar")
+        return path.read_bytes()
+
+    def write_audio(self, key: str, data: bytes) -> None:
+        self.sidecar_path(key, self.AUDIO_NAME).write_bytes(data)
+
+
 def art_exists_for(characters_store: Mapping, ref: str) -> Callable[[str], bool] | None:
     """``rel_path -> is the art on disk``, for a character in a filesystem
     store; ``None`` when the store has no root to look under (a dict, a

@@ -30,6 +30,12 @@ class AudioClip:
     channels: int = 1
     voice_id: str | None = None
     transcript: str | None = None
+    #: The clip's word timings — ``(word, start_s, end_s)`` from the clip's
+    #: start — when the provider knows them (a recorded take imported with a
+    #: timed transcript: :mod:`an.audio.recorded`); ``None`` otherwise. A
+    #: lip-sync provider that aligns from words prefers these to its own
+    #: transcription, and the audio pipeline stamps them on the line.
+    words: list[tuple[str, float, float]] | None = None
 
 
 @runtime_checkable

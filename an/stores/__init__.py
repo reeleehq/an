@@ -1,7 +1,7 @@
 """Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
-(characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
+(characters, props, environments, voices, styles, sounds, recordings), the scene file pair, intermediate
 artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
 content-keyed shot cache),
 final output and its caption sidecar, the agent's decision log, and the asset
@@ -16,7 +16,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     sorted(mall.keys()) == [
 ...         'audio', 'captions', 'characters', 'contact_sheets', 'decisions',
 ...         'environments', 'library_lock', 'measurements', 'output',
-...         'pictures', 'previews', 'props', 'render_reports', 'scenes',
+...         'pictures', 'previews', 'props', 'recordings', 'render_reports', 'scenes',
 ...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
 ...         'visemes', 'voices',
 ...     ]
@@ -33,6 +33,7 @@ from an.stores.decisions import DecisionLogStore
 from an.stores.environments import EnvironmentsStore
 from an.stores.library_lock import ProjectLock
 from an.stores.props import PropsStore
+from an.stores.recordings import RecordingsStore
 from an.stores.scenes import ScenesStore
 from an.stores.sources import SourcesStore
 from an.stores.sounds import SoundsStore
@@ -61,6 +62,7 @@ __all__ = [
     "PropsStore",
     "ScenesStore",
     "SoundsStore",
+    "RecordingsStore",
     "AudioArtifactStore",
     "VisemeArtifactStore",
     "TakesArtifactStore",
@@ -96,6 +98,7 @@ def build_project_mall(
             "assets/voices",
             "assets/styles",
             "assets/sounds",
+            "assets/recordings",
             "assets/sources",
             "ir",
             "artifacts/audio",
@@ -119,6 +122,10 @@ def build_project_mall(
         "voices": VoicesStore(pdir / "assets" / "voices"),
         "styles": StylesStore(pdir / "assets" / "styles"),
         "sounds": SoundsStore(pdir / "assets" / "sounds"),
+        # A performer's takes of the scene's lines, with their provenance
+        # (`an voices import`, an.audio.recorded): what the `recorded` TTS
+        # provider hands the pipeline instead of synthesizing.
+        "recordings": RecordingsStore(pdir / "assets" / "recordings"),
         # Opaque scene sources a whole-shot renderer runs as they are: a Manim
         # shot's `options.source` is a key here (`assets/sources/<key>.py`).
         "sources": SourcesStore(pdir / "assets" / "sources"),

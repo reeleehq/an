@@ -334,8 +334,9 @@ def collect_credits(
     ``only`` restricts the walk to those ``store/key`` names (what a render
     used, :func:`credits_for_scene`) — nothing else is read.
 
-    Four stores carry provenance: characters, **props** (an#108),
-    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
+    Five stores carry provenance: characters, **props** (an#108),
+    **environments** (an#110), **sounds** and **recordings** (a performer's
+    takes, an#490: who recorded them and under what permission). Each was added by the PR that gave that store
     real art, which is the rule rather than a coincidence — a walk that skips a
     store holding third-party plates does not return less information, it
     returns an affirmative false statement to exactly the people who need the
@@ -347,7 +348,7 @@ def collect_credits(
     record from `metadata.dicebear_*`, which no other store has ever written.
     """
     report = CreditsReport()
-    for store_name in ("characters", "props", "environments", "sounds"):
+    for store_name in ("characters", "props", "environments", "sounds", "recordings"):
         store = mall.get(store_name)
         if store is None:
             continue
@@ -945,14 +946,18 @@ def _part_credits(
                             "label it carried speaks only for the bytes it was "
                             "declared on"
                             if path in changed
-                            else "a factory stamp the factory's own record of what "
-                            "it drew does not confirm"
-                            if path in unconfirmed
-                            else "the stamp on this part no longer matches its bytes "
-                            "(re-drawn or re-carved)"
-                            if path in stale
-                            else "no stamp pins these bytes, and the descriptor's "
-                            "source was written by a generator, not a person"
+                            else (
+                                "a factory stamp the factory's own record of what "
+                                "it drew does not confirm"
+                                if path in unconfirmed
+                                else (
+                                    "the stamp on this part no longer matches its bytes "
+                                    "(re-drawn or re-carved)"
+                                    if path in stale
+                                    else "no stamp pins these bytes, and the descriptor's "
+                                    "source was written by a generator, not a person"
+                                )
+                            )
                         ),
                     },
                 ),
@@ -1154,6 +1159,11 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
         provider = str(doc.get("provider") or "")
         if not provider or provider.lower() in OWN_SPEECH_PROVIDERS:
             continue
+        if provider.lower() == _recorded_provider_name():
+            # A recorded voice's speech is its takes, each credited from the
+            # recordings store with the performer and the permission recorded
+            # at import (:func:`_recorded_takes_used`) — not synthesized speech.
+            continue
         said = {
             SPEECH_EXTRA_MODEL: doc.get("model_id"),
             "voice": voice,
@@ -1193,6 +1203,34 @@ def speech_credits(mall: Mapping[str, Any], scene: Any) -> list[CreditEntry]:
     return out
 
 
+def _recorded_provider_name() -> str:
+    from an.audio.recorded import PROVIDER_NAME
+
+    return PROVIDER_NAME
+
+
+def _recorded_takes_used(mall: Mapping[str, Any], scene: Any) -> set[str]:
+    """``recordings/<key>`` of every take a line of a recorded voice plays
+    (an#490): the performer and the permission a render owes for that line."""
+    from an.audio.recorded import find_recording
+    from an.audio.voices import declared_provider, line_voice_id
+
+    store = mall.get("recordings")
+    if store is None:
+        return set()
+    recorded = _recorded_provider_name()
+    out: set[str] = set()
+    for shot in getattr(scene, "timeline", None) or []:
+        for line in getattr(shot, "dialogue", None) or []:
+            voice = line_voice_id(line, shot, mall)
+            if declared_provider(mall, voice) != recorded:
+                continue
+            found = find_recording(store, voice, line.text)
+            if found is not None:
+                out.add(f"recordings/{found[0]}")
+    return out
+
+
 def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
     """Credits for exactly the assets ``scene`` draws or plays (an#211).
 
@@ -1210,6 +1248,7 @@ def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
             used.add(f"sounds/{cue.sound}")
     for cue in getattr(getattr(scene, "meta", None), "sounds", None) or []:
         used.add(f"sounds/{cue.sound}")
+    used |= _recorded_takes_used(mall, scene)
     full = collect_credits(mall, only=used)
     return CreditsReport(
         entries=[
