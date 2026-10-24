@@ -26,6 +26,7 @@ ONLY = {
     "jump_cut",
     "object_permanence",
     "held_item",
+    "rigidity",
 }
 
 
@@ -438,3 +439,56 @@ def test_weld_drifts_is_pure():
     from an.verify.constraints import weld_drifts
 
     assert weld_drifts([(0.0, (0, 0), (5, 0)), (1.0, (9, 0), (14, 0))]) == []
+
+
+# -- rigidity and volume (catalogue A5) ---------------------------------------
+
+
+def _lamp_with(tmp_path: Path, overrides: dict):
+    first = load(Path(shutil.copytree(LAMP, tmp_path / "q"))).scene.timeline[0]
+    (lamp,) = first.model_dump()["entities"][:1]
+    return [{**lamp, "overrides": {**(lamp.get("overrides") or {}), **overrides}}]
+
+
+def _scaled(tmp_path: Path, overrides: dict, **scales):
+    """The lamp tweened in ``scale_x`` / ``scale_y`` to the given values over 1 s."""
+    actions = [
+        _tween(property=p, to_value=v, from_value=1.0, duration=1.0)
+        for p, v in scales.items()
+    ]
+    return _lint(
+        tmp_path,
+        actions,
+        duration=1.0,
+        extra={"entities": _lamp_with(tmp_path, overrides)},
+    )
+
+
+def test_rigidity_is_registered_under_the_core_owner():
+    assert "rigidity" in check_names(owner=CORE_OWNER)
+
+
+def test_a_rigid_entity_stretched_one_way_is_one_warning(tmp_path):
+    report = _scaled(tmp_path, {"rigid": True}, scale_x=1.5)
+    (msg,) = [m for m in _msgs(report) if "proportions" in m]
+    assert "'lamp'" in msg and "rigid" in msg
+
+
+def test_a_rigid_entity_scaled_together_is_fine(tmp_path):
+    report = _scaled(tmp_path, {"rigid": True}, scale_x=1.5, scale_y=1.5)
+    assert [m for m in _msgs(report) if "proportions" in m] == []
+
+
+def test_squash_with_the_area_kept_passes_the_volume_check(tmp_path):
+    report = _scaled(tmp_path, {"preserve_volume": True}, scale_x=1.25, scale_y=0.8)
+    assert [m for m in _msgs(report) if "volume" in m] == []
+
+
+def test_a_stretch_that_grows_the_area_breaks_the_volume_check(tmp_path):
+    report = _scaled(tmp_path, {"preserve_volume": True}, scale_x=1.5)
+    assert [m for m in _msgs(report) if "volume" in m]
+
+
+def test_nothing_declared_nothing_said(tmp_path):
+    report = _scaled(tmp_path, {}, scale_x=1.5)
+    assert [m for m in _msgs(report) if "proportions" in m] == []

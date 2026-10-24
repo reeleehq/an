@@ -127,7 +127,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** The `scale_tolerance` half of `cutout.body_attachment` and the size half of `cutout.body_attachment_consistency` (a body prop's size relative to its character, within and across shots) are instances of (iii).
 
-**Status.** Partial (body ratio across shots). Rigidity within a shot and volume under squash are missing.
+**Status.** (i) aspect and (ii) volume within a shot shipped as the `rigidity` check, opt-in per entity (`overrides: {rigid: true}`, `{preserve_volume: true}`) because the `squash_stretch` preset deforms on purpose; the rest-distance between joints waits on the kinematic layer. Body ratio across shots belongs to the body lint.
 
 #### A6. Ground-plane perspective: feet, horizon and scale
 
