@@ -87,7 +87,9 @@ def _compiled(ctx: Any) -> tuple[Any, Exception | None]:
                     fps=int(round(_fps(ctx))),
                     width=res.width,
                     height=res.height,
-                    step_hz=shot.step_hz if shot.step_hz is not None else scene.meta.step_hz,
+                    step_hz=shot.step_hz
+                    if shot.step_hz is not None
+                    else scene.meta.step_hz,
                     default_easing=scene.meta.default_easing,
                     style_pack=pack,
                 )
@@ -225,7 +227,11 @@ def check_joint_violation(ctx: Any) -> None:
         if a - 0.005 <= t <= b + 0.005
     }
     for j, row in enumerate(puppet.rows):
-        broken = [k for k in range(len(times)) if gaps[k][j] > JOINT_TOLERANCE_PX and (j, k) not in refused_frames]
+        broken = [
+            k
+            for k in range(len(times))
+            if gaps[k][j] > JOINT_TOLERANCE_PX and (j, k) not in refused_frames
+        ]
         for a, b in _spans(times, broken):
             worst = max(gaps[k][j] for k in broken if a <= times[k] <= b)
             ctx.report.add(
@@ -236,7 +242,11 @@ def check_joint_violation(ctx: Any) -> None:
                 "move one of the two bodies (drop the channel that fights it), or `unjoin` "
                 "it for the span.",
             )
-        bent = [k for k in range(len(times)) if math.degrees(excess[k][j]) > LIMIT_TOLERANCE_DEG]
+        bent = [
+            k
+            for k in range(len(times))
+            if math.degrees(excess[k][j]) > LIMIT_TOLERANCE_DEG
+        ]
         for a, b in _spans(times, bent):
             worst = max(math.degrees(excess[k][j]) for k in bent if a <= times[k] <= b)
             ctx.report.add(
@@ -275,7 +285,11 @@ JOINT_VIOLATION = Constraint(
 
 
 #: The joint checks, in the order they run.
-JOINT_CONSTRAINTS: tuple[Constraint, ...] = (UNKNOWN_BODY, UNREACHABLE_PIN, JOINT_VIOLATION)
+JOINT_CONSTRAINTS: tuple[Constraint, ...] = (
+    UNKNOWN_BODY,
+    UNREACHABLE_PIN,
+    JOINT_VIOLATION,
+)
 
 
 def _register() -> None:

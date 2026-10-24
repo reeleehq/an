@@ -198,7 +198,9 @@ def _read_md(model: type) -> Any:
         try:
             return model.model_validate(item)
         except ValueError as e:
-            raise SceneMarkdownError(f"actions[{index}] ({item.get('kind')}): {e}") from e
+            raise SceneMarkdownError(
+                f"actions[{index}] ({item.get('kind')}): {e}"
+            ) from e
 
     return read
 

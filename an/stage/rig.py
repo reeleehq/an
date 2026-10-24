@@ -969,8 +969,12 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
     >>> s.anchors["tip"]
     BoneAnchor(on='fore', offset=(0.0, -80.0))
     """
-    view = desc if isinstance(desc, _RigView) else _RigView.model_validate(
-        desc if isinstance(desc, Mapping) else _dump_rig(desc)
+    view = (
+        desc
+        if isinstance(desc, _RigView)
+        else _RigView.model_validate(
+            desc if isinstance(desc, Mapping) else _dump_rig(desc)
+        )
     )
     k = SCENE_PX_PER_VIEW_BOX / float(view.view_box[3] or 1)
     skin = view.skins.get("default") or next(iter(view.skins.values()), Skin())
@@ -1007,7 +1011,9 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
 
     positions = bone_positions(view)
     origin = rig_origin(view)
-    primary = {b: sl for b, sl in primary_slot_per_bone(view).items() if sl in built_set}
+    primary = {
+        b: sl for b, sl in primary_slot_per_bone(view).items() if sl in built_set
+    }
     bones_mode = nesting_of(view) == BONES_NESTING
 
     def offset_of(slot: str | None) -> tuple[float, float]:
@@ -1017,21 +1023,34 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
     anchors: dict[str, BoneAnchor] = {}
     for bone in bone_of:
         bx, by = positions[bone]
-        on = next((primary[a] for a in strict_ancestors(bone) if a in primary), None) if bones_mode else None
+        on = (
+            next((primary[a] for a in strict_ancestors(bone) if a in primary), None)
+            if bones_mode
+            else None
+        )
         if on is None:
-            anchors[bone] = BoneAnchor(None, ((bx - origin[0]) * k + 0.0, (by - origin[1]) * k + 0.0))
+            anchors[bone] = BoneAnchor(
+                None, ((bx - origin[0]) * k + 0.0, (by - origin[1]) * k + 0.0)
+            )
             continue
         px, py = positions[slot_of[on].bone]
         ax, ay = offset_of(on)
-        anchors[bone] = BoneAnchor(on, ((bx - px - ax) * k + 0.0, (by - py - ay) * k + 0.0))
+        anchors[bone] = BoneAnchor(
+            on, ((bx - px - ax) * k + 0.0, (by - py - ay) * k + 0.0)
+        )
 
     joints: list[RigJoint] = []
     roots: list[str] = []
     order = {b.name: i for i, b in enumerate(view.bones)}
-    for name in sorted(bodies, key=lambda n: (_depth(body_bone[n], bone_of), order.get(body_bone[n], 0), n)):
+    for name in sorted(
+        bodies,
+        key=lambda n: (_depth(body_bone[n], bone_of), order.get(body_bone[n], 0), n),
+    ):
         bone = body_bone[name]
         if carrier.get(bone) != name:
-            joints.append(RigJoint(child=name, parent=carrier[bone], bone=bone, kind="weld"))
+            joints.append(
+                RigJoint(child=name, parent=carrier[bone], bone=bone, kind="weld")
+            )
             continue
         parent_bone = next((a for a in strict_ancestors(bone) if a in carrier), None)
         if parent_bone is None:
@@ -1043,7 +1062,9 @@ def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStru
                 child=name,
                 parent=carrier[parent_bone],
                 bone=bone,
-                limits=(float(limits[0]), float(limits[1])) if limits is not None else None,
+                limits=(float(limits[0]), float(limits[1]))
+                if limits is not None
+                else None,
             )
         )
     return RigStructure(
@@ -1070,7 +1091,11 @@ def _dump_rig(desc: Any) -> dict[str, Any]:
     """A rig model's fields as a mapping :class:`_RigView` reads."""
     if hasattr(desc, "model_dump"):
         return desc.model_dump()
-    return {name: getattr(desc, name) for name in ("view_box", "bones", "slots", "skins", "origin", "nesting") if hasattr(desc, name)}
+    return {
+        name: getattr(desc, name)
+        for name in ("view_box", "bones", "slots", "skins", "origin", "nesting")
+        if hasattr(desc, name)
+    }
 
 
 def drawn_attachment(

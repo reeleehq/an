@@ -108,7 +108,9 @@ class UnknownBodyError(CutoutCompileError):
         self.problems = list(problems)
 
 
-def _unknown_body_error(problems: Sequence[tuple[str, str]], *, shot_id: str) -> UnknownBodyError:
+def _unknown_body_error(
+    problems: Sequence[tuple[str, str]], *, shot_id: str
+) -> UnknownBodyError:
     lines = "\n".join(f"  - {where}: {msg}" for where, msg in problems)
     return UnknownBodyError(
         f"shot {shot_id!r}: its joints name what it does not have:\n{lines}", problems
@@ -179,15 +181,24 @@ def solve_knobs(shot: Shot) -> dict[str, Any]:
     own = shot.solve
     declared = {
         "joints": [j.model_dump(mode="json") for j in shot.joints],
-        "entities": [[e.id, [j.model_dump(mode="json") for j in e.joints], e.overrides] for e in shot.entities],
+        "entities": [
+            [e.id, [j.model_dump(mode="json") for j in e.joints], e.overrides]
+            for e in shot.entities
+        ],
         "solve": own.model_dump(mode="json") if own is not None else None,
     }
     return {
         "solver_version": SOLVER_VERSION,
         "mode": (own.mode if own is not None else None) or "auto",
-        "iterations": (own.iterations if own is not None and own.iterations else DFLT_ITERATIONS),
-        "substeps": (own.substeps if own is not None and own.substeps else DFLT_SUBSTEPS),
-        "declared": hashlib.sha256(json.dumps(declared, sort_keys=True, default=str).encode()).hexdigest(),
+        "iterations": (
+            own.iterations if own is not None and own.iterations else DFLT_ITERATIONS
+        ),
+        "substeps": (
+            own.substeps if own is not None and own.substeps else DFLT_SUBSTEPS
+        ),
+        "declared": hashlib.sha256(
+            json.dumps(declared, sort_keys=True, default=str).encode()
+        ).hexdigest(),
     }
 
 
@@ -246,19 +257,29 @@ def declarations(
     out = Declarations()
     for i, entity in enumerate(shot.entities):
         desc = _descriptor(entity, mall) if _is_rig_kind(entity) else None
-        for k, raw in enumerate(_field(desc, "joints") or [] if desc is not None else []):
+        for k, raw in enumerate(
+            _field(desc, "joints") or [] if desc is not None else []
+        ):
             where = f"{entity.id} descriptor joints/{k}"
             try:
-                spec = raw if isinstance(raw, JointSpec) else JointSpec.model_validate(raw)
+                spec = (
+                    raw if isinstance(raw, JointSpec) else JointSpec.model_validate(raw)
+                )
             except ValueError as e:
-                out.problems.append((where, f"{entity.ref!r} declares a joint that does not read: {e}"))
+                out.problems.append(
+                    (where, f"{entity.ref!r} declares a joint that does not read: {e}")
+                )
                 continue
             out.joints.append(_declared(spec, entity.id, where=where))
         for k, spec in enumerate(entity.joints):
-            out.joints.append(_declared(spec, entity.id, where=f"entities/{i}/joints/{k}"))
+            out.joints.append(
+                _declared(spec, entity.id, where=f"entities/{i}/joints/{k}")
+            )
     for k, spec in enumerate(shot.joints):
         out.joints.append(
-            DeclaredJoint(spec=spec, a=spec.a, b=spec.b, end=spec.end, where=f"joints/{k}")
+            DeclaredJoint(
+                spec=spec, a=spec.a, b=spec.b, end=spec.end, where=f"joints/{k}"
+            )
         )
     if verbs:
         from an.ir.compose import flatten
@@ -267,7 +288,9 @@ def declarations(
         for k, action in enumerate(shot.actions):
             for flat in flatten(action, play_extent=play_extent):
                 if getattr(flat.action, "kind", None) in JOINT_ACTION_KINDS:
-                    out.verbs.append(Verb(flat.action, flat.start, flat.end, where=f"actions/{k}"))
+                    out.verbs.append(
+                        Verb(flat.action, flat.start, flat.end, where=f"actions/{k}")
+                    )
     return out
 
 
@@ -295,7 +318,14 @@ def _affine_of(t: Any) -> Affine:
     c, s = math.cos(t.rotation), math.sin(t.rotation)
     a, b = c * t.scale_x, s * t.scale_x
     cc, d = -s * t.scale_y, c * t.scale_y
-    return (a, b, cc, d, t.x - (a * t.pivot_x + cc * t.pivot_y), t.y - (b * t.pivot_x + d * t.pivot_y))
+    return (
+        a,
+        b,
+        cc,
+        d,
+        t.x - (a * t.pivot_x + cc * t.pivot_y),
+        t.y - (b * t.pivot_x + d * t.pivot_y),
+    )
 
 
 def _compose(p: Affine, q: Affine) -> Affine:
@@ -368,7 +398,9 @@ class BodyInfo:
     def height(self) -> float:
         return self.box[3] * self.sy
 
-    def fraction(self, local: tuple[float, float], mirrored: bool | None = None) -> tuple[float, float]:
+    def fraction(
+        self, local: tuple[float, float], mirrored: bool | None = None
+    ) -> tuple[float, float]:
         """A local point as a fraction of this body's extent (the solver's Point),
         as drawn at rest, or ``mirrored`` (its x read the other way)."""
         left, top, w, h = self.box
@@ -376,10 +408,14 @@ class BodyInfo:
         mirrored = self.mirrored if mirrored is None else mirrored
         return (1.0 - u if mirrored else u), v
 
-    def matrix(self, x: float, y: float, theta: float, geometry: "Geometry | None" = None) -> Affine:
+    def matrix(
+        self, x: float, y: float, theta: float, geometry: "Geometry | None" = None
+    ) -> Affine:
         """This body's node transform in stage space for a solved pose, at its
         rest scale or a frame's (``geometry``)."""
-        sx, sy, mirrored = (self.sx, self.sy, self.mirrored) if geometry is None else geometry[:3]
+        sx, sy, mirrored = (
+            (self.sx, self.sy, self.mirrored) if geometry is None else geometry[:3]
+        )
         c, s = math.cos(theta), math.sin(theta)
         ex = -sx if mirrored else sx
         m = (c * ex, s * ex, -s * sy, c * sy, 0.0, 0.0)
@@ -494,7 +530,9 @@ def _local_box(node: Any) -> tuple[float, float, float, float]:
     return (t.pivot_x - e / 2.0, t.pivot_y - e / 2.0, e, e)
 
 
-def _world_matrices(doc: Any, paths: Sequence[str], pose: Any, nodes: Mapping[str, Any]) -> dict[str, Affine]:
+def _world_matrices(
+    doc: Any, paths: Sequence[str], pose: Any, nodes: Mapping[str, Any]
+) -> dict[str, Affine]:
     """``{path: stage transform}`` for ``paths`` and every ancestor, under ``pose``."""
     from an.stage.timeline import _pose_for, transform_of
 
@@ -505,7 +543,9 @@ def _world_matrices(doc: Any, paths: Sequence[str], pose: Any, nodes: Mapping[st
         if path in out:
             return out[path]
         parent = _parent_path(path, nodes)
-        local = _affine_of(transform_of(nodes[path], _pose_for(pose, path), frame_height=height))
+        local = _affine_of(
+            transform_of(nodes[path], _pose_for(pose, path), frame_height=height)
+        )
         out[path] = _compose(world(parent), local)
         return out[path]
 
@@ -514,12 +554,18 @@ def _world_matrices(doc: Any, paths: Sequence[str], pose: Any, nodes: Mapping[st
     return out
 
 
-def _rig_of(entity: Any, mall: Mapping[str, Any], nodes: Mapping[str, Any], vocab: Any = None) -> Any:
+def _rig_of(
+    entity: Any, mall: Mapping[str, Any], nodes: Mapping[str, Any], vocab: Any = None
+) -> Any:
     """The entity's :class:`~an.stage.rig.RigStructure`, or ``None`` for a non-rig."""
     from an.ir.migrate import KINDS, migrate
     from an.stage.rig import rig_structure, slot_node_paths, _RigView
 
-    desc = (getattr(vocab, "descriptors", None) or {}).get(entity.id) if vocab is not None else None
+    desc = (
+        (getattr(vocab, "descriptors", None) or {}).get(entity.id)
+        if vocab is not None
+        else None
+    )
     if desc is None:
         desc = _descriptor(entity, mall)
     if desc is None or not _field(desc, "slots"):
@@ -532,7 +578,11 @@ def _rig_of(entity: Any, mall: Mapping[str, Any], nodes: Mapping[str, Any], voca
         except Exception:  # noqa: BLE001 - the builder reports a broken descriptor
             pass
     view = _RigView.model_validate(raw)
-    built = {slot for slot, rel in slot_node_paths(view).items() if f"{entity.id}/{rel}" in nodes}
+    built = {
+        slot
+        for slot, rel in slot_node_paths(view).items()
+        if f"{entity.id}/{rel}" in nodes
+    }
     return rig_structure(view, built=built)
 
 
@@ -588,7 +638,9 @@ def build_puppet(
         fixed = bool(overrides.get(FIXED_OVERRIDE))
         if rig is None or not rig.bodies:
             path = eid
-            bodies[path] = BodyInfo(path, eid, "", None, _local_box(nodes[path]), _pivot(nodes[path]), True)
+            bodies[path] = BodyInfo(
+                path, eid, "", None, _local_box(nodes[path]), _pivot(nodes[path]), True
+            )
             if fixed or free is not True:
                 held.add(path)
             continue
@@ -597,7 +649,13 @@ def build_puppet(
             parent = _parent_path(path, nodes)
             is_root = slot in rig.roots
             bodies[path] = BodyInfo(
-                path, eid, parent, None, _local_box(nodes[path]), _pivot(nodes[path]), is_root
+                path,
+                eid,
+                parent,
+                None,
+                _local_box(nodes[path]),
+                _pivot(nodes[path]),
+                is_root,
             )
             freed = free is True or (isinstance(free, (list, tuple)) and slot in free)
             if fixed or (is_root and not freed):
@@ -649,7 +707,9 @@ def build_puppet(
             return None
         anchor = rig.anchors[bone]
         frame = (
-            _node_rest(f"{eid}/{rig.bodies.get(anchor.on) or _slot_path(eid, anchor.on, nodes)}")
+            _node_rest(
+                f"{eid}/{rig.bodies.get(anchor.on) or _slot_path(eid, anchor.on, nodes)}"
+            )
             if anchor.on is not None
             else _node_rest(eid)
         )
@@ -657,10 +717,19 @@ def build_puppet(
 
     def resolve(ref: Any, *, where: str, side: str) -> Any:
         """A reference as a solver Point (and its body), or ``None`` after noting the problem."""
-        if isinstance(ref, (list, tuple)) and len(ref) == 2 and all(isinstance(v, (int, float)) for v in ref):
+        if (
+            isinstance(ref, (list, tuple))
+            and len(ref) == 2
+            and all(isinstance(v, (int, float)) for v in ref)
+        ):
             return Point(WORLD, float(ref[0]), float(ref[1]))
         if not isinstance(ref, str):
-            problems.append((where, f"{ref!r} is not a body reference (`body[@point]`, `world@x,y`, or [x, y])"))
+            problems.append(
+                (
+                    where,
+                    f"{ref!r} is not a body reference (`body[@point]`, `world@x,y`, or [x, y])",
+                )
+            )
             return None
         head, _, at = ref.partition("@")
         if head == WORLD_REF:
@@ -673,22 +742,33 @@ def build_puppet(
         if eid not in entities:
             problems.append((where, f"{ref!r}: {eid!r} is not an entity of this shot"))
             return None
-        node_path = _slot_path(eid, head.split("/", 1)[1], nodes, rigs.get(eid)) if "/" in head else head
+        node_path = (
+            _slot_path(eid, head.split("/", 1)[1], nodes, rigs.get(eid))
+            if "/" in head
+            else head
+        )
         if node_path not in nodes:
             near = sorted(p for p in nodes if p.split("/", 1)[0] == eid)
-            problems.append((where, f"{ref!r}: no node {node_path!r}; {eid!r} has {near}"))
+            problems.append(
+                (where, f"{ref!r}: no node {node_path!r}; {eid!r} has {near}")
+            )
             return None
         if node_path == eid and rigs.get(eid) is not None and rigs[eid].bodies:
             roots = rigs[eid].roots
             if len(roots) != 1:
                 problems.append(
-                    (where, f"{ref!r}: {eid!r} has {len(roots)} root parts {list(roots)}; name the part (`{eid}/<part>`)")
+                    (
+                        where,
+                        f"{ref!r}: {eid!r} has {len(roots)} root parts {list(roots)}; name the part (`{eid}/<part>`)",
+                    )
                 )
                 return None
             node_path = f"{eid}/{rigs[eid].bodies[roots[0]]}"
         found = body_and_local(node_path)
         if found is None:
-            problems.append((where, f"{ref!r}: {node_path!r} is on no body of the shot"))
+            problems.append(
+                (where, f"{ref!r}: {node_path!r} is on no body of the shot")
+            )
             return None
         body, inner = found
         info = bodies[body]
@@ -706,7 +786,12 @@ def build_puppet(
                 if world is None:
                     rig = rigs.get(eid)
                     known = sorted(rig.anchors) if rig is not None else []
-                    problems.append((where, f"{ref!r}: {at!r} is not a bone of {eid!r} (bones: {known}) nor a fraction `u,v`"))
+                    problems.append(
+                        (
+                            where,
+                            f"{ref!r}: {at!r} is not a bone of {eid!r} (bones: {known}) nor a fraction `u,v`",
+                        )
+                    )
                     return None
                 local = _apply(_invert(rest[body]), world)
         u, v = info.fraction(local)
@@ -733,20 +818,38 @@ def build_puppet(
         relative = _relative(rest, parent, child, bodies)
         dj = overrides_by_child.pop(child, None)
         kind = joint.kind if dj is None else dj.spec.type
-        limits = joint.limits if dj is None or dj.spec.limits is None else dj.spec.limits
+        limits = (
+            joint.limits if dj is None or dj.spec.limits is None else dj.spec.limits
+        )
         give = 0.0 if dj is None else dj.spec.give
         if kind == "weld":
             row = Weld(a, b, rest=relative, compliance=give)
         else:
-            row = Hinge(a, b, limits=_limits(limits, mirrored=_flips(rest[parent])), rest=relative, compliance=give)
+            row = Hinge(
+                a,
+                b,
+                limits=_limits(limits, mirrored=_flips(rest[parent])),
+                rest=relative,
+                compliance=give,
+            )
         rows.append(
             JointRow(
-                row, f"{parent} — {child}", "rig", dj.spec.id if dj and dj.spec.name else child,
-                dj.where if dj else f"{eid} rig bone {joint.bone!r}", child=child, parent=parent,
+                row,
+                f"{parent} — {child}",
+                "rig",
+                dj.spec.id if dj and dj.spec.name else child,
+                dj.where if dj else f"{eid} rig bone {joint.bone!r}",
+                child=child,
+                parent=parent,
             )
         )
     for child, dj in overrides_by_child.items():
-        problems.append((dj.where, f"{dj.a!r}: a {dj.spec.type} with no `b` is a rig part's own joint, and {child!r} hangs from no parent part"))
+        problems.append(
+            (
+                dj.where,
+                f"{dj.a!r}: a {dj.spec.type} with no `b` is a rig part's own joint, and {child!r} hangs from no parent part",
+            )
+        )
 
     # 2. Declared joints.
     for dj in decl.joints:
@@ -762,12 +865,33 @@ def build_puppet(
         if spec.type == "pin":
             row = Pin(pa, pb, compliance=spec.give)
         elif spec.type == "hinge":
-            row = Hinge(pb, pa, limits=_limits(spec.limits, mirrored=False), rest=_relative_points(rest, pb, pa, bodies), compliance=spec.give)
+            row = Hinge(
+                pb,
+                pa,
+                limits=_limits(spec.limits, mirrored=False),
+                rest=_relative_points(rest, pb, pa, bodies),
+                compliance=spec.give,
+            )
         elif spec.type == "weld":
-            row = Weld(pb, pa, rest=_relative_points(rest, pb, pa, bodies), compliance=spec.give)
+            row = Weld(
+                pb,
+                pa,
+                rest=_relative_points(rest, pb, pa, bodies),
+                compliance=spec.give,
+            )
         elif spec.type in ("distance", "string", "rod"):
-            length = spec.length if spec.length is not None else _distance(rest, bodies, pa, pb)
-            row = Distance(pa, pb, length=float(length), mode=spec.distance_mode, compliance=spec.give)
+            length = (
+                spec.length
+                if spec.length is not None
+                else _distance(rest, bodies, pa, pb)
+            )
+            row = Distance(
+                pa,
+                pb,
+                length=float(length),
+                mode=spec.distance_mode,
+                compliance=spec.give,
+            )
         elif spec.type == "slide":
             row = Slide(pa, pb, pe, compliance=spec.give)
         else:
@@ -780,14 +904,21 @@ def build_puppet(
     for verb in decl.verbs:
         action = verb.action
         if action.kind in ("join", "unjoin"):
-            events.setdefault(action.joint, []).append((verb.start, action.kind == "join"))
+            events.setdefault(action.joint, []).append(
+                (verb.start, action.kind == "join")
+            )
             continue
         open_ended = (action.duration if action.kind == "pin" else action.over) is None
         span = (verb.start, duration if open_ended else verb.end)
         pa = resolve(action.point, where=verb.where, side="a")
         path = None
         to = action.to
-        if action.kind == "pull" and isinstance(to, list) and to and isinstance(to[0], (list, tuple)):
+        if (
+            action.kind == "pull"
+            and isinstance(to, list)
+            and to
+            and isinstance(to[0], (list, tuple))
+        ):
             path = tuple((float(p[0]), float(p[1])) for p in to)
             pb = Point(WORLD, *path[0])
         else:
@@ -797,22 +928,42 @@ def build_puppet(
         if action.kind == "pin":
             row = Pin(pa, pb)
         else:
-            row = Distance(pa, pb, length=0.0, mode="at_most", compliance=float(action.give))
+            row = Distance(
+                pa, pb, length=0.0, mode="at_most", compliance=float(action.give)
+            )
         rows.append(
             JointRow(
-                row, f"{action.point} — {_ref_text(to)}", action.kind, f"{action.kind}:{verb.where}",
-                verb.where, span=span, path=path, frees=(pa.body,), verb=action.kind,
+                row,
+                f"{action.point} — {_ref_text(to)}",
+                action.kind,
+                f"{action.kind}:{verb.where}",
+                verb.where,
+                span=span,
+                path=path,
+                frees=(pa.body,),
+                verb=action.kind,
             )
         )
     ids = {row.id for row in rows}
     for jid in events:
         if jid not in ids:
-            problems.append(("actions", f"join/unjoin names {jid!r}, which is no joint of this shot (joints: {sorted(ids)})"))
+            problems.append(
+                (
+                    "actions",
+                    f"join/unjoin names {jid!r}, which is no joint of this shot (joints: {sorted(ids)})",
+                )
+            )
     for jid in events:
         events[jid].sort(key=lambda e: e[0])
     if problems:
         raise _unknown_body_error(problems, shot_id=shot.id)
-    return Puppet(bodies=bodies, rows=rows, held=held, events=events, rest={p: rest[p] for p in bodies})
+    return Puppet(
+        bodies=bodies,
+        rows=rows,
+        held=held,
+        events=events,
+        rest={p: rest[p] for p in bodies},
+    )
 
 
 def _pivot(node: Any) -> tuple[float, float]:
@@ -866,17 +1017,23 @@ def _limits(limits: Any, *, mirrored: bool) -> tuple[float, float] | None:
     return (-hi, -lo) if mirrored else (lo, hi)
 
 
-def _relative(rest: Mapping[str, Affine], parent: str, child: str, bodies: Mapping[str, BodyInfo]) -> float:
+def _relative(
+    rest: Mapping[str, Affine], parent: str, child: str, bodies: Mapping[str, BodyInfo]
+) -> float:
     return _wrap(_decompose(rest[child])[0] - _decompose(rest[parent])[0])
 
 
-def _relative_points(rest: Mapping[str, Affine], a: Any, b: Any, bodies: Mapping[str, BodyInfo]) -> float:
+def _relative_points(
+    rest: Mapping[str, Affine], a: Any, b: Any, bodies: Mapping[str, BodyInfo]
+) -> float:
     ta = _decompose(rest[a.body])[0] if a.body in rest else 0.0
     tb = _decompose(rest[b.body])[0] if b.body in rest else 0.0
     return _wrap(tb - ta)
 
 
-def _point_at(rest: Mapping[str, Affine], bodies: Mapping[str, BodyInfo], p: Any) -> tuple[float, float]:
+def _point_at(
+    rest: Mapping[str, Affine], bodies: Mapping[str, BodyInfo], p: Any
+) -> tuple[float, float]:
     if p.body not in bodies:
         return (p.u, p.v)
     info = bodies[p.body]
@@ -885,7 +1042,9 @@ def _point_at(rest: Mapping[str, Affine], bodies: Mapping[str, BodyInfo], p: Any
     return _apply(rest[p.body], (left + u * w, top + p.v * h))
 
 
-def _distance(rest: Mapping[str, Affine], bodies: Mapping[str, BodyInfo], a: Any, b: Any) -> float:
+def _distance(
+    rest: Mapping[str, Affine], bodies: Mapping[str, BodyInfo], a: Any, b: Any
+) -> float:
     (ax, ay), (bx, by) = _point_at(rest, bodies, a), _point_at(rest, bodies, b)
     return math.hypot(ax - bx, ay - by)
 
@@ -921,16 +1080,24 @@ def resolve_settings(shot: Shot, style_pack: Any, puppet: Puppet) -> Settings:
         gravity = gravity_vector(pack_gravity)
     # A declared string hangs things (follow-through); a `pull` is a goal, met in either mode.
     strings = any(
-        isinstance(r.joint, Distance) and r.joint.mode == "at_most" and r.source == "joint"
+        isinstance(r.joint, Distance)
+        and r.joint.mode == "at_most"
+        and r.source == "joint"
         for r in puppet.rows
     )
-    mode = (own.mode if own is not None else None) or ("dynamic" if gravity or strings else "pose")
-    damping = own.damping if own is not None and own.damping is not None else pack_damping
+    mode = (own.mode if own is not None else None) or (
+        "dynamic" if gravity or strings else "pose"
+    )
+    damping = (
+        own.damping if own is not None and own.damping is not None else pack_damping
+    )
     return Settings(
         mode=mode,
         gravity=gravity if mode == "dynamic" else None,
         damping=float(damping) if damping is not None else DFLT_DAMPING,
-        iterations=(own.iterations if own is not None and own.iterations else DFLT_ITERATIONS),
+        iterations=(
+            own.iterations if own is not None and own.iterations else DFLT_ITERATIONS
+        ),
         substeps=(own.substeps if own is not None and own.substeps else DFLT_SUBSTEPS),
     )
 
@@ -1000,17 +1167,28 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
     return path[-1]
 
 
-def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settings) -> Run:
+def run_solve(
+    doc: Any, puppet: Puppet, times: Sequence[float], settings: Settings
+) -> Run:
     """Solve ``puppet`` at each of ``times`` under the authored motion in ``doc``."""
     from dataclasses import replace
 
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
-    from an.stage.timeline import _pose_for, evaluate_timeline, timeline_from_scene, transform_of
+    from an.stage.timeline import (
+        _pose_for,
+        evaluate_timeline,
+        timeline_from_scene,
+        transform_of,
+    )
 
     nodes = _node_index(doc)
     timeline = timeline_from_scene(doc)
     order = list(puppet.bodies)
-    dt = None if settings.mode == "pose" else (times[1] - times[0] if len(times) > 1 else None)
+    dt = (
+        None
+        if settings.mode == "pose"
+        else (times[1] - times[0] if len(times) > 1 else None)
+    )
     run = Run(list(times), [], [], [], [], [], [], [], [])
     current: list[Any] | None = None
     joined_before: list[bool] | None = None
@@ -1021,17 +1199,23 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
         run.evaluated.append(world)
         local_now, geometry = {}, {}
         for path in order:
-            tr = transform_of(nodes[path], _pose_for(pose, path), frame_height=doc.meta.height)
+            tr = transform_of(
+                nodes[path], _pose_for(pose, path), frame_height=doc.meta.height
+            )
             local_now[path] = (tr.x, tr.y, tr.rotation)
             geometry[path] = _geometry_at(world[path], tr.scale_x)
         run.local.append(local_now)
         run.geometry.append(geometry)
         flips = {p: geometry[p][2] != puppet.bodies[p].mirrored for p in order}
-        authored_props = {(path, prop) for (path, prop) in pose if prop in SOLVED_CHANNELS}
+        authored_props = {
+            (path, prop) for (path, prop) in pose if prop in SOLVED_CHANNELS
+        }
         freed = {
             body
             for row in puppet.rows
-            if row.frees and row.span is not None and row.span[0] - 1e-9 <= t <= row.span[1] + 1e-9
+            if row.frees
+            and row.span is not None
+            and row.span[0] - 1e-9 <= t <= row.span[1] + 1e-9
             for body in row.frees
         }
         targets: dict[str, dict[str, float]] = {}
@@ -1047,13 +1231,19 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
                 channels = {prop for (p, prop) in authored_props if p == path}
                 if info.parent_body is not None:
                     if "rotation" in channels:
-                        welded[path] = _wrap(theta - _decompose(world[info.parent_body])[0])
+                        welded[path] = _wrap(
+                            theta - _decompose(world[info.parent_body])[0]
+                        )
                     channels = set()
                 elif channels & {"x", "y"}:
                     channels |= {"x", "y"}
             held[path] = channels
             if channels:
-                targets[path] = {c: v for c, v in (("x", x), ("y", y), ("rotation", theta)) if c in channels}
+                targets[path] = {
+                    c: v
+                    for c, v in (("x", x), ("y", y), ("rotation", theta))
+                    if c in channels
+                }
         joints = []
         joined_now = []
         for row in puppet.rows:
@@ -1072,13 +1262,21 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
             for path in order:
                 info = puppet.bodies[path]
                 x, y = _apply(world[path], info.pivot)
-                current.append(Body(path, x=x, y=y, rotation=_decompose(world[path])[0]))
+                current.append(
+                    Body(path, x=x, y=y, rotation=_decompose(world[path])[0])
+                )
         else:
             # A held body's channels are where the author put them NOW: start it there,
             # so a dynamic solve does not drag it from its last pose over the substeps.
             current = [
-                b.posed(**{("rotation" if c == "rotation" else c): v for c, v in targets.get(b.name, {}).items()})
-                if settings.mode == "pose" else b
+                b.posed(
+                    **{
+                        ("rotation" if c == "rotation" else c): v
+                        for c, v in targets.get(b.name, {}).items()
+                    }
+                )
+                if settings.mode == "pose"
+                else b
                 for b in current
             ]
         # This frame's extent and mirroring (an authored scale or flip), read
@@ -1088,7 +1286,9 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
                 b,
                 width=puppet.bodies[b.name].box[2] * geometry[b.name][0],
                 height=puppet.bodies[b.name].box[3] * geometry[b.name][1],
-                origin=puppet.bodies[b.name].fraction(puppet.bodies[b.name].pivot, geometry[b.name][2]),
+                origin=puppet.bodies[b.name].fraction(
+                    puppet.bodies[b.name].pivot, geometry[b.name][2]
+                ),
             )
             for b in current
         ]
@@ -1100,22 +1300,35 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
                 if now and not was:
                     run.snaps.append((k, j, _gap(current, joints[j])))
         options = dict(
-            targets=targets or None, gravity=settings.gravity, dt=dt,
-            iterations=settings.iterations, substeps=settings.substeps, damping=settings.damping,
+            targets=targets or None,
+            gravity=settings.gravity,
+            dt=dt,
+            iterations=settings.iterations,
+            substeps=settings.substeps,
+            damping=settings.damping,
         )
         directed = [
-            j for j, row in enumerate(puppet.rows)
+            j
+            for j, row in enumerate(puppet.rows)
             if row.verb is not None and joints[j].joined and joints[j].b.body != WORLD
         ]
         if directed:
             # A verb holds ITS point where the other body is: that body is solved
             # without it first, and the verb then pins to where it went (a cup goes
             # to the hand; the hand is not pulled toward the cup).
-            first = solve(current, [replace(jt, joined=False) if j in directed else jt
-                                    for j, jt in enumerate(joints)], **options)
+            first = solve(
+                current,
+                [
+                    replace(jt, joined=False) if j in directed else jt
+                    for j, jt in enumerate(joints)
+                ],
+                **options,
+            )
             for j in directed:
                 b = joints[j].b
-                joints[j] = replace(joints[j], b=Point(WORLD, *_body_point(first.pose(b.body), b)))
+                joints[j] = replace(
+                    joints[j], b=Point(WORLD, *_body_point(first.pose(b.body), b))
+                )
         r = solve(current, joints, **options)
         frames_inputs.append([joints, targets])
         current = list(r.bodies)
@@ -1131,8 +1344,12 @@ def run_solve(doc: Any, puppet: Puppet, times: Sequence[float], settings: Settin
         [row.joint for row in puppet.rows],
         targets=[f[1] or None for f in frames_inputs],
         gravity=settings.gravity,
-        mode=settings.mode, iterations=settings.iterations, substeps=settings.substeps,
-        damping=settings.damping, joints_at=[f[0] for f in frames_inputs], times=list(times),
+        mode=settings.mode,
+        iterations=settings.iterations,
+        substeps=settings.substeps,
+        damping=settings.damping,
+        joints_at=[f[0] for f in frames_inputs],
+        times=list(times),
     )
     return run
 
@@ -1147,7 +1364,9 @@ def _start_body(puppet: Puppet, path: str) -> Any:
     from an.kinematics import Body
 
     info = puppet.bodies[path]
-    return Body(path, width=info.width(), height=info.height(), origin=info.fraction(info.pivot))
+    return Body(
+        path, width=info.width(), height=info.height(), origin=info.fraction(info.pivot)
+    )
 
 
 def _gap(bodies: Sequence[Any], joint: Any) -> float:
@@ -1169,7 +1388,11 @@ def solve_pass(state: Any) -> None:
     """The ``solve`` compile pass (order :data:`SOLVE_ORDER`). A no-op for a shot
     that declares no joint and no verb."""
     shot = state.shot
-    if not shot.joints and not _has_verb(shot) and not any(e.joints for e in shot.entities):
+    if (
+        not shot.joints
+        and not _has_verb(shot)
+        and not any(e.joints for e in shot.entities)
+    ):
         if not any(
             _field(_descriptor(e, state.mall), "joints")
             for e in shot.entities
@@ -1179,7 +1402,14 @@ def solve_pass(state: Any) -> None:
     from an.stage.compile import _assemble_document, _lowerings
 
     extent = next(
-        (r for r in (low.extent_resolver(state.vocab, products=state.products) for low in _lowerings()) if r),
+        (
+            r
+            for r in (
+                low.extent_resolver(state.vocab, products=state.products)
+                for low in _lowerings()
+            )
+            if r
+        ),
         None,
     )
     decl = declarations(shot, state.mall, play_extent=extent)
@@ -1218,7 +1448,9 @@ def _local_channels(
     return lx, ly, math.atan2(local[1] * sign, local[0] * sign)
 
 
-def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> list[dict[str, Any]]:
+def _emit(
+    state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool
+) -> list[dict[str, Any]]:
     from an.stage.serialize import (
         AnimationClipJSON,
         ChannelJSON,
@@ -1226,6 +1458,7 @@ def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> l
         PlacedClipJSON,
         TrackJSON,
     )
+
     order = list(puppet.bodies)
     values: dict[tuple[str, str], list[float]] = {}
     for k in range(len(run.times)):
@@ -1235,7 +1468,9 @@ def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> l
             previous = values.get((path, "rotation"))
             ref = previous[-1] if previous else run.local[k][path][2]
             rot = ref + _wrap(rot - ref)
-            channels = ("rotation",) if puppet.bodies[path].parent_body else SOLVED_CHANNELS
+            channels = (
+                ("rotation",) if puppet.bodies[path].parent_body else SOLVED_CHANNELS
+            )
             for prop, v in (("x", lx), ("y", ly), ("rotation", rot)):
                 if prop in channels:
                     values.setdefault((path, prop), []).append(v)
@@ -1256,7 +1491,8 @@ def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> l
                 target=path,
                 property=prop,
                 keyframes=[
-                    KeyframeJSON(time=_q(t, 1e-9), value=v, easing=easing) for t, v in zip(run.times, qs)
+                    KeyframeJSON(time=_q(t, 1e-9), value=v, easing=easing)
+                    for t, v in zip(run.times, qs)
                 ],
             )
         )
@@ -1264,8 +1500,12 @@ def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> l
     overridden = _overridden(state, emitted, run)
     for root, channels in clips.items():
         name = f"{SOLVE_CLIP_PREFIX}{root}"
-        state.animations[name] = AnimationClipJSON(name=name, duration=max(0.001, duration), channels=channels)
-        placed = PlacedClipJSON(animation_id=name, start_time=0.0, duration=max(0.001, duration))
+        state.animations[name] = AnimationClipJSON(
+            name=name, duration=max(0.001, duration), channels=channels
+        )
+        placed = PlacedClipJSON(
+            animation_id=name, start_time=0.0, duration=max(0.001, duration)
+        )
         track = next((tr for tr in state.tracks if tr.target_root == root), None)
         if track is None:
             state.tracks.append(TrackJSON(target_root=root, clips=[placed]))
@@ -1274,7 +1514,9 @@ def _emit(state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool) -> l
     return overridden
 
 
-def _overridden(state: Any, emitted: set[tuple[str, str]], run: Run) -> list[dict[str, Any]]:
+def _overridden(
+    state: Any, emitted: set[tuple[str, str]], run: Run
+) -> list[dict[str, Any]]:
     """The authored spans a solved channel replaces: ``[{target, property, from,
     until}]`` (an authored span the solve held at every frame is kept, not replaced)."""
     out = []
@@ -1285,12 +1527,21 @@ def _overridden(state: Any, emitted: set[tuple[str, str]], run: Run) -> list[dic
                 continue
             for ch in clip.channels:
                 if (ch.target, ch.property) in emitted:
-                    span = placed.duration if placed.duration is not None else clip.duration
+                    span = (
+                        placed.duration
+                        if placed.duration is not None
+                        else clip.duration
+                    )
                     inside = [
-                        k for k, t in enumerate(run.times)
-                        if placed.start_time - 1e-9 <= t <= placed.start_time + span + 1e-9
+                        k
+                        for k, t in enumerate(run.times)
+                        if placed.start_time - 1e-9
+                        <= t
+                        <= placed.start_time + span + 1e-9
                     ]
-                    if all(ch.property in run.held[k].get(ch.target, ()) for k in inside):
+                    if all(
+                        ch.property in run.held[k].get(ch.target, ()) for k in inside
+                    ):
                         continue
                     out.append(
                         {
@@ -1319,7 +1570,9 @@ def _spans(times: Sequence[float], frames: Sequence[int]) -> list[tuple[float, f
     return out
 
 
-def _report(puppet: Puppet, run: Run, settings: Settings, overridden: list[dict[str, Any]]) -> dict[str, Any]:
+def _report(
+    puppet: Puppet, run: Run, settings: Settings, overridden: list[dict[str, Any]]
+) -> dict[str, Any]:
     """``meta.extensions.solve``: what the solve ran with and what it could not hold."""
     from an.kinematics import SOLVER_VERSION
 
@@ -1338,13 +1591,17 @@ def _report(puppet: Puppet, run: Run, settings: Settings, overridden: list[dict[
     for j in sorted(refused):
         for a, b in _spans(run.times, refused[j]):
             worst = max(
-                (gaps.get((j, k), 0.0) for k, t in enumerate(run.times) if a <= t <= b), default=0.0
+                (gaps.get((j, k), 0.0) for k, t in enumerate(run.times) if a <= t <= b),
+                default=0.0,
             )
             entry = {"joint": j, "from": r2(a), "until": r2(b), "gap": r2(worst)}
             if puppet.rows[j].source == "pin":
                 reach = _reach(puppet, run, j, run.times.index(a))
                 if reach is not None:
-                    entry["reach"] = {k: (r2(v) if isinstance(v, float) else v) for k, v in reach.items()}
+                    entry["reach"] = {
+                        k: (r2(v) if isinstance(v, float) else v)
+                        for k, v in reach.items()
+                    }
             dropped.append(entry)
     return {
         "solver_version": SOLVER_VERSION,
@@ -1357,15 +1614,25 @@ def _report(puppet: Puppet, run: Run, settings: Settings, overridden: list[dict[
         "inputs": run.digest,
         "joints": [
             {
-                "id": row.id, "type": type(row.joint).__name__.lower(), "bodies": row.label,
-                "source": row.source, "where": row.where,
-                "span": [round(row.span[0], 9), round(row.span[1], 9)] if row.span is not None else None,
+                "id": row.id,
+                "type": type(row.joint).__name__.lower(),
+                "bodies": row.label,
+                "source": row.source,
+                "where": row.where,
+                "span": [round(row.span[0], 9), round(row.span[1], 9)]
+                if row.span is not None
+                else None,
             }
             for row in puppet.rows
         ],
-        "events": {jid: [[round(t, 9), on] for t, on in evs] for jid, evs in sorted(puppet.events.items())},
+        "events": {
+            jid: [[round(t, 9), on] for t, on in evs]
+            for jid, evs in sorted(puppet.events.items())
+        },
         "dropped": dropped,
-        "snaps": [{"joint": j, "at": r2(run.times[k]), "gap": r2(g)} for k, j, g in run.snaps],
+        "snaps": [
+            {"joint": j, "at": r2(run.times[k]), "gap": r2(g)} for k, j, g in run.snaps
+        ],
         "overridden": overridden,
     }
 
@@ -1384,7 +1651,9 @@ def _reach(puppet: Puppet, run: Run, j: int, k: int) -> dict[str, Any] | None:
     while body not in puppet.held and body in by_child and body not in seen:
         seen.add(body)
         link = by_child[body]
-        joint_on_body = link.joint.b  # the hinge's child-side point (the rig's rows are (parent, child))
+        joint_on_body = (
+            link.joint.b
+        )  # the hinge's child-side point (the rig's rows are (parent, child))
         reach += _distance(puppet.rest, puppet.bodies, at, joint_on_body)
         body, at = link.parent, link.joint.a
     if body not in puppet.held:
@@ -1396,8 +1665,15 @@ def _reach(puppet: Puppet, run: Run, j: int, k: int) -> dict[str, Any] | None:
         info = puppet.bodies[p.body]
         x, y, theta = run.poses[k][p.body]
         sx, sy, mirrored, _flip = run.geometry[k][p.body]
-        b = Body(p.body, x=x, y=y, rotation=theta, width=info.box[2] * sx, height=info.box[3] * sy,
-                 origin=info.fraction(info.pivot, mirrored))
+        b = Body(
+            p.body,
+            x=x,
+            y=y,
+            rotation=theta,
+            width=info.box[2] * sx,
+            height=info.box[3] * sy,
+            origin=info.fraction(info.pivot, mirrored),
+        )
         return point_world(b, _flip_point(p, {p.body: mirrored != info.mirrored}))
 
     ax, ay = world(at)
@@ -1409,7 +1685,10 @@ def _reach(puppet: Puppet, run: Run, j: int, k: int) -> dict[str, Any] | None:
         "within": reach >= dist,
         "reach": reach,
         "distance": dist,
-        "place": [round(ax + (tx - ax) * f, 1) + 0.0, round(ay + (ty - ay) * f, 1) + 0.0],
+        "place": [
+            round(ax + (tx - ax) * f, 1) + 0.0,
+            round(ay + (ty - ay) * f, 1) + 0.0,
+        ],
     }
 
 
@@ -1444,7 +1723,10 @@ def joint_residuals(
             if rec.get("span") is not None:
                 row.span = (float(rec["span"][0]), float(rec["span"][1]))
     if isinstance(report.get("events"), Mapping):
-        puppet.events = {jid: [(float(t), bool(on)) for t, on in evs] for jid, evs in report["events"].items()}
+        puppet.events = {
+            jid: [(float(t), bool(on)) for t, on in evs]
+            for jid, evs in report["events"].items()
+        }
     nodes = _node_index(doc)
     timeline = timeline_from_scene(doc)
     if times is None:
@@ -1458,11 +1740,20 @@ def joint_residuals(
         flips: dict[str, bool] = {}
         for path, info in puppet.bodies.items():
             x, y = _apply(world[path], info.pivot)
-            tr = transform_of(nodes[path], _pose_for(pose, path), frame_height=doc.meta.height)
+            tr = transform_of(
+                nodes[path], _pose_for(pose, path), frame_height=doc.meta.height
+            )
             sx, sy, mirrored, _flip = _geometry_at(world[path], tr.scale_x)
             flips[path] = mirrored != info.mirrored
-            bodies[path] = Body(path, x=x, y=y, rotation=_decompose(world[path])[0], width=info.box[2] * sx,
-                                height=info.box[3] * sy, origin=info.fraction(info.pivot, mirrored))
+            bodies[path] = Body(
+                path,
+                x=x,
+                y=y,
+                rotation=_decompose(world[path])[0],
+                width=info.box[2] * sx,
+                height=info.box[3] * sy,
+                origin=info.fraction(info.pivot, mirrored),
+            )
         row_gaps, row_excess = [], []
         for row in puppet.rows:
             if row.source == "pull" or not _joined_at(puppet, row, t):
@@ -1475,27 +1766,53 @@ def joint_residuals(
                 from an.kinematics import Point, WORLD
 
                 s0, s1 = row.span
-                j = type(j)(j.a, Point(WORLD, *_along(row.path, (t - s0) / (s1 - s0) if s1 > s0 else 1.0)),
-                            length=j.length, mode=j.mode, compliance=j.compliance)
+                j = type(j)(
+                    j.a,
+                    Point(
+                        WORLD,
+                        *_along(row.path, (t - s0) / (s1 - s0) if s1 > s0 else 1.0),
+                    ),
+                    length=j.length,
+                    mode=j.mode,
+                    compliance=j.compliance,
+                )
 
             def at(p, bodies=bodies):
-                return point_world(bodies[p.body], p) if p.body in bodies else (p.u, p.v)
+                return (
+                    point_world(bodies[p.body], p) if p.body in bodies else (p.u, p.v)
+                )
 
             if isinstance(j, (Slide, Contact)):
-                gap = _segment_gap(at(j.point), at(j.start), at(j.end), one_sided=isinstance(j, Contact))
+                gap = _segment_gap(
+                    at(j.point),
+                    at(j.start),
+                    at(j.end),
+                    one_sided=isinstance(j, Contact),
+                )
             else:
                 (ax, ay), (bx, by) = at(j.a), at(j.b)
                 gap = math.hypot(ax - bx, ay - by)
                 if isinstance(j, Distance):
-                    gap = {"equal": abs(gap - j.length), "at_most": max(0.0, gap - j.length),
-                           "at_least": max(0.0, j.length - gap)}[j.mode]
+                    gap = {
+                        "equal": abs(gap - j.length),
+                        "at_most": max(0.0, gap - j.length),
+                        "at_least": max(0.0, j.length - gap),
+                    }[j.mode]
             over = 0.0
             if isinstance(j, Hinge) and j.limits is not None:
-                rel = _wrap(bodies[j.b.body].rotation - (bodies[j.a.body].rotation if j.a.body in bodies else 0.0) - (j.rest or 0.0))
+                rel = _wrap(
+                    bodies[j.b.body].rotation
+                    - (bodies[j.a.body].rotation if j.a.body in bodies else 0.0)
+                    - (j.rest or 0.0)
+                )
                 lo, hi = j.limits
                 over = max(0.0, lo - rel, rel - hi)
             elif isinstance(j, Weld) and j.rest is not None and row.source != "rig":
-                rel = _wrap(bodies[j.b.body].rotation - (bodies[j.a.body].rotation if j.a.body in bodies else 0.0) - j.rest)
+                rel = _wrap(
+                    bodies[j.b.body].rotation
+                    - (bodies[j.a.body].rotation if j.a.body in bodies else 0.0)
+                    - j.rest
+                )
                 over = abs(rel)
             row_gaps.append(gap)
             row_excess.append(over)
@@ -1504,7 +1821,13 @@ def joint_residuals(
     return puppet, list(times), gaps, excess
 
 
-def _segment_gap(p: tuple[float, float], a: tuple[float, float], b: tuple[float, float], *, one_sided: bool) -> float:
+def _segment_gap(
+    p: tuple[float, float],
+    a: tuple[float, float],
+    b: tuple[float, float],
+    *,
+    one_sided: bool,
+) -> float:
     tx, ty = b[0] - a[0], b[1] - a[1]
     length = math.hypot(tx, ty)
     if length == 0:
@@ -1513,7 +1836,9 @@ def _segment_gap(p: tuple[float, float], a: tuple[float, float], b: tuple[float,
     if one_sided:
         if not 0.0 <= s <= 1.0:
             return 0.0  # off the segment's ends: nothing to stand on, nothing broken
-        depth = ((p[0] - a[0]) * ty - (p[1] - a[1]) * tx) / length  # >0 on the free side
+        depth = (
+            (p[0] - a[0]) * ty - (p[1] - a[1]) * tx
+        ) / length  # >0 on the free side
         return max(0.0, -depth)
     s = max(0.0, min(1.0, s))
     return math.hypot(p[0] - (a[0] + s * tx), p[1] - (a[1] + s * ty))

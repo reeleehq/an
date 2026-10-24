@@ -732,19 +732,25 @@ def gravity_vector(spec: Any) -> tuple[float, float] | None:
             try:
                 strength = float(words[1])
             except ValueError:
-                raise ValueError(f"gravity {spec!r}: {words[1]!r} is not a number") from None
+                raise ValueError(
+                    f"gravity {spec!r}: {words[1]!r} is not a number"
+                ) from None
     elif hasattr(spec, "get"):
         direction = str(spec.get("direction") or "down").lower()
         if direction in NO_GRAVITY:
             return None
         if direction not in GRAVITY_DIRECTIONS:
-            raise ValueError(f"gravity direction {direction!r}: one of {list(GRAVITY_DIRECTIONS)}")
+            raise ValueError(
+                f"gravity direction {direction!r}: one of {list(GRAVITY_DIRECTIONS)}"
+            )
         if spec.get("strength") is not None:
             strength = float(spec.get("strength"))
     else:
         raise ValueError(f"gravity {spec!r}: say 'down 980' or 'none'")
     if not (strength >= 0.0 and strength < float("inf")):
-        raise ValueError(f"gravity strength must be a finite non-negative number, got {strength}")
+        raise ValueError(
+            f"gravity strength must be a finite non-negative number, got {strength}"
+        )
     if strength == 0.0:
         return None
     dx, dy = GRAVITY_DIRECTIONS[direction]
@@ -809,7 +815,9 @@ class JointSpec(_IRModel):
     def _well_formed(self) -> "JointSpec":
         where = f"joint {self.id!r} ({self.type})"
         if self.b is None and self.type not in PART_JOINT_TYPES:
-            raise ValueError(f"{where} needs `b`: the body (or `world@x,y`) it joins `a` to.")
+            raise ValueError(
+                f"{where} needs `b`: the body (or `world@x,y`) it joins `a` to."
+            )
         if (self.end is not None) != (self.type in SEGMENT_JOINT_TYPES):
             raise ValueError(
                 f"{where}: `end` (the segment's far end, with `b` its start) is for "
@@ -826,8 +834,14 @@ class JointSpec(_IRModel):
                 )
         distance_like = self.type in ("distance", "string", "rod")
         if (self.length is not None or self.mode is not None) and not distance_like:
-            raise ValueError(f"{where}: `length` and `mode` are for distance, string and rod joints.")
-        if self.mode is not None and self.type in IMPLIED_DISTANCE_MODE and self.mode != IMPLIED_DISTANCE_MODE[self.type]:
+            raise ValueError(
+                f"{where}: `length` and `mode` are for distance, string and rod joints."
+            )
+        if (
+            self.mode is not None
+            and self.type in IMPLIED_DISTANCE_MODE
+            and self.mode != IMPLIED_DISTANCE_MODE[self.type]
+        ):
             raise ValueError(
                 f"{where}: a {self.type} is held {IMPLIED_DISTANCE_MODE[self.type]}; "
                 "use `type: distance` for another mode."
@@ -876,7 +890,9 @@ class SolveSettings(_IRModel):
 
     @model_serializer(mode="wrap")
     def _omit_unset(self, handler):
-        return _omit_none(handler(self), "mode", "gravity", "damping", "iterations", "substeps")
+        return _omit_none(
+            handler(self), "mode", "gravity", "damping", "iterations", "substeps"
+        )
 
 
 # `AssetRef` (and the world member that extends it) name `JointSpec` before it is
