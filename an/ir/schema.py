@@ -41,6 +41,7 @@ import re
 from typing import Annotated, Any, Literal, Union
 
 from pydantic import (
+    AliasChoices,
     model_serializer,
     BaseModel,
     ConfigDict,
@@ -452,6 +453,31 @@ DFLT_TRAVEL_TOLERANCE_PX: float = 1.0
 DFLT_TRAVEL_MAX_ACTIONS: int = 20_000
 
 
+#: The root of the frame tree: the world itself. Always present, never declared.
+WORLD_FRAME: str = "world"
+#: The frame a `travel` with a `speed` is sugar for (viewpoints and members
+#: ride it by default; streams stay in the world).
+VEHICLE_FRAME: str = "vehicle"
+#: How a frame follows its parent: `rigid` takes the parent's whole pose,
+#: `far` only its rotation (what is at infinity turns with the camera and never
+#: translates).
+FRAME_COUPLINGS: tuple[str, ...] = ("rigid", "far")
+#: The key an element's frame is written under in a document (`frame` is the
+#: field; `in` is not a name Python lets a field have).
+FRAME_KEY: str = "in"
+_FRAME_FIELD = Field(default=None, validation_alias=AliasChoices(FRAME_KEY, "frame"))
+
+
+def _frame_key(data: Any) -> Any:
+    """``data`` with the ``frame`` field written under the document's key
+    ``in`` (and left out when unset: a scene that names no frame stores none)."""
+    if isinstance(data, dict):
+        frame = data.pop("frame", None)
+        if frame is not None:
+            data[FRAME_KEY] = frame
+    return data
+
+
 def _omit_none(data: Any, *keys: str) -> Any:
     """``data`` without the ``keys`` whose value is ``None``: a field nobody set
     leaves no trace in a stored document (the `stage`/`library` rule)."""
@@ -513,6 +539,13 @@ class WorldMember(AssetRef):
     units_per_px: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     attached: Attachment | None = None
     after: str | None = None
+    #: The frame of reference this member is in (document key ``in``); unset
+    #: means the world's default frame (:meth:`World.default_frame`). An
+    #: environment's ``frame`` is the default of its planes; ``planes`` names
+    #: the exceptions, ``{plane name: frame}`` (one environment can hold a
+    #: cabin plate and a sky plate).
+    frame: str | None = _FRAME_FIELD
+    planes: dict[str, str] | None = None
 
     @model_validator(mode="after")
     def _one_way_to_place_it(self) -> "WorldMember":
@@ -527,13 +560,24 @@ class WorldMember(AssetRef):
             for k in ("height", "width", "units_per_px")
             if getattr(self, k) is not None
         ]
+        if self.planes is not None and self.kind != "environment":
+            raise ValueError(
+                f"{where} is not an environment: only an environment has `planes` "
+                "(which frame each of its planes is in)."
+            )
         if self.kind == "environment":
             if self.at is not None or self.attached is not None or sizes:
                 raise ValueError(
                     f"{where} is an environment: it has no position or size (its "
-                    "plates are drawn per shot); list it with its reference only."
+                    "plates are drawn per shot); list it with its reference only "
+                    "(and, when its plates are in frames, `in` / `planes`)."
                 )
             return self
+        if self.attached is not None and self.frame is not None:
+            raise ValueError(
+                f"{where} is attached to {self.attached.to!r}: it is in its host's "
+                "frame; drop `in`."
+            )
         if (self.at is None) == (self.attached is None):
             raise ValueError(
                 f"{where} needs exactly one of `at: [x, y, z]` or `attached: "
@@ -557,16 +601,20 @@ class WorldMember(AssetRef):
     @model_serializer(mode="wrap")
     def _omit_unset_world_fields(self, handler):
         data = handler(self)
-        return _omit_none(
-            data,
-            "stage",
-            "library",
-            "at",
-            "height",
-            "width",
-            "units_per_px",
-            "attached",
-            "after",
+        return _frame_key(
+            _omit_none(
+                data,
+                "stage",
+                "library",
+                "at",
+                "height",
+                "width",
+                "units_per_px",
+                "attached",
+                "after",
+                "frame",
+                "planes",
+            )
         )
 
 
@@ -628,6 +676,9 @@ class Viewpoint(_IRModel):
     distance: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     subject_at: Point2 = (0.0, 0.0)
     hide: list[str] = Field(default_factory=list)
+    #: The frame this camera is mounted in (document key ``in``); its ``at`` and
+    #: ``look`` are in that frame's units. Unset: the world's default frame.
+    frame: str | None = _FRAME_FIELD
 
     @model_validator(mode="after")
     def _one_front_door(self) -> "Viewpoint":
@@ -683,16 +734,19 @@ class Viewpoint(_IRModel):
                 data.pop("subject_at", None)
             if not self.hide:
                 data.pop("hide", None)
-        return _omit_none(
-            data,
-            "at",
-            "look_at",
-            "vanish",
-            "fov",
-            "focal",
-            "subject",
-            "size",
-            "distance",
+        return _frame_key(
+            _omit_none(
+                data,
+                "at",
+                "look_at",
+                "vanish",
+                "fov",
+                "focal",
+                "subject",
+                "size",
+                "distance",
+                "frame",
+            )
         )
 
 
@@ -721,6 +775,8 @@ class Stream(_IRModel):
     y: _Coord = 0.0
     after: str | None = None
     seed: int = 0
+    #: The frame the row stands in (document key ``in``); unset: the world.
+    frame: str | None = _FRAME_FIELD
 
     @model_validator(mode="after")
     def _spacing_is_positive(self) -> "Stream":
@@ -758,7 +814,9 @@ class Stream(_IRModel):
                 data.pop("y", None)
             if self.seed == 0:
                 data.pop("seed", None)
-        return _omit_none(data, "height", "width", "units_per_px", "after")
+        return _frame_key(
+            _omit_none(data, "height", "width", "units_per_px", "after", "frame")
+        )
 
 
 #: What a plane under a travel may be declared as: at infinity, or rigid with
@@ -784,7 +842,7 @@ class Travel(_IRModel):
     """
 
     direction: Point3 = (0.0, 0.0, 1.0)
-    speed: float = Field(gt=0, allow_inf_nan=False)
+    speed: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     near: float = Field(default=DFLT_TRAVEL_NEAR, gt=0, allow_inf_nan=False)
     far: float = Field(default=DFLT_TRAVEL_FAR, gt=0, allow_inf_nan=False)
     tolerance_px: float = Field(
@@ -826,6 +884,8 @@ class Travel(_IRModel):
         if isinstance(data, dict):
             if tuple(self.direction) == (0.0, 0.0, 1.0):
                 data.pop("direction", None)
+            if self.speed is None:
+                data.pop("speed", None)
             if self.near == DFLT_TRAVEL_NEAR:
                 data.pop("near", None)
             if self.far == DFLT_TRAVEL_FAR:
@@ -839,6 +899,71 @@ class Travel(_IRModel):
             if not self.plates:
                 data.pop("plates", None)
         return data
+
+
+class FrameMoving(_IRModel):
+    """A frame translating at a constant velocity: sugar for a frame whose
+    ``at`` grows by ``direction × speed`` per second of FILM time.
+
+    >>> FrameMoving(direction=(0.0, 0.0, 1.0), speed=20.0).speed
+    20.0
+    """
+
+    direction: Point3 = (0.0, 0.0, 1.0)
+    speed: float = Field(gt=0, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def _has_a_direction(self) -> "FrameMoving":
+        if not any(self.direction):
+            raise ValueError(
+                "a moving frame's `direction` must not be the zero vector."
+            )
+        return self
+
+    @model_serializer(mode="wrap")
+    def _omit_defaults(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and tuple(self.direction) == (0.0, 0.0, 1.0):
+            data.pop("direction", None)
+        return data
+
+
+class Frame(_IRModel):
+    """A frame of reference: a pose (position and orientation) over film time,
+    relative to its ``parent`` (ADR 0009 amendment, an#501).
+
+    >>> Frame(moving=FrameMoving(speed=20.0)).parent
+    'world'
+    >>> Frame(parent="vehicle", coupling="far").coupling
+    'far'
+
+    ``at`` and ``look`` (``[yaw, pitch, roll]``, as a viewpoint's) are the pose
+    in the parent's units at film time 0; ``moving`` adds a constant velocity;
+    a ``set``/``tween`` of ``<frame>:at_x|at_y|at_z|yaw|pitch|roll`` in a shot
+    replaces the channel for that shot. ``coupling: far`` follows the parent's
+    rotation and none of its translation: the frame of what is at infinity (a
+    sky, a range of mountains).
+    """
+
+    parent: str = WORLD_FRAME
+    at: Point3 = (0.0, 0.0, 0.0)
+    look: tuple[_Coord, _Coord, _Coord] = (0.0, 0.0, 0.0)
+    coupling: Literal["rigid", "far"] = "rigid"
+    moving: FrameMoving | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_defaults(self, handler):
+        data = handler(self)
+        if isinstance(data, dict):
+            if self.parent == WORLD_FRAME:
+                data.pop("parent", None)
+            if tuple(self.at) == (0.0, 0.0, 0.0):
+                data.pop("at", None)
+            if tuple(self.look) == (0.0, 0.0, 0.0):
+                data.pop("look", None)
+            if self.coupling == "rigid":
+                data.pop("coupling", None)
+        return _omit_none(data, "moving")
 
 
 class World(_IRModel):
@@ -856,6 +981,95 @@ class World(_IRModel):
     members: list[WorldMember] = Field(default_factory=list)
     viewpoints: dict[str, Viewpoint] = Field(default_factory=dict)
     travel: Travel | None = None
+    #: The frames of reference, ``{name: Frame}``; ``world`` is the implicit
+    #: root and a travel with a ``speed`` adds ``vehicle``.
+    frames: dict[str, Frame] = Field(default_factory=dict)
+
+    def all_frames(self) -> dict[str, Frame]:
+        """The declared frames plus the one a ``travel`` with a ``speed`` is
+        sugar for (``vehicle``, moving along the travel's direction).
+
+        >>> World(travel=Travel(speed=4.0)).all_frames()["vehicle"].moving.speed
+        4.0
+        """
+        frames = dict(self.frames)
+        if self.travel is not None and self.travel.speed is not None:
+            frames[VEHICLE_FRAME] = Frame(
+                moving=FrameMoving(
+                    direction=self.travel.direction, speed=self.travel.speed
+                )
+            )
+        return frames
+
+    def default_frame(self) -> str:
+        """The frame a member or viewpoint is in when it names none: the
+        travel's ``vehicle`` (members ride it) when there is one, else the world.
+
+        >>> World().default_frame(), World(travel=Travel(speed=1.0)).default_frame()
+        ('world', 'vehicle')
+        """
+        if self.travel is not None and self.travel.speed is not None:
+            return VEHICLE_FRAME
+        return WORLD_FRAME
+
+    @model_validator(mode="after")
+    def _frames_are_a_tree(self) -> "World":
+        sugar = self.travel is not None and self.travel.speed is not None
+        if sugar and VEHICLE_FRAME in self.frames:
+            raise ValueError(
+                f"`frames.{VEHICLE_FRAME}` is declared and so is a `travel` with a "
+                f"`speed`, which already is the `{VEHICLE_FRAME}` frame. Keep one: "
+                f"drop the travel's `speed` (the travel then only holds the streams) "
+                f"and put the motion in `frames.{VEHICLE_FRAME}.moving`."
+            )
+        names = {WORLD_FRAME, *self.all_frames()}
+        things = {m.id for m in self.members} | {
+            st.id for st in (self.travel.streams if self.travel is not None else ())
+        }
+        clash = sorted(set(self.frames) & things)
+        if clash:
+            raise ValueError(
+                f"{clash} names both a frame and a member or stream: an action on "
+                "`<name>:at_x` could mean either. Rename the frame."
+            )
+        for name, frame in self.frames.items():
+            if not name or "/" in name or name == WORLD_FRAME:
+                raise ValueError(
+                    f"frame name {name!r}: a bare identifier other than "
+                    f"{WORLD_FRAME!r} (the implicit root), please."
+                )
+            if frame.parent not in names:
+                raise ValueError(
+                    f"frame {name!r} has parent {frame.parent!r}, which is not a "
+                    f"frame; the frames are {sorted(names)}."
+                )
+        for name in self.frames:
+            seen, cur = [], name
+            while cur != WORLD_FRAME:
+                if cur in seen:
+                    raise ValueError(
+                        "frames form a cycle: " + " -> ".join([*seen, cur]) + ". "
+                        "Each frame's `parent` must lead to `world`."
+                    )
+                seen.append(cur)
+                cur = self.all_frames()[cur].parent
+
+        def check(where: str, frame: str | None) -> None:
+            if frame is not None and frame not in names:
+                raise ValueError(
+                    f"{where} is `in: {frame}`, which is not a frame; the frames "
+                    f"are {sorted(names)}. Declare it under `world.frames`."
+                )
+
+        for m in self.members:
+            check(f"world member {m.id!r}", m.frame)
+            for plane, frame in (m.planes or {}).items():
+                check(f"world member {m.id!r} plane {plane!r}", frame)
+        for vname, vp in self.viewpoints.items():
+            check(f"viewpoint {vname!r}", vp.frame)
+        for stream in self.travel.streams if self.travel is not None else ():
+            check(f"stream {stream.id!r}", stream.frame)
+        return self
 
     @model_validator(mode="after")
     def _members_are_a_set(self) -> "World":
@@ -891,6 +1105,8 @@ class World(_IRModel):
         if isinstance(data, dict):
             if not self.viewpoints:
                 data.pop("viewpoints", None)
+            if not self.frames:
+                data.pop("frames", None)
         return _omit_none(data, "travel")
 
 

@@ -25,6 +25,8 @@ from an.ir.schema import (
     WorldMember,
     Attachment,
     Viewpoint,
+    Frame,
+    FrameMoving,
     Travel,
     Stream,
 )
@@ -75,6 +77,8 @@ __all__ = [
     "WorldMember",
     "Attachment",
     "Viewpoint",
+    "Frame",
+    "FrameMoving",
     "Travel",
     "Stream",
     "lower_world",

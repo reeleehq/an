@@ -42,11 +42,32 @@ import math
 import random
 import re
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Collection, Mapping, Sequence
 
-from an.ir.compose import delay, sequence, set_, tween
+from an.ir.compose import (
+    delay,
+    flatten,
+    iter_actions,
+    map_leaves,
+    parallel,
+    sequence,
+    set_,
+    tween,
+)
+from an.ir.frames import (
+    FRAME_PROPERTIES,
+    FrameError,
+    FrameTree,
+    Pose,
+    Track,
+    TrackEvent,
+)
+from an.ir.frames import look_basis as _basis
 from an.ir.schema import (
     DFLT_FOV_DEG,
+    DFLT_TRAVEL_MAX_ACTIONS,
+    DFLT_TRAVEL_NEAR,
+    DFLT_TRAVEL_TOLERANCE_PX,
     SHOT_SIZES,
     AssetRef,
     SceneIR,
@@ -54,7 +75,9 @@ from an.ir.schema import (
     StagePlacement,
     Stream,
     Travel,
+    VEHICLE_FRAME,
     Viewpoint,
+    WORLD_FRAME,
     World,
     WorldMember,
 )
@@ -72,9 +95,11 @@ __all__ = [
     "WorldNote",
     "fit_channel",
     "focal_length",
+    "frame_poses",
     "has_world",
     "lower_world",
     "member_placements",
+    "pose_look",
     "resolve_viewpoint",
     "stream_instances",
     "stream_slots",
@@ -177,36 +202,6 @@ def _unit(a: Point3) -> Point3:
     return _mul(a, 1.0 / n)
 
 
-def _basis(yaw: float, pitch: float, roll: float) -> tuple[Point3, Point3, Point3]:
-    """``(forward, right, down)`` for a look of ``yaw`` (turn right), ``pitch``
-    (look down) and ``roll`` (the PICTURE turns clockwise: what was on the
-    right moves to the bottom), in degrees.
-
-    >>> [tuple(round(v, 6) + 0.0 for v in axis) for axis in _basis(0.0, 0.0, 0.0)]
-    [(0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
-    >>> [round(v, 6) + 0.0 for v in _basis(90.0, 0.0, 0.0)[0]]
-    [1.0, 0.0, 0.0]
-    >>> eye = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)
-    >>> [round(v, 6) + 0.0 for v in eye.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom
-    [0.0, 10.0, 10.0]
-    """
-    t, p, r_ = (math.radians(a) for a in (yaw, pitch, roll))
-    forward: Point3 = (
-        math.sin(t) * math.cos(p),
-        math.sin(p),
-        math.cos(t) * math.cos(p),
-    )
-    right: Point3 = (math.cos(t), 0.0, -math.sin(t))
-    down = _cross(forward, right)
-    if r_:
-        c, s = math.cos(r_), math.sin(r_)
-        right, down = (
-            _add(_mul(right, c), _mul(down, -s)),
-            _add(_mul(right, s), _mul(down, c)),
-        )
-    return forward, right, down
-
-
 def _angles_toward(v: Point3) -> tuple[float, float]:
     """``(yaw, pitch)`` in degrees that look along ``v``."""
     yaw = math.degrees(math.atan2(v[0], v[2]))
@@ -242,6 +237,9 @@ class Projection:
     (200.0, -100.0, 10.0)
     >>> eye.project((0.0, 0.0, -1.0)) is None
     True
+    >>> rolled = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)
+    >>> [round(v, 6) + 0.0 for v in rolled.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom
+    [0.0, 10.0, 10.0]
     """
 
     at: Point3
@@ -267,6 +265,27 @@ class Projection:
         """The same camera translated by ``by`` (the vehicle moved)."""
         return Projection(
             _add(self.at, by), self.forward, self.right, self.down, self.focal
+        )
+
+    def transformed(self, pose: Pose) -> "Projection":
+        """The same camera carried by a frame whose pose is ``pose``: this
+        projection is in the frame's units, the result is in its parent's
+        (the world's, for a frame's world pose).
+
+        >>> eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)
+        >>> eye.transformed(Pose(at=(0.0, 0.0, 4.0))).at
+        (0.0, 0.0, 4.0)
+        >>> eye.transformed(Pose()) is eye
+        True
+        """
+        if pose.is_identity:
+            return self
+        return Projection(
+            pose.apply(self.at),
+            pose.rotate(self.forward),
+            pose.rotate(self.right),
+            pose.rotate(self.down),
+            self.focal,
         )
 
 
@@ -346,8 +365,11 @@ def resolve_viewpoint(
     extents: Extents,
     width: float,
     height: float,
+    member_at: Mapping[str, Point3] | None = None,
 ) -> Projection:
-    """The camera a viewpoint is, as a :class:`Projection`.
+    """The camera a viewpoint is, as a :class:`Projection`, in its own frame's
+    units. ``member_at`` overrides a subject's ``at`` with where it stands in
+    the VIEWPOINT's frame (a subject in another frame, at the shot's start).
 
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
@@ -396,7 +418,9 @@ def resolve_viewpoint(
                 "shot size fits it; give the viewpoint `distance` and an `at`-less "
                 "`look`, or size the member by `height`/`width` with measurable art"
             )
-        position: Point3 = tuple(map(float, member.at))  # type: ignore[assignment]
+        position: Point3 = tuple(  # type: ignore[assignment]
+            map(float, (member_at or {}).get(sid, member.at))
+        )
         boxes.append(_world_box(position, box, m))
         positions.append(position)
     x0 = min(b[0] for b in boxes)
@@ -491,6 +515,8 @@ def member_placements(
     hide: Sequence[str] = (),
     hand: Mapping[str, tuple[tuple[float, float], float]] | None = None,
     extent_problems: Mapping[str, str] | None = None,
+    member_at: Mapping[str, Point3] | None = None,
+    fixed: Mapping[str, "Placed"] | None = None,
 ) -> dict[str, Placed]:
     """Every member's placement under ``projection``: ``{id: Placed}``.
 
@@ -502,8 +528,13 @@ def member_placements(
     stands in for the derived one (its depth stays the world's), so what is
     attached to it follows the hand, as the compiler's own passes do.
     ``extent_problems`` says why an extent could not be measured, for the note.
+    ``member_at`` overrides a member's ``at`` with where it stands in the
+    viewpoint's frame (a member in another frame, or moved by an action);
+    ``fixed`` is a placement some other pass already settled (a member in
+    motion), which attached members then follow.
     """
     out: dict[str, Placed] = {}
+    member_at = dict(member_at or {})
     hidden = set(hide)
     hand = dict(hand or {})
     problems = dict(extent_problems or {})
@@ -518,6 +549,9 @@ def member_placements(
 
     def place(member: WorldMember) -> Placed:
         if member.id in out:
+            return out[member.id]
+        if fixed and member.id in fixed:
+            out[member.id] = fixed[member.id]
             return out[member.id]
         if member.kind == "environment":
             p = Placed(
@@ -566,7 +600,9 @@ def member_placements(
             assert member.at is not None
             box = extents.get(member.id)
             m = _unit_scale(member, box, where=f"member {member.id!r}")
-            shot = projection.project(tuple(map(float, member.at)))  # type: ignore[arg-type]
+            shot = projection.project(
+                tuple(map(float, member_at.get(member.id, member.at)))  # type: ignore[arg-type]
+            )
             if shot is None or m is None:
                 note = "behind the camera" if shot is None else unmeasured(member)
                 p = Placed(member.id, None, None, None, None, False, "world", note)
@@ -704,7 +740,12 @@ def fit_channel(
     def fit(t0: float, t1: float, v0: float, v1: float) -> tuple[Any, float]:
         h, dv = t1 - t0, v1 - v0
         if abs(dv) <= _FLAT_CHANNEL_EPS:
-            return "linear", 0.0
+            # Flat at the ends is not flat between them (a bounce, an orbit):
+            # the deviation from the end value is the error that splits it.
+            return "linear", max(
+                abs(g(t0 + u * h) - v0)
+                for u in (0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875)
+            )
         eps = h * 1e-3
         d0 = (g(t0 + eps) - v0) / eps * h / dv
         d1 = (v1 - g(t1 - eps)) / eps * h / dv
@@ -801,14 +842,142 @@ def _pass_actions(entity_id: str, passes: list[_Pass], *, duration: float) -> li
     return actions
 
 
+@dataclass(frozen=True)
+class _FrameCtx:
+    """What a framed shot knows about its frames: the tree (with the shot's
+    actions on frame channels), where the shot starts in the film, and the
+    viewpoint resolved IN ITS OWN FRAME's units."""
+
+    tree: FrameTree
+    film_start: float
+    duration: float
+    vp_frame: str
+    projection: Projection
+
+    def pose(self, frame: str, t: float) -> Pose:
+        return self.tree.world_pose(frame, t, film_start=self.film_start)
+
+    def eye_at(self, t: float) -> Projection:
+        """The camera at shot time ``t``, in world coordinates."""
+        return self.projection.transformed(self.pose(self.vp_frame, t))
+
+    def view_fn(
+        self, frame: str, point_at: Callable[[float], Point3]
+    ) -> Callable[[float], tuple[float, float, float]]:
+        """``t -> (right, down, depth)`` of a point standing in ``frame``
+        (``point_at(t)`` in that frame's units) as the camera sees it. In the
+        camera's own frame the point is seen directly (a constant relative
+        pose costs nothing); in any other the camera and the point are carried
+        to the world."""
+        if frame == self.vp_frame:
+            return lambda t: self.projection.view(point_at(t))
+
+        def view(t: float) -> tuple[float, float, float]:
+            return self.eye_at(t).view(self.pose(frame, t).apply(point_at(t)))
+
+        return view
+
+
+def _fit_pass(
+    g: Callable[[float], tuple[float, float, float]],
+    t_in: float,
+    t_out: float,
+    *,
+    box: Box | None,
+    ref_height: float,
+    tol: float,
+    min_step: float,
+    width: float,
+    height: float,
+) -> _Pass | None:
+    """The channels of one entity's passage: its on-screen window within
+    ``[t_in, t_out]`` and the Bézier fits of ``g`` on it; ``None`` when it is
+    never on screen."""
+    window = _on_screen_window(
+        g, t_in, t_out, box, width=width, height=height, step=min_step
+    )
+    if window is None:
+        return None
+    t_in, t_out = window
+    channels = {
+        "x": fit_channel(
+            lambda t: g(t)[0], t_in, t_out, tolerance=tol, min_step=min_step
+        ),
+        "y": fit_channel(
+            lambda t: g(t)[1], t_in, t_out, tolerance=tol, min_step=min_step
+        ),
+    }
+    scale_tol = tol / ref_height if ref_height > 0 else tol
+    channels["scale_x"] = fit_channel(
+        lambda t: g(t)[2], t_in, t_out, tolerance=scale_tol, min_step=min_step
+    )
+    channels["scale_y"] = channels["scale_x"]
+    return _Pass(t_in, t_out, channels, g(t_in))
+
+
+def _depth_window(
+    depth: Callable[[float], float],
+    a: float,
+    b: float,
+    lo: float,
+    hi: float,
+    *,
+    step: float,
+) -> tuple[float, float] | None:
+    """The stretch of ``[a, b]`` during which ``lo <= depth <= hi``, scanned at
+    ``step`` and widened by a step each side; ``None`` if never."""
+    n = max(1, int(math.ceil((b - a) / step)))
+    times = [a + (b - a) * i / n for i in range(n + 1)]
+    inside = [lo <= depth(t) <= hi for t in times]
+    if not any(inside):
+        return None
+    first = max(0, inside.index(True) - 1)
+    last = min(n, n - inside[::-1].index(True) + 1)
+    return times[first], times[last]
+
+
+def _depth_runs(
+    depth: Callable[[float], float],
+    a: float,
+    b: float,
+    lo: float,
+    *,
+    step: float,
+) -> list[tuple[float, float]]:
+    """The stretches of ``[a, b]`` during which ``depth >= lo`` (in front of
+    the camera), scanned at ``step`` and widened by a step each side; runs that
+    touch after widening are one."""
+    n = max(1, int(math.ceil((b - a) / step)))
+    times = [a + (b - a) * i / n for i in range(n + 1)]
+    inside = [depth(t) >= lo for t in times]
+    runs: list[list[int]] = []
+    for i, ok in enumerate(inside):
+        if not ok:
+            continue
+        if runs and runs[-1][1] == i - 1:
+            runs[-1][1] = i
+        else:
+            runs.append([i, i])
+    widened: list[list[int]] = []
+    for first, last in runs:
+        first, last = max(0, first - 1), min(n, last + 1)
+        if widened and first <= widened[-1][1]:
+            widened[-1][1] = max(widened[-1][1], last)
+        else:
+            widened.append([first, last])
+    return [(times[f], times[l]) for f, l in widened]
+
+
+#: Sample points along a shot when asking how far the camera travels.
+_CAMERA_SAMPLES: int = 33
+
+
 def _travel_entities(
     travel: Travel,
-    projection: Projection,
+    ctx: _FrameCtx,
     *,
     extents: Extents,
     extent_problems: Mapping[str, str],
-    film_start: float,
-    duration: float,
     fps: float,
     width: float,
     height: float,
@@ -820,14 +989,18 @@ def _travel_entities(
     each drawing the instances that pass through it one after another, so
     the entity count is bounded by the depth range and never by the shot's
     length; ``skip`` names slot entities the shot already has (a lowered
-    scene lowered again adds nothing)."""
+    scene lowered again adds nothing).
+
+    A stream stands in its own frame (the world by default) and the camera in
+    the viewpoint's. When the camera does nothing but translate at a constant
+    velocity through a stream of the world (the straight road), or nothing
+    moves, the window of each instance is solved in closed form; any other
+    motion (a frame that turns, accelerates or is animated, a stream in a
+    moving frame) is scanned a frame at a time."""
+    projection, tree = ctx.projection, ctx.tree
+    film_start, duration = ctx.film_start, ctx.duration
     direction = _unit(tuple(map(float, travel.direction)))  # type: ignore[arg-type]
-    speed = float(travel.speed)
-    k_forward = _dot(direction, projection.forward)
-    s_cam0 = _dot(projection.at, direction)
     reach = float(travel.far)
-    s_lo = s_cam0 + speed * film_start - reach
-    s_hi = s_cam0 + speed * (film_start + duration) + reach
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
     tol = float(travel.tolerance_px)
     entities: list[tuple[AssetRef, float]] = []
@@ -848,26 +1021,65 @@ def _travel_entities(
                 )
             )
             continue
+        frame = stream.frame or WORLD_FRAME
+        # The camera's motion through the stream's frame: a closed form when
+        # it is a straight constant velocity (or none), else scanned.
+        closed: tuple[Point3, float] | None = None
+        if frame == ctx.vp_frame:
+            closed = (direction, 0.0)
+        elif frame == WORLD_FRAME:
+            closed = tree.constant_motion(ctx.vp_frame)
+        if closed is not None:
+            cam_dir, speed = closed
+            k_forward = _dot(cam_dir, projection.forward)
+            along = speed if cam_dir == direction else speed * _dot(cam_dir, direction)
+            s_cam0 = _dot(projection.at, direction)
+            s_lo = s_cam0 + along * film_start - reach
+            s_hi = s_cam0 + along * (film_start + duration) + reach
+        else:
+            s_cam = []
+            for i in range(_CAMERA_SAMPLES + 1):
+                t = duration * i / _CAMERA_SAMPLES
+                cam = ctx.pose(frame, t).unapply(ctx.eye_at(t).at)
+                s_cam.append(_dot(cam, direction))
+            s_lo, s_hi = min(s_cam) - reach, max(s_cam) + reach
         ref_height = (box[3] - box[1]) if box is not None else 1.0
         slots = stream_slots(stream, travel)
         passes: dict[int, list[tuple[int, _Pass, float]]] = {}
         for k, p in stream_instances(stream, travel, s_min=s_lo, s_max=s_hi):
-            at_start = projection.moved(_mul(direction, speed * film_start))
-            depth0 = _dot(_sub(p, at_start.at), projection.forward)
-            slope = -speed * k_forward
-            if abs(slope) < _MIN_DEPTH:
-                if not (travel.near <= depth0 <= travel.far):
-                    continue
-                t_in, t_out = 0.0, duration
+            view = ctx.view_fn(frame, lambda t, p=p: p)
+            if closed is not None:
+                at_start = projection.moved(_mul(cam_dir, speed * film_start))
+                depth0 = _dot(_sub(p, at_start.at), projection.forward)
+                slope = -speed * k_forward
+                if abs(slope) < _MIN_DEPTH:
+                    if not (travel.near <= depth0 <= travel.far):
+                        continue
+                    t_in, t_out = 0.0, duration
+                else:
+                    ta, tb = (
+                        (travel.near - depth0) / slope,
+                        (travel.far - depth0) / slope,
+                    )
+                    t_in, t_out = max(0.0, min(ta, tb)), min(duration, max(ta, tb))
+                    if t_out <= t_in:
+                        continue
             else:
-                ta, tb = (travel.near - depth0) / slope, (travel.far - depth0) / slope
-                t_in, t_out = max(0.0, min(ta, tb)), min(duration, max(ta, tb))
-                if t_out <= t_in:
+                depth0 = view(0.0)[2]
+                scanned = _depth_window(
+                    lambda t: view(t)[2],
+                    0.0,
+                    duration,
+                    float(travel.near),
+                    float(travel.far),
+                    step=min_step,
+                )
+                if scanned is None:
                     continue
+                t_in, t_out = scanned
 
-            def g(t: float, p: Point3 = p) -> tuple[float, float, float]:
-                eye = projection.moved(_mul(direction, speed * (film_start + t)))
-                rx, ry, depth = eye.view(p)
+            def g(t: float, view: Callable = view) -> tuple[float, float, float]:
+                rx, ry, depth = view(t)
                 depth = max(
                     depth, float(travel.near)
                 )  # past the camera: hold at the near plane
@@ -877,28 +1089,20 @@ def _travel_entities(
                     m * projection.focal / depth,
                 )
 
-            window = _on_screen_window(
-                g, t_in, t_out, box, width=width, height=height, step=min_step
+            fitted = _fit_pass(
+                g,
+                t_in,
+                t_out,
+                box=box,
+                ref_height=ref_height,
+                tol=tol,
+                min_step=min_step,
+                width=width,
+                height=height,
             )
-            if window is None:
+            if fitted is None:
                 continue  # never on screen during this shot
-            t_in, t_out = window
-            channels = {
-                "x": fit_channel(
-                    lambda t: g(t)[0], t_in, t_out, tolerance=tol, min_step=min_step
-                ),
-                "y": fit_channel(
-                    lambda t: g(t)[1], t_in, t_out, tolerance=tol, min_step=min_step
-                ),
-            }
-            scale_tol = tol / ref_height if ref_height > 0 else tol
-            channels["scale_x"] = fit_channel(
-                lambda t: g(t)[2], t_in, t_out, tolerance=scale_tol, min_step=min_step
-            )
-            channels["scale_y"] = channels["scale_x"]
-            passes.setdefault(k % slots, []).append(
-                (k, _Pass(t_in, t_out, channels, g(t_in)), depth0)
-            )
+            passes.setdefault(k % slots, []).append((k, fitted, depth0))
         for slot in sorted(passes):
             entity_id = f"{stream.id}_{slot}"
             if entity_id in skipped:
@@ -948,6 +1152,152 @@ def _travel_entities(
             f"cut the shot ({duration:g} s), or raise `max_actions` knowingly."
         )
     return entities, actions, problems
+
+
+# --- frames: actions on frame channels, members in motion ------------------------
+
+_AT_CHANNELS: dict[str, int] = {"at_x": 0, "at_y": 1, "at_z": 2}
+
+
+@dataclass(frozen=True)
+class _Split:
+    """A shot's actions with the ones that move frames and members through the
+    world taken out: those are lowered to screen channels, not played."""
+
+    actions: list[Any]
+    frame_tracks: dict[str, dict[str, Track]]
+    member_tracks: dict[str, dict[str, Track]]
+
+
+def _split_frame_actions(
+    shot: Shot,
+    *,
+    default_easing: Any,
+    frames: Collection[str],
+    members: Collection[str],
+) -> _Split:
+    """Take ``<frame>:at_x|at_y|at_z|yaw|pitch|roll`` and ``<member>:at_x|at_y|at_z``
+    out of the shot's actions, as tracks in shot time. A shot with none keeps
+    its actions as they are; one with some has them replaced by delays of
+    their own length, so everything else keeps its time (the leaves' own times
+    are read with the default extent of a duration-less ``play``)."""
+
+    def kind_of_target(a: Any) -> str | None:
+        if getattr(a, "kind", None) not in ("set", "tween"):
+            return None
+        if a.target in frames and a.property in FRAME_PROPERTIES:
+            return "frame"
+        if a.target in members and a.property in _AT_CHANNELS:
+            return "member"
+        return None
+
+    if not any(kind_of_target(a) for top in shot.actions for a in iter_actions(top)):
+        return _Split(list(shot.actions), {}, {})
+    events: dict[tuple[str, str, str], list[TrackEvent]] = {}
+    for f in flatten(parallel(*shot.actions)):
+        a = f.action
+        which = kind_of_target(a)
+        if which is None:
+            continue
+        where = f"shot {shot.id!r}: {a.target}:{a.property}"
+        try:
+            if a.kind == "set":
+                ev = TrackEvent(f.start, f.start, to=float(a.value))
+            else:
+                ev = TrackEvent(
+                    f.start,
+                    f.end,
+                    to=float(a.to_value),
+                    from_=None if a.from_value is None else float(a.from_value),
+                    easing=a.resolved_easing(default_easing),
+                )
+        except (TypeError, ValueError):
+            raise WorldError(
+                f"{where} needs numbers, not {a.value if a.kind == 'set' else a.to_value!r}"
+            ) from None
+        events.setdefault((which, a.target, a.property), []).append(ev)
+
+    def lowered_away(a: Any) -> Any:
+        """A lowered leaf stands in as a delay of its own length, so what
+        follows it in a sequence keeps its time and the tree its shape."""
+        if kind_of_target(a) is None:
+            return a
+        return delay(0.0 if a.kind == "set" else a.duration)
+
+    kept = [map_leaves(top, lowered_away) for top in shot.actions]
+    tracks: dict[str, dict[str, dict[str, Track]]] = {"frame": {}, "member": {}}
+    for (which, target, prop), evs in events.items():
+        tracks[which].setdefault(target, {})[prop] = Track(evs)
+    return _Split(kept, tracks["frame"], tracks["member"])
+
+
+def _member_point(
+    member: WorldMember, tracks: Mapping[str, Track] | None, t: float
+) -> Point3:
+    """Where a positioned member stands at shot time ``t`` in its own frame's
+    units: its ``at``, with each channel an action animates replaced."""
+    p = list(member.at)  # type: ignore[arg-type]
+    for prop, i in _AT_CHANNELS.items():
+        track = (tracks or {}).get(prop)
+        if track is not None:
+            p[i] = track.value(t, float(p[i]))
+    return (float(p[0]), float(p[1]), float(p[2]))
+
+
+def _tracks_vary(tracks: Mapping[str, Track] | None, duration: float) -> bool:
+    """Whether any of the tracks gives different values within the shot."""
+    for track in (tracks or {}).values():
+        times = {0.0, duration, *(b for b in track.breaks if 0.0 <= b <= duration)}
+        for base in (0.0, 1.0):
+            if len({round(track.value(t, base), 9) for t in times}) > 1:
+                return True
+    return False
+
+
+def _member_passes(
+    member: WorldMember,
+    ctx: _FrameCtx,
+    frame: str,
+    tracks: Mapping[str, Track] | None,
+    *,
+    box: Box | None,
+    m: float,
+    near: float,
+    tol: float,
+    min_step: float,
+    width: float,
+    height: float,
+) -> list[tuple[_Pass, float]]:
+    """A positioned member in motion relative to the camera, as one passage per
+    stretch of the shot it is in front of the camera and on screen (it can
+    leave and come back), each with its depth as it enters. Empty when it
+    never is."""
+    view = ctx.view_fn(frame, lambda t: _member_point(member, tracks, t))
+    focal = ctx.projection.focal
+
+    def g(t: float) -> tuple[float, float, float]:
+        rx, ry, depth = view(t)
+        depth = max(depth, near)
+        return focal * rx / depth, focal * ry / depth, m * focal / depth
+
+    out: list[tuple[_Pass, float]] = []
+    for t0, t1 in _depth_runs(
+        lambda t: view(t)[2], 0.0, ctx.duration, near, step=min_step
+    ):
+        fitted = _fit_pass(
+            g,
+            t0,
+            t1,
+            box=box,
+            ref_height=(box[3] - box[1]) if box is not None else 1.0,
+            tol=tol,
+            min_step=min_step,
+            width=width,
+            height=height,
+        )
+        if fitted is not None:
+            out.append((fitted, view(fitted.t_in)[2]))
+    return out
 
 
 # --- lowering ------------------------------------------------------------------
@@ -1023,10 +1373,6 @@ def _lower_shot(
         )
     for hid in vp.hide:
         _member(world, hid, where=f"shot {shot.id!r} viewpoint `hide`")
-    projection = resolve_viewpoint(
-        world, vp, extents=extents, width=width, height=height
-    )
-    members = {m.id: m for m in world.members}
     listed = {e.id: j for j, e in enumerate(shot.entities)}
     if world.travel is not None and any(
         _is_slot_id(eid, world.travel) for eid in listed
@@ -1035,14 +1381,114 @@ def _lower_shot(
         # (a validate of what the render draws), and a second pass would only
         # re-sort what the first laid out. Nothing to add.
         return shot, notes, list(range(len(shot.entities)))
+
+    # Frames: the tree with this shot's actions on frame channels, and where
+    # each member and the camera stand in it.
+    duration = float(shot.duration)
+    frames = world.all_frames()
+    members = {m.id: m for m in world.members}
+    positioned = {m.id: m for m in world.members if m.at is not None}
+    split = _split_frame_actions(
+        shot,
+        default_easing=scene.meta.default_easing,
+        frames=frames,
+        members=positioned,
+    )
+    try:
+        tree = FrameTree(frames, tracks=split.frame_tracks)
+    except FrameError as e:
+        raise WorldError(f"shot {shot.id!r}: {e}") from None
+    vp_frame = vp.frame or world.default_frame()
+    if vp_frame not in tree:
+        raise WorldError(
+            f"shot {shot.id!r}: the viewpoint is `in: {vp_frame}`, which is not a "
+            f"frame; the frames are {sorted({WORLD_FRAME, *frames})}."
+        )
+    frame_of = {m.id: m.frame or world.default_frame() for m in positioned.values()}
+    member_at: dict[str, Point3] = {}
+    moving: set[str] = set()
+    for mid, member in positioned.items():
+        tracks = split.member_tracks.get(mid)
+        fx = frame_of[mid]
+        if fx == vp_frame and not tracks:
+            continue
+        p0 = _member_point(member, tracks, 0.0)
+        if fx != vp_frame:
+            p0 = tree.relative_pose(fx, vp_frame, 0.0, film_start=film_start).apply(p0)
+            if not tree.is_static(fx, vp_frame, duration, film_start=film_start):
+                moving.add(mid)
+        if _tracks_vary(tracks, duration):
+            moving.add(mid)
+        member_at[mid] = p0
+    projection = resolve_viewpoint(
+        world, vp, extents=extents, width=width, height=height, member_at=member_at
+    )
+    ctx = _FrameCtx(tree, film_start, duration, vp_frame, projection)
     common = dict(
         extents=extents,
         width=width,
         height=height,
         hide=vp.hide,
         extent_problems=extent_problems,
+        member_at=member_at,
     )
     projected = member_placements(world, projection, **common)
+
+    # Members in motion relative to the camera: sampled channels, not a placement.
+    near = float(world.travel.near) if world.travel is not None else DFLT_TRAVEL_NEAR
+    tol = (
+        float(world.travel.tolerance_px)
+        if world.travel is not None
+        else DFLT_TRAVEL_TOLERANCE_PX
+    )
+    budget = (
+        int(world.travel.max_actions)
+        if world.travel is not None
+        else DFLT_TRAVEL_MAX_ACTIONS
+    )
+    min_step = _MIN_SAMPLE_FRAMES / float(fps)
+    passes: dict[str, list[tuple[_Pass, float]]] = {}
+    for mid in sorted(moving):
+        member, box = positioned[mid], extents.get(mid)
+        m = _unit_scale(member, box, where=f"member {mid!r}")
+        if m is None:
+            continue  # unmeasured: the static path says so
+        found = _member_passes(
+            member,
+            ctx,
+            frame_of[mid],
+            split.member_tracks.get(mid),
+            box=box,
+            m=m,
+            near=near,
+            tol=tol,
+            min_step=min_step,
+            width=width,
+            height=height,
+        )
+        if found:
+            passes[mid] = found
+    # A lowered scene lowered again: the shot lists the member where its pass
+    # begins, so its motion is already there.
+    already = {
+        e.id
+        for e in shot.entities
+        if e.id in passes
+        and e.stage is not None
+        and e.stage.at is not None
+        and math.hypot(
+            e.stage.at[0] - passes[e.id][0][0].first[0],
+            e.stage.at[1] - passes[e.id][0][0].first[1],
+        )
+        <= HAND_PLACEMENT_TOLERANCE_PX
+        and any(
+            getattr(a, "target", None) == e.id and a.property in ("x", "y")
+            for top in shot.actions
+            for a in iter_actions(top)
+            if getattr(a, "kind", None) == "tween"
+        )
+    }
+
     # A hand `at` keeps the world's scale unless the author set one: a `scale`
     # of exactly 1.0 is the field's default, and the default means "the world's".
     hand: dict[str, tuple[tuple[float, float], float]] = {}
@@ -1053,8 +1499,27 @@ def _lower_shot(
             if scale == 1.0 and w.scale is not None:
                 scale = w.scale
             hand[e.id] = ((float(e.stage.at[0]), float(e.stage.at[1])), scale)
+    fixed = {
+        mid: Placed(
+            mid,
+            (runs[0][0].first[0], runs[0][0].first[1]),
+            runs[0][0].first[2],
+            runs[0][1],
+            _screen_box(
+                (runs[0][0].first[0], runs[0][0].first[1]),
+                runs[0][0].first[2],
+                extents.get(mid),
+            ),
+            mid not in vp.hide,
+            "world",
+        )
+        for mid, runs in passes.items()
+        if mid not in hand
+    }
     placed = (
-        member_placements(world, projection, hand=hand, **common) if hand else projected
+        member_placements(world, projection, hand=hand, fixed=fixed, **common)
+        if hand or fixed
+        else projected
     )
 
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]] = []
@@ -1081,7 +1546,18 @@ def _lower_shot(
         stage = entity.stage
         if stage is not None and stage.at is not None:
             w = projected[entity.id]
-            if w.at is not None and w.scale is not None:
+            if entity.id in moving and entity.id not in already:
+                note(
+                    "warning",
+                    "hand_moving",
+                    entity.id,
+                    f"placed by hand at {_fmt(stage.at)}, but the world moves it "
+                    f"(it is in frame {frame_of[entity.id]!r} and the viewpoint in "
+                    f"{vp_frame!r}, or an `at_*` action moves it): the hand placement "
+                    "stays put on screen. Drop `stage.at` to let the world move it, or "
+                    "put the member in the viewpoint's frame (`in:`).",
+                )
+            elif w.at is not None and w.scale is not None and entity.id not in already:
                 off = math.hypot(stage.at[0] - w.at[0], stage.at[1] - w.at[1])
                 _, eff_scale = hand[entity.id]
                 if (
@@ -1162,15 +1638,37 @@ def _lower_shot(
         )  # type: ignore[union-attr]
         note("info", "added", member.id, f"the world adds it {where}")
 
-    actions = list(shot.actions)
+    actions = list(split.actions)
+    emitted = {e.id for _, e, _ in ordered} | {e.id for e, _ in envs}
+    for mid in passes:
+        if mid in fixed and mid not in already and mid in emitted:
+            actions.extend(
+                _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
+            )
+    n_motion = len(actions) - len(split.actions)
+    if n_motion > budget:
+        raise WorldError(
+            f"shot {shot.id!r}: the members in motion lower to {n_motion} actions, "
+            f"past the `max_actions` ({budget}). Raise `tolerance_px` on the travel, "
+            "cut the shot, or keep fewer members moving relative to the camera."
+        )
+    for member in world.members:
+        host = member.attached.to if member.attached is not None else None
+        if host in passes and member.attached.at is not None:  # type: ignore[union-attr]
+            note(
+                "warning",
+                "attached_moving",
+                member.id,
+                f"attached to {host!r}, which is in motion relative to the viewpoint: "
+                "its offset is applied at the host's placement as the shot opens, and "
+                "the attachment does not follow the host's motion across the frame.",
+            )
     if world.travel is not None:
         extra, extra_actions, problems = _travel_entities(
             world.travel,
-            projection,
+            ctx,
             extents=extents,
             extent_problems=extent_problems,
-            film_start=film_start,
-            duration=float(shot.duration),
             fps=fps,
             width=width,
             height=height,
@@ -1182,6 +1680,13 @@ def _lower_shot(
         for si, (entity, depth0) in enumerate(extra):
             ordered.append(((1.0, -depth0, 10_000.0 + si), entity, None))
         actions.extend(extra_actions)
+        if n_motion and n_motion + len(extra_actions) > budget:
+            raise WorldError(
+                f"shot {shot.id!r}: the members in motion ({n_motion} actions) and the "
+                f"travel's streams ({len(extra_actions)}) together pass `max_actions` "
+                f"({budget}). Raise `tolerance_px`, cut the shot, or raise `max_actions` "
+                "knowingly."
+            )
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])
@@ -1218,6 +1723,80 @@ def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> A
         library=member.library,
         stage=stage,
     )
+
+
+def pose_look(pose: Pose) -> tuple[float, float]:
+    """The ``(yaw, pitch)`` in degrees a pose faces.
+
+    >>> pose_look(Pose())
+    (0.0, 0.0)
+    """
+    return _angles_toward(pose.rotate((0.0, 0.0, 1.0)))
+
+
+def frame_poses(
+    scene: SceneIR, *, film_starts: Sequence[float] | None = None
+) -> list[dict[str, Any]]:
+    """Per framed shot, where each frame stands in the world as the shot opens
+    and as it closes (after the shot's own ``<frame>:at_*`` actions): what
+    `an world show --frames` prints.
+
+    >>> from an.ir.schema import Frame, FrameMoving, Viewpoint, World
+    >>> scene = SceneIR(world=World(frames={"car": Frame(moving=FrameMoving(speed=10.0))},
+    ...                             viewpoints={"v": Viewpoint(at=(0.0, 0.0, 0.0), frame="car")}),
+    ...                 timeline=[Shot(id="s", duration=2.0, viewpoint="v")])
+    >>> row = frame_poses(scene)[0]
+    >>> row["viewpoint_frame"], row["frames"][0]["name"], row["frames"][0]["end"]["at"]
+    ('car', 'car', (0.0, 0.0, 20.0))
+    """
+    world = scene.world
+    if world is None:
+        return []
+    starts = list(film_starts) if film_starts is not None else _film_starts(scene)
+    frames = world.all_frames()
+    rows: list[dict[str, Any]] = []
+    for i, shot in enumerate(scene.timeline):
+        if shot.viewpoint is None:
+            continue
+        vp = viewpoint_of(world, shot.viewpoint)
+        assert vp is not None
+        split = _split_frame_actions(
+            shot,
+            default_easing=scene.meta.default_easing,
+            frames=frames,
+            members={m.id for m in world.members if m.at is not None},
+        )
+        try:
+            tree = FrameTree(frames, tracks=split.frame_tracks)
+        except FrameError as e:
+            raise WorldError(f"shot {shot.id!r}: {e}") from None
+
+        def at(name: str, t: float) -> dict[str, Any]:
+            pose = tree.world_pose(name, t, film_start=starts[i])
+            yaw, pitch = pose_look(pose)
+            return {
+                "at": tuple(round(v, 6) + 0.0 for v in pose.at),
+                "yaw": round(yaw, 6) + 0.0,
+                "pitch": round(pitch, 6) + 0.0,
+            }
+
+        rows.append(
+            {
+                "shot": shot.id,
+                "viewpoint_frame": vp.frame or world.default_frame(),
+                "frames": [
+                    {
+                        "name": name,
+                        "parent": frames[name].parent,
+                        "coupling": frames[name].coupling,
+                        "start": at(name, 0.0),
+                        "end": at(name, float(shot.duration)),
+                    }
+                    for name in frames
+                ],
+            }
+        )
+    return rows
 
 
 def lower_world(

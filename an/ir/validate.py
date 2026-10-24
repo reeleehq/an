@@ -2644,23 +2644,44 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     """What the world did to this framed shot (ADR 0009): the members it
     added (info), a hand placement that disagrees with it (warning), a listed
     entity the frame does not show (info), a member whose art cannot be
-    sized (warning); and, under a travel, the plates: every plane of the
-    shot's environments must be declared `far` (and then pinned, parallax
-    factor 0) or `vehicle`, because a plate with near objects baked in stands
-    still while the streams move."""
+    sized (warning); and the plates: under a moving view (a travel, or a
+    viewpoint in a frame that moves) every plane of the shot's environments
+    must say what it holds. Declared `far` (or in a frame coupled by rotation
+    only) it must be pinned, parallax factor 0; in the viewpoint's frame it
+    rides with the camera; in any other frame that moves relative to the
+    camera it would stand still while the view moves, which is the plate with
+    near objects baked in (a warning)."""
     shot = ctx.shot
     if getattr(shot, "viewpoint", None) is None or ctx.lowered is None:
         return
     for n in ctx.lowered.notes_for(ctx.index):
         ctx.report.add(n.severity, f"{ctx.path}/entities", f"{n.entity!r}: {n.message}")
     world = ctx.scene.world
-    travel = world.travel if world is not None else None
     env_store = ctx.stores.get("environments")
-    if travel is None or env_store is None:
+    if world is None or env_store is None:
         return
+    from an.ir.frames import FrameTree
+    from an.ir.schema import WORLD_FRAME
+    from an.ir.world import viewpoint_of
     from an.stage.environments import ENVIRONMENT_DOCUMENT_KIND, EnvironmentDescriptor
 
-    roles = {plane: role for role, planes in travel.plates.items() for plane in planes}
+    travel = world.travel
+    frames = world.all_frames()
+    tree = FrameTree(frames)
+    vp = viewpoint_of(world, shot.viewpoint)
+    vp_frame = (vp.frame if vp is not None else None) or world.default_frame()
+    moving_view = vp_frame != WORLD_FRAME and not tree.is_still(vp_frame)
+    declared = any(
+        m.kind == "environment" and (m.frame or m.planes) for m in world.members
+    )
+    if not moving_view and not declared:
+        return
+    roles = (
+        {plane: role for role, planes in travel.plates.items() for plane in planes}
+        if travel is not None
+        else {}
+    )
+    members = {m.id: m for m in world.members}
     for entity in shot.entities:
         if entity.kind != "environment":
             continue
@@ -2679,24 +2700,62 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
             )
         except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
             continue
+        member = members.get(entity.id)
         for plane in env.planes:
             path = f"{entity.id}/{plane.name}"
             role = roles.get(path)
-            if role is None:
+            frame = (
+                ((member.planes or {}).get(plane.name) or member.frame)
+                if member is not None
+                else None
+            )
+            at_infinity = role == "far" or (
+                frame is not None
+                and any(frames[n].coupling == "far" for n in tree.chain(frame))
+            )
+            if role is None and frame is None:
+                if moving_view:
+                    ctx.report.add(
+                        "warning",
+                        f"{ctx.path}/entities",
+                        f"plane {path!r} is under a moving view but nothing says what it "
+                        "holds: list it under `world.travel.plates` or put it `in` a frame "
+                        "(`planes: {"
+                        + plane.name
+                        + ": <frame>}` on its environment member). "
+                        "A plane `far` (or in a frame coupled `far`) holds only what is at "
+                        "infinity: the sky, the horizon, the far range, nothing nearer, which the "
+                        "streams draw; one in the viewpoint's frame rides with the camera "
+                        "(the cabin, the dashboard)."
+                        if travel is None
+                        else f"plane {path!r} is under a travelling view but `world.travel.plates` "
+                        "does not say what it holds: list it under `far` (the sky, the horizon, "
+                        "the far range: nothing nearer, which the streams draw) or `vehicle` "
+                        "(rigid with the camera: the cabin, the dashboard).",
+                    )
+            elif at_infinity:
+                if plane.factors() != (0.0, 0.0):
+                    ctx.report.add(
+                        "warning",
+                        f"{ctx.path}/entities",
+                        f"plane {path!r} is declared `far` (at infinity) but its parallax "
+                        f"factor is {plane.factors()}: a far plate is pinned, `depth: 0`."
+                        if role == "far"
+                        else f"plane {path!r} is in frame {frame!r}, coupled by rotation only "
+                        f"(at infinity), but its parallax factor is {plane.factors()}: a far "
+                        "plate is pinned, `depth: 0`.",
+                    )
+            elif frame is not None and not tree.is_static(
+                frame, vp_frame, float(shot.duration)
+            ):
                 ctx.report.add(
                     "warning",
                     f"{ctx.path}/entities",
-                    f"plane {path!r} is under a travelling view but `world.travel.plates` "
-                    "does not say what it holds: list it under `far` (the sky, the horizon, "
-                    "the far range: nothing nearer, which the streams draw) or `vehicle` "
-                    "(rigid with the camera: the cabin, the dashboard).",
-                )
-            elif role == "far" and plane.factors() != (0.0, 0.0):
-                ctx.report.add(
-                    "warning",
-                    f"{ctx.path}/entities",
-                    f"plane {path!r} is declared `far` (at infinity) but its parallax "
-                    f"factor is {plane.factors()}: a far plate is pinned, `depth: 0`.",
+                    f"plane {path!r} is in frame {frame!r}, which moves relative to the "
+                    f"viewpoint's frame {vp_frame!r}, and it is neither far nor at a depth: a "
+                    "plate stands still on screen while its frame moves. Put the plane `in` a "
+                    "far frame (`coupling: far`) if it holds only what is at infinity, or in "
+                    "the viewpoint's frame if it rides with the camera.",
                 )
 
 
