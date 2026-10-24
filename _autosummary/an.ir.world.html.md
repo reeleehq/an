@@ -51,10 +51,12 @@ move, and a close-up is the same world seen from nearer.
 | [`fit_channel`](#an.ir.world.fit_channel)(g, a, b, \*, tolerance, min_step)      | One channel's motion `g` on `[a, b]` as tweens: `[(t0, t1, v0, v1, easing)]`, each a cubic-Bézier easing whose end slopes match `g`'s (a Hermite fit: control points `(1/3, d0/3, 2/3, 1 − d1/3)`), split in two wherever the fit strays more than `tolerance` from `g` — dense where the motion bends (a stream instance near the camera), one segment where it is straight.   |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`focal_length`](#an.ir.world.focal_length)(viewpoint, \*, width)                 | The lens in pixels: `focal` as given, else from `fov` (horizontal, degrees; `DFLT_FOV_DEG` when unset) and the frame width.                                                                                                                                                                                                                                                     |
+| [`frame_poses`](#an.ir.world.frame_poses)(scene, \*[, film_starts])              | Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own `<frame>:at_*` actions): what `an world show --frames` prints.                                                                                                                                                                                                   |
 | [`has_world`](#an.ir.world.has_world)(scene)                                   | Whether lowering would change anything: a world, or a shot with a viewpoint.                                                                                                                                                                                                                                                                                                    |
 | [`lower_world`](#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
 | [`member_placements`](#an.ir.world.member_placements)(world, projection, \*, ...)      | Every member's placement under `projection`: `{id: Placed}`.                                                                                                                                                                                                                                                                                                                    |
-| [`resolve_viewpoint`](#an.ir.world.resolve_viewpoint)(world, viewpoint, \*, ...)       | The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection).                                                                                                                                                                                                                                                                                    |
+| [`pose_look`](#an.ir.world.pose_look)(pose)                                    | The `(yaw, pitch)` in degrees a pose faces.                                                                                                                                                                                                                                                                                                                                     |
+| [`resolve_viewpoint`](#an.ir.world.resolve_viewpoint)(world, viewpoint, \*, ...)       | The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame's units.                                                                                                                                                                                                                                                          |
 | [`stream_instances`](#an.ir.world.stream_instances)(stream, travel, \*, s_min, s_max) | The instances of `stream` whose position along the travel lies in `[s_min, s_max]`: `[(k, world position)]`, `k` the instance index.                                                                                                                                                                                                                                            |
 | [`stream_slots`](#an.ir.world.stream_slots)(stream, travel)                       | How many entities a stream needs: one per instance that can be between `near` and `far` at once, plus one.                                                                                                                                                                                                                                                                      |
 | [`viewpoint_of`](#an.ir.world.viewpoint_of)(world, viewpoint)                     | The shot's viewpoint as a model: a name is looked up in the world.                                                                                                                                                                                                                                                                                                              |
@@ -141,6 +143,9 @@ A resolved viewpoint: where the camera is, which way it looks, its lens.
 (200.0, -100.0, 10.0)
 >>> eye.project((0.0, 0.0, -1.0)) is None
 True
+>>> rolled = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)
+>>> [round(v, 6) + 0.0 for v in rolled.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom
+[0.0, 10.0, 10.0]
 ```
 
 #### moved(by)
@@ -157,6 +162,23 @@ depth; `None` for a point at or behind the camera.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### transformed(pose)
+
+The same camera carried by a frame whose pose is `pose`: this
+projection is in the frame’s units, the result is in its parent’s
+(the world’s, for a frame’s world pose).
+
+```pycon
+>>> eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)
+>>> eye.transformed(Pose(at=(0.0, 0.0, 4.0))).at
+(0.0, 0.0, 4.0)
+>>> eye.transformed(Pose()) is eye
+True
+```
+
+* **Return type:**
+  [`Projection`](#an.ir.world.Projection)
 
 #### view(p)
 
@@ -218,6 +240,25 @@ same at any resolution.
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
 
+### an.ir.world.frame_poses(scene, , film_starts=None)
+
+Per framed shot, where each frame stands in the world as the shot opens
+and as it closes (after the shot’s own `<frame>:at_*` actions): what
+`an world show --frames` prints.
+
+```pycon
+>>> from an.ir.schema import Frame, FrameMoving, Viewpoint, World
+>>> scene = SceneIR(world=World(frames={"car": Frame(moving=FrameMoving(speed=10.0))},
+...                             viewpoints={"v": Viewpoint(at=(0.0, 0.0, 0.0), frame="car")}),
+...                 timeline=[Shot(id="s", duration=2.0, viewpoint="v")])
+>>> row = frame_poses(scene)[0]
+>>> row["viewpoint_frame"], row["frames"][0]["name"], row["frames"][0]["end"]["at"]
+('car', 'car', (0.0, 0.0, 20.0))
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
 ### an.ir.world.has_world(scene)
 
 Whether lowering would change anything: a world, or a shot with a viewpoint.
@@ -260,7 +301,7 @@ Raises [`WorldError`](#an.ir.world.WorldError) for a viewpoint the world cannot 
 * **Return type:**
   [`Lowered`](#an.ir.world.Lowered)
 
-### an.ir.world.member_placements(world, projection, , extents, width, height, hide=(), hand=None, extent_problems=None)
+### an.ir.world.member_placements(world, projection, , extents, width, height, hide=(), hand=None, extent_problems=None, member_at=None, fixed=None)
 
 Every member’s placement under `projection`: `{id: Placed}`.
 
@@ -272,13 +313,31 @@ for members a shot placed by hand, positioned or attached: that placement
 stands in for the derived one (its depth stays the world’s), so what is
 attached to it follows the hand, as the compiler’s own passes do.
 `extent_problems` says why an extent could not be measured, for the note.
+`member_at` overrides a member’s `at` with where it stands in the
+viewpoint’s frame (a member in another frame, or moved by an action);
+`fixed` is a placement some other pass already settled (a member in
+motion), which attached members then follow.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Placed`](#an.ir.world.Placed)]
 
-### an.ir.world.resolve_viewpoint(world, viewpoint, , extents, width, height)
+### an.ir.world.pose_look(pose)
 
-The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection).
+The `(yaw, pitch)` in degrees a pose faces.
+
+```pycon
+>>> pose_look(Pose())
+(0.0, 0.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.world.resolve_viewpoint(world, viewpoint, , extents, width, height, member_at=None)
+
+The camera a viewpoint is, as a [`Projection`](#an.ir.world.Projection), in its own frame’s
+units. `member_at` overrides a subject’s `at` with where it stands in
+the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
 
 A viewpoint with `at` is that camera. One with a `subject` is computed:
 on the look direction, at the distance that fills `fill` of the frame

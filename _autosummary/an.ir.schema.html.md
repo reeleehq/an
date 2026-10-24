@@ -48,6 +48,10 @@ True
 | [`DFLT_TRAVEL_NEAR`](#an.ir.schema.DFLT_TRAVEL_NEAR)          | nearer than `near` an instance has passed the camera (and is hidden); beyond `far` it is effectively at infinity (the far plate's job, not a stream's).                                                                                                                   |
 | [`DFLT_TRAVEL_TOLERANCE_PX`](#an.ir.schema.DFLT_TRAVEL_TOLERANCE_PX)  | How far a stream instance's screen position may stray from the fitted tweens between two of their keys, in pixels: the fitting's tolerance.                                                                                                                               |
 | [`DFLT_TRAVEL_MAX_ACTIONS`](#an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS)   | The most actions one shot's travel may lower to before the lowering refuses and names the knobs: a 10 s road with three streams is about four thousand; a minute of dense road markings would be fifty thousand, which is a document the runtime pays for on every frame. |
+| [`WORLD_FRAME`](#an.ir.schema.WORLD_FRAME)               | the world itself.                                                                                                                                                                                                                                                         |
+| [`VEHICLE_FRAME`](#an.ir.schema.VEHICLE_FRAME)             | The frame a `travel` with a `speed` is sugar for (viewpoints and members ride it by default; streams stay in the world).                                                                                                                                                  |
+| [`FRAME_COUPLINGS`](#an.ir.schema.FRAME_COUPLINGS)           | `rigid` takes the parent's whole pose, `far` only its rotation (what is at infinity turns with the camera and never translates).                                                                                                                                          |
+| [`FRAME_KEY`](#an.ir.schema.FRAME_KEY)                 | The key an element's frame is written under in a document (`frame` is the field; `in` is not a name Python lets a field have).                                                                                                                                            |
 | [`TRAVEL_PLATE_ROLES`](#an.ir.schema.TRAVEL_PLATE_ROLES)        | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
 | [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                                                                                                   |
 | [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                                                                                                         |
@@ -80,6 +84,8 @@ True
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                        |
 | [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
+| [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, moving])    | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                      |
+| [`FrameMoving`](#an.ir.schema.FrameMoving)(\*[, direction])                       | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.                                      |
 | [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
 | [`Meta`](#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                     |
 | [`Narration`](#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                               |
@@ -93,7 +99,7 @@ True
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
 | [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
 | [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, ...])       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
-| [`Travel`](#an.ir.schema.Travel)(\*[, direction, near, far, ...])            | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                         |
+| [`Travel`](#an.ir.schema.Travel)(\*[, direction, speed, near, far, ...])     | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                         |
 | [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
 | [`Viewpoint`](#an.ir.schema.Viewpoint)(\*[, at, look, look_at, vanish, ...])    | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                                                       |
 | [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
@@ -101,7 +107,7 @@ True
 | [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
 | [`Weld`](#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                         |
 | [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
-| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel])           | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                       |
+| [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel, frames])   | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                       |
 | [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                  |
 
 ### an.ir.schema.Action
@@ -657,6 +663,61 @@ comes back unchanged (`strict=False`).
 * **Return type:**
   [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
+### an.ir.schema.FRAME_COUPLINGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('rigid', 'far')*
+
+`rigid` takes the parent’s whole pose,
+`far` only its rotation (what is at infinity turns with the camera and never
+translates).
+
+* **Type:**
+  How a frame follows its parent
+
+### an.ir.schema.FRAME_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'in'*
+
+The key an element’s frame is written under in a document (`frame` is the
+field; `in` is not a name Python lets a field have).
+
+### *class* an.ir.schema.Frame(, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A frame of reference: a pose (position and orientation) over film time,
+relative to its `parent` (ADR 0009 amendment, an#501).
+
+```pycon
+>>> Frame(moving=FrameMoving(speed=20.0)).parent
+'world'
+>>> Frame(parent="vehicle", coupling="far").coupling
+'far'
+```
+
+`at` and `look` (`[yaw, pitch, roll]`, as a viewpoint’s) are the pose
+in the parent’s units at film time 0; `moving` adds a constant velocity;
+a `set`/`tween` of `<frame>:at_x|at_y|at_z|yaw|pitch|roll` in a shot
+replaces the channel for that shot. `coupling: far` follows the parent’s
+rotation and none of its translation: the frame of what is at infinity (a
+sky, a range of mountains).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A frame translating at a constant velocity: sugar for a frame whose
+`at` grows by `direction × speed` per second of FILM time.
+
+```pycon
+>>> FrameMoving(direction=(0.0, 0.0, 1.0), speed=20.0).speed
+20.0
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.ir.schema.LoopAction(, name=None, kind='loop', child, count=1, \*\*extra_data)
 
 Bases: `_ActionBase`
@@ -1057,7 +1118,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
 
-### *class* an.ir.schema.Stream(, id, ref, kind='prop', store='props', height=None, width=None, units_per_px=None, every, lane=0.0, y=0.0, after=None, seed=0, \*\*extra_data)
+### *class* an.ir.schema.Stream(, id, ref, kind='prop', store='props', height=None, width=None, units_per_px=None, every, lane=0.0, y=0.0, after=None, seed=0, frame=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1073,6 +1134,13 @@ direction (a range is seeded-uniform), `lane` to the right of it
 (negative: left), at height `y`; sized like a member. They are
 positioned in the world once, so every shot sees the same instances in
 the same places at the same film time.
+
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world.
+
+* **Type:**
+  The frame the row stands in (document key `in`); unset
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -1135,7 +1203,7 @@ dump unless set.
 * **Type:**
   Time passes across this transition (catalogue C1)
 
-### *class* an.ir.schema.Travel(\*, direction=(0.0, 0.0, 1.0), speed, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
+### *class* an.ir.schema.Travel(\*, direction=(0.0, 0.0, 1.0), speed=None, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1227,7 +1295,12 @@ The easing this tween draws with under a scene default of
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### *class* an.ir.schema.Viewpoint(\*, at=None, look=(0.0, 0.0, 0.0), look_at=None, vanish=None, fov=None, focal=None, subject=None, size=None, distance=None, subject_at=(0.0, 0.0), hide=<factory>, \*\*extra_data)
+### an.ir.schema.VEHICLE_FRAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'vehicle'*
+
+The frame a `travel` with a `speed` is sugar for (viewpoints and members
+ride it by default; streams stay in the world).
+
+### *class* an.ir.schema.Viewpoint(\*, at=None, look=(0.0, 0.0, 0.0), look_at=None, vanish=None, fov=None, focal=None, subject=None, size=None, distance=None, subject_at=(0.0, 0.0), hide=<factory>, frame=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1252,6 +1325,11 @@ name) or `distance` (world units), and `subject_at` (where the
 subject’s band lands on screen, pixels; the centre by default). The
 camera is computed on the look direction so the band fills the frame as
 the size says. `hide` names members this shot leaves out.
+
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The frame this camera is mounted in (document key `in`); its `at` and
+`look` are in that frame’s units. Unset: the world’s default frame.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -1313,6 +1391,13 @@ speech for the web;
 * **Type:**
   The level every voice is brought to, LUFS (-16
 
+### an.ir.schema.WORLD_FRAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'world'*
+
+the world itself. Always present, never declared.
+
+* **Type:**
+  The root of the frame tree
+
 ### *class* an.ir.schema.Weld(, item, by, start=0.0, until=None, offset=None, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -1348,7 +1433,7 @@ only — `scene.md` never carries it, the way it never carries visemes.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, \*\*extra_data)
+### *class* an.ir.schema.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1364,11 +1449,42 @@ its coverage, and its travel (ADR 0009).
 (['jerry', 'wheel'], ['two_shot'])
 ```
 
+#### all_frames()
+
+The declared frames plus the one a `travel` with a `speed` is
+sugar for (`vehicle`, moving along the travel’s direction).
+
+```pycon
+>>> World(travel=Travel(speed=4.0)).all_frames()["vehicle"].moving.speed
+4.0
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Frame`](#an.ir.schema.Frame)]
+
+#### default_frame()
+
+The frame a member or viewpoint is in when it names none: the
+travel’s `vehicle` (members ride it) when there is one, else the world.
+
+```pycon
+>>> World().default_frame(), World(travel=Travel(speed=1.0)).default_frame()
+('world', 'vehicle')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+#### frames *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Frame](#an.ir.schema.Frame)]*
+
+The frames of reference, `{name: Frame}`; `world` is the implicit
+root and a travel with a `speed` adds `vehicle`.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, \*\*extra_data)
+### *class* an.ir.schema.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
 
 Bases: [`AssetRef`](#an.ir.schema.AssetRef)
 
@@ -1390,6 +1506,14 @@ another instead of positioned, or it is an environment (present in every
 framed shot, placed by nothing: plates are per shot). `after` is the
 draw anchor a shot’s `stage.after` would be. A member never carries
 `stage`: the viewpoint places it.
+
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The frame of reference this member is in (document key `in`); unset
+means the world’s default frame ([`World.default_frame()`](#an.ir.schema.World.default_frame)). An
+environment’s `frame` is the default of its planes; `planes` names
+the exceptions, `{plane name: frame}` (one environment can hold a
+cabin plate and a sky plate).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

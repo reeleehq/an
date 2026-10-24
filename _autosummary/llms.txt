@@ -94,6 +94,7 @@
 - [an.ir.assets](an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.frames](an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
 - [an.ir.schema](an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).

@@ -96,6 +96,7 @@
 - [an.ir.assets](_autosummary/an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](_autosummary/an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](_autosummary/an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.frames](_autosummary/an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
 - [an.ir.schema](_autosummary/an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](_autosummary/an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
@@ -223,7 +224,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 15:10 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 15:24 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

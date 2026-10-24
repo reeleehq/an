@@ -7,10 +7,10 @@ Thin projections of [`an.stage.world`](an.stage.world.html.md#module-an.stage.wo
 
 ### Functions
 
-| [`show`](#an.world_cli.show)(project_dir[, shot, json])   | Print every framed shot as the compiler sees it: each entity's placement derived from the scene's world, and what the world added, replaced or could not place.   |
-|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`show`](#an.world_cli.show)(project_dir[, shot, json, frames])   | Print every framed shot as the compiler sees it: each entity's placement derived from the scene's world, and what the world added, replaced or could not place.   |
+|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
-### an.world_cli.show(project_dir, shot='', json=False)
+### an.world_cli.show(project_dir, shot='', json=False, frames=False)
 
 Print every framed shot as the compiler sees it: each entity’s placement derived from the scene’s world, and what the world added, replaced or could not place.
 
@@ -21,6 +21,7 @@ as it always was.
 project_dir: the an project
 shot: one shot id (default: every framed shot)
 json: print the report as JSON instead of text
+frames: print instead the scene’s frames of reference, one line per frame per framed shot: its pose in the world as the shot opens and as it closes
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

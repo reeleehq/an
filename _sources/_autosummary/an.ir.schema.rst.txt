@@ -15,6 +15,10 @@ an.ir.schema
       DFLT_TRAVEL_NEAR
       DFLT_TRAVEL_TOLERANCE_PX
       DFLT_TRAVEL_MAX_ACTIONS
+      WORLD_FRAME
+      VEHICLE_FRAME
+      FRAME_COUPLINGS
+      FRAME_KEY
       TRAVEL_PLATE_ROLES
       CORE_ACTION_KINDS
       EXTENSION_TAG
@@ -49,6 +53,8 @@ an.ir.schema
       DelayAction
       Dialogue
       ExtensionAction
+      Frame
+      FrameMoving
       LoopAction
       Meta
       Narration

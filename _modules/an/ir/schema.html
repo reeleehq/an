@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=64487cc7"></script>
+    <script src="../../../_static/documentation_options.js?v=4ef3bb1d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.259" />
+  <meta name="docsearch:version" content="0.1.260" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AliasChoices</span><span class="p">,</span>
     <span class="n">model_serializer</span><span class="p">,</span>
     <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">ConfigDict</span><span class="p">,</span>
@@ -1187,6 +1188,31 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DFLT_TRAVEL_MAX_ACTIONS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20_000</span>
 
 
+<span class="c1">#: The root of the frame tree: the world itself. Always present, never declared.</span>
+<span class="n">WORLD_FRAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"world"</span>
+<span class="c1">#: The frame a `travel` with a `speed` is sugar for (viewpoints and members</span>
+<span class="c1">#: ride it by default; streams stay in the world).</span>
+<span class="n">VEHICLE_FRAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"vehicle"</span>
+<span class="c1">#: How a frame follows its parent: `rigid` takes the parent's whole pose,</span>
+<span class="c1">#: `far` only its rotation (what is at infinity turns with the camera and never</span>
+<span class="c1">#: translates).</span>
+<span class="n">FRAME_COUPLINGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"rigid"</span><span class="p">,</span> <span class="s2">"far"</span><span class="p">)</span>
+<span class="c1">#: The key an element's frame is written under in a document (`frame` is the</span>
+<span class="c1">#: field; `in` is not a name Python lets a field have).</span>
+<span class="n">FRAME_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"in"</span>
+<span class="n">_FRAME_FIELD</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validation_alias</span><span class="o">=</span><span class="n">AliasChoices</span><span class="p">(</span><span class="n">FRAME_KEY</span><span class="p">,</span> <span class="s2">"frame"</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_frame_key</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``data`` with the ``frame`` field written under the document's key</span>
+<span class="sd">    ``in`` (and left out when unset: a scene that names no frame stores none)."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"frame"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">FRAME_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_omit_none</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``data`` without the ``keys`` whose value is ``None``: a field nobody set</span>
 <span class="sd">    leaves no trace in a stored document (the `stage`/`library` rule)."""</span>
@@ -1253,6 +1279,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">units_per_px</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">attached</span><span class="p">:</span> <span class="n">Attachment</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">after</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The frame of reference this member is in (document key ``in``); unset</span>
+    <span class="c1">#: means the world's default frame (:meth:`World.default_frame`). An</span>
+    <span class="c1">#: environment's ``frame`` is the default of its planes; ``planes`` names</span>
+    <span class="c1">#: the exceptions, ``{plane name: frame}`` (one environment can hold a</span>
+    <span class="c1">#: cabin plate and a sky plate).</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FRAME_FIELD</span>
+    <span class="n">planes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_one_way_to_place_it</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"WorldMember"</span><span class="p">:</span>
@@ -1267,13 +1300,24 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">,</span> <span class="s2">"units_per_px"</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">planes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"environment"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is not an environment: only an environment has `planes` "</span>
+                <span class="s2">"(which frame each of its planes is in)."</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">sizes</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is an environment: it has no position or size (its "</span>
-                    <span class="s2">"plates are drawn per shot); list it with its reference only."</span>
+                    <span class="s2">"plates are drawn per shot); list it with its reference only "</span>
+                    <span class="s2">"(and, when its plates are in frames, `in` / `planes`)."</span>
                 <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is attached to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">to</span><span class="si">!r}</span><span class="s2">: it is in its host's "</span>
+                <span class="s2">"frame; drop `in`."</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> needs exactly one of `at: [x, y, z]` or `attached: "</span>
@@ -1297,16 +1341,20 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_world_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_omit_none</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">,</span>
-            <span class="s2">"stage"</span><span class="p">,</span>
-            <span class="s2">"library"</span><span class="p">,</span>
-            <span class="s2">"at"</span><span class="p">,</span>
-            <span class="s2">"height"</span><span class="p">,</span>
-            <span class="s2">"width"</span><span class="p">,</span>
-            <span class="s2">"units_per_px"</span><span class="p">,</span>
-            <span class="s2">"attached"</span><span class="p">,</span>
-            <span class="s2">"after"</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_frame_key</span><span class="p">(</span>
+            <span class="n">_omit_none</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="s2">"stage"</span><span class="p">,</span>
+                <span class="s2">"library"</span><span class="p">,</span>
+                <span class="s2">"at"</span><span class="p">,</span>
+                <span class="s2">"height"</span><span class="p">,</span>
+                <span class="s2">"width"</span><span class="p">,</span>
+                <span class="s2">"units_per_px"</span><span class="p">,</span>
+                <span class="s2">"attached"</span><span class="p">,</span>
+                <span class="s2">"after"</span><span class="p">,</span>
+                <span class="s2">"frame"</span><span class="p">,</span>
+                <span class="s2">"planes"</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span></div>
 
 
@@ -1374,6 +1422,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">subject_at</span><span class="p">:</span> <span class="n">Point2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
     <span class="n">hide</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: The frame this camera is mounted in (document key ``in``); its ``at`` and</span>
+    <span class="c1">#: ``look`` are in that frame's units. Unset: the world's default frame.</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FRAME_FIELD</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_one_front_door</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Viewpoint"</span><span class="p">:</span>
@@ -1429,16 +1480,19 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"subject_at"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"hide"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_omit_none</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">,</span>
-            <span class="s2">"at"</span><span class="p">,</span>
-            <span class="s2">"look_at"</span><span class="p">,</span>
-            <span class="s2">"vanish"</span><span class="p">,</span>
-            <span class="s2">"fov"</span><span class="p">,</span>
-            <span class="s2">"focal"</span><span class="p">,</span>
-            <span class="s2">"subject"</span><span class="p">,</span>
-            <span class="s2">"size"</span><span class="p">,</span>
-            <span class="s2">"distance"</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_frame_key</span><span class="p">(</span>
+            <span class="n">_omit_none</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="s2">"at"</span><span class="p">,</span>
+                <span class="s2">"look_at"</span><span class="p">,</span>
+                <span class="s2">"vanish"</span><span class="p">,</span>
+                <span class="s2">"fov"</span><span class="p">,</span>
+                <span class="s2">"focal"</span><span class="p">,</span>
+                <span class="s2">"subject"</span><span class="p">,</span>
+                <span class="s2">"size"</span><span class="p">,</span>
+                <span class="s2">"distance"</span><span class="p">,</span>
+                <span class="s2">"frame"</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span></div>
 
 
@@ -1470,6 +1524,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">y</span><span class="p">:</span> <span class="n">_Coord</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">after</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#: The frame the row stands in (document key ``in``); unset: the world.</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FRAME_FIELD</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_spacing_is_positive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Stream"</span><span class="p">:</span>
@@ -1507,7 +1563,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_omit_none</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">,</span> <span class="s2">"units_per_px"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_frame_key</span><span class="p">(</span>
+            <span class="n">_omit_none</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">,</span> <span class="s2">"units_per_px"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">,</span> <span class="s2">"frame"</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 
@@ -1536,7 +1594,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
 
     <span class="n">direction</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">near</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_TRAVEL_NEAR</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">far</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DFLT_TRAVEL_FAR</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">tolerance_px</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1578,6 +1636,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"direction"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"speed"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">near</span> <span class="o">==</span> <span class="n">DFLT_TRAVEL_NEAR</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"near"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">far</span> <span class="o">==</span> <span class="n">DFLT_TRAVEL_FAR</span><span class="p">:</span>
@@ -1591,6 +1651,77 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">plates</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"plates"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="FrameMoving">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.FrameMoving">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FrameMoving</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A frame translating at a constant velocity: sugar for a frame whose</span>
+<span class="sd">    ``at`` grows by ``direction × speed`` per second of FILM time.</span>
+
+<span class="sd">    &gt;&gt;&gt; FrameMoving(direction=(0.0, 0.0, 1.0), speed=20.0).speed</span>
+<span class="sd">    20.0</span>
+<span class="sd">    """</span>
+
+    <span class="n">direction</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_has_a_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"FrameMoving"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a moving frame's `direction` must not be the zero vector."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"direction"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="Frame">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.Frame">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Frame</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A frame of reference: a pose (position and orientation) over film time,</span>
+<span class="sd">    relative to its ``parent`` (ADR 0009 amendment, an#501).</span>
+
+<span class="sd">    &gt;&gt;&gt; Frame(moving=FrameMoving(speed=20.0)).parent</span>
+<span class="sd">    'world'</span>
+<span class="sd">    &gt;&gt;&gt; Frame(parent="vehicle", coupling="far").coupling</span>
+<span class="sd">    'far'</span>
+
+<span class="sd">    ``at`` and ``look`` (``[yaw, pitch, roll]``, as a viewpoint's) are the pose</span>
+<span class="sd">    in the parent's units at film time 0; ``moving`` adds a constant velocity;</span>
+<span class="sd">    a ``set``/``tween`` of ``&lt;frame&gt;:at_x|at_y|at_z|yaw|pitch|roll`` in a shot</span>
+<span class="sd">    replaces the channel for that shot. ``coupling: far`` follows the parent's</span>
+<span class="sd">    rotation and none of its translation: the frame of what is at infinity (a</span>
+<span class="sd">    sky, a range of mountains).</span>
+<span class="sd">    """</span>
+
+    <span class="n">parent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">WORLD_FRAME</span>
+    <span class="n">at</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">look</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Coord</span><span class="p">,</span> <span class="n">_Coord</span><span class="p">,</span> <span class="n">_Coord</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">coupling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"rigid"</span><span class="p">,</span> <span class="s2">"far"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"rigid"</span>
+    <span class="n">moving</span><span class="p">:</span> <span class="n">FrameMoving</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="n">WORLD_FRAME</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"parent"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"at"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">look</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"look"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coupling</span> <span class="o">==</span> <span class="s2">"rigid"</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"coupling"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_omit_none</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"moving"</span><span class="p">)</span></div>
 
 
 
@@ -1611,6 +1742,101 @@ window.runMermaid = runMermaid;</script>
     <span class="n">members</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldMember</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">viewpoints</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Viewpoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">travel</span><span class="p">:</span> <span class="n">Travel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The frames of reference, ``{name: Frame}``; ``world`` is the implicit</span>
+    <span class="c1">#: root and a travel with a ``speed`` adds ``vehicle``.</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Frame</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="World.all_frames">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.World.all_frames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Frame</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The declared frames plus the one a ``travel`` with a ``speed`` is</span>
+<span class="sd">        sugar for (``vehicle``, moving along the travel's direction).</span>
+
+<span class="sd">        &gt;&gt;&gt; World(travel=Travel(speed=4.0)).all_frames()["vehicle"].moving.speed</span>
+<span class="sd">        4.0</span>
+<span class="sd">        """</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">speed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">frames</span><span class="p">[</span><span class="n">VEHICLE_FRAME</span><span class="p">]</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span>
+                <span class="n">moving</span><span class="o">=</span><span class="n">FrameMoving</span><span class="p">(</span>
+                    <span class="n">direction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">direction</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">speed</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">frames</span></div>
+
+
+<div class="viewcode-block" id="World.default_frame">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.World.default_frame">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The frame a member or viewpoint is in when it names none: the</span>
+<span class="sd">        travel's ``vehicle`` (members ride it) when there is one, else the world.</span>
+
+<span class="sd">        &gt;&gt;&gt; World().default_frame(), World(travel=Travel(speed=1.0)).default_frame()</span>
+<span class="sd">        ('world', 'vehicle')</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">speed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">VEHICLE_FRAME</span>
+        <span class="k">return</span> <span class="n">WORLD_FRAME</span></div>
+
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_frames_are_a_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"World"</span><span class="p">:</span>
+        <span class="n">sugar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">speed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">sugar</span> <span class="ow">and</span> <span class="n">VEHICLE_FRAME</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`frames.</span><span class="si">{</span><span class="n">VEHICLE_FRAME</span><span class="si">}</span><span class="s2">` is declared and so is a `travel` with a "</span>
+                <span class="sa">f</span><span class="s2">"`speed`, which already is the `</span><span class="si">{</span><span class="n">VEHICLE_FRAME</span><span class="si">}</span><span class="s2">` frame. Keep one: "</span>
+                <span class="sa">f</span><span class="s2">"drop the travel's `speed` (the travel then only holds the streams) "</span>
+                <span class="sa">f</span><span class="s2">"and put the motion in `frames.</span><span class="si">{</span><span class="n">VEHICLE_FRAME</span><span class="si">}</span><span class="s2">.moving`."</span>
+            <span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">WORLD_FRAME</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()}</span>
+        <span class="n">things</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="p">}</span> <span class="o">|</span> <span class="p">{</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">streams</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">())</span>
+        <span class="p">}</span>
+        <span class="n">clash</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">things</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clash</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">clash</span><span class="si">}</span><span class="s2"> names both a frame and a member or stream: an action on "</span>
+                <span class="s2">"`&lt;name&gt;:at_x` could mean either. Rename the frame."</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">name</span> <span class="o">==</span> <span class="n">WORLD_FRAME</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"frame name </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: a bare identifier other than "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">WORLD_FRAME</span><span class="si">!r}</span><span class="s2"> (the implicit root), please."</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"frame </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> has parent </span><span class="si">{</span><span class="n">frame</span><span class="o">.</span><span class="n">parent</span><span class="si">!r}</span><span class="s2">, which is not a "</span>
+                    <span class="sa">f</span><span class="s2">"frame; the frames are </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">:</span>
+            <span class="n">seen</span><span class="p">,</span> <span class="n">cur</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">name</span>
+            <span class="k">while</span> <span class="n">cur</span> <span class="o">!=</span> <span class="n">WORLD_FRAME</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">"frames form a cycle: "</span> <span class="o">+</span> <span class="s2">" -&gt; "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="o">*</span><span class="n">seen</span><span class="p">,</span> <span class="n">cur</span><span class="p">])</span> <span class="o">+</span> <span class="s2">". "</span>
+                        <span class="s2">"Each frame's `parent` must lead to `world`."</span>
+                    <span class="p">)</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+                <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()[</span><span class="n">cur</span><span class="p">]</span><span class="o">.</span><span class="n">parent</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">frame</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is `in: </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2">`, which is not a frame; the frames "</span>
+                    <span class="sa">f</span><span class="s2">"are </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">. Declare it under `world.frames`."</span>
+                <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="sa">f</span><span class="s2">"world member </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">plane</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">planes</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">check</span><span class="p">(</span><span class="sa">f</span><span class="s2">"world member </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> plane </span><span class="si">{</span><span class="n">plane</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vname</span><span class="p">,</span> <span class="n">vp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">check</span><span class="p">(</span><span class="sa">f</span><span class="s2">"viewpoint </span><span class="si">{</span><span class="n">vname</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span> <span class="n">vp</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">streams</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">():</span>
+            <span class="n">check</span><span class="p">(</span><span class="sa">f</span><span class="s2">"stream </span><span class="si">{</span><span class="n">stream</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_members_are_a_set</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"World"</span><span class="p">:</span>
@@ -1646,6 +1872,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewpoints</span><span class="p">:</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"viewpoints"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"frames"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_omit_none</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">"travel"</span><span class="p">)</span></div>
 
 

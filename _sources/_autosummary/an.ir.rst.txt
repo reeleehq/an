@@ -44,6 +44,8 @@ an.ir
       WorldMember
       Attachment
       Viewpoint
+      Frame
+      FrameMoving
       Travel
       Stream
       FlatAction
@@ -60,6 +62,7 @@ an.ir
    assets
    camera
    compose
+   frames
    schema
    validate
    world

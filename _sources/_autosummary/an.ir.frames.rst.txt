@@ -1,0 +1,34 @@
+an.ir.frames
+============
+
+.. automodule:: an.ir.frames
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Axes
+      FRAME_PROPERTIES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      look_basis
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FrameTree
+      Pose
+      Track
+      TrackEvent
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      FrameError
+   

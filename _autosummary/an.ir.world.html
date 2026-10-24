@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=64487cc7"></script>
+    <script src="../_static/documentation_options.js?v=4ef3bb1d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.259" />
+  <meta name="docsearch:version" content="0.1.260" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -408,6 +408,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.ir.world</a></li>
@@ -683,17 +684,23 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.focal_length" title="an.ir.world.focal_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">focal_length</span></code></a>(viewpoint, *, width)</p></td>
 <td><p>The lens in pixels: <code class="docutils literal notranslate"><span class="pre">focal</span></code> as given, else from <code class="docutils literal notranslate"><span class="pre">fov</span></code> (horizontal, degrees; <code class="code docutils literal notranslate"><span class="pre">DFLT_FOV_DEG</span></code> when unset) and the frame width.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.has_world" title="an.ir.world.has_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_world</span></code></a>(scene)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.frame_poses" title="an.ir.world.frame_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_poses</span></code></a>(scene, *[, film_starts])</p></td>
+<td><p>Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own <code class="docutils literal notranslate"><span class="pre">&lt;frame&gt;:at_*</span></code> actions): what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span> <span class="pre">--frames</span></code> prints.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.has_world" title="an.ir.world.has_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_world</span></code></a>(scene)</p></td>
 <td><p>Whether lowering would change anything: a world, or a shot with a viewpoint.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_world</span></code></a>(scene, *, extents[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_world</span></code></a>(scene, *, extents[, ...])</p></td>
 <td><p>The scene with every framed shot's placements derived from the world.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
 <td><p>Every member's placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
-<td><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>.</p></td>
+<td><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>, in its own frame's units.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
 <td><p>The instances of <code class="docutils literal notranslate"><span class="pre">stream</span></code> whose position along the travel lies in <code class="docutils literal notranslate"><span class="pre">[s_min,</span> <span class="pre">s_max]</span></code>: <code class="docutils literal notranslate"><span class="pre">[(k,</span> <span class="pre">world</span> <span class="pre">position)]</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> the instance index.</p></td>
@@ -821,6 +828,9 @@ it (attached without an offset) or it cannot be placed (see <code class="docutil
 <span class="go">(200.0, -100.0, 10.0)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span><span class="o">.</span><span class="n">project</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
 <span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rolled</span> <span class="o">=</span> <span class="n">Projection</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="o">*</span><span class="n">_basis</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">),</span> <span class="n">focal</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">rolled</span><span class="o">.</span><span class="n">project</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">))]</span>   <span class="c1"># a point on the right: now at the bottom</span>
+<span class="go">[0.0, 10.0, 10.0]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -844,6 +854,26 @@ depth; <code class="docutils literal notranslate"><span class="pre">None</span><
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.ir.world.Projection.transformed">
+<span class="sig-name descname"><span class="pre">transformed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#Projection.transformed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.Projection.transformed" title="Link to this definition">#</a></dt>
+<dd><p>The same camera carried by a frame whose pose is <code class="docutils literal notranslate"><span class="pre">pose</span></code>: this
+projection is in the frame’s units, the result is in its parent’s
+(the world’s, for a frame’s world pose).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span> <span class="o">=</span> <span class="n">Projection</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">Pose</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)))</span><span class="o">.</span><span class="n">at</span>
+<span class="go">(0.0, 0.0, 4.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">Pose</span><span class="p">())</span> <span class="ow">is</span> <span class="n">eye</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -925,6 +955,28 @@ same at any resolution.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.world.frame_poses">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">frame_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">film_starts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#frame_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.frame_poses" title="Link to this definition">#</a></dt>
+<dd><p>Per framed shot, where each frame stands in the world as the shot opens
+and as it closes (after the shot’s own <code class="docutils literal notranslate"><span class="pre">&lt;frame&gt;:at_*</span></code> actions): what
+<code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span> <span class="pre">--frames</span></code> prints.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">FrameMoving</span><span class="p">,</span> <span class="n">Viewpoint</span><span class="p">,</span> <span class="n">World</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">SceneIR</span><span class="p">(</span><span class="n">world</span><span class="o">=</span><span class="n">World</span><span class="p">(</span><span class="n">frames</span><span class="o">=</span><span class="p">{</span><span class="s2">"car"</span><span class="p">:</span> <span class="n">Frame</span><span class="p">(</span><span class="n">moving</span><span class="o">=</span><span class="n">FrameMoving</span><span class="p">(</span><span class="n">speed</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))},</span>
+<span class="gp">... </span>                            <span class="n">viewpoints</span><span class="o">=</span><span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="n">Viewpoint</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">frame</span><span class="o">=</span><span class="s2">"car"</span><span class="p">)}),</span>
+<span class="gp">... </span>                <span class="n">timeline</span><span class="o">=</span><span class="p">[</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">viewpoint</span><span class="o">=</span><span class="s2">"v"</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row</span> <span class="o">=</span> <span class="n">frame_poses</span><span class="p">(</span><span class="n">scene</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row</span><span class="p">[</span><span class="s2">"viewpoint_frame"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"frames"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"frames"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"end"</span><span class="p">][</span><span class="s2">"at"</span><span class="p">]</span>
+<span class="go">('car', 'car', (0.0, 0.0, 20.0))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.has_world">
 <span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">has_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#has_world"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.has_world" title="Link to this definition">#</a></dt>
 <dd><p>Whether lowering would change anything: a world, or a shot with a viewpoint.</p>
@@ -971,7 +1023,7 @@ shot sum by default).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.member_placements">
-<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">member_placements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projection</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#member_placements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.member_placements" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">member_placements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projection</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent_problems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#member_placements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.member_placements" title="Link to this definition">#</a></dt>
 <dd><p>Every member’s placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p>
 <p>Positioned members are projected; attached ones follow their host (an
 offset in the host’s native units, times the host’s scale); an
@@ -980,7 +1032,11 @@ is placed nowhere and is not in frame. <code class="docutils literal notranslate
 for members a shot placed by hand, positioned or attached: that placement
 stands in for the derived one (its depth stays the world’s), so what is
 attached to it follows the hand, as the compiler’s own passes do.
-<code class="docutils literal notranslate"><span class="pre">extent_problems</span></code> says why an extent could not be measured, for the note.</p>
+<code class="docutils literal notranslate"><span class="pre">extent_problems</span></code> says why an extent could not be measured, for the note.
+<code class="docutils literal notranslate"><span class="pre">member_at</span></code> overrides a member’s <code class="docutils literal notranslate"><span class="pre">at</span></code> with where it stands in the
+viewpoint’s frame (a member in another frame, or moved by an action);
+<code class="docutils literal notranslate"><span class="pre">fixed</span></code> is a placement some other pass already settled (a member in
+motion), which attached members then follow.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#an.ir.world.Placed" title="an.ir.world.Placed"><code class="xref py py-class docutils literal notranslate"><span class="pre">Placed</span></code></a>]</span></p>
@@ -989,9 +1045,26 @@ attached to it follows the hand, as the compiler’s own passes do.
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.world.pose_look">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">pose_look</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#pose_look"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.pose_look" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pose_look</span><span class="p">(</span><span class="n">Pose</span><span class="p">())</span>
+<span class="go">(0.0, 0.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.world.resolve_viewpoint">
-<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">resolve_viewpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viewpoint</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#resolve_viewpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.resolve_viewpoint" title="Link to this definition">#</a></dt>
-<dd><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>.</p>
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">resolve_viewpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viewpoint</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#resolve_viewpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.resolve_viewpoint" title="Link to this definition">#</a></dt>
+<dd><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>, in its own frame’s
+units. <code class="docutils literal notranslate"><span class="pre">member_at</span></code> overrides a subject’s <code class="docutils literal notranslate"><span class="pre">at</span></code> with where it stands in
+the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).</p>
 <p>A viewpoint with <code class="docutils literal notranslate"><span class="pre">at</span></code> is that camera. One with a <code class="docutils literal notranslate"><span class="pre">subject</span></code> is computed:
 on the look direction, at the distance that fills <code class="docutils literal notranslate"><span class="pre">fill</span></code> of the frame
 with the subject’s band (<code class="code docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>), shifted so the band’s centre lands
@@ -1136,6 +1209,7 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection"><code class="docutils literal notranslate"><span class="pre">Projection</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.moved"><code class="docutils literal notranslate"><span class="pre">Projection.moved()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.project"><code class="docutils literal notranslate"><span class="pre">Projection.project()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.transformed"><code class="docutils literal notranslate"><span class="pre">Projection.transformed()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Projection.view"><code class="docutils literal notranslate"><span class="pre">Projection.view()</span></code></a></li>
 </ul>
 </li>
@@ -1143,9 +1217,11 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.WorldNote"><code class="docutils literal notranslate"><span class="pre">WorldNote</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.fit_channel"><code class="docutils literal notranslate"><span class="pre">fit_channel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.focal_length"><code class="docutils literal notranslate"><span class="pre">focal_length()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.frame_poses"><code class="docutils literal notranslate"><span class="pre">frame_poses()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.has_world"><code class="docutils literal notranslate"><span class="pre">has_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.lower_world"><code class="docutils literal notranslate"><span class="pre">lower_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_placements"><code class="docutils literal notranslate"><span class="pre">member_placements()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.pose_look"><code class="docutils literal notranslate"><span class="pre">pose_look()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.resolve_viewpoint"><code class="docutils literal notranslate"><span class="pre">resolve_viewpoint()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.stream_instances"><code class="docutils literal notranslate"><span class="pre">stream_instances()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.stream_slots"><code class="docutils literal notranslate"><span class="pre">stream_slots()</span></code></a></li>

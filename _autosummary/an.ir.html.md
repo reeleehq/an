@@ -47,11 +47,13 @@ authoring-time DSL to canonical-form actions.
 | [`Dialogue`](#an.ir.Dialogue)(\*, speaker, text[, voice_ref, ...])     | One line of spoken dialogue.                                                                                                       |
 | [`Camera`](#an.ir.Camera)(\*[, shake, follow, move, keys])           | Camera state for a shot: a named move, or explicit keys.                                                                           |
 | [`Resolution`](#an.ir.Resolution)(\*[, width, height])                   | Pixel dimensions of the rendered output.                                                                                           |
-| [`World`](#an.ir.World)(\*[, members, viewpoints, travel])          | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
+| [`World`](#an.ir.World)(\*[, members, viewpoints, travel, frames])  | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                      |
 | [`WorldMember`](#an.ir.WorldMember)(\*, kind, id, store, ref[, ...])      | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1). |
 | [`Attachment`](#an.ir.Attachment)(\*, to[, at, scale])                   | A member that goes where another member goes (ADR 0009 decision 1).                                                                |
 | [`Viewpoint`](#an.ir.Viewpoint)(\*[, at, look, look_at, vanish, ...])   | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                      |
-| [`Travel`](#an.ir.Travel)(\*[, direction, near, far, ...])           | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                        |
+| [`Frame`](#an.ir.Frame)(\*[, parent, at, look, coupling, moving])   | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).     |
+| [`FrameMoving`](#an.ir.FrameMoving)(\*[, direction])                      | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.     |
+| [`Travel`](#an.ir.Travel)(\*[, direction, speed, near, far, ...])    | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                        |
 | [`Stream`](#an.ir.Stream)(\*, id, ref[, kind, store, height, ...])   | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                |
 | [`FlatAction`](#an.ir.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.                                                                               |
 | [`ValidationReport`](#an.ir.ValidationReport)([passed, findings])              | Result of running one or more validators.                                                                                          |
@@ -310,6 +312,47 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
+### *class* an.ir.Frame(, parent='world', at=(0.0, 0.0, 0.0), look=(0.0, 0.0, 0.0), coupling='rigid', moving=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A frame of reference: a pose (position and orientation) over film time,
+relative to its `parent` (ADR 0009 amendment, an#501).
+
+```pycon
+>>> Frame(moving=FrameMoving(speed=20.0)).parent
+'world'
+>>> Frame(parent="vehicle", coupling="far").coupling
+'far'
+```
+
+`at` and `look` (`[yaw, pitch, roll]`, as a viewpoint’s) are the pose
+in the parent’s units at film time 0; `moving` adds a constant velocity;
+a `set`/`tween` of `<frame>:at_x|at_y|at_z|yaw|pitch|roll` in a shot
+replaces the channel for that shot. `coupling: far` follows the parent’s
+rotation and none of its translation: the frame of what is at infinity (a
+sky, a range of mountains).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.FrameMoving(, direction=(0.0, 0.0, 1.0), speed, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A frame translating at a constant velocity: sugar for a frame whose
+`at` grows by `direction × speed` per second of FILM time.
+
+```pycon
+>>> FrameMoving(direction=(0.0, 0.0, 1.0), speed=20.0).speed
+20.0
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -501,7 +544,7 @@ when unset, like `policy`.
 
 Items held by something for a span (`Weld`); omitted when empty.
 
-### *class* an.ir.Stream(, id, ref, kind='prop', store='props', height=None, width=None, units_per_px=None, every, lane=0.0, y=0.0, after=None, seed=0, \*\*extra_data)
+### *class* an.ir.Stream(, id, ref, kind='prop', store='props', height=None, width=None, units_per_px=None, every, lane=0.0, y=0.0, after=None, seed=0, frame=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -518,11 +561,18 @@ direction (a range is seeded-uniform), `lane` to the right of it
 positioned in the world once, so every shot sees the same instances in
 the same places at the same film time.
 
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the world.
+
+* **Type:**
+  The frame the row stands in (document key `in`); unset
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.Travel(\*, direction=(0.0, 0.0, 1.0), speed, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
+### *class* an.ir.Travel(\*, direction=(0.0, 0.0, 1.0), speed=None, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -566,7 +616,7 @@ Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
 
-### *class* an.ir.Viewpoint(\*, at=None, look=(0.0, 0.0, 0.0), look_at=None, vanish=None, fov=None, focal=None, subject=None, size=None, distance=None, subject_at=(0.0, 0.0), hide=<factory>, \*\*extra_data)
+### *class* an.ir.Viewpoint(\*, at=None, look=(0.0, 0.0, 0.0), look_at=None, vanish=None, fov=None, focal=None, subject=None, size=None, distance=None, subject_at=(0.0, 0.0), hide=<factory>, frame=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -592,11 +642,16 @@ subject’s band lands on screen, pixels; the centre by default). The
 camera is computed on the look direction so the band fills the frame as
 the size says. `hide` names members this shot leaves out.
 
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The frame this camera is mounted in (document key `in`); its `at` and
+`look` are in that frame’s units. Unset: the world’s default frame.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, \*\*extra_data)
+### *class* an.ir.World(\*, members=<factory>, viewpoints=<factory>, travel=None, frames=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -612,11 +667,42 @@ its coverage, and its travel (ADR 0009).
 (['jerry', 'wheel'], ['two_shot'])
 ```
 
+#### all_frames()
+
+The declared frames plus the one a `travel` with a `speed` is
+sugar for (`vehicle`, moving along the travel’s direction).
+
+```pycon
+>>> World(travel=Travel(speed=4.0)).all_frames()["vehicle"].moving.speed
+4.0
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Frame`](an.ir.schema.html.md#an.ir.schema.Frame)]
+
+#### default_frame()
+
+The frame a member or viewpoint is in when it names none: the
+travel’s `vehicle` (members ride it) when there is one, else the world.
+
+```pycon
+>>> World().default_frame(), World(travel=Travel(speed=1.0)).default_frame()
+('world', 'vehicle')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+#### frames *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Frame](an.ir.schema.html.md#an.ir.schema.Frame)]*
+
+The frames of reference, `{name: Frame}`; `world` is the implicit
+root and a travel with a `speed` adds `vehicle`.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, \*\*extra_data)
+### *class* an.ir.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
 
 Bases: [`AssetRef`](an.ir.schema.html.md#an.ir.schema.AssetRef)
 
@@ -638,6 +724,14 @@ another instead of positioned, or it is an environment (present in every
 framed shot, placed by nothing: plates are per shot). `after` is the
 draw anchor a shot’s `stage.after` would be. A member never carries
 `stage`: the viewpoint places it.
+
+#### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The frame of reference this member is in (document key `in`); unset
+means the world’s default frame ([`World.default_frame()`](#an.ir.World.default_frame)). An
+environment’s `frame` is the default of its planes; `planes` names
+the exceptions, `{plane name: frame}` (one environment can hold a
+cabin plate and a sky plate).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -1020,10 +1114,11 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.             |
-|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.     |
-| [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.          |
-| [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                           |
-| [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                          |
-| [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009). |
+| [`assets`](an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                      |
+|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.              |
+| [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                   |
+| [`frames`](an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501). |
+| [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                    |
+| [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                   |
+| [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).          |

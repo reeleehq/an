@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=64487cc7"></script>
+    <script src="../../../_static/documentation_options.js?v=4ef3bb1d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.259" />
+  <meta name="docsearch:version" content="0.1.260" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -756,11 +756,32 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">delay</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">set_</span><span class="p">,</span> <span class="n">tween</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">delay</span><span class="p">,</span>
+    <span class="n">flatten</span><span class="p">,</span>
+    <span class="n">iter_actions</span><span class="p">,</span>
+    <span class="n">map_leaves</span><span class="p">,</span>
+    <span class="n">parallel</span><span class="p">,</span>
+    <span class="n">sequence</span><span class="p">,</span>
+    <span class="n">set_</span><span class="p">,</span>
+    <span class="n">tween</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FRAME_PROPERTIES</span><span class="p">,</span>
+    <span class="n">FrameError</span><span class="p">,</span>
+    <span class="n">FrameTree</span><span class="p">,</span>
+    <span class="n">Pose</span><span class="p">,</span>
+    <span class="n">Track</span><span class="p">,</span>
+    <span class="n">TrackEvent</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">look_basis</span> <span class="k">as</span> <span class="n">_basis</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DFLT_FOV_DEG</span><span class="p">,</span>
+    <span class="n">DFLT_TRAVEL_MAX_ACTIONS</span><span class="p">,</span>
+    <span class="n">DFLT_TRAVEL_NEAR</span><span class="p">,</span>
+    <span class="n">DFLT_TRAVEL_TOLERANCE_PX</span><span class="p">,</span>
     <span class="n">SHOT_SIZES</span><span class="p">,</span>
     <span class="n">AssetRef</span><span class="p">,</span>
     <span class="n">SceneIR</span><span class="p">,</span>
@@ -768,7 +789,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">StagePlacement</span><span class="p">,</span>
     <span class="n">Stream</span><span class="p">,</span>
     <span class="n">Travel</span><span class="p">,</span>
+    <span class="n">VEHICLE_FRAME</span><span class="p">,</span>
     <span class="n">Viewpoint</span><span class="p">,</span>
+    <span class="n">WORLD_FRAME</span><span class="p">,</span>
     <span class="n">World</span><span class="p">,</span>
     <span class="n">WorldMember</span><span class="p">,</span>
 <span class="p">)</span>
@@ -786,9 +809,11 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"WorldNote"</span><span class="p">,</span>
     <span class="s2">"fit_channel"</span><span class="p">,</span>
     <span class="s2">"focal_length"</span><span class="p">,</span>
+    <span class="s2">"frame_poses"</span><span class="p">,</span>
     <span class="s2">"has_world"</span><span class="p">,</span>
     <span class="s2">"lower_world"</span><span class="p">,</span>
     <span class="s2">"member_placements"</span><span class="p">,</span>
+    <span class="s2">"pose_look"</span><span class="p">,</span>
     <span class="s2">"resolve_viewpoint"</span><span class="p">,</span>
     <span class="s2">"stream_instances"</span><span class="p">,</span>
     <span class="s2">"stream_slots"</span><span class="p">,</span>
@@ -900,36 +925,6 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">_mul</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_basis</span><span class="p">(</span><span class="n">yaw</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">pitch</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">roll</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point3</span><span class="p">,</span> <span class="n">Point3</span><span class="p">,</span> <span class="n">Point3</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``(forward, right, down)`` for a look of ``yaw`` (turn right), ``pitch``</span>
-<span class="sd">    (look down) and ``roll`` (the PICTURE turns clockwise: what was on the</span>
-<span class="sd">    right moves to the bottom), in degrees.</span>
-
-<span class="sd">    &gt;&gt;&gt; [tuple(round(v, 6) + 0.0 for v in axis) for axis in _basis(0.0, 0.0, 0.0)]</span>
-<span class="sd">    [(0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]</span>
-<span class="sd">    &gt;&gt;&gt; [round(v, 6) + 0.0 for v in _basis(90.0, 0.0, 0.0)[0]]</span>
-<span class="sd">    [1.0, 0.0, 0.0]</span>
-<span class="sd">    &gt;&gt;&gt; eye = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)</span>
-<span class="sd">    &gt;&gt;&gt; [round(v, 6) + 0.0 for v in eye.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom</span>
-<span class="sd">    [0.0, 10.0, 10.0]</span>
-<span class="sd">    """</span>
-    <span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">r_</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">roll</span><span class="p">))</span>
-    <span class="n">forward</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">p</span><span class="p">),</span>
-        <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">p</span><span class="p">),</span>
-        <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">p</span><span class="p">),</span>
-    <span class="p">)</span>
-    <span class="n">right</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
-    <span class="n">down</span> <span class="o">=</span> <span class="n">_cross</span><span class="p">(</span><span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">r_</span><span class="p">:</span>
-        <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">r_</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">r_</span><span class="p">)</span>
-        <span class="n">right</span><span class="p">,</span> <span class="n">down</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">_add</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">_mul</span><span class="p">(</span><span class="n">down</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">)),</span>
-            <span class="n">_add</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">_mul</span><span class="p">(</span><span class="n">down</span><span class="p">,</span> <span class="n">c</span><span class="p">)),</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_angles_toward</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="n">Point3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``(yaw, pitch)`` in degrees that look along ``v``."""</span>
     <span class="n">yaw</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
@@ -967,6 +962,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (200.0, -100.0, 10.0)</span>
 <span class="sd">    &gt;&gt;&gt; eye.project((0.0, 0.0, -1.0)) is None</span>
 <span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; rolled = Projection((0.0, 0.0, 0.0), *_basis(0.0, 0.0, 90.0), focal=100.0)</span>
+<span class="sd">    &gt;&gt;&gt; [round(v, 6) + 0.0 for v in rolled.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom</span>
+<span class="sd">    [0.0, 10.0, 10.0]</span>
 <span class="sd">    """</span>
 
     <span class="n">at</span><span class="p">:</span> <span class="n">Point3</span>
@@ -1000,6 +998,30 @@ window.runMermaid = runMermaid;</script>
 <span class="w">        </span><span class="sd">"""The same camera translated by ``by`` (the vehicle moved)."""</span>
         <span class="k">return</span> <span class="n">Projection</span><span class="p">(</span>
             <span class="n">_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">by</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">focal</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Projection.transformed">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.Projection.transformed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transformed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Pose</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Projection"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The same camera carried by a frame whose pose is ``pose``: this</span>
+<span class="sd">        projection is in the frame's units, the result is in its parent's</span>
+<span class="sd">        (the world's, for a frame's world pose).</span>
+
+<span class="sd">        &gt;&gt;&gt; eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 100.0)</span>
+<span class="sd">        &gt;&gt;&gt; eye.transformed(Pose(at=(0.0, 0.0, 4.0))).at</span>
+<span class="sd">        (0.0, 0.0, 4.0)</span>
+<span class="sd">        &gt;&gt;&gt; eye.transformed(Pose()) is eye</span>
+<span class="sd">        True</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">pose</span><span class="o">.</span><span class="n">is_identity</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">Projection</span><span class="p">(</span>
+            <span class="n">pose</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">),</span>
+            <span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">),</span>
+            <span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">),</span>
+            <span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 
@@ -1086,8 +1108,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">extents</span><span class="p">:</span> <span class="n">Extents</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">member_at</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Point3</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Projection</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The camera a viewpoint is, as a :class:`Projection`.</span>
+<span class="w">    </span><span class="sd">"""The camera a viewpoint is, as a :class:`Projection`, in its own frame's</span>
+<span class="sd">    units. ``member_at`` overrides a subject's ``at`` with where it stands in</span>
+<span class="sd">    the VIEWPOINT's frame (a subject in another frame, at the shot's start).</span>
 
 <span class="sd">    A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:</span>
 <span class="sd">    on the look direction, at the distance that fills ``fill`` of the frame</span>
@@ -1136,7 +1161,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"shot size fits it; give the viewpoint `distance` and an `at`-less "</span>
                 <span class="s2">"`look`, or size the member by `height`/`width` with measurable art"</span>
             <span class="p">)</span>
-        <span class="n">position</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span><span class="p">))</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="n">position</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>  <span class="c1"># type: ignore[assignment]</span>
+            <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="p">(</span><span class="n">member_at</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_world_box</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
         <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
     <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">)</span>
@@ -1237,6 +1264,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">hide</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
     <span class="n">hand</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">extent_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">member_at</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Point3</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fixed</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"Placed"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Placed</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Every member's placement under ``projection``: ``{id: Placed}``.</span>
 
@@ -1248,8 +1277,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    stands in for the derived one (its depth stays the world's), so what is</span>
 <span class="sd">    attached to it follows the hand, as the compiler's own passes do.</span>
 <span class="sd">    ``extent_problems`` says why an extent could not be measured, for the note.</span>
+<span class="sd">    ``member_at`` overrides a member's ``at`` with where it stands in the</span>
+<span class="sd">    viewpoint's frame (a member in another frame, or moved by an action);</span>
+<span class="sd">    ``fixed`` is a placement some other pass already settled (a member in</span>
+<span class="sd">    motion), which attached members then follow.</span>
 <span class="sd">    """</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Placed</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">member_at</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">member_at</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="n">hidden</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">hide</span><span class="p">)</span>
     <span class="n">hand</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hand</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="n">problems</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">extent_problems</span> <span class="ow">or</span> <span class="p">{})</span>
@@ -1264,6 +1298,9 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">place</span><span class="p">(</span><span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Placed</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">fixed</span> <span class="ow">and</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">fixed</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">:</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">Placed</span><span class="p">(</span>
@@ -1312,7 +1349,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">assert</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="n">box</span> <span class="o">=</span> <span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">_unit_scale</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="n">shot</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span><span class="p">)))</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="n">shot</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">project</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">member_at</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span><span class="p">)))</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">shot</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">note</span> <span class="o">=</span> <span class="s2">"behind the camera"</span> <span class="k">if</span> <span class="n">shot</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">unmeasured</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="n">Placed</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"world"</span><span class="p">,</span> <span class="n">note</span><span class="p">)</span>
@@ -1459,7 +1498,12 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="n">t0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">t1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">v0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">v1</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">dv</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">,</span> <span class="n">v1</span> <span class="o">-</span> <span class="n">v0</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dv</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">_FLAT_CHANNEL_EPS</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">"linear"</span><span class="p">,</span> <span class="mf">0.0</span>
+            <span class="c1"># Flat at the ends is not flat between them (a bounce, an orbit):</span>
+            <span class="c1"># the deviation from the end value is the error that splits it.</span>
+            <span class="k">return</span> <span class="s2">"linear"</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">t0</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span> <span class="o">-</span> <span class="n">v0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.375</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.625</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.875</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="mf">1e-3</span>
         <span class="n">d0</span> <span class="o">=</span> <span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">t0</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">-</span> <span class="n">v0</span><span class="p">)</span> <span class="o">/</span> <span class="n">eps</span> <span class="o">*</span> <span class="n">h</span> <span class="o">/</span> <span class="n">dv</span>
         <span class="n">d1</span> <span class="o">=</span> <span class="p">(</span><span class="n">v1</span> <span class="o">-</span> <span class="n">g</span><span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">eps</span><span class="p">))</span> <span class="o">/</span> <span class="n">eps</span> <span class="o">*</span> <span class="n">h</span> <span class="o">/</span> <span class="n">dv</span>
@@ -1557,14 +1601,142 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">actions</span>
 
 
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_FrameCtx</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a framed shot knows about its frames: the tree (with the shot's</span>
+<span class="sd">    actions on frame channels), where the shot starts in the film, and the</span>
+<span class="sd">    viewpoint resolved IN ITS OWN FRAME's units."""</span>
+
+    <span class="n">tree</span><span class="p">:</span> <span class="n">FrameTree</span>
+    <span class="n">film_start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">vp_frame</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">projection</span><span class="p">:</span> <span class="n">Projection</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pose</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">world_pose</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">film_start</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">eye_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Projection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The camera at shot time ``t``, in world coordinates."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vp_frame</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_fn</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">point_at</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Point3</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""``t -&gt; (right, down, depth)`` of a point standing in ``frame``</span>
+<span class="sd">        (``point_at(t)`` in that frame's units) as the camera sees it. In the</span>
+<span class="sd">        camera's own frame the point is seen directly (a constant relative</span>
+<span class="sd">        pose costs nothing); in any other the camera and the point are carried</span>
+<span class="sd">        to the world."""</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">vp_frame</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">point_at</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eye_at</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pose</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">point_at</span><span class="p">(</span><span class="n">t</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">view</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fit_pass</span><span class="p">(</span>
+    <span class="n">g</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="n">t_in</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">t_out</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">box</span><span class="p">:</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ref_height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Pass</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The channels of one entity's passage: its on-screen window within</span>
+<span class="sd">    ``[t_in, t_out]`` and the Bézier fits of ``g`` on it; ``None`` when it is</span>
+<span class="sd">    never on screen."""</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="n">_on_screen_window</span><span class="p">(</span>
+        <span class="n">g</span><span class="p">,</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">min_step</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="n">window</span>
+    <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="n">fit_channel</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
+        <span class="p">),</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="n">fit_channel</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">scale_tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">/</span> <span class="n">ref_height</span> <span class="k">if</span> <span class="n">ref_height</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">tol</span>
+    <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_x"</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_channel</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">scale_tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
+    <span class="p">)</span>
+    <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_y"</span><span class="p">]</span> <span class="o">=</span> <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_x"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">_Pass</span><span class="p">(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">g</span><span class="p">(</span><span class="n">t_in</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_depth_window</span><span class="p">(</span>
+    <span class="n">depth</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">lo</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">hi</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The stretch of ``[a, b]`` during which ``lo &lt;= depth &lt;= hi``, scanned at</span>
+<span class="sd">    ``step`` and widened by a step each side; ``None`` if never."""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)))</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">[</span><span class="n">lo</span> <span class="o">&lt;=</span> <span class="n">depth</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">hi</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">inside</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inside</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="n">inside</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">times</span><span class="p">[</span><span class="n">first</span><span class="p">],</span> <span class="n">times</span><span class="p">[</span><span class="n">last</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_depth_runs</span><span class="p">(</span>
+    <span class="n">depth</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">lo</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The stretches of ``[a, b]`` during which ``depth &gt;= lo`` (in front of</span>
+<span class="sd">    the camera), scanned at ``step`` and widened by a step each side; runs that</span>
+<span class="sd">    touch after widening are one."""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)))</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">[</span><span class="n">depth</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">lo</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ok</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inside</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+    <span class="n">widened</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">first</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">last</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">widened</span> <span class="ow">and</span> <span class="n">first</span> <span class="o">&lt;=</span> <span class="n">widened</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">widened</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">widened</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">last</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">widened</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">times</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="n">times</span><span class="p">[</span><span class="n">l</span><span class="p">])</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">widened</span><span class="p">]</span>
+
+
+<span class="c1">#: Sample points along a shot when asking how far the camera travels.</span>
+<span class="n">_CAMERA_SAMPLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">33</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_travel_entities</span><span class="p">(</span>
     <span class="n">travel</span><span class="p">:</span> <span class="n">Travel</span><span class="p">,</span>
-    <span class="n">projection</span><span class="p">:</span> <span class="n">Projection</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">extents</span><span class="p">:</span> <span class="n">Extents</span><span class="p">,</span>
     <span class="n">extent_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">film_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -1576,14 +1748,18 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    each drawing the instances that pass through it one after another, so</span>
 <span class="sd">    the entity count is bounded by the depth range and never by the shot's</span>
 <span class="sd">    length; ``skip`` names slot entities the shot already has (a lowered</span>
-<span class="sd">    scene lowered again adds nothing)."""</span>
+<span class="sd">    scene lowered again adds nothing).</span>
+
+<span class="sd">    A stream stands in its own frame (the world by default) and the camera in</span>
+<span class="sd">    the viewpoint's. When the camera does nothing but translate at a constant</span>
+<span class="sd">    velocity through a stream of the world (the straight road), or nothing</span>
+<span class="sd">    moves, the window of each instance is solved in closed form; any other</span>
+<span class="sd">    motion (a frame that turns, accelerates or is animated, a stream in a</span>
+<span class="sd">    moving frame) is scanned a frame at a time."""</span>
+    <span class="n">projection</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tree</span>
+    <span class="n">film_start</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">film_start</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">duration</span>
     <span class="n">direction</span> <span class="o">=</span> <span class="n">_unit</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">travel</span><span class="o">.</span><span class="n">direction</span><span class="p">)))</span>  <span class="c1"># type: ignore[arg-type]</span>
-    <span class="n">speed</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">speed</span><span class="p">)</span>
-    <span class="n">k_forward</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">projection</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
-    <span class="n">s_cam0</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
     <span class="n">reach</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">far</span><span class="p">)</span>
-    <span class="n">s_lo</span> <span class="o">=</span> <span class="n">s_cam0</span> <span class="o">+</span> <span class="n">speed</span> <span class="o">*</span> <span class="n">film_start</span> <span class="o">-</span> <span class="n">reach</span>
-    <span class="n">s_hi</span> <span class="o">=</span> <span class="n">s_cam0</span> <span class="o">+</span> <span class="n">speed</span> <span class="o">*</span> <span class="p">(</span><span class="n">film_start</span> <span class="o">+</span> <span class="n">duration</span><span class="p">)</span> <span class="o">+</span> <span class="n">reach</span>
     <span class="n">min_step</span> <span class="o">=</span> <span class="n">_MIN_SAMPLE_FRAMES</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span>
     <span class="n">tol</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">tolerance_px</span><span class="p">)</span>
     <span class="n">entities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1604,26 +1780,65 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="k">continue</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">WORLD_FRAME</span>
+        <span class="c1"># The camera's motion through the stream's frame: a closed form when</span>
+        <span class="c1"># it is a straight constant velocity (or none), else scanned.</span>
+        <span class="n">closed</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point3</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">frame</span> <span class="o">==</span> <span class="n">ctx</span><span class="o">.</span><span class="n">vp_frame</span><span class="p">:</span>
+            <span class="n">closed</span> <span class="o">=</span> <span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">frame</span> <span class="o">==</span> <span class="n">WORLD_FRAME</span><span class="p">:</span>
+            <span class="n">closed</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">constant_motion</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">vp_frame</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">closed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cam_dir</span><span class="p">,</span> <span class="n">speed</span> <span class="o">=</span> <span class="n">closed</span>
+            <span class="n">k_forward</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">cam_dir</span><span class="p">,</span> <span class="n">projection</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
+            <span class="n">along</span> <span class="o">=</span> <span class="n">speed</span> <span class="k">if</span> <span class="n">cam_dir</span> <span class="o">==</span> <span class="n">direction</span> <span class="k">else</span> <span class="n">speed</span> <span class="o">*</span> <span class="n">_dot</span><span class="p">(</span><span class="n">cam_dir</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+            <span class="n">s_cam0</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+            <span class="n">s_lo</span> <span class="o">=</span> <span class="n">s_cam0</span> <span class="o">+</span> <span class="n">along</span> <span class="o">*</span> <span class="n">film_start</span> <span class="o">-</span> <span class="n">reach</span>
+            <span class="n">s_hi</span> <span class="o">=</span> <span class="n">s_cam0</span> <span class="o">+</span> <span class="n">along</span> <span class="o">*</span> <span class="p">(</span><span class="n">film_start</span> <span class="o">+</span> <span class="n">duration</span><span class="p">)</span> <span class="o">+</span> <span class="n">reach</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s_cam</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_CAMERA_SAMPLES</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">_CAMERA_SAMPLES</span>
+                <span class="n">cam</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">pose</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">unapply</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">eye_at</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>
+                <span class="n">s_cam</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_dot</span><span class="p">(</span><span class="n">cam</span><span class="p">,</span> <span class="n">direction</span><span class="p">))</span>
+            <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">s_cam</span><span class="p">)</span> <span class="o">-</span> <span class="n">reach</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">s_cam</span><span class="p">)</span> <span class="o">+</span> <span class="n">reach</span>
         <span class="n">ref_height</span> <span class="o">=</span> <span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
         <span class="n">slots</span> <span class="o">=</span> <span class="n">stream_slots</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">travel</span><span class="p">)</span>
         <span class="n">passes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_Pass</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">stream_instances</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">travel</span><span class="p">,</span> <span class="n">s_min</span><span class="o">=</span><span class="n">s_lo</span><span class="p">,</span> <span class="n">s_max</span><span class="o">=</span><span class="n">s_hi</span><span class="p">):</span>
-            <span class="n">at_start</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">moved</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">speed</span> <span class="o">*</span> <span class="n">film_start</span><span class="p">))</span>
-            <span class="n">depth0</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">_sub</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">at_start</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="n">projection</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
-            <span class="n">slope</span> <span class="o">=</span> <span class="o">-</span><span class="n">speed</span> <span class="o">*</span> <span class="n">k_forward</span>
-            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_MIN_DEPTH</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span> <span class="o">&lt;=</span> <span class="n">depth0</span> <span class="o">&lt;=</span> <span class="n">travel</span><span class="o">.</span><span class="n">far</span><span class="p">):</span>
-                    <span class="k">continue</span>
-                <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">view_fn</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">closed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">at_start</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">moved</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">cam_dir</span><span class="p">,</span> <span class="n">speed</span> <span class="o">*</span> <span class="n">film_start</span><span class="p">))</span>
+                <span class="n">depth0</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">_sub</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">at_start</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="n">projection</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
+                <span class="n">slope</span> <span class="o">=</span> <span class="o">-</span><span class="n">speed</span> <span class="o">*</span> <span class="n">k_forward</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_MIN_DEPTH</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span> <span class="o">&lt;=</span> <span class="n">depth0</span> <span class="o">&lt;=</span> <span class="n">travel</span><span class="o">.</span><span class="n">far</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ta</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span> <span class="o">-</span> <span class="n">depth0</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span><span class="p">,</span>
+                        <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">far</span> <span class="o">-</span> <span class="n">depth0</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">t_out</span> <span class="o">&lt;=</span> <span class="n">t_in</span><span class="p">:</span>
+                        <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ta</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span> <span class="o">-</span> <span class="n">depth0</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span><span class="p">,</span> <span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">far</span> <span class="o">-</span> <span class="n">depth0</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span>
-                <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">ta</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">t_out</span> <span class="o">&lt;=</span> <span class="n">t_in</span><span class="p">:</span>
+                <span class="n">depth0</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">scanned</span> <span class="o">=</span> <span class="n">_depth_window</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">duration</span><span class="p">,</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span><span class="p">),</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">far</span><span class="p">),</span>
+                    <span class="n">step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">scanned</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
+                <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="n">scanned</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">=</span> <span class="n">p</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-                <span class="n">eye</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">moved</span><span class="p">(</span><span class="n">_mul</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">speed</span> <span class="o">*</span> <span class="p">(</span><span class="n">film_start</span> <span class="o">+</span> <span class="n">t</span><span class="p">)))</span>
-                <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">eye</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">view</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+                <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
                 <span class="n">depth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
                     <span class="n">depth</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span><span class="p">)</span>
                 <span class="p">)</span>  <span class="c1"># past the camera: hold at the near plane</span>
@@ -1633,28 +1848,20 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">m</span> <span class="o">*</span> <span class="n">projection</span><span class="o">.</span><span class="n">focal</span> <span class="o">/</span> <span class="n">depth</span><span class="p">,</span>
                 <span class="p">)</span>
 
-            <span class="n">window</span> <span class="o">=</span> <span class="n">_on_screen_window</span><span class="p">(</span>
-                <span class="n">g</span><span class="p">,</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">min_step</span>
+            <span class="n">fitted</span> <span class="o">=</span> <span class="n">_fit_pass</span><span class="p">(</span>
+                <span class="n">g</span><span class="p">,</span>
+                <span class="n">t_in</span><span class="p">,</span>
+                <span class="n">t_out</span><span class="p">,</span>
+                <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span>
+                <span class="n">ref_height</span><span class="o">=</span><span class="n">ref_height</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+                <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fitted</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>  <span class="c1"># never on screen during this shot</span>
-            <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="n">window</span>
-            <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"x"</span><span class="p">:</span> <span class="n">fit_channel</span><span class="p">(</span>
-                    <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
-                <span class="p">),</span>
-                <span class="s2">"y"</span><span class="p">:</span> <span class="n">fit_channel</span><span class="p">(</span>
-                    <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
-                <span class="p">),</span>
-            <span class="p">}</span>
-            <span class="n">scale_tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">/</span> <span class="n">ref_height</span> <span class="k">if</span> <span class="n">ref_height</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">tol</span>
-            <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_x"</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_channel</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">scale_tol</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span>
-            <span class="p">)</span>
-            <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_y"</span><span class="p">]</span> <span class="o">=</span> <span class="n">channels</span><span class="p">[</span><span class="s2">"scale_x"</span><span class="p">]</span>
-            <span class="n">passes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span> <span class="o">%</span> <span class="n">slots</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">_Pass</span><span class="p">(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">g</span><span class="p">(</span><span class="n">t_in</span><span class="p">)),</span> <span class="n">depth0</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">passes</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span> <span class="o">%</span> <span class="n">slots</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">fitted</span><span class="p">,</span> <span class="n">depth0</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">passes</span><span class="p">):</span>
             <span class="n">entity_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stream</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">skipped</span><span class="p">:</span>
@@ -1704,6 +1911,152 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"cut the shot (</span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s), or raise `max_actions` knowingly."</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">entities</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">problems</span>
+
+
+<span class="c1"># --- frames: actions on frame channels, members in motion ------------------------</span>
+
+<span class="n">_AT_CHANNELS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"at_x"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"at_y"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"at_z"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_Split</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A shot's actions with the ones that move frames and members through the</span>
+<span class="sd">    world taken out: those are lowered to screen channels, not played."""</span>
+
+    <span class="n">actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
+    <span class="n">frame_tracks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]]</span>
+    <span class="n">member_tracks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_split_frame_actions</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">members</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Split</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Take ``&lt;frame&gt;:at_x|at_y|at_z|yaw|pitch|roll`` and ``&lt;member&gt;:at_x|at_y|at_z``</span>
+<span class="sd">    out of the shot's actions, as tracks in shot time. A shot with none keeps</span>
+<span class="sd">    its actions as they are; one with some has them replaced by delays of</span>
+<span class="sd">    their own length, so everything else keeps its time (the leaves' own times</span>
+<span class="sd">    are read with the default extent of a duration-less ``play``)."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">kind_of_target</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"set"</span><span class="p">,</span> <span class="s2">"tween"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="ow">in</span> <span class="n">frames</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="ow">in</span> <span class="n">FRAME_PROPERTIES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"frame"</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="ow">in</span> <span class="n">members</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="ow">in</span> <span class="n">_AT_CHANNELS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"member"</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">kind_of_target</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">_Split</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">),</span> <span class="p">{},</span> <span class="p">{})</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrackEvent</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">parallel</span><span class="p">(</span><span class="o">*</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span>
+        <span class="n">which</span> <span class="o">=</span> <span class="n">kind_of_target</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">which</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">property</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span><span class="p">:</span>
+                <span class="n">ev</span> <span class="o">=</span> <span class="n">TrackEvent</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ev</span> <span class="o">=</span> <span class="n">TrackEvent</span><span class="p">(</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">end</span><span class="p">,</span>
+                    <span class="n">to</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">to_value</span><span class="p">),</span>
+                    <span class="n">from_</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">from_value</span><span class="p">),</span>
+                    <span class="n">easing</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">resolved_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">),</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> needs numbers, not </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">a</span><span class="o">.</span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'set'</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">a</span><span class="o">.</span><span class="n">to_value</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">which</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">lowered_away</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A lowered leaf stands in as a delay of its own length, so what</span>
+<span class="sd">        follows it in a sequence keeps its time and the tree its shape."""</span>
+        <span class="k">if</span> <span class="n">kind_of_target</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">a</span>
+        <span class="k">return</span> <span class="n">delay</span><span class="p">(</span><span class="mf">0.0</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span><span class="n">map_leaves</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">lowered_away</span><span class="p">)</span> <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">]</span>
+    <span class="n">tracks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"frame"</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">"member"</span><span class="p">:</span> <span class="p">{}}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">which</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">evs</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">tracks</span><span class="p">[</span><span class="n">which</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{})[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="n">Track</span><span class="p">(</span><span class="n">evs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_Split</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">tracks</span><span class="p">[</span><span class="s2">"frame"</span><span class="p">],</span> <span class="n">tracks</span><span class="p">[</span><span class="s2">"member"</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_member_point</span><span class="p">(</span>
+    <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span> <span class="n">tracks</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point3</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a positioned member stands at shot time ``t`` in its own frame's</span>
+<span class="sd">    units: its ``at``, with each channel an action animates replaced."""</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+    <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_AT_CHANNELS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">track</span> <span class="o">=</span> <span class="p">(</span><span class="n">tracks</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">track</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tracks_vary</span><span class="p">(</span><span class="n">tracks</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether any of the tracks gives different values within the shot."""</span>
+    <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tracks</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">breaks</span> <span class="k">if</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">duration</span><span class="p">)}</span>
+        <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">({</span><span class="nb">round</span><span class="p">(</span><span class="n">track</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">base</span><span class="p">),</span> <span class="mi">9</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">})</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_member_passes</span><span class="p">(</span>
+    <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_FrameCtx</span><span class="p">,</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tracks</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Track</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">box</span><span class="p">:</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">m</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">near</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_Pass</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A positioned member in motion relative to the camera, as one passage per</span>
+<span class="sd">    stretch of the shot it is in front of the camera and on screen (it can</span>
+<span class="sd">    leave and come back), each with its depth as it enters. Empty when it</span>
+<span class="sd">    never is."""</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">view_fn</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">_member_point</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">tracks</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+    <span class="n">focal</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">focal</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">g</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">near</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">focal</span> <span class="o">*</span> <span class="n">rx</span> <span class="o">/</span> <span class="n">depth</span><span class="p">,</span> <span class="n">focal</span> <span class="o">*</span> <span class="n">ry</span> <span class="o">/</span> <span class="n">depth</span><span class="p">,</span> <span class="n">m</span> <span class="o">*</span> <span class="n">focal</span> <span class="o">/</span> <span class="n">depth</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_Pass</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="ow">in</span> <span class="n">_depth_runs</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">view</span><span class="p">(</span><span class="n">t</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">near</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">min_step</span>
+    <span class="p">):</span>
+        <span class="n">fitted</span> <span class="o">=</span> <span class="n">_fit_pass</span><span class="p">(</span>
+            <span class="n">g</span><span class="p">,</span>
+            <span class="n">t0</span><span class="p">,</span>
+            <span class="n">t1</span><span class="p">,</span>
+            <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span>
+            <span class="n">ref_height</span><span class="o">=</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+            <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">fitted</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fitted</span><span class="p">,</span> <span class="n">view</span><span class="p">(</span><span class="n">fitted</span><span class="o">.</span><span class="n">t_in</span><span class="p">)[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="c1"># --- lowering ------------------------------------------------------------------</span>
@@ -1785,10 +2138,6 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">hid</span> <span class="ow">in</span> <span class="n">vp</span><span class="o">.</span><span class="n">hide</span><span class="p">:</span>
         <span class="n">_member</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">hid</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> viewpoint `hide`"</span><span class="p">)</span>
-    <span class="n">projection</span> <span class="o">=</span> <span class="n">resolve_viewpoint</span><span class="p">(</span>
-        <span class="n">world</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span>
-    <span class="p">)</span>
-    <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">}</span>
     <span class="n">listed</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)}</span>
     <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
         <span class="n">_is_slot_id</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">listed</span>
@@ -1797,14 +2146,114 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># (a validate of what the render draws), and a second pass would only</span>
         <span class="c1"># re-sort what the first laid out. Nothing to add.</span>
         <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">notes</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)))</span>
+
+    <span class="c1"># Frames: the tree with this shot's actions on frame channels, and where</span>
+    <span class="c1"># each member and the camera stand in it.</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">}</span>
+    <span class="n">positioned</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">_split_frame_actions</span><span class="p">(</span>
+        <span class="n">shot</span><span class="p">,</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="n">frames</span><span class="o">=</span><span class="n">frames</span><span class="p">,</span>
+        <span class="n">members</span><span class="o">=</span><span class="n">positioned</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="n">split</span><span class="o">.</span><span class="n">frame_tracks</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">FrameError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="n">vp_frame</span> <span class="o">=</span> <span class="n">vp</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">world</span><span class="o">.</span><span class="n">default_frame</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">vp_frame</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tree</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the viewpoint is `in: </span><span class="si">{</span><span class="n">vp_frame</span><span class="si">}</span><span class="s2">`, which is not a "</span>
+            <span class="sa">f</span><span class="s2">"frame; the frames are </span><span class="si">{</span><span class="nb">sorted</span><span class="p">({</span><span class="n">WORLD_FRAME</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">frames</span><span class="p">})</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+    <span class="n">frame_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">world</span><span class="o">.</span><span class="n">default_frame</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">positioned</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+    <span class="n">member_at</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Point3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">moving</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">positioned</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">tracks</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">member_tracks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+        <span class="n">fx</span> <span class="o">=</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">fx</span> <span class="o">==</span> <span class="n">vp_frame</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tracks</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">p0</span> <span class="o">=</span> <span class="n">_member_point</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">tracks</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fx</span> <span class="o">!=</span> <span class="n">vp_frame</span><span class="p">:</span>
+            <span class="n">p0</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">relative_pose</span><span class="p">(</span><span class="n">fx</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tree</span><span class="o">.</span><span class="n">is_static</span><span class="p">(</span><span class="n">fx</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">):</span>
+                <span class="n">moving</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_tracks_vary</span><span class="p">(</span><span class="n">tracks</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+            <span class="n">moving</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+        <span class="n">member_at</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">=</span> <span class="n">p0</span>
+    <span class="n">projection</span> <span class="o">=</span> <span class="n">resolve_viewpoint</span><span class="p">(</span>
+        <span class="n">world</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">member_at</span><span class="o">=</span><span class="n">member_at</span>
+    <span class="p">)</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">_FrameCtx</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">film_start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="n">projection</span><span class="p">)</span>
     <span class="n">common</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span>
         <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
         <span class="n">hide</span><span class="o">=</span><span class="n">vp</span><span class="o">.</span><span class="n">hide</span><span class="p">,</span>
         <span class="n">extent_problems</span><span class="o">=</span><span class="n">extent_problems</span><span class="p">,</span>
+        <span class="n">member_at</span><span class="o">=</span><span class="n">member_at</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">projected</span> <span class="o">=</span> <span class="n">member_placements</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">projection</span><span class="p">,</span> <span class="o">**</span><span class="n">common</span><span class="p">)</span>
+
+    <span class="c1"># Members in motion relative to the camera: sampled channels, not a placement.</span>
+    <span class="n">near</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">near</span><span class="p">)</span> <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DFLT_TRAVEL_NEAR</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">tolerance_px</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">DFLT_TRAVEL_TOLERANCE_PX</span>
+    <span class="p">)</span>
+    <span class="n">budget</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="o">.</span><span class="n">max_actions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">DFLT_TRAVEL_MAX_ACTIONS</span>
+    <span class="p">)</span>
+    <span class="n">min_step</span> <span class="o">=</span> <span class="n">_MIN_SAMPLE_FRAMES</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">passes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_Pass</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">moving</span><span class="p">):</span>
+        <span class="n">member</span><span class="p">,</span> <span class="n">box</span> <span class="o">=</span> <span class="n">positioned</span><span class="p">[</span><span class="n">mid</span><span class="p">],</span> <span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">_unit_scale</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">mid</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># unmeasured: the static path says so</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">_member_passes</span><span class="p">(</span>
+            <span class="n">member</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="n">frame_of</span><span class="p">[</span><span class="n">mid</span><span class="p">],</span>
+            <span class="n">split</span><span class="o">.</span><span class="n">member_tracks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">),</span>
+            <span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">,</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+            <span class="n">near</span><span class="o">=</span><span class="n">near</span><span class="p">,</span>
+            <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+            <span class="n">min_step</span><span class="o">=</span><span class="n">min_step</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">passes</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">=</span> <span class="n">found</span>
+    <span class="c1"># A lowered scene lowered again: the shot lists the member where its pass</span>
+    <span class="c1"># begins, so its motion is already there.</span>
+    <span class="n">already</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">passes</span>
+        <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">passes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">passes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="o">&lt;=</span> <span class="n">HAND_PLACEMENT_TOLERANCE_PX</span>
+        <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"tween"</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
     <span class="c1"># A hand `at` keeps the world's scale unless the author set one: a `scale`</span>
     <span class="c1"># of exactly 1.0 is the field's default, and the default means "the world's".</span>
     <span class="n">hand</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1815,8 +2264,27 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">w</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">scale</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">scale</span>
             <span class="n">hand</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">fixed</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">mid</span><span class="p">:</span> <span class="n">Placed</span><span class="p">(</span>
+            <span class="n">mid</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">_screen_box</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vp</span><span class="o">.</span><span class="n">hide</span><span class="p">,</span>
+            <span class="s2">"world"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">runs</span> <span class="ow">in</span> <span class="n">passes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hand</span>
+    <span class="p">}</span>
     <span class="n">placed</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">member_placements</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">projection</span><span class="p">,</span> <span class="n">hand</span><span class="o">=</span><span class="n">hand</span><span class="p">,</span> <span class="o">**</span><span class="n">common</span><span class="p">)</span> <span class="k">if</span> <span class="n">hand</span> <span class="k">else</span> <span class="n">projected</span>
+        <span class="n">member_placements</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">projection</span><span class="p">,</span> <span class="n">hand</span><span class="o">=</span><span class="n">hand</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="n">fixed</span><span class="p">,</span> <span class="o">**</span><span class="n">common</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hand</span> <span class="ow">or</span> <span class="n">fixed</span>
+        <span class="k">else</span> <span class="n">projected</span>
     <span class="p">)</span>
 
     <span class="n">ordered</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1843,7 +2311,18 @@ window.runMermaid = runMermaid;</script>
         <span class="n">stage</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">stage</span>
         <span class="k">if</span> <span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">stage</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">w</span> <span class="o">=</span> <span class="n">projected</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">w</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">moving</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already</span><span class="p">:</span>
+                <span class="n">note</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span>
+                    <span class="s2">"hand_moving"</span><span class="p">,</span>
+                    <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"placed by hand at </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">)</span><span class="si">}</span><span class="s2">, but the world moves it "</span>
+                    <span class="sa">f</span><span class="s2">"(it is in frame </span><span class="si">{</span><span class="n">frame_of</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and the viewpoint in "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">vp_frame</span><span class="si">!r}</span><span class="s2">, or an `at_*` action moves it): the hand placement "</span>
+                    <span class="s2">"stays put on screen. Drop `stage.at` to let the world move it, or "</span>
+                    <span class="s2">"put the member in the viewpoint's frame (`in:`)."</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">w</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">w</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already</span><span class="p">:</span>
                 <span class="n">off</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">w</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">w</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">eff_scale</span> <span class="o">=</span> <span class="n">hand</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
                 <span class="k">if</span> <span class="p">(</span>
@@ -1924,15 +2403,37 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>  <span class="c1"># type: ignore[union-attr]</span>
         <span class="n">note</span><span class="p">(</span><span class="s2">"info"</span><span class="p">,</span> <span class="s2">"added"</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"the world adds it </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="n">actions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">split</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+    <span class="n">emitted</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">}</span> <span class="o">|</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">envs</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">passes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">fixed</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">emitted</span><span class="p">:</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">_pass_actions</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">passes</span><span class="p">[</span><span class="n">mid</span><span class="p">]],</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">n_motion</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_motion</span> <span class="o">&gt;</span> <span class="n">budget</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members in motion lower to </span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions, "</span>
+            <span class="sa">f</span><span class="s2">"past the `max_actions` (</span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">). Raise `tolerance_px` on the travel, "</span>
+            <span class="s2">"cut the shot, or keep fewer members moving relative to the camera."</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">to</span> <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">passes</span> <span class="ow">and</span> <span class="n">member</span><span class="o">.</span><span class="n">attached</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore[union-attr]</span>
+            <span class="n">note</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="s2">"attached_moving"</span><span class="p">,</span>
+                <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"attached to </span><span class="si">{</span><span class="n">host</span><span class="si">!r}</span><span class="s2">, which is in motion relative to the viewpoint: "</span>
+                <span class="s2">"its offset is applied at the host's placement as the shot opens, and "</span>
+                <span class="s2">"the attachment does not follow the host's motion across the frame."</span><span class="p">,</span>
+            <span class="p">)</span>
     <span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">travel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">extra</span><span class="p">,</span> <span class="n">extra_actions</span><span class="p">,</span> <span class="n">problems</span> <span class="o">=</span> <span class="n">_travel_entities</span><span class="p">(</span>
             <span class="n">world</span><span class="o">.</span><span class="n">travel</span><span class="p">,</span>
-            <span class="n">projection</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="p">,</span>
             <span class="n">extents</span><span class="o">=</span><span class="n">extents</span><span class="p">,</span>
             <span class="n">extent_problems</span><span class="o">=</span><span class="n">extent_problems</span><span class="p">,</span>
-            <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">,</span>
-            <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span>
             <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
@@ -1944,6 +2445,13 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">depth0</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">extra</span><span class="p">):</span>
             <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="n">depth0</span><span class="p">,</span> <span class="mf">10_000.0</span> <span class="o">+</span> <span class="n">si</span><span class="p">),</span> <span class="n">entity</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
         <span class="n">actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">extra_actions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_motion</span> <span class="ow">and</span> <span class="n">n_motion</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_actions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">budget</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the members in motion (</span><span class="si">{</span><span class="n">n_motion</span><span class="si">}</span><span class="s2"> actions) and the "</span>
+                <span class="sa">f</span><span class="s2">"travel's streams (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">extra_actions</span><span class="p">)</span><span class="si">}</span><span class="s2">) together pass `max_actions` "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">budget</span><span class="si">}</span><span class="s2">). Raise `tolerance_px`, cut the shot, or raise `max_actions` "</span>
+                <span class="s2">"knowingly."</span>
+            <span class="p">)</span>
         <span class="k">for</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
             <span class="n">note</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"stream"</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
     <span class="n">ordered</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1980,6 +2488,86 @@ window.runMermaid = runMermaid;</script>
         <span class="n">library</span><span class="o">=</span><span class="n">member</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
         <span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<div class="viewcode-block" id="pose_look">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.pose_look">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pose_look</span><span class="p">(</span><span class="n">pose</span><span class="p">:</span> <span class="n">Pose</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ``(yaw, pitch)`` in degrees a pose faces.</span>
+
+<span class="sd">    &gt;&gt;&gt; pose_look(Pose())</span>
+<span class="sd">    (0.0, 0.0)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_angles_toward</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="frame_poses">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.frame_poses">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frame_poses</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">film_starts</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Per framed shot, where each frame stands in the world as the shot opens</span>
+<span class="sd">    and as it closes (after the shot's own ``&lt;frame&gt;:at_*`` actions): what</span>
+<span class="sd">    `an world show --frames` prints.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Frame, FrameMoving, Viewpoint, World</span>
+<span class="sd">    &gt;&gt;&gt; scene = SceneIR(world=World(frames={"car": Frame(moving=FrameMoving(speed=10.0))},</span>
+<span class="sd">    ...                             viewpoints={"v": Viewpoint(at=(0.0, 0.0, 0.0), frame="car")}),</span>
+<span class="sd">    ...                 timeline=[Shot(id="s", duration=2.0, viewpoint="v")])</span>
+<span class="sd">    &gt;&gt;&gt; row = frame_poses(scene)[0]</span>
+<span class="sd">    &gt;&gt;&gt; row["viewpoint_frame"], row["frames"][0]["name"], row["frames"][0]["end"]["at"]</span>
+<span class="sd">    ('car', 'car', (0.0, 0.0, 20.0))</span>
+<span class="sd">    """</span>
+    <span class="n">world</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">world</span>
+    <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">starts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">film_starts</span><span class="p">)</span> <span class="k">if</span> <span class="n">film_starts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_film_starts</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">all_frames</span><span class="p">()</span>
+    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">vp</span> <span class="o">=</span> <span class="n">viewpoint_of</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">shot</span><span class="o">.</span><span class="n">viewpoint</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">vp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">_split_frame_actions</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">default_easing</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+            <span class="n">frames</span><span class="o">=</span><span class="n">frames</span><span class="p">,</span>
+            <span class="n">members</span><span class="o">=</span><span class="p">{</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tree</span> <span class="o">=</span> <span class="n">FrameTree</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="n">split</span><span class="o">.</span><span class="n">frame_tracks</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">FrameError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WorldError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+            <span class="n">pose</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">world_pose</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">starts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span> <span class="o">=</span> <span class="n">pose_look</span><span class="p">(</span><span class="n">pose</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">"at"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pose</span><span class="o">.</span><span class="n">at</span><span class="p">),</span>
+                <span class="s2">"yaw"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"pitch"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"shot"</span><span class="p">:</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">"viewpoint_frame"</span><span class="p">:</span> <span class="n">vp</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">world</span><span class="o">.</span><span class="n">default_frame</span><span class="p">(),</span>
+                <span class="s2">"frames"</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">"name"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="s2">"parent"</span><span class="p">:</span> <span class="n">frames</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span>
+                        <span class="s2">"coupling"</span><span class="p">:</span> <span class="n">frames</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">coupling</span><span class="p">,</span>
+                        <span class="s2">"start"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                        <span class="s2">"end"</span><span class="p">:</span> <span class="n">at</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)),</span>
+                    <span class="p">}</span>
+                    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">frames</span>
+                <span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rows</span></div>
+
 
 
 <div class="viewcode-block" id="lower_world">
