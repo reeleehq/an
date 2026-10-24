@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=bbaa556f"></script>
+    <script src="../../../_static/documentation_options.js?v=8c52df05"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.255" />
+  <meta name="docsearch:version" content="0.1.256" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,6 +770,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- ``held_item`` (catalogue A4, the weld): an item declared held by a node</span>
 <span class="sd">  (``Shot.welds``) stays at its offset from the carrier between pick-up and</span>
 <span class="sd">  release. :func:`weld_drifts` is the pure function under it.</span>
+<span class="sd">- ``rigidity`` (catalogue A5): an entity that declares ``overrides: {rigid: true}``</span>
+<span class="sd">  keeps its aspect (``scale_x`` against ``scale_y``) through the shot; one that</span>
+<span class="sd">  declares ``overrides: {preserve_volume: true}`` keeps ``scale_x * scale_y``.</span>
+<span class="sd">  :func:`shape_drifts` is the pure function under it. Opt-in, since the</span>
+<span class="sd">  ``squash_stretch`` preset deforms on purpose.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -795,6 +800,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"JUMP_CUT"</span><span class="p">,</span>
     <span class="s2">"OBJECT_PERMANENCE"</span><span class="p">,</span>
     <span class="s2">"HELD_ITEM"</span><span class="p">,</span>
+    <span class="s2">"RIGIDITY"</span><span class="p">,</span>
+    <span class="s2">"ShapeDrift"</span><span class="p">,</span>
+    <span class="s2">"shape_drifts"</span><span class="p">,</span>
     <span class="s2">"WeldDrift"</span><span class="p">,</span>
     <span class="s2">"weld_drifts"</span><span class="p">,</span>
     <span class="s2">"Vanishing"</span><span class="p">,</span>
@@ -1895,6 +1903,128 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># rigidity (catalogue A5): shape and volume under scale</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The ``AssetRef.overrides`` keys that declare what a scale may not change.</span>
+<span class="n">RIGID_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rigid"</span>
+<span class="n">VOLUME_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"preserve_volume"</span>
+<span class="c1">#: How far (as a fraction) the aspect ``|sx / sy|`` may leave its starting value.</span>
+<span class="n">RIGID_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span>
+<span class="c1">#: How far (as a fraction) the area ``|sx * sy|`` may leave its starting value:</span>
+<span class="c1">#: the ``squash_stretch`` preset keeps it within about 4%.</span>
+<span class="n">VOLUME_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+
+<div class="viewcode-block" id="ShapeDrift">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.ShapeDrift">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShapeDrift</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``quantity`` (``aspect`` or ``volume``) of ``entity`` is ``ratio`` times its start at ``at`` s."""</span>
+
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="shape_drifts">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.shape_drifts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shape_drifts</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShapeDrift</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The first of ``samples`` ``(t, scale_x, scale_y)`` whose ``quantity`` has left</span>
+<span class="sd">    its starting value by more than ``tolerance`` (a fraction), as one drift</span>
+<span class="sd">    carrying the worst ratio seen from then on.</span>
+
+<span class="sd">    &gt;&gt;&gt; squash = [(0.0, 1.0, 1.0), (0.5, 1.2, 0.8), (1.0, 1.0, 1.0)]</span>
+<span class="sd">    &gt;&gt;&gt; shape_drifts("ball", squash, quantity="volume")</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; [round(d.ratio, 3) for d in shape_drifts("ball", squash, quantity="aspect")]</span>
+<span class="sd">    [1.5]</span>
+<span class="sd">    &gt;&gt;&gt; shape_drifts("ball", [(0.0, 1.0, 1.0), (1.0, 1.5, 1.0)], quantity="volume")[0].ratio</span>
+<span class="sd">    1.5</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tolerance</span> <span class="o">=</span> <span class="n">RIGID_TOLERANCE</span> <span class="k">if</span> <span class="n">quantity</span> <span class="o">==</span> <span class="s2">"aspect"</span> <span class="k">else</span> <span class="n">VOLUME_TOLERANCE</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">measure</span><span class="p">(</span><span class="n">sx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sx</span> <span class="o">/</span> <span class="n">sy</span><span class="p">)</span> <span class="k">if</span> <span class="n">quantity</span> <span class="o">==</span> <span class="s2">"aspect"</span> <span class="k">else</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sx</span> <span class="o">*</span> <span class="n">sy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">samples</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">)</span> <span class="ow">or</span> <span class="n">measure</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">measure</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">first</span><span class="p">,</span> <span class="n">worst</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">1.0</span>
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">measure</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="n">start</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ratio</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="n">t</span> <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">first</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ratio</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">worst</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="n">worst</span> <span class="o">=</span> <span class="n">ratio</span>
+    <span class="k">return</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">ShapeDrift</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">quantity</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">worst</span><span class="p">)]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_rigidity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``rigidity`` check over the entities that declare a shape to keep."""</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="p">((</span><span class="n">RIGID_OVERRIDE</span><span class="p">,</span> <span class="s2">"aspect"</span><span class="p">),</span> <span class="p">(</span><span class="n">VOLUME_OVERRIDE</span><span class="p">,</span> <span class="s2">"volume"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">_node_chain</span><span class="p">,</span>
+        <span class="n">_pose_for</span><span class="p">,</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">timeline_from_scene</span><span class="p">,</span>
+        <span class="n">transform_of</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">_sample_times</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+    <span class="n">poses</span> <span class="o">=</span> <span class="p">[</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">entity</span><span class="p">,</span> <span class="n">quantity</span> <span class="ow">in</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - not drawn on the stage (a voice)</span>
+            <span class="k">continue</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">poses</span><span class="p">):</span>
+            <span class="n">tr</span> <span class="o">=</span> <span class="n">transform_of</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">_pose_for</span><span class="p">(</span><span class="n">pose</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span> <span class="n">frame_height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">scale_x</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">scale_y</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shape_drifts</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">quantity</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">RIGID_OVERRIDE</span> <span class="k">if</span> <span class="n">quantity</span> <span class="o">==</span> <span class="s2">"aspect"</span> <span class="k">else</span> <span class="n">VOLUME_OVERRIDE</span>
+            <span class="n">what</span> <span class="o">=</span> <span class="s2">"its proportions"</span> <span class="k">if</span> <span class="n">quantity</span> <span class="o">==</span> <span class="s2">"aspect"</span> <span class="k">else</span> <span class="s2">"its volume"</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="o">.</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> declares </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> but </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> change from </span><span class="si">{</span><span class="n">d</span><span class="o">.</span><span class="n">at</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s "</span>
+                <span class="sa">f</span><span class="s2">"(x</span><span class="si">{</span><span class="n">d</span><span class="o">.</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> of the start): scale `scale_x` and `scale_y` "</span>
+                <span class="s2">"together (for volume, one up by what the other loses), or drop "</span>
+                <span class="s2">"the declaration if it is meant to deform."</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
+<span class="n">RIGIDITY</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"rigidity"</span><span class="p">,</span>
+    <span class="n">check_rigidity</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
 <span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CONTINUITY</span><span class="p">,</span>
@@ -1903,6 +2033,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">JUMP_CUT</span><span class="p">,</span>
     <span class="n">OBJECT_PERMANENCE</span><span class="p">,</span>
     <span class="n">HELD_ITEM</span><span class="p">,</span>
+    <span class="n">RIGIDITY</span><span class="p">,</span>
 <span class="p">)</span>
 
 

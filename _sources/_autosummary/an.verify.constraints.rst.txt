@@ -14,6 +14,7 @@ an.verify.constraints
 
    .. autosummary::
    
+      shape_drifts
       weld_drifts
       vanishings
       compiled_shot
@@ -26,6 +27,7 @@ an.verify.constraints
    .. autosummary::
    
       Constraint
+      ShapeDrift
       WeldDrift
       Vanishing
       Discontinuity
