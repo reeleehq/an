@@ -50,6 +50,9 @@ The core's constraints:
 - ``jump_cut`` (catalogue C4, the 30-degree rule): two consecutive shots of one
   subject from nearly the same angle and size. :func:`jump_cut_between` is the
   pure function under it.
+- ``object_permanence`` (catalogue C1): an entity shown, then absent for whole
+  shots, then shown again with no ``time_jump`` between and no entrance; and one
+  entity drawn twice in a shot. :func:`vanishings` is the pure function under it.
 """
 
 from __future__ import annotations
@@ -73,6 +76,9 @@ __all__ = [
     "SOLIDITY",
     "DRAW_ORDER",
     "JUMP_CUT",
+    "OBJECT_PERMANENCE",
+    "Vanishing",
+    "vanishings",
     "Discontinuity",
     "ShortHold",
     "compiled_shot",
@@ -908,8 +914,107 @@ JUMP_CUT = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# object_permanence (catalogue C1): presence across shots, uniqueness in a shot
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Vanishing:
+    """``entity`` is in shot ``before`` and again in shot ``after`` (timeline
+    indices) but in none of the shots between."""
+
+    entity: str
+    before: int
+    after: int
+
+
+def vanishings(
+    presence: list[frozenset[str]],
+    time_jumps: list[bool],
+    entrances: list[frozenset[str]] | None = None,
+) -> list[Vanishing]:
+    """The entities that vanish and return with nothing to explain it.
+
+    ``presence[i]`` is the ids drawn in shot ``i``; ``time_jumps[i]`` says the
+    transition into shot ``i`` passes time; ``entrances[i]`` is the ids shot ``i``
+    opens by acting on. A return after absent shots is explained by a time jump
+    into any shot from the first absent one to the returning one, or by an entrance.
+
+    >>> shots = [frozenset({"a"}), frozenset(), frozenset({"a"})]
+    >>> vanishings(shots, [False] * 3)
+    [Vanishing(entity='a', before=0, after=2)]
+    >>> vanishings(shots, [False, False, True])
+    []
+    >>> vanishings(shots, [False] * 3, [frozenset(), frozenset(), frozenset({"a"})])
+    []
+    >>> vanishings([frozenset({"a"}), frozenset({"a"})], [False] * 2)
+    []
+    """
+    entrances = entrances or [frozenset()] * len(presence)
+    out: list[Vanishing] = []
+    last: dict[str, int] = {}
+    for i, here in enumerate(presence):
+        for entity in sorted(here):
+            j = last.get(entity)
+            if (
+                j is not None
+                and j < i - 1
+                and not any(time_jumps[j + 1 : i + 1])
+                and entity not in entrances[i]
+            ):
+                out.append(Vanishing(entity, j, i))
+            last[entity] = i
+    return out
+
+
+def check_object_permanence(ctx: Any) -> None:
+    """The core's ``object_permanence`` check: presence across shots, uniqueness in one."""
+    from an.ir.validate import _opened
+
+    shots = ctx.shots
+    fps = ctx.scene.meta.fps
+    presence: list[frozenset[str]] = []
+    entrances: list[frozenset[str]] = []
+    for i, shot in enumerate(shots):
+        ids = [e.id for e in shot.entities if e.kind not in NON_SOLID_KINDS]
+        for entity_id in sorted({x for x in ids if ids.count(x) > 1}):
+            ctx.report.add(
+                "error",
+                f"timeline/{i}/entities",
+                f"{entity_id!r} is drawn {ids.count(entity_id)} times in shot {shot.id!r}: "
+                "one entity is one thing on screen. Give the second its own id.",
+            )
+        presence.append(frozenset(ids))
+        entrances.append(frozenset(x for x in ids if _opened(shot, x, fps=fps)))
+    jumps = [bool(s.transition and s.transition.time_jump) for s in shots]
+    for v in vanishings(presence, jumps, entrances):
+        ctx.report.add(
+            "warning",
+            f"timeline/{v.after}/entities",
+            f"{v.entity!r} is in shot {shots[v.before].id!r}, absent from the shots "
+            f"between and back in shot {shots[v.after].id!r} with no exit or entrance: "
+            "it vanishes and reappears. Show it, open the shot with an action on it "
+            "(an entrance), or set `transition.time_jump` on the cut that skips time.",
+        )
+
+
+OBJECT_PERMANENCE = Constraint(
+    "object_permanence",
+    check_object_permanence,
+    stage="finish",
+    description="an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
-CONSTRAINTS: tuple[Constraint, ...] = (CONTINUITY, SOLIDITY, DRAW_ORDER, JUMP_CUT)
+CONSTRAINTS: tuple[Constraint, ...] = (
+    CONTINUITY,
+    SOLIDITY,
+    DRAW_ORDER,
+    JUMP_CUT,
+    OBJECT_PERMANENCE,
+)
 
 
 def _register(constraints: tuple[Constraint, ...] = CONSTRAINTS) -> None:

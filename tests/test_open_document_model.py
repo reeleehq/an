@@ -745,6 +745,7 @@ def test_the_report_order_is_pinned():
         "library_checkouts",
         "draw_order",  # an#510
         "jump_cut",  # catalogue C4: the 30-degree rule over the world's viewpoints
+        "object_permanence",  # catalogue C1: presence across shots, uniqueness in one
     ]
 
 

@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-21
+- **`object_permanence` lint** (catalogue C1, an#519 rank 8): an entity shown, absent for whole shots, then shown again with no `transition.time_jump` into them and no opening action is one `an validate` warning; one entity drawn twice in a shot is an error. New `Transition.time_jump` (omitted from a dump unless set). The persistent-property half (ii) is not built.
 - **`jump_cut` lint** (catalogue C4, an#519 rank 9): consecutive shots of one world subject, from viewpoints under 30° apart in look direction and under x1.3 in apparent size, are one `an validate` warning.
 - **`draw_order` lint** (an#510, part ii): a pair of entities painted one way in one shot and the other way in a later one, with no change of `stage.after` for either, is one `an validate` warning naming both shots. World members are skipped (depth derives their order); the within-shot check against world depth is still open on an#510.
 - **`solidity` lint** (an#509, an#497): two solids (characters and props; not planes, voices, path or text props) whose boxes overlap by more than a quarter of the smaller one, sampled every 0.25 s, with no `stage.after` on either, are one `an validate` warning naming both; `overrides: {solid: false}` opts an entity out.

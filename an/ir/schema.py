@@ -1320,12 +1320,19 @@ class Transition(_IRModel):
     color: str = DEFAULT_TRANSITION_COLOR
     #: A ``wipe``'s direction; omitted from a dump for every other kind.
     direction: Literal["left", "right", "up", "down"] = "left"
+    #: Time passes across this transition (catalogue C1): what is absent from the
+    #: shots before it is not missing, it left in the meantime. Omitted from a
+    #: dump unless set.
+    time_jump: bool = False
 
     @model_serializer(mode="wrap")
     def _direction_only_for_a_wipe(self, handler):
         data = handler(self)
-        if isinstance(data, dict) and self.kind != "wipe":
-            data.pop("direction", None)
+        if isinstance(data, dict):
+            if self.kind != "wipe":
+                data.pop("direction", None)
+            if not self.time_jump:
+                data.pop("time_jump", None)
         return data
 
     @model_validator(mode="after")
