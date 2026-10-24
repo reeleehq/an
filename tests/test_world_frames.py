@@ -52,7 +52,9 @@ def _legacy_scenes() -> dict[str, SceneIR]:
                 "two": Viewpoint(at=(0.0, 0.0, 0.0), focal=300.0),
                 "right_cu": Viewpoint(subject="right", size="close_up", focal=300.0),
                 "road": Viewpoint(at=(0.0, -1.0, 0.0), focal=300.0),
-                "side": Viewpoint(at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), focal=300.0),
+                "side": Viewpoint(
+                    at=(0.0, -1.0, 0.0), look=(90.0, 0.0, 0.0), focal=300.0
+                ),
             },
         )
         return SceneIR(
@@ -100,7 +102,11 @@ def _legacy_scenes() -> dict[str, SceneIR]:
         )
         return s
 
-    return {"still": still, "travel": travelling("road"), "travel_side": travelling("side")}
+    return {
+        "still": still,
+        "travel": travelling("road"),
+        "travel_side": travelling("side"),
+    }
 
 
 def _dump(scene: SceneIR) -> dict:
@@ -172,7 +178,11 @@ def _channel(shot: Shot, entity: str, prop: str):
     out = []
     for f in flatten(parallel(*shot.actions)):
         a = f.action
-        if getattr(a, "kind", "") == "tween" and a.target == entity and a.property == prop:
+        if (
+            getattr(a, "kind", "") == "tween"
+            and a.target == entity
+            and a.property == prop
+        ):
             out.append((f.start, f.end, a.from_value, a.to_value))
     return sorted(out)
 
@@ -204,11 +214,19 @@ def test_in_is_the_documents_key_and_round_trips_through_scene_md():
     scene.world.members[0].frame = "vehicle"
     scene.world.viewpoints["road"].frame = "vehicle"
     scene.world.members.append(
-        WorldMember(kind="environment", id="set", store="environments", ref="stage",
-                    frame="vehicle", planes={"sky": "far"})
+        WorldMember(
+            kind="environment",
+            id="set",
+            store="environments",
+            ref="stage",
+            frame="vehicle",
+            planes={"sky": "far"},
+        )
     )
     dumped = json.loads(scene.world.model_dump_json())
-    assert dumped["members"][0]["in"] == "vehicle" and "frame" not in dumped["members"][0]
+    assert (
+        dumped["members"][0]["in"] == "vehicle" and "frame" not in dumped["members"][0]
+    )
     assert dumped["viewpoints"]["road"]["in"] == "vehicle"
     assert dumped["frames"]["far"] == {"parent": "vehicle", "coupling": "far"}
     assert World.model_validate(dumped) == scene.world
@@ -249,7 +267,13 @@ def test_an_unknown_frame_is_refused_wherever_it_is_named():
     with pytest.raises(ValueError, match="viewpoint 'v'.*boat"):
         World(viewpoints={"v": Viewpoint(at=(0.0, 0.0, 0.0), frame="boat")})
     with pytest.raises(ValueError, match="stream 's'.*boat"):
-        World(travel=Travel(streams=[Stream(id="s", ref="lamp", height=1.0, every=3.0, frame="boat")]))
+        World(
+            travel=Travel(
+                streams=[
+                    Stream(id="s", ref="lamp", height=1.0, every=3.0, frame="boat")
+                ]
+            )
+        )
 
 
 def test_an_attached_member_is_in_its_hosts_frame_and_planes_are_an_environments():
@@ -286,7 +310,10 @@ def test_a_far_frame_turns_with_its_parent_and_never_translates():
 
 
 def test_a_pose_and_its_inverse_cancel_for_any_look():
-    p = Pose((1.0, -2.0, 3.0), FrameTree({"f": Frame(look=(30.0, 20.0, 10.0))}).world_pose("f", 0).axes)
+    p = Pose(
+        (1.0, -2.0, 3.0),
+        FrameTree({"f": Frame(look=(30.0, 20.0, 10.0))}).world_pose("f", 0).axes,
+    )
     q = (4.0, 5.0, 6.0)
     assert p.inverse().apply(p.apply(q)) == pytest.approx(q)
     assert p.unapply(p.apply(q)) == pytest.approx(q)
@@ -301,8 +328,12 @@ def test_a_moving_frame_keeps_its_phase_across_a_cut():
 
 def test_a_track_replaces_the_declared_channel_for_the_shot():
     track = Track([TrackEvent(0.0, 2.0, to=10.0, easing="linear")])
-    tree = FrameTree({"dolly": Frame(at=(0.0, 0.0, 5.0))}, tracks={"dolly": {"at_z": track}})
-    assert tree.world_pose("dolly", 1.0).at[2] == pytest.approx(7.5)  # from the declared 5 to 10
+    tree = FrameTree(
+        {"dolly": Frame(at=(0.0, 0.0, 5.0))}, tracks={"dolly": {"at_z": track}}
+    )
+    assert tree.world_pose("dolly", 1.0).at[2] == pytest.approx(
+        7.5
+    )  # from the declared 5 to 10
     assert tree.world_pose("dolly", 9.0).at[2] == 10.0  # and it holds
 
 
@@ -382,7 +413,9 @@ def test_a_roadside_viewpoint_sees_the_car_pass_with_no_hand_placement(mall):
 
 def test_a_member_fixed_in_the_world_streams_past_a_travelling_view(mall):
     scene = _car(Shot(id="s1", duration=2.0, viewpoint="road"), frames_form=False)
-    scene.world.members.append(_lamp("sign", at=(2.0, 0.0, 12.0), height=1.0, frame="world"))
+    scene.world.members.append(
+        _lamp("sign", at=(2.0, 0.0, 12.0), height=1.0, frame="world")
+    )
     shot = _lowered(scene)
     assert _channel(shot, "sign", "x"), "the sign comes toward the camera"
     assert _channel(shot, "left", "x") == [], "the cast rides with the camera"
@@ -403,16 +436,22 @@ def test_a_viewpoint_in_a_chain_of_frames_is_a_camera_rig(mall):
             id="s",
             duration=2.0,
             viewpoint="rig",
-            actions=[tween("dolly", "at_z", to=3.0, duration=2.0, from_=0.0, easing="linear")],
+            actions=[
+                tween("dolly", "at_z", to=3.0, duration=2.0, from_=0.0, easing="linear")
+            ],
         ),
         frames={"dolly": Frame(), "arm": Frame(parent="dolly", at=(0.0, -1.0, 0.0))},
     )
-    scene.world.viewpoints["rig"] = Viewpoint(at=(0.0, 0.0, 0.0), focal=300.0, frame="arm")
+    scene.world.viewpoints["rig"] = Viewpoint(
+        at=(0.0, 0.0, 0.0), focal=300.0, frame="arm"
+    )
     for m in scene.world.members:
         m.at = (m.at[0], m.at[1], 6.0)
     lowered = lower_world(scene, extents=EXTENTS)
     shot = lowered.scene.timeline[0]
-    assert all(getattr(a, "target", "") != "dolly" for a in shot.actions), "lowered, not played"
+    assert all(getattr(a, "target", "") != "dolly" for a in shot.actions), (
+        "lowered, not played"
+    )
     assert _channel(shot, "right", "x")
     for i in range(0, 9):
         t = i / 4
@@ -428,9 +467,13 @@ def test_a_walk_in_a_moving_platforms_units(mall):
             id="s",
             duration=2.0,
             viewpoint="road",
-            actions=[tween("right", "at_x", to=1.0, duration=2.0, from_=0.5, easing="linear")],
+            actions=[
+                tween("right", "at_x", to=1.0, duration=2.0, from_=0.5, easing="linear")
+            ],
         ),
-        frames={"platform": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=0.25))},
+        frames={
+            "platform": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=0.25))
+        },
     )
     scene.world.members[1].frame = "platform"
     shot = _lowered(scene)
@@ -439,7 +482,9 @@ def test_a_walk_in_a_moving_platforms_units(mall):
     seen = 0
     for i in range(0, 9):
         t = i / 4
-        x = 0.25 * t + (0.5 + 0.25 * t)  # the platform's drift plus the walk, in its units
+        x = 0.25 * t + (
+            0.5 + 0.25 * t
+        )  # the platform's drift plus the walk, in its units
         exact = eye.project((x, 0.4, 2.0))
         if abs(exact[0]) > W / 2:
             continue  # left the frame: hidden
@@ -454,7 +499,9 @@ def test_a_member_walking_in_the_cameras_own_frame_needs_no_frame_motion(mall):
             id="s",
             duration=1.0,
             viewpoint="road",
-            actions=[tween("left", "at_x", to=0.5, duration=1.0, from_=-0.5, easing="linear")],
+            actions=[
+                tween("left", "at_x", to=0.5, duration=1.0, from_=-0.5, easing="linear")
+            ],
         )
     )
     shot = _lowered(scene)
@@ -469,9 +516,15 @@ def test_a_member_walking_in_the_cameras_own_frame_needs_no_frame_motion(mall):
 def test_a_member_that_passes_the_camera_is_hidden_once_it_is_behind_it():
     scene = _scene(
         Shot(id="s", duration=2.0, viewpoint="road"),
-        frames={"vehicle": Frame(moving=FrameMoving(direction=(0.0, 0.0, -1.0), speed=SPEED))},
+        frames={
+            "vehicle": Frame(
+                moving=FrameMoving(direction=(0.0, 0.0, -1.0), speed=SPEED)
+            )
+        },
     )
-    scene.world.members[0].frame = "vehicle"  # starts 2 ahead and drives back through the lens
+    scene.world.members[
+        0
+    ].frame = "vehicle"  # starts 2 ahead and drives back through the lens
     shot = _lowered(scene)
     from an.ir.compose import flatten, parallel
 
@@ -488,7 +541,9 @@ def test_a_member_that_passes_the_camera_is_hidden_once_it_is_behind_it():
 def test_lowering_a_scene_with_members_in_motion_is_idempotent():
     scene = _scene(
         Shot(id="s", duration=2.0, viewpoint="road"),
-        frames={"vehicle": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=0.5))},
+        frames={
+            "vehicle": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=0.5))
+        },
     )
     scene.world.members[1].frame = "vehicle"
     once = lower_world(scene, extents=EXTENTS).scene
@@ -528,7 +583,9 @@ def test_other_actions_keep_their_times_when_frame_actions_are_lowered():
 
 def test_an_inline_viewpoint_in_an_unknown_frame_is_a_world_error():
     scene = _scene(
-        Shot(id="s", duration=1.0, viewpoint=Viewpoint(at=(0.0, 0.0, 0.0), frame="boat"))
+        Shot(
+            id="s", duration=1.0, viewpoint=Viewpoint(at=(0.0, 0.0, 0.0), frame="boat")
+        )
     )
     with pytest.raises(WorldError, match="`in: boat`.*not a frame"):
         lower_world(scene, extents=EXTENTS)
@@ -542,17 +599,26 @@ def test_a_hand_placement_in_a_frame_that_moves_is_a_warning_naming_the_fix():
             viewpoint="road",
             entities=[
                 AssetRef(
-                    kind="prop", id="right", store="props", ref="lamp",
+                    kind="prop",
+                    id="right",
+                    store="props",
+                    ref="lamp",
                     stage=StagePlacement(at=(10.0, 0.0), scale=2.0),
                 )
             ],
         ),
-        frames={"vehicle": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=1.0))},
+        frames={
+            "vehicle": Frame(moving=FrameMoving(direction=(1.0, 0.0, 0.0), speed=1.0))
+        },
     )
     scene.world.members[1].frame = "vehicle"
     lowered = lower_world(scene, extents=EXTENTS)
     warned = [n for n in lowered.notes if n.kind == "hand_moving"]
-    assert len(warned) == 1 and warned[0].severity == "warning" and warned[0].entity == "right"
+    assert (
+        len(warned) == 1
+        and warned[0].severity == "warning"
+        and warned[0].entity == "right"
+    )
     assert "Drop `stage.at`" in warned[0].message
     assert _channel(lowered.scene.timeline[0], "right", "x") == [], "the hand wins"
 
@@ -592,7 +658,11 @@ def _plates_scene(project, **env_kw) -> SceneIR:
             id="s1",
             duration=0.5,
             viewpoint="road",
-            entities=[AssetRef(kind="environment", id="set", store="environments", ref="stage")],
+            entities=[
+                AssetRef(
+                    kind="environment", id="set", store="environments", ref="stage"
+                )
+            ],
         ),
         frames={
             "vehicle": Frame(moving=FrameMoving(speed=SPEED)),
@@ -602,7 +672,9 @@ def _plates_scene(project, **env_kw) -> SceneIR:
     scene.meta = project.scene.meta
     scene.world.viewpoints["road"].frame = "vehicle"
     scene.world.members.append(
-        WorldMember(kind="environment", id="set", store="environments", ref="stage", **env_kw)
+        WorldMember(
+            kind="environment", id="set", store="environments", ref="stage", **env_kw
+        )
     )
     return scene
 
@@ -618,7 +690,9 @@ def test_planes_under_a_moving_view_must_say_which_frame_they_are_in(tmp_path):
     assert not any("nothing says" in d for d in none_needed)
 
 
-def test_a_plane_in_a_far_frame_is_pinned_and_one_in_another_moving_frame_is_a_warning(tmp_path):
+def test_a_plane_in_a_far_frame_is_pinned_and_one_in_another_moving_frame_is_a_warning(
+    tmp_path,
+):
     project = _env_project(tmp_path)
     scene = _plates_scene(
         project, frame="vehicle", planes={"sky": "far", "hill": "world"}
@@ -637,7 +711,9 @@ def test_a_plane_in_a_far_frame_is_pinned_and_one_in_another_moving_frame_is_a_w
 # --- an world show --frames ----------------------------------------------------------------
 
 
-def test_an_world_show_frames_prints_each_frame_as_the_shot_opens_and_closes(tmp_path, capsys):
+def test_an_world_show_frames_prints_each_frame_as_the_shot_opens_and_closes(
+    tmp_path, capsys
+):
     from an.world_cli import show
 
     project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))

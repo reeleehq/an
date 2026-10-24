@@ -208,9 +208,7 @@ class Pose:
             return False
         a, b = self.axes or _IDENTITY_AXES, other.axes or _IDENTITY_AXES
         return all(
-            abs(x - y) <= _SAME_POSE_EPS
-            for u, v in zip(a, b)
-            for x, y in zip(u, v)
+            abs(x - y) <= _SAME_POSE_EPS for u, v in zip(a, b) for x, y in zip(u, v)
         )
 
 
@@ -360,7 +358,10 @@ class FrameTree:
             ch(name, "at_z", f.at[2], t),
         )
         if f.moving is not None:
-            by = _mul(_unit(tuple(map(float, f.moving.direction))), float(f.moving.speed) * (film_start + t))  # type: ignore[arg-type]
+            by = _mul(
+                _unit(tuple(map(float, f.moving.direction))),
+                float(f.moving.speed) * (film_start + t),
+            )  # type: ignore[arg-type]
             at = _add(at, by)
         return Pose(
             at,

@@ -1019,7 +1019,10 @@ def _travel_entities(
                         continue
                     t_in, t_out = 0.0, duration
                 else:
-                    ta, tb = (travel.near - depth0) / slope, (travel.far - depth0) / slope
+                    ta, tb = (
+                        (travel.near - depth0) / slope,
+                        (travel.far - depth0) / slope,
+                    )
                     t_in, t_out = max(0.0, min(ta, tb)), min(duration, max(ta, tb))
                     if t_out <= t_in:
                         continue
@@ -1037,9 +1040,7 @@ def _travel_entities(
                     continue
                 t_in, t_out = scanned
 
-            def g(
-                t: float, view: Callable = view
-            ) -> tuple[float, float, float]:
+            def g(t: float, view: Callable = view) -> tuple[float, float, float]:
                 rx, ry, depth = view(t)
                 depth = max(
                     depth, float(travel.near)
@@ -1151,9 +1152,7 @@ def _split_frame_actions(
             return "member"
         return None
 
-    if not any(
-        kind_of_target(a) for top in shot.actions for a in iter_actions(top)
-    ):
+    if not any(kind_of_target(a) for top in shot.actions for a in iter_actions(top)):
         return _Split(list(shot.actions), {}, {})
     events: dict[tuple[str, str, str], list[TrackEvent]] = {}
     kept: list[Any] = []
@@ -1179,7 +1178,9 @@ def _split_frame_actions(
                     easing=a.resolved_easing(default_easing),
                 )
         except (TypeError, ValueError):
-            raise WorldError(f"{where} needs numbers, not {a.value if a.kind == 'set' else a.to_value!r}") from None
+            raise WorldError(
+                f"{where} needs numbers, not {a.value if a.kind == 'set' else a.to_value!r}"
+            ) from None
         events.setdefault((which, a.target, a.property), []).append(ev)
     tracks: dict[str, dict[str, dict[str, Track]]] = {"frame": {}, "member": {}}
     for (which, target, prop), evs in events.items():

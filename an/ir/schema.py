@@ -915,7 +915,9 @@ class FrameMoving(_IRModel):
     @model_validator(mode="after")
     def _has_a_direction(self) -> "FrameMoving":
         if not any(self.direction):
-            raise ValueError("a moving frame's `direction` must not be the zero vector.")
+            raise ValueError(
+                "a moving frame's `direction` must not be the zero vector."
+            )
         return self
 
     @model_serializer(mode="wrap")

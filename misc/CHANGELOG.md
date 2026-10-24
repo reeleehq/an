@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-24
+- **Frames of reference in the scene world** (P4a, an#501; ADR 0009 amendment): `world.frames` (a tree of poses over film time: `parent`, `at`, `look`, `coupling: rigid|far`, `moving`), `in:` on members, viewpoints, streams and an environment's planes (`planes:`), lowering by `world_pose` in `an.ir.frames`/`an.ir.world` (a member whose frame moves relative to the camera's, or that `<member>:at_*` walks, gets sampled keys; `<frame>:at_*|yaw|pitch|roll` actions move a frame, in shot time), `travel` with a `speed` as sugar for a moving `vehicle` frame (a travel may now omit `speed` and only hold streams), the plate lint generalised to frames, `hand_moving` and `attached_moving` warnings, `an world show --frames`, skill reference `planes-of-movement.md`. Scenes without frames lower byte-identically (pinned).
+
 ## 2026-10-21
 - **`gravity` lint** (catalogue B4, an#519 rank 14): under a style pack that declares `gravity` (`{strength?}`), an entity with `overrides: {airborne: {from, until}}` must fall along a parabola (constant downward acceleration, within the pack's `strength` when given) and not stay level for more than 6 frames; a straight-line, uneven or hovering flight is one `an validate` warning. Unsupported falls and hangs wait on supports and joints.
 - **`motion_style` lint** (catalogue B2 and B5, an#519 rank 13): the style pack's `motion` block (`smoothness: {max}` as a log dimensionless jerk per move, `anticipation: {frames: [lo, hi], min_move}`) is measured on the compiled shot, and a move over the target is one `an validate` warning. Silent for a pack that declares no `motion`. Arcs and overlap (`follows`) are not built.

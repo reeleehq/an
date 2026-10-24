@@ -2671,7 +2671,9 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
     vp = viewpoint_of(world, shot.viewpoint)
     vp_frame = (vp.frame if vp is not None else None) or world.default_frame()
     moving_view = vp_frame != WORLD_FRAME and not tree.is_still(vp_frame)
-    declared = any(m.kind == "environment" and (m.frame or m.planes) for m in world.members)
+    declared = any(
+        m.kind == "environment" and (m.frame or m.planes) for m in world.members
+    )
     if not moving_view and not declared:
         return
     roles = (
@@ -2718,7 +2720,9 @@ def _core_viewpoint(ctx: ValidationContext) -> None:
                         f"{ctx.path}/entities",
                         f"plane {path!r} is under a moving view but nothing says what it "
                         "holds: list it under `world.travel.plates` or put it `in` a frame "
-                        "(`planes: {" + plane.name + ": <frame>}` on its environment member). "
+                        "(`planes: {"
+                        + plane.name
+                        + ": <frame>}` on its environment member). "
                         "A plane `far` (or in a frame coupled `far`) holds only what is at "
                         "infinity: the sky, the horizon, the far range, nothing nearer, which the "
                         "streams draw; one in the viewpoint's frame rides with the camera "
