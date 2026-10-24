@@ -14,6 +14,7 @@ an.verify.constraints
 
    .. autosummary::
    
+      vanishings
       compiled_shot
       continuity_findings
       discontinuities
@@ -24,6 +25,7 @@ an.verify.constraints
    .. autosummary::
    
       Constraint
+      Vanishing
       Discontinuity
       ShortHold
    

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=d45b41bb"></script>
+    <script src="../../../_static/documentation_options.js?v=1fd2d176"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.253" />
+  <meta name="docsearch:version" content="0.1.254" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -764,6 +764,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- ``jump_cut`` (catalogue C4, the 30-degree rule): two consecutive shots of one</span>
 <span class="sd">  subject from nearly the same angle and size. :func:`jump_cut_between` is the</span>
 <span class="sd">  pure function under it.</span>
+<span class="sd">- ``object_permanence`` (catalogue C1): an entity shown, then absent for whole</span>
+<span class="sd">  shots, then shown again with no ``time_jump`` between and no entrance; and one</span>
+<span class="sd">  entity drawn twice in a shot. :func:`vanishings` is the pure function under it.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -787,6 +790,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"SOLIDITY"</span><span class="p">,</span>
     <span class="s2">"DRAW_ORDER"</span><span class="p">,</span>
     <span class="s2">"JUMP_CUT"</span><span class="p">,</span>
+    <span class="s2">"OBJECT_PERMANENCE"</span><span class="p">,</span>
+    <span class="s2">"Vanishing"</span><span class="p">,</span>
+    <span class="s2">"vanishings"</span><span class="p">,</span>
     <span class="s2">"Discontinuity"</span><span class="p">,</span>
     <span class="s2">"ShortHold"</span><span class="p">,</span>
     <span class="s2">"compiled_shot"</span><span class="p">,</span>
@@ -1646,8 +1652,113 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># object_permanence (catalogue C1): presence across shots, uniqueness in a shot</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="Vanishing">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.Vanishing">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Vanishing</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``entity`` is in shot ``before`` and again in shot ``after`` (timeline</span>
+<span class="sd">    indices) but in none of the shots between."""</span>
+
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">before</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">after</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+
+<div class="viewcode-block" id="vanishings">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.vanishings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">vanishings</span><span class="p">(</span>
+    <span class="n">presence</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+    <span class="n">time_jumps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
+    <span class="n">entrances</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Vanishing</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The entities that vanish and return with nothing to explain it.</span>
+
+<span class="sd">    ``presence[i]`` is the ids drawn in shot ``i``; ``time_jumps[i]`` says the</span>
+<span class="sd">    transition into shot ``i`` passes time; ``entrances[i]`` is the ids shot ``i``</span>
+<span class="sd">    opens by acting on. A return after absent shots is explained by a time jump</span>
+<span class="sd">    into any shot from the first absent one to the returning one, or by an entrance.</span>
+
+<span class="sd">    &gt;&gt;&gt; shots = [frozenset({"a"}), frozenset(), frozenset({"a"})]</span>
+<span class="sd">    &gt;&gt;&gt; vanishings(shots, [False] * 3)</span>
+<span class="sd">    [Vanishing(entity='a', before=0, after=2)]</span>
+<span class="sd">    &gt;&gt;&gt; vanishings(shots, [False, False, True])</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; vanishings(shots, [False] * 3, [frozenset(), frozenset(), frozenset({"a"})])</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; vanishings([frozenset({"a"}), frozenset({"a"})], [False] * 2)</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="n">entrances</span> <span class="o">=</span> <span class="n">entrances</span> <span class="ow">or</span> <span class="p">[</span><span class="nb">frozenset</span><span class="p">()]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">presence</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Vanishing</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">last</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">here</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">presence</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">here</span><span class="p">):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">last</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">j</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">time_jumps</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="ow">and</span> <span class="n">entity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entrances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Vanishing</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">last</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_object_permanence</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``object_permanence`` check: presence across shots, uniqueness in one."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">_opened</span>
+
+    <span class="n">shots</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shots</span>
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
+    <span class="n">presence</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">entrances</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NON_SOLID_KINDS</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ids</span> <span class="k">if</span> <span class="n">ids</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}):</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"error"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> is drawn </span><span class="si">{</span><span class="n">ids</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span><span class="si">}</span><span class="s2"> times in shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: "</span>
+                <span class="s2">"one entity is one thing on screen. Give the second its own id."</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">presence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+        <span class="n">entrances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ids</span> <span class="k">if</span> <span class="n">_opened</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)))</span>
+    <span class="n">jumps</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bool</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">transition</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">time_jump</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vanishings</span><span class="p">(</span><span class="n">presence</span><span class="p">,</span> <span class="n">jumps</span><span class="p">,</span> <span class="n">entrances</span><span class="p">):</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">after</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> is in shot </span><span class="si">{</span><span class="n">shots</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">before</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">, absent from the shots "</span>
+            <span class="sa">f</span><span class="s2">"between and back in shot </span><span class="si">{</span><span class="n">shots</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">after</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> with no exit or entrance: "</span>
+            <span class="s2">"it vanishes and reappears. Show it, open the shot with an action on it "</span>
+            <span class="s2">"(an entrance), or set `transition.time_jump` on the cut that skips time."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">OBJECT_PERMANENCE</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"object_permanence"</span><span class="p">,</span>
+    <span class="n">check_object_permanence</span><span class="p">,</span>
+    <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
-<span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONTINUITY</span><span class="p">,</span> <span class="n">SOLIDITY</span><span class="p">,</span> <span class="n">DRAW_ORDER</span><span class="p">,</span> <span class="n">JUMP_CUT</span><span class="p">)</span>
+<span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">CONTINUITY</span><span class="p">,</span>
+    <span class="n">SOLIDITY</span><span class="p">,</span>
+    <span class="n">DRAW_ORDER</span><span class="p">,</span>
+    <span class="n">JUMP_CUT</span><span class="p">,</span>
+    <span class="n">OBJECT_PERMANENCE</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">(</span><span class="n">constraints</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">CONSTRAINTS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

@@ -92,7 +92,7 @@ True
 | [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
 | [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
-| [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, direction]) | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
+| [`Transition`](#an.ir.schema.Transition)(\*[, kind, duration, color, ...])       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
 | [`Travel`](#an.ir.schema.Travel)(\*[, direction, near, far, ...])            | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                                                         |
 | [`TweenAction`](#an.ir.schema.TweenAction)(\*[, name, kind, from_value, ...])     | Animate a property from a start value to an end value over a duration.                                                                                              |
 | [`Viewpoint`](#an.ir.schema.Viewpoint)(\*[, at, look, look_at, vanish, ...])    | A pinhole camera onto the world, or a composition that resolves to one (ADR 0009 decision 2).                                                                       |
@@ -1081,7 +1081,7 @@ the vehicle the viewpoints are mounted on.
 * **Type:**
   What a plane under a travel may be declared as
 
-### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', \*\*extra_data)
+### *class* an.ir.schema.Transition(, kind='cut', duration=0.5, color='#000000', direction='left', time_jump=False, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1120,6 +1120,15 @@ A `wipe`’s direction; omitted from a dump for every other kind.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### time_jump *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+what is absent from the
+shots before it is not missing, it left in the meantime. Omitted from a
+dump unless set.
+
+* **Type:**
+  Time passes across this transition (catalogue C1)
 
 ### *class* an.ir.schema.Travel(\*, direction=(0.0, 0.0, 1.0), speed, near=0.5, far=60.0, tolerance_px=1.0, max_actions=20000, streams=<factory>, plates=<factory>, \*\*extra_data)
 
