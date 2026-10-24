@@ -1316,7 +1316,8 @@ def move_jerk(values: list[float], dt: float) -> float | None:
     # a move starts and ends at rest, so the corner a linear ramp makes there counts
     v = [values[0]] * 3 + list(values) + [values[-1]] * 3
     jerk = [
-        (v[i + 3] - 3 * v[i + 2] + 3 * v[i + 1] - v[i]) / dt**3 for i in range(len(v) - 3)
+        (v[i + 3] - 3 * v[i + 2] + 3 * v[i + 1] - v[i]) / dt**3
+        for i in range(len(v) - 3)
     ]
     duration = (n - 1) * dt
     integral = sum(j * j for j in jerk) * dt
@@ -1381,7 +1382,11 @@ def _motion_targets(ctx: Any) -> dict[str, Any]:
         pack = styles[name]
     except Exception:  # noqa: BLE001 - a missing pack is reported by the style check
         return {}
-    block = pack.get(MOTION_KEY) if isinstance(pack, Mapping) else getattr(pack, MOTION_KEY, None)
+    block = (
+        pack.get(MOTION_KEY)
+        if isinstance(pack, Mapping)
+        else getattr(pack, MOTION_KEY, None)
+    )
     return dict(block) if isinstance(block, Mapping) else {}
 
 
@@ -1397,12 +1402,22 @@ def _moves(timeline: Any, fps: float) -> list[tuple[Move, list[float]]]:
                     continue
                 key = (ch.target, ch.property)
                 n = int(round(length * fps))
-                times = [placed.start_time + i * dt for i in range(n)] + [placed.end_time]
+                times = [placed.start_time + i * dt for i in range(n)] + [
+                    placed.end_time
+                ]
                 values = [_value_of(placed, key, t) for t in times]
                 if any(v is None for v in values):
                     continue
                 out.append(
-                    (Move(key, placed.start_time, placed.end_time, values[-1] - values[0]), values)
+                    (
+                        Move(
+                            key,
+                            placed.start_time,
+                            placed.end_time,
+                            values[-1] - values[0],
+                        ),
+                        values,
+                    )
                 )
     return out
 
