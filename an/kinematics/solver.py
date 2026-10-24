@@ -241,7 +241,9 @@ class _State:
         if len(set(names)) != len(names):
             raise KinematicsError("body names must be unique")
         for b in bodies:
-            if not b.fixed and not (b.width > 0 and b.height > 0 and b.scale > 0 and b.density > 0):
+            if not b.fixed and not (
+                b.width > 0 and b.height > 0 and b.scale > 0 and b.density > 0
+            ):
                 raise KinematicsError(
                     f"body {b.name!r}: a movable body needs a positive width, "
                     f"height, scale and density (it has no mass otherwise)"
@@ -250,7 +252,9 @@ class _State:
         self.index = {name: i + 1 for i, name in enumerate(names)}
         self.bodies = list(bodies)
         #: The centre's offset from the pose point, in the body's frame.
-        self.centre = [(0.0, 0.0)] + [local_offset(b, Point(b.name, 0.5, 0.5)) for b in bodies]
+        self.centre = [(0.0, 0.0)] + [
+            local_offset(b, Point(b.name, 0.5, 0.5)) for b in bodies
+        ]
         #: The reference point's offset from the pose point (the centre, or 0).
         self.ref = list(self.centre)
         self.th = [0.0] + [float(b.rotation) for b in bodies]
@@ -263,7 +267,9 @@ class _State:
         self.om = [0.0] + [float(b.omega) for b in bodies]
         self.m = [math.inf] + [mass(b) for b in bodies]
         self.inv_m = [0.0] + [0.0 if b.fixed else 1.0 / mass(b) for b in bodies]
-        self.inv_i = [0.0] + [0.0 if b.fixed else 1.0 / _centre_inertia(b) for b in bodies]
+        self.inv_i = [0.0] + [
+            0.0 if b.fixed else 1.0 / _centre_inertia(b) for b in bodies
+        ]
         #: ``body index -> [(channel, value at the frame's start, target)]``.
         self.held: dict[int, list[tuple[str, float, float]]] = {}
 
@@ -345,7 +351,9 @@ class _State:
             for channel in sorted(channels):
                 value = float(channels[channel])
                 if not math.isfinite(value):
-                    raise KinematicsError(f"body {name!r}: target {channel}={value} is not finite")
+                    raise KinematicsError(
+                        f"body {name!r}: target {channel}={value} is not finite"
+                    )
                 held.append((channel, pose[channel], value))
             self.held[i] = held
 
@@ -355,7 +363,9 @@ class _State:
         for i, held in self.held.items():
             pose = dict(zip(("x", "y", "rotation"), self.pose_of(i)))
             for channel, start, target in held:
-                pose[channel] = target if along >= 1.0 else start + (target - start) * along
+                pose[channel] = (
+                    target if along >= 1.0 else start + (target - start) * along
+                )
             self.set_pose(i, pose["x"], pose["y"], pose["rotation"])
 
     def centre_velocity(self, i: int) -> tuple[float, float]:
@@ -403,7 +413,11 @@ _Row = tuple[str, int, tuple]
 
 
 def _rows(
-    state: _State, joints: Sequence[Joint], forces: Sequence[Force], *, skip: Sequence[int] = ()
+    state: _State,
+    joints: Sequence[Joint],
+    forces: Sequence[Force],
+    *,
+    skip: Sequence[int] = (),
 ) -> list[_Row]:
     rows: list[_Row] = []
     for j, joint in enumerate(joints):
@@ -416,37 +430,86 @@ def _rows(
             ib, lxb, lyb = state.offset(joint.b)
             if ia == ib:
                 raise KinematicsError(f"joint {j}: both points are on one body")
-            rows.append(("pos", j, (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", joint.compliance)))
+            rows.append(
+                ("pos", j, (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", joint.compliance))
+            )
             if isinstance(joint, Hinge) and joint.limits is not None:
                 lo, hi = (float(v) for v in joint.limits)
                 if lo > hi:
-                    raise KinematicsError(f"joint {j}: hinge limits {joint.limits} are reversed")
+                    raise KinematicsError(
+                        f"joint {j}: hinge limits {joint.limits} are reversed"
+                    )
                 if lo < -math.pi or hi > math.pi:
                     raise KinematicsError(
                         f"joint {j}: hinge limits {joint.limits} must lie within [-pi, pi] about the rest angle"
                     )
-                rows.append(("ang", j, (ia, ib, float(joint.rest), lo, hi, joint.compliance)))
+                rows.append(
+                    ("ang", j, (ia, ib, float(joint.rest), lo, hi, joint.compliance))
+                )
             elif isinstance(joint, Weld):
-                rows.append(("ang", j, (ia, ib, float(joint.rest), 0.0, 0.0, joint.compliance)))
+                rows.append(
+                    ("ang", j, (ia, ib, float(joint.rest), 0.0, 0.0, joint.compliance))
+                )
         elif isinstance(joint, Distance):
             ia, lxa, lya = state.offset(joint.a)
             ib, lxb, lyb = state.offset(joint.b)
             if ia == ib:
                 raise KinematicsError(f"joint {j}: both points are on one body")
             if joint.mode not in ("equal", "at_most", "at_least"):
-                raise KinematicsError(f"joint {j}: unknown distance mode {joint.mode!r}")
+                raise KinematicsError(
+                    f"joint {j}: unknown distance mode {joint.mode!r}"
+                )
             if joint.length < 0:
-                raise KinematicsError(f"joint {j}: a distance's length must be non-negative")
-            rows.append(("pos", j, (ia, lxa, lya, ib, lxb, lyb, float(joint.length), joint.mode, joint.compliance)))
+                raise KinematicsError(
+                    f"joint {j}: a distance's length must be non-negative"
+                )
+            rows.append(
+                (
+                    "pos",
+                    j,
+                    (
+                        ia,
+                        lxa,
+                        lya,
+                        ib,
+                        lxb,
+                        lyb,
+                        float(joint.length),
+                        joint.mode,
+                        joint.compliance,
+                    ),
+                )
+            )
         elif isinstance(joint, (Slide, Contact)):
             ia, lx, ly = state.offset(joint.point)
             ib, sx0, sy0 = state.offset(joint.start)
             ib2, sx1, sy1 = state.offset(joint.end)
             if ib != ib2:
-                raise KinematicsError(f"joint {j}: a segment's two points must be on one body")
+                raise KinematicsError(
+                    f"joint {j}: a segment's two points must be on one body"
+                )
             if ia == ib:
-                raise KinematicsError(f"joint {j}: the point and the segment are on one body")
-            rows.append(("seg", j, (ia, lx, ly, ib, sx0, sy0, sx1, sy1, isinstance(joint, Contact), joint.compliance)))
+                raise KinematicsError(
+                    f"joint {j}: the point and the segment are on one body"
+                )
+            rows.append(
+                (
+                    "seg",
+                    j,
+                    (
+                        ia,
+                        lx,
+                        ly,
+                        ib,
+                        sx0,
+                        sy0,
+                        sx1,
+                        sy1,
+                        isinstance(joint, Contact),
+                        joint.compliance,
+                    ),
+                )
+            )
         else:
             raise KinematicsError(f"joint {j}: unknown joint {type(joint).__name__}")
     for f in forces:
@@ -461,13 +524,26 @@ def _rows(
             ib, lxb, lyb = 0, float(f.toward[0]), float(f.toward[1])
         if ia == ib:
             raise KinematicsError("a pull's two points are on one body")
-        rows.append(("pos", -1, (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", 1.0 / f.strength)))
+        rows.append(
+            ("pos", -1, (ia, lxa, lya, ib, lxb, lyb, 0.0, "equal", 1.0 / f.strength))
+        )
     return rows
 
 
 def _push(
-    st: _State, ia: int, rax: float, ray: float, ib: int, rbx: float, rby: float,
-    nx: float, ny: float, c: float, alpha_t: float, lam: list[float], k: int,
+    st: _State,
+    ia: int,
+    rax: float,
+    ray: float,
+    ib: int,
+    rbx: float,
+    rby: float,
+    nx: float,
+    ny: float,
+    c: float,
+    alpha_t: float,
+    lam: list[float],
+    k: int,
 ) -> None:
     """Apply one XPBD correction: the point on ``ia`` moves along ``-n`` and
     the point on ``ib`` along ``+n`` until ``c`` (the constraint value whose
@@ -492,7 +568,9 @@ def _push(
         st.th[ib] -= st.inv_i[ib] * dlam * crb
 
 
-def _project(st: _State, rows: list[_Row], lam: list[float], h: float, *, apply: bool) -> list[float]:
+def _project(
+    st: _State, rows: list[_Row], lam: list[float], h: float, *, apply: bool
+) -> list[float]:
     """One pass over the rows, last first: the first-declared joint is
     projected last, so it holds and a conflict shows on the later ones (the
     ones :func:`solve` gives up). Returns each row's constraint value in row
@@ -507,19 +585,37 @@ def _project(st: _State, rows: list[_Row], lam: list[float], h: float, *, apply:
             bx, by = st.world(ib, lxb, lyb)
             dx, dy = ax - bx, ay - by
             dist = math.hypot(dx, dy)
-            if (mode == "at_most" and dist <= length) or (mode == "at_least" and dist >= length):
+            if (mode == "at_most" and dist <= length) or (
+                mode == "at_least" and dist >= length
+            ):
                 continue
             if dist == 0.0:
                 if length == 0.0:
                     continue
-                nx, ny = 0.0, 1.0  # a spacer between coincident points: push apart along y
+                nx, ny = (
+                    0.0,
+                    1.0,
+                )  # a spacer between coincident points: push apart along y
             else:
                 nx, ny = dx / dist, dy / dist
             c = dist - length
             out[k] = c
             if apply:
-                _push(st, ia, ax - st.x[ia], ay - st.y[ia], ib, bx - st.x[ib], by - st.y[ib],
-                      nx, ny, c, compliance * inv_h2, lam, 2 * k)
+                _push(
+                    st,
+                    ia,
+                    ax - st.x[ia],
+                    ay - st.y[ia],
+                    ib,
+                    bx - st.x[ib],
+                    by - st.y[ib],
+                    nx,
+                    ny,
+                    c,
+                    compliance * inv_h2,
+                    lam,
+                    2 * k,
+                )
         elif kind == "ang":
             ia, ib, rest, lo, hi, compliance = p
             c = _range_violation(_wrap(st.th[ib] - st.th[ia] - rest), lo, hi)
@@ -545,24 +641,60 @@ def _project(st: _State, rows: list[_Row], lam: list[float], h: float, *, apply:
             tx, ty = tx / seg, ty / seg
             nx, ny = ty, -tx
             along = (px - x0) * tx + (py - y0) * ty
-            if one_sided and (along < -DFLT_SEGMENT_MARGIN or along > seg + DFLT_SEGMENT_MARGIN):
+            if one_sided and (
+                along < -DFLT_SEGMENT_MARGIN or along > seg + DFLT_SEGMENT_MARGIN
+            ):
                 continue
             c = (px - x0) * nx + (py - y0) * ny
             if one_sided and c >= 0.0:
                 continue
             # A slide is also held within the segment's ends.
-            ct = 0.0 if one_sided else along if along < 0.0 else along - seg if along > seg else 0.0
+            ct = (
+                0.0
+                if one_sided
+                else along
+                if along < 0.0
+                else along - seg
+                if along > seg
+                else 0.0
+            )
             out[k] = math.hypot(c, ct)
             if apply:
                 u = min(max(along, 0.0), seg)
                 qx, qy = x0 + u * tx, y0 + u * ty
                 alpha_t = compliance * inv_h2
-                _push(st, ia, px - st.x[ia], py - st.y[ia], ib, qx - st.x[ib], qy - st.y[ib],
-                      nx, ny, c, alpha_t, lam, 2 * k)
+                _push(
+                    st,
+                    ia,
+                    px - st.x[ia],
+                    py - st.y[ia],
+                    ib,
+                    qx - st.x[ib],
+                    qy - st.y[ib],
+                    nx,
+                    ny,
+                    c,
+                    alpha_t,
+                    lam,
+                    2 * k,
+                )
                 if ct:
                     px, py = st.world(ia, lx, ly)
-                    _push(st, ia, px - st.x[ia], py - st.y[ia], ib, qx - st.x[ib], qy - st.y[ib],
-                          tx, ty, ct, alpha_t, lam, 2 * k + 1)
+                    _push(
+                        st,
+                        ia,
+                        px - st.x[ia],
+                        py - st.y[ia],
+                        ib,
+                        qx - st.x[ib],
+                        qy - st.y[ib],
+                        tx,
+                        ty,
+                        ct,
+                        alpha_t,
+                        lam,
+                        2 * k + 1,
+                    )
     return out
 
 
@@ -594,7 +726,11 @@ def _chains(st: _State, rows: list[_Row]) -> list[_Chain]:
     """Every unbranched run of pinned bodies (two pins each, none held) from
     one held body to another (or back to the same one through two or more
     links): the chains the closed form seeds and the reach check reads."""
-    pins = [(j, p) for kind, j, p in rows if kind == "pos" and p[6] == 0.0 and p[7] == "equal" and j >= 0]
+    pins = [
+        (j, p)
+        for kind, j, p in rows
+        if kind == "pos" and p[6] == 0.0 and p[7] == "equal" and j >= 0
+    ]
     by_body: dict[int, list[tuple[int, tuple]]] = {}
     for j, p in pins:
         by_body.setdefault(p[0], []).append((j, p))
@@ -621,7 +757,14 @@ def _chains(st: _State, rows: list[_Row]) -> list[_Chain]:
             if anchored(nxt):
                 if nxt == root and len(links) < 2:
                     return None
-                return root, (rlx, rly), links, nxt, (nlx, nly), [jr] + [link[3] for link in links]
+                return (
+                    root,
+                    (rlx, rly),
+                    links,
+                    nxt,
+                    (nlx, nly),
+                    [jr] + [link[3] for link in links],
+                )
             if nxt in seen:
                 return None
             seen.add(nxt)
@@ -637,7 +780,9 @@ def _chains(st: _State, rows: list[_Row]) -> list[_Chain]:
             if not anchored(ends(root_pin, a)[2]) or anchored(ends(other, a)[2]):
                 continue
             chain = walk(a, jr, root_pin)
-            if chain is not None and not taken.intersection(link[0] for link in chain[2]):
+            if chain is not None and not taken.intersection(
+                link[0] for link in chain[2]
+            ):
                 taken.update(link[0] for link in chain[2])
                 out.append(chain)
                 break
@@ -650,6 +795,7 @@ def _out_of_reach(st: _State, rows: list[_Row], tolerance: float) -> list[int]:
     target), the chain's last-declared joint when the distance between its
     ends is outside the chain's reach by more than ``tolerance``. Such a
     conflict is known from the geometry, before any pass."""
+
     def rigid(i: int) -> bool:
         return st.inv_m[i] == 0.0 and st.inv_i[i] == 0.0
 
@@ -682,7 +828,9 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
         for j in joint_ids:
             if j in angles:
                 ia, ib, rest, lo, hi, _c = angles[j]
-                total += abs(_range_violation(_wrap(st.th[ib] - st.th[ia] - rest), lo, hi))
+                total += abs(
+                    _range_violation(_wrap(st.th[ib] - st.th[ia] - rest), lo, hi)
+                )
         return total
 
     def tail_angles(links: list) -> list[float]:
@@ -698,14 +846,18 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
             turns.append(turn)
         return turns
 
-    def pose_tail(links: list, turns: list[float], x0: float, y0: float, theta: float) -> tuple[float, float]:
+    def pose_tail(
+        links: list, turns: list[float], x0: float, y0: float, theta: float
+    ) -> tuple[float, float]:
         """Pose ``links[1:]`` rigidly from ``(x0, y0)``: the first of them at
         ``theta``, each next one turned by its entry in ``turns``. Returns the
         tail's tip."""
         i, (ex, ey), _o, _ = links[1]
         st.th[i] = theta
         _pose_link_at(st, i, ex, ey, x0, y0)
-        for (prev, _e, (px_, py_), _j), (nxt, (nx_, ny_), _o2, _j2), turn in zip(links[1:], links[2:], turns):
+        for (prev, _e, (px_, py_), _j), (nxt, (nx_, ny_), _o2, _j2), turn in zip(
+            links[1:], links[2:], turns
+        ):
             st.th[nxt] = st.th[prev] + turn
             wx, wy = st.world(prev, px_, py_)
             _pose_link_at(st, nxt, nx_, ny_, wx, wy)
@@ -725,9 +877,14 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
         turns = tail_angles(links)
         hx, hy = pose_tail(links, turns, ex, ey, st.th[links[1][0]])
         sx, sy = st.world(first, *entry1)
-        if (math.hypot(hx - gx, hy - gy) <= tolerance and math.hypot(sx - rx, sy - ry) <= tolerance
-                and violation(joint_ids) == 0.0):
-            for i, (x, y, th) in zip(bodies, saved):  # already there: leave the warm start alone
+        if (
+            math.hypot(hx - gx, hy - gy) <= tolerance
+            and math.hypot(sx - rx, sy - ry) <= tolerance
+            and violation(joint_ids) == 0.0
+        ):
+            for i, (x, y, th) in zip(
+                bodies, saved
+            ):  # already there: leave the warm start alone
                 st.x[i], st.y[i], st.th[i] = x, y, th
             continue
         tail_offset = math.atan2(hy - ey, hx - ex) - st.th[links[1][0]]
@@ -766,21 +923,35 @@ def _seed_chains(st: _State, rows: list[_Row], tolerance: float) -> None:
             # reports the grip, and a conflict gives it up.
             phi = math.atan2(gy - ry, gx - rx)
             too_far = math.hypot(gx - rx, gy - ry) > l1 + l2
-            pose(phi if too_far or l1 >= l2 else phi + math.pi,
-                 phi if too_far or l1 < l2 else phi + math.pi)
+            pose(
+                phi if too_far or l1 >= l2 else phi + math.pi,
+                phi if too_far or l1 < l2 else phi + math.pi,
+            )
         else:  # on the root: no direction to take, so nothing is guessed
             for i, (x, y, th) in zip(bodies, saved):
                 st.x[i], st.y[i], st.th[i] = x, y, th
 
 
-def _pose_link_at(st: _State, i: int, lx: float, ly: float, x0: float, y0: float) -> None:
+def _pose_link_at(
+    st: _State, i: int, lx: float, ly: float, x0: float, y0: float
+) -> None:
     """Translate body ``i`` (keeping its rotation) so its local point sits at ``(x0, y0)``."""
     c, s = math.cos(st.th[i]), math.sin(st.th[i])
     st.x[i] = x0 - (c * lx - s * ly)
     st.y[i] = y0 - (s * lx + c * ly)
 
 
-def _pose_link(st: _State, i: int, lx0: float, ly0: float, lx1: float, ly1: float, x0: float, y0: float, theta: float) -> None:
+def _pose_link(
+    st: _State,
+    i: int,
+    lx0: float,
+    ly0: float,
+    lx1: float,
+    ly1: float,
+    x0: float,
+    y0: float,
+    theta: float,
+) -> None:
     """Pose body ``i`` so its local point ``(lx0, ly0)`` sits at ``(x0, y0)``
     and the local direction to ``(lx1, ly1)`` points along ``theta``. The new
     rotation is the nearest turn to the old one, so an unwrapped rotation
@@ -856,9 +1027,13 @@ def solve(
     ([2], (2,), [0.0, 0.0])
     """
     if gravity is not None and dt is None:
-        raise KinematicsError("gravity needs time: pass dt (dynamic mode) or drop gravity")
+        raise KinematicsError(
+            "gravity needs time: pass dt (dynamic mode) or drop gravity"
+        )
     if dt is None and any(f.vector is not None for f in forces):
-        raise KinematicsError("a force vector needs time: pass dt (dynamic mode), or use a pull (toward=)")
+        raise KinematicsError(
+            "a force vector needs time: pass dt (dynamic mode), or use a pull (toward=)"
+        )
     if dt is not None and not dt > 0:
         raise KinematicsError(f"dt must be positive, got {dt}")
     if iterations < 1 or substeps < 1 or retry < 1:
@@ -866,7 +1041,9 @@ def solve(
     _require_finite(bodies, joints, forces, gravity=gravity, dt=dt)
     joints = resolve_rests(bodies, joints)
     unreachable: list[int] = []
-    if drop_conflicts:  # what the geometry already rules out is given up before any pass
+    if (
+        drop_conflicts
+    ):  # what the geometry already rules out is given up before any pass
         st0 = _State(bodies)
         st0.drive(targets)
         st0.restore_held()
@@ -880,7 +1057,9 @@ def solve(
         lam = [0.0] * (2 * len(rows))
         if dt is None:
             st.restore_held()
-            if nudge not in starts:  # every attempt starts where the seed put the chains
+            if (
+                nudge not in starts
+            ):  # every attempt starts where the seed put the chains
                 if seed_chains:
                     _seed_chains(st, rows, tolerance)
                 if nudge:
@@ -895,10 +1074,23 @@ def solve(
         else:
             if nudge:
                 _nudge(st)
-            _step(st, rows, lam, forces, gravity, float(dt), substeps=substeps,
-                  iterations=passes, damping=damping)
+            _step(
+                st,
+                rows,
+                lam,
+                forces,
+                gravity,
+                float(dt),
+                substeps=substeps,
+                iterations=passes,
+                damping=damping,
+            )
         residuals, unsatisfied, limits = _measure(
-            st, _rows(st, joints, ()), len(joints), tolerance=tolerance, angle_tolerance=angle_tolerance
+            st,
+            _rows(st, joints, ()),
+            len(joints),
+            tolerance=tolerance,
+            angle_tolerance=angle_tolerance,
         )
         failure = 0.0
         for j, r in unsatisfied:
@@ -919,7 +1111,9 @@ def solve(
         if drop_conflicts and result.failure and not slow:
             result = _give_up_conflicts(result, attempt, passes=iterations * retry)
     if not all(math.isfinite(v) for v in result.st.as_array().flat):
-        raise KinematicsError("the solve produced a non-finite pose; check the inputs' scale")
+        raise KinematicsError(
+            "the solve produced a non-finite pose; check the inputs' scale"
+        )
     return SolveResult(
         bodies=result.st.as_bodies(),
         poses=result.st.as_array(),
@@ -981,7 +1175,9 @@ def _loop_mates(st: _State, rows: list[_Row], failing: set[int]) -> set[int]:
     one node. A joint on no cycle (a tree hung from one anchor) can always
     be satisfied, so it is never a conflict, and is in no block of more than
     itself."""
-    anchors = {0} | {i for i in range(1, len(st.x)) if st.bodies[i - 1].fixed or i in st.held}
+    anchors = {0} | {
+        i for i in range(1, len(st.x)) if st.bodies[i - 1].fixed or i in st.held
+    }
 
     def node(i: int) -> int:
         return 0 if i in anchors else i
@@ -1057,8 +1253,12 @@ def _nudge(st: _State) -> None:
 
 
 def _require_finite(
-    bodies: Sequence[Body], joints: Sequence[Joint], forces: Sequence[Force], *,
-    gravity: Gravity | None, dt: float | None,
+    bodies: Sequence[Body],
+    joints: Sequence[Joint],
+    forces: Sequence[Force],
+    *,
+    gravity: Gravity | None,
+    dt: float | None,
 ) -> None:
     """Refuse a NaN or an infinity anywhere in the inputs: it would spread
     through every body the solve touches and still measure as satisfied."""
@@ -1077,8 +1277,22 @@ def _require_finite(
             raise KinematicsError(f"{what} has a value that is not finite: {values!r}")
 
     for b in bodies:
-        check(f"body {b.name!r}", [b.x, b.y, b.rotation, b.scale, b.width, b.height,
-                                    b.origin, b.density, b.vx, b.vy, b.omega])
+        check(
+            f"body {b.name!r}",
+            [
+                b.x,
+                b.y,
+                b.rotation,
+                b.scale,
+                b.width,
+                b.height,
+                b.origin,
+                b.density,
+                b.vx,
+                b.vy,
+                b.omega,
+            ],
+        )
     for j, joint in enumerate(joints):
         check(f"joint {j}", [getattr(joint, f.name) for f in fields(joint)])
     for f in forces:
@@ -1088,8 +1302,15 @@ def _require_finite(
 
 
 def _measure(
-    st: _State, rows: list[_Row], n_joints: int, *, tolerance: float, angle_tolerance: float
-) -> tuple[tuple[float, ...], tuple[tuple[int, float], ...], tuple[tuple[int, float], ...]]:
+    st: _State,
+    rows: list[_Row],
+    n_joints: int,
+    *,
+    tolerance: float,
+    angle_tolerance: float,
+) -> tuple[
+    tuple[float, ...], tuple[tuple[int, float], ...], tuple[tuple[int, float], ...]
+]:
     """Residuals per joint, the rigid joints above ``tolerance``, and the
     rigid angle ranges broken by more than ``angle_tolerance``. A compliant
     joint's stretch is what it was asked for: it is in the residuals, never
@@ -1107,14 +1328,24 @@ def _measure(
             residuals[j] = max(residuals[j], abs(c))
             rigid[j] = rigid[j] and not soft
     unsatisfied = tuple(
-        (j, r) for j, r in enumerate(residuals) if rigid[j] and (r > tolerance or not math.isfinite(r))
+        (j, r)
+        for j, r in enumerate(residuals)
+        if rigid[j] and (r > tolerance or not math.isfinite(r))
     )
     return tuple(residuals), unsatisfied, tuple(limits)
 
 
 def _step(
-    st: _State, rows: list[_Row], lam: list[float], forces: Sequence[Force],
-    gravity: Gravity | None, dt: float, *, substeps: int, iterations: int, damping: float,
+    st: _State,
+    rows: list[_Row],
+    lam: list[float],
+    forces: Sequence[Force],
+    gravity: Gravity | None,
+    dt: float,
+    *,
+    substeps: int,
+    iterations: int,
+    damping: float,
 ) -> None:
     """Dynamic mode: ``substeps`` of predict (gravity, pushes, velocities),
     project, and derive the velocities from the move (XPBD's order)."""
@@ -1204,7 +1435,9 @@ def solve_frames(
     *,
     frames: int,
     dt: float | None,
-    targets_at: Callable[[int], Targets | None] | Sequence[Targets | None] | None = None,
+    targets_at: Callable[[int], Targets | None]
+    | Sequence[Targets | None]
+    | None = None,
     joints_at: Callable[[int], Sequence[Joint]] | None = None,
     forces: Sequence[Force] = (),
     gravity: Gravity | None = None,
@@ -1233,7 +1466,9 @@ def solve_frames(
     if frames < 0:
         raise KinematicsError("frames must be non-negative")
     if targets_at is not None and not callable(targets_at) and len(targets_at) < frames:
-        raise KinematicsError(f"targets_at has {len(targets_at)} entries for {frames} frames")
+        raise KinematicsError(
+            f"targets_at has {len(targets_at)} entries for {frames} frames"
+        )
     current = tuple(bodies)
     base = resolve_rests(current, joints)
     enforced_before = [j.joined for j in base]
@@ -1243,10 +1478,13 @@ def solve_frames(
         if joints_at is not None:
             frame_joints = list(joints_at(k))
             if len(frame_joints) != len(base):
-                raise KinematicsError(f"frame {k}: joints_at must return one entry per joint, in order")
+                raise KinematicsError(
+                    f"frame {k}: joints_at must return one entry per joint, in order"
+                )
             frame_joints = [_with_rest(fj, bj) for fj, bj in zip(frame_joints, base)]
         reengaged = [
-            (j, _gap(current, joint)) for j, joint in enumerate(frame_joints)
+            (j, _gap(current, joint))
+            for j, joint in enumerate(frame_joints)
             if joint.joined and not enforced_before[j]
         ]
         if targets_at is None:
@@ -1255,15 +1493,27 @@ def solve_frames(
             targets = targets_at(k)
         else:
             targets = targets_at[k]
-        r = solve(current, frame_joints, targets=targets, forces=forces, gravity=gravity, dt=dt, **options)
+        r = solve(
+            current,
+            frame_joints,
+            targets=targets,
+            forces=forces,
+            gravity=gravity,
+            dt=dt,
+            **options,
+        )
         snaps += [(k, j, gap) for j, gap in reengaged if j not in r.dropped]
-        enforced_before = [joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)]
+        enforced_before = [
+            joint.joined and j not in r.dropped for j, joint in enumerate(frame_joints)
+        ]
         current = r.bodies
         poses.append(r.poses)
         unsat.append(r.unsatisfied)
         lims.append(r.limit_violations)
         drops.append(r.dropped)
-    stacked = np.stack(poses) if poses else np.empty((0, len(current), len(POSE_CHANNELS)))
+    stacked = (
+        np.stack(poses) if poses else np.empty((0, len(current), len(POSE_CHANNELS)))
+    )
     return FramesResult(
         bodies=tuple(b.name for b in current),
         poses=stacked,
@@ -1368,18 +1618,30 @@ def inputs_digest(
         if isinstance(value, float):
             return value.hex()
         if isinstance(value, (Body, Point, Force, *_JOINT_TYPES)):
-            return [type(value).__name__, {f.name: canon(getattr(value, f.name)) for f in fields(value)}]
+            return [
+                type(value).__name__,
+                {f.name: canon(getattr(value, f.name)) for f in fields(value)},
+            ]
         if isinstance(value, Mapping):
             return {str(k): canon(value[k]) for k in sorted(value)}
         if isinstance(value, (list, tuple)):
             return [canon(v) for v in value]
         raise KinematicsError(f"cannot key a {type(value).__name__}: pass plain values")
 
-    document = canon(dict(
-        version=SOLVER_VERSION, bodies=list(bodies), joints=list(joints), targets=targets,
-        forces=list(forces), gravity=gravity, options=options,
-    ))
-    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    document = canon(
+        dict(
+            version=SOLVER_VERSION,
+            bodies=list(bodies),
+            joints=list(joints),
+            targets=targets,
+            forces=list(forces),
+            gravity=gravity,
+            options=options,
+        )
+    )
+    return hashlib.sha256(
+        json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 _JOINT_TYPES = (Pin, Hinge, Weld, Distance, Slide, Contact)
