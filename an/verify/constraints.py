@@ -56,6 +56,11 @@ The core's constraints:
 - ``held_item`` (catalogue A4, the weld): an item declared held by a node
   (``Shot.welds``) stays at its offset from the carrier between pick-up and
   release. :func:`weld_drifts` is the pure function under it.
+- ``rigidity`` (catalogue A5): an entity that declares ``overrides: {rigid: true}``
+  keeps its aspect (``scale_x`` against ``scale_y``) through the shot; one that
+  declares ``overrides: {preserve_volume: true}`` keeps ``scale_x * scale_y``.
+  :func:`shape_drifts` is the pure function under it. Opt-in, since the
+  ``squash_stretch`` preset deforms on purpose.
 """
 
 from __future__ import annotations
@@ -81,6 +86,9 @@ __all__ = [
     "JUMP_CUT",
     "OBJECT_PERMANENCE",
     "HELD_ITEM",
+    "RIGIDITY",
+    "ShapeDrift",
+    "shape_drifts",
     "WeldDrift",
     "weld_drifts",
     "Vanishing",
@@ -1145,6 +1153,122 @@ HELD_ITEM = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# rigidity (catalogue A5): shape and volume under scale
+# -----------------------------------------------------------------------------
+
+#: The ``AssetRef.overrides`` keys that declare what a scale may not change.
+RIGID_OVERRIDE: str = "rigid"
+VOLUME_OVERRIDE: str = "preserve_volume"
+#: How far (as a fraction) the aspect ``|sx / sy|`` may leave its starting value.
+RIGID_TOLERANCE: float = 0.02
+#: How far (as a fraction) the area ``|sx * sy|`` may leave its starting value:
+#: the ``squash_stretch`` preset keeps it within about 4%.
+VOLUME_TOLERANCE: float = 0.1
+
+
+@dataclass(frozen=True)
+class ShapeDrift:
+    """The ``quantity`` (``aspect`` or ``volume``) of ``entity`` is ``ratio`` times its start at ``at`` s."""
+
+    entity: str
+    quantity: str
+    at: float
+    ratio: float
+
+
+def shape_drifts(
+    entity: str,
+    samples: list[tuple[float, float, float]],
+    *,
+    quantity: str,
+    tolerance: float | None = None,
+) -> list[ShapeDrift]:
+    """The first of ``samples`` ``(t, scale_x, scale_y)`` whose ``quantity`` has left
+    its starting value by more than ``tolerance`` (a fraction), as one drift
+    carrying the worst ratio seen from then on.
+
+    >>> squash = [(0.0, 1.0, 1.0), (0.5, 1.2, 0.8), (1.0, 1.0, 1.0)]
+    >>> shape_drifts("ball", squash, quantity="volume")
+    []
+    >>> [round(d.ratio, 3) for d in shape_drifts("ball", squash, quantity="aspect")]
+    [1.5]
+    >>> shape_drifts("ball", [(0.0, 1.0, 1.0), (1.0, 1.5, 1.0)], quantity="volume")[0].ratio
+    1.5
+    """
+    if tolerance is None:
+        tolerance = RIGID_TOLERANCE if quantity == "aspect" else VOLUME_TOLERANCE
+
+    def measure(sx: float, sy: float) -> float:
+        return abs(sx / sy) if quantity == "aspect" else abs(sx * sy)
+
+    if not samples or any(s[2] == 0 for s in samples) or measure(*samples[0][1:]) == 0:
+        return []
+    start = measure(*samples[0][1:])
+    first, worst = None, 1.0
+    for t, sx, sy in samples:
+        ratio = measure(sx, sy) / start
+        if abs(ratio - 1.0) > tolerance:
+            first = t if first is None else first
+            if abs(ratio - 1.0) > abs(worst - 1.0):
+                worst = ratio
+    return [] if first is None else [ShapeDrift(entity, quantity, first, worst)]
+
+
+def check_rigidity(ctx: Any) -> None:
+    """The core's ``rigidity`` check over the entities that declare a shape to keep."""
+    declared = [
+        (e, q)
+        for e in ctx.shot.entities
+        for key, q in ((RIGID_OVERRIDE, "aspect"), (VOLUME_OVERRIDE, "volume"))
+        if (e.overrides or {}).get(key) is True
+    ]
+    if not declared:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.stage.timeline import (
+        _node_chain,
+        _pose_for,
+        evaluate_timeline,
+        timeline_from_scene,
+        transform_of,
+    )
+
+    timeline = timeline_from_scene(doc)
+    height = ctx.scene.meta.resolution.height
+    times = _sample_times(float(ctx.shot.duration))
+    poses = [evaluate_timeline(timeline, t) for t in times]
+    for entity, quantity in declared:
+        try:
+            node, path = _node_chain(doc.scene, entity.id)[-1]
+        except Exception:  # noqa: BLE001 - not drawn on the stage (a voice)
+            continue
+        samples = []
+        for t, pose in zip(times, poses):
+            tr = transform_of(node, _pose_for(pose, path), frame_height=height)
+            samples.append((t, tr.scale_x, tr.scale_y))
+        for d in shape_drifts(entity.id, samples, quantity=quantity):
+            key = RIGID_OVERRIDE if quantity == "aspect" else VOLUME_OVERRIDE
+            what = "its proportions" if quantity == "aspect" else "its volume"
+            ctx.report.add(
+                "warning",
+                f"{ctx.path}/entities",
+                f"{d.entity!r} declares {key} but {what} change from {d.at:.2f} s "
+                f"(x{d.ratio:.2f} of the start): scale `scale_x` and `scale_y` "
+                "together (for volume, one up by what the other loses), or drop "
+                "the declaration if it is meant to deform.",
+            )
+
+
+RIGIDITY = Constraint(
+    "rigidity",
+    check_rigidity,
+    description="an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1153,6 +1277,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     JUMP_CUT,
     OBJECT_PERMANENCE,
     HELD_ITEM,
+    RIGIDITY,
 )
 
 

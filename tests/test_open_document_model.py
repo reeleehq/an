@@ -730,6 +730,7 @@ def test_the_report_order_is_pinned():
         "continuity",
         "solidity",
         "held_item",  # catalogue A4: a declared weld holds through its span
+        "rigidity",  # catalogue A5: declared rigid / volume-preserving entities keep their shape
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
