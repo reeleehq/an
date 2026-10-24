@@ -1555,7 +1555,11 @@ def _gravity_of(ctx: Any) -> dict[str, Any] | None:
         pack = styles[name]
     except Exception:  # noqa: BLE001 - a missing pack is reported by the style check
         return None
-    g = pack.get(GRAVITY_KEY) if isinstance(pack, Mapping) else getattr(pack, GRAVITY_KEY, None)
+    g = (
+        pack.get(GRAVITY_KEY)
+        if isinstance(pack, Mapping)
+        else getattr(pack, GRAVITY_KEY, None)
+    )
     return dict(g) if isinstance(g, Mapping) else None
 
 
