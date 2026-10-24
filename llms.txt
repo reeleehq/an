@@ -100,6 +100,11 @@
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](_autosummary/an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
 - [an.iterate](_autosummary/an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
+- [an.kinematics](_autosummary/an.kinematics.html.md): A deterministic 2D constraint solver: bodies joined at points, driven at a
+- [an.kinematics.bodies](_autosummary/an.kinematics.bodies.html.md): Bodies and the points on them: the things a joint joins and a driver moves.
+- [an.kinematics.chains](_autosummary/an.kinematics.chains.html.md): Closed-form pieces for chains: the two-link reach and its reachable range.
+- [an.kinematics.joints](_autosummary/an.kinematics.joints.html.md): Joints: declared relations between two bodies, or a body and the world.
+- [an.kinematics.solver](_autosummary/an.kinematics.solver.html.md): The solve: bodies joined at points, driven at a few, settled by gravity.
 - [an.library](_autosummary/an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
 - [an.library.affordances](_autosummary/an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
 - [an.library.api](_autosummary/an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;, &#96;retire&#96;.
@@ -218,7 +223,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 14:35 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 15:10 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

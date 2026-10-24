@@ -98,6 +98,11 @@
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
+- [an.kinematics](an.kinematics.html.md): A deterministic 2D constraint solver: bodies joined at points, driven at a
+- [an.kinematics.bodies](an.kinematics.bodies.html.md): Bodies and the points on them: the things a joint joins and a driver moves.
+- [an.kinematics.chains](an.kinematics.chains.html.md): Closed-form pieces for chains: the two-link reach and its reachable range.
+- [an.kinematics.joints](an.kinematics.joints.html.md): Joints: declared relations between two bodies, or a body and the world.
+- [an.kinematics.solver](an.kinematics.solver.html.md): The solve: bodies joined at points, driven at a few, settled by gravity.
 - [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
 - [an.library.affordances](an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
 - [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;, &#96;retire&#96;.

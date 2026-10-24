@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.kinematics.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.kinematics.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.kinematics &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=64487cc7"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.kinematics';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.kinematics.bodies" href="an.kinematics.bodies.html" />
+    <link rel="prev" title="an.iterate" href="an.iterate.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.259" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.loudness.html">an.audio.loudness</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.recorded.html">an.audio.recorded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.transcripts.html">an.audio.transcripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voice_design.html">an.audio.voice_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.core_corpus.html">an.bench.core_corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.cli.html">an.build.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.derived.html">an.build.derived</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.gc.html">an.build.gc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.reads.html">an.build.reads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.capabilities.html">an.capabilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.capabilities.subjects.html">an.capabilities.subjects</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.conformance.html">an.engines.conformance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.formats.html">an.formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.world.html">an.ir.world</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.kinematics</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.bodies.html">an.kinematics.bodies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.chains.html">an.kinematics.chains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.joints.html">an.kinematics.joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.solver.html">an.kinematics.solver</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.cli.html">an.library.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.federation.html">an.library.federation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kits.html">an.library.kits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.sheets.html">an.library.sheets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.mcp.html">an.mcp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.server.html">an.mcp.server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.grid.html">an.media.grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paint.html">an.paint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.probe.html">an.probe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props_cli.html">an.props_cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.seeds.html">an.semantic.seeds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_anchors.html">an.sound_anchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sound_fetch.html">an.sound_fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds_cli.html">an.sounds_cli</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stage.html">an.stage</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.cache_key.html">an.stage.cache_key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.canvas_capture.html">an.stage.canvas_capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.compile.html">an.stage.compile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.counters.html">an.stage.counters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.easing.html">an.stage.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.environments.html">an.stage.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.fidelity.html">an.stage.fidelity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.gradients.html">an.stage.gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_geometry.html">an.stage.path_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.path_wobble.html">an.stage.path_wobble</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.paths.html">an.stage.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.preview.html">an.stage.preview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.prop_validate.html">an.stage.prop_validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.props.html">an.stage.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.recordings.html">an.stores.recordings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.constraints.html">an.verify.constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.world_cli.html">an.world_cli</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.kinematics</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.kinematics">
+<span id="an-kinematics"></span><h1>an.kinematics<a class="headerlink" href="#module-an.kinematics" title="Link to this heading">#</a></h1>
+<p>A deterministic 2D constraint solver: bodies joined at points, driven at a
+few of them, settled by gravity (an#499, ADR 0008).</p>
+<p>Four nouns and one verb. A <a class="reference internal" href="#an.kinematics.Body" title="an.kinematics.Body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Body</span></code></a> is a rigid rectangle posed by
+<code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">rotation,</span> <span class="pre">scale)</span></code>; a <a class="reference internal" href="#an.kinematics.Point" title="an.kinematics.Point"><code class="xref py py-class docutils literal notranslate"><span class="pre">Point</span></code></a> on it is a fraction of its
+extent. A joint relates two bodies (or a body and <code class="xref py py-data docutils literal notranslate"><span class="pre">WORLD</span></code>):
+<a class="reference internal" href="#an.kinematics.Pin" title="an.kinematics.Pin"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pin</span></code></a>, <a class="reference internal" href="#an.kinematics.Hinge" title="an.kinematics.Hinge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hinge</span></code></a> (a pin with an angle range), <a class="reference internal" href="#an.kinematics.Weld" title="an.kinematics.Weld"><code class="xref py py-class docutils literal notranslate"><span class="pre">Weld</span></code></a>,
+<a class="reference internal" href="#an.kinematics.Distance" title="an.kinematics.Distance"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distance</span></code></a> (<code class="docutils literal notranslate"><span class="pre">equal</span></code> a rod, <code class="docutils literal notranslate"><span class="pre">at_most</span></code> a string, <code class="docutils literal notranslate"><span class="pre">at_least</span></code> a
+spacer), <a class="reference internal" href="#an.kinematics.Slide" title="an.kinematics.Slide"><code class="xref py py-class docutils literal notranslate"><span class="pre">Slide</span></code></a> (a groove) and <a class="reference internal" href="#an.kinematics.Contact" title="an.kinematics.Contact"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contact</span></code></a> (one-sided: a foot on
+the ground, a lamp on a table). A driver is a target on a body’s channels (a
+nail: met exactly where the joints allow), a <a class="reference internal" href="#an.kinematics.Force" title="an.kinematics.Force"><code class="xref py py-class docutils literal notranslate"><span class="pre">Force</span></code></a> (a push, or a
+soft pull toward a point), or gravity. <a class="reference internal" href="#an.kinematics.solve" title="an.kinematics.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> does one frame,
+<a class="reference internal" href="#an.kinematics.solve_frames" title="an.kinematics.solve_frames"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_frames()</span></code></a> a run of them with the caller’s targets and
+joined/unjoined joints per frame, and both return a typed result that names
+what could not be held instead of raising.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">torso</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">80.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upper</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fore</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handle</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"handle"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arm</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">)),</span>
+<span class="gp">... </span>       <span class="n">Hinge</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">limits</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+<span class="gp">... </span>       <span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"handle"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solve</span><span class="p">([</span><span class="n">torso</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">fore</span><span class="p">,</span> <span class="n">handle</span><span class="p">],</span> <span class="n">arm</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s2">"torso"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}})</span><span class="o">.</span><span class="n">ok</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Nothing here imports the scene IR or the stage, and nothing names an
+animation: bodies are numbers, joints are rows (<code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">extraction</span> <span class="pre">candidate</span></code>:
+this becomes its own package when a second consumer exists). The compile
+pass that reads joints from a scene is P2 (an#512).</p>
+<p><strong>The method, and why</strong> (measured in
+<code class="docutils literal notranslate"><span class="pre">misc/docs/research/puppeteering_2026-10.md</span></code> §4, which compared analytic
+two-bone, CCD, FABRIK, PBD and XPBD on the same tasks, and re-measured on
+this module by <code class="docutils literal notranslate"><span class="pre">misc/docs/research/puppeteering_2026-10/measure_kinematics.py</span></code>,
+results in <code class="docutils literal notranslate"><span class="pre">kinematics_measurements.json</span></code> beside it; CPython 3.12, x86-64,
+one core). Extended position-based dynamics on 2D rigid bodies (XPBD,
+Macklin et al. 2016; rigid bodies and joints, Müller et al. 2020):
+Gauss–Seidel over the joints in a fixed order, each a projection with the
+generalized inverse mass <code class="docutils literal notranslate"><span class="pre">1/m</span> <span class="pre">+</span> <span class="pre">(r</span> <span class="pre">×</span> <span class="pre">n)²</span> <span class="pre">/</span> <span class="pre">I</span></code> about the body’s centre (or
+about its pose point while that is held), hinge limits as angular
+projections, a fixed count of substeps and iterations. It is the one family
+of the five that does chains, strings, rods, contacts, gravity and
+unjoining in one loop, and its compliance is a stiffness that does not
+depend on the iteration count. Its weakness, slow propagation down long
+chains, is covered for the common case by the analytic two-link solve used
+as the initial guess for every chain between two held ends (an arm with a
+hand is a two-link chain whose second link is the forearm and the hand held
+at their current angles), which also makes the elbow’s bend side an explicit
+choice (the side its range allows, else the side it already has).</p>
+<ul class="simple">
+<li><p><strong>Convergence per iteration</strong> (the arm above, pose mode, worst residual):
+from the closed-form start, 2e-14 px after one pass; from a cold start,
+5.8 / 3.3 / 0.80 / 0.10 / 0.0014 px after 1 / 2 / 4 / 8 / 16 passes, 5e-14
+after 64. A frame that leaves a joint failing is retried with four times
+the passes, so the default eight reach the sixteen-pass figure when needed.</p></li>
+<li><p><strong>Singularities</strong>: a target at exactly full reach (a straight arm) is met
+with zero residual and a straight elbow; 1 px or 5 px beyond reach the
+grip alone is refused (<code class="docutils literal notranslate"><span class="pre">dropped</span></code>, its gap in <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code>), the
+shoulder and elbow hold exactly, and the arm points straight at the
+target; a target on the shoulder itself (inside the nearest reach, where
+the direction is undefined) is refused the same way, the arm left where
+it was rather than guessed. (The torso is nailed in rotation here; free
+to turn, it turns toward the target first.) A chain between two rigidly
+held ends whose ends are outside its reach is refused before any pass.</p></li>
+<li><p><strong>A straight chain pushed along its length</strong> (a rope bridge of 3 to 20
+planks pinned at 0.8 of its length, laid straight): no correction has a
+sideways part, so nothing moves; the retry’s start, nudged by 1e-3 rad,
+buckles it, and every joint holds (tests).</p></li>
+<li><p><strong>Stability at frame-exact steps</strong> (a 12-link chain dropped horizontal, 10 s
+at 24 fps, under gravity): at 4 substeps (the default) no frame fails a
+joint and the tip hangs within 0.03° of vertical; at 1 or 2 substeps the
+whip under-converges (worst 3.2 / 0.9 px with the retry, 17 / 3.4 px
+without), reported per frame and never given up (a tree cannot conflict).
+Nothing diverges at any setting.</p></li>
+<li><p><strong>Compliance</strong>: a soft rod (<code class="docutils literal notranslate"><span class="pre">compliance=1e-4</span></code>) under a 100-unit weight
+stretches 11.85 units after one second at 1, 2, 8 and 32 iterations alike,
+to the digit; it settles to the static 9.8.</p></li>
+<li><p><strong>Cost per frame</strong>, dynamic, defaults: 14 ms for five ten-part
+marionettes (50 bodies, 65 joints, 25 strings), no frame failing; 0.9 ms for
+the two-link reach in pose mode. A 50-link rope or chain costs 34-48 ms (the
+retry runs on its failing frames) and under-converges on 40-47 of 48 frames
+(Gauss–Seidel’s n² propagation): reported, never cut. Long ropes want more
+substeps, or the FABRIK seam the research names.</p></li>
+<li><p><strong>Determinism</strong>: Python floats and <a class="reference external" href="https://docs.python.org/3/library/math.html#module-math" title="(in Python v3.15)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">math</span></code></a> inside the loop, numpy at the
+boundary; bitwise-equal poses across runs and across processes on one
+platform (<code class="docutils literal notranslate"><span class="pre">tests/test_kinematics.py</span></code>). Not across platforms: a dynamic
+run amplifies a last-ulp libm difference (1e-13 on one frame’s input is
+0.014 units 96 frames later), so a cache key is built on the inputs
+(<a class="reference internal" href="#an.kinematics.inputs_digest" title="an.kinematics.inputs_digest"><code class="xref py py-func docutils literal notranslate"><span class="pre">inputs_digest()</span></code></a>, with <code class="xref py py-data docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code>), never the output.</p></li>
+</ul>
+<p>Not in this version: friction (a contact is frictionless: a lamp on a table
+sliding sideways stays where it is until the edge passes), blending a snap
+(a rejoined joint closes its gap in one frame, reported in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">FramesResult.snaps</span></code>), and the stochastic driver <code class="docutils literal notranslate"><span class="pre">seed</span></code> is reserved
+for.</p>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.mass" title="an.kinematics.mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mass</span></code></a>(body)</p></td>
+<td><p>The body's mass: density × scaled area; <code class="docutils literal notranslate"><span class="pre">inf</span></code> for a fixed body.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.inertia" title="an.kinematics.inertia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inertia</span></code></a>(body)</p></td>
+<td><p>Rotational inertia about the body's pose point (parallel-axis from the extent's centre); <code class="docutils literal notranslate"><span class="pre">inf</span></code> for a fixed body.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.point_world" title="an.kinematics.point_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_world</span></code></a>(body, point)</p></td>
+<td><p>The point's position in the body's frame of reference (the world, for a body posed in it); a <code class="xref py py-data docutils literal notranslate"><span class="pre">WORLD</span></code> point is returned as is.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.reach" title="an.kinematics.reach"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reach</span></code></a>(l1, l2)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">(nearest,</span> <span class="pre">farthest)</span></code> distance from the root a two-link chain of lengths <code class="docutils literal notranslate"><span class="pre">l1</span></code> and <code class="docutils literal notranslate"><span class="pre">l2</span></code> can put its tip.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.two_bone" title="an.kinematics.two_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">two_bone</span></code></a>(root, target, lengths, *[, bend])</p></td>
+<td><p>Absolute angles <code class="docutils literal notranslate"><span class="pre">(theta1,</span> <span class="pre">theta2)</span></code> of two links of <code class="docutils literal notranslate"><span class="pre">lengths</span></code> <code class="docutils literal notranslate"><span class="pre">(l1,</span> <span class="pre">l2)</span></code> hinged at <code class="docutils literal notranslate"><span class="pre">root</span></code> so that the tip meets <code class="docutils literal notranslate"><span class="pre">target</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> when the target is out of <a class="reference internal" href="#an.kinematics.reach" title="an.kinematics.reach"><code class="xref py py-func docutils literal notranslate"><span class="pre">reach()</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.solve" title="an.kinematics.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(bodies, joints, *[, targets, forces, ...])</p></td>
+<td><p>One frame: the poses of all <code class="docutils literal notranslate"><span class="pre">bodies</span></code> that satisfy the joined <code class="docutils literal notranslate"><span class="pre">joints</span></code> with the <code class="docutils literal notranslate"><span class="pre">targets</span></code> held, forces and <code class="docutils literal notranslate"><span class="pre">gravity</span></code> acting.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.solve_frames" title="an.kinematics.solve_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_frames</span></code></a>(bodies, joints, *, frames, dt)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">frames</span></code> solves in a row, each starting from the last: the caller's time dimension.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.resolve_rests" title="an.kinematics.resolve_rests"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_rests</span></code></a>(bodies, joints)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">joints</span></code> with every <code class="docutils literal notranslate"><span class="pre">rest=None</span></code> hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.quantize" title="an.kinematics.quantize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantize</span></code></a>(poses, *[, position_quantum, ...])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">poses</span></code> (any shape whose last axis is <code class="xref py py-data docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code>) rounded to the quanta a document stores: positions and scale to <code class="docutils literal notranslate"><span class="pre">position_quantum</span></code>, rotation to <code class="docutils literal notranslate"><span class="pre">angle_quantum</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.digest" title="an.kinematics.digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">digest</span></code></a>(poses, **quanta)</p></td>
+<td><p>A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.inputs_digest" title="an.kinematics.inputs_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inputs_digest</span></code></a>(bodies, joints, *[, targets, ...])</p></td>
+<td><p>A hex digest of everything a solve reads, with <code class="xref py py-data docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code>: the cache key for a solve (or a run of them: pass the per-frame targets as a list, and <code class="docutils literal notranslate"><span class="pre">frames</span></code>, <code class="docutils literal notranslate"><span class="pre">dt</span></code> and the rest as <code class="docutils literal notranslate"><span class="pre">options</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.Body" title="an.kinematics.Body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Body</span></code></a>(name[, x, y, rotation, scale, width, ...])</p></td>
+<td><p>A rigid rectangle posed in one frame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.Point" title="an.kinematics.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a>(body, u, v)</p></td>
+<td><p>A point on a body, as a fraction of the body's extent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.Pin" title="an.kinematics.Pin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Pin</span></code></a>(a, b[, compliance, joined])</p></td>
+<td><p>Two points coincide; free rotation about them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.Hinge" title="an.kinematics.Hinge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hinge</span></code></a>(a, b[, limits, rest, compliance, joined])</p></td>
+<td><p>A pin with a range for the angle of <code class="docutils literal notranslate"><span class="pre">b</span></code>'s body relative to <code class="docutils literal notranslate"><span class="pre">a</span></code>'s.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.Weld" title="an.kinematics.Weld"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Weld</span></code></a>(a, b[, rest, compliance, joined])</p></td>
+<td><p>A pin plus a fixed relative angle (<code class="docutils literal notranslate"><span class="pre">rest</span></code>, or the starting one).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.Distance" title="an.kinematics.Distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distance</span></code></a>(a, b, length[, mode, compliance, ...])</p></td>
+<td><p>The two points keep <code class="docutils literal notranslate"><span class="pre">length</span></code> apart: exactly, at most, or at least.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.Slide" title="an.kinematics.Slide"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Slide</span></code></a>(point, start, end[, compliance, joined])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">point</span></code> stays on the segment <code class="docutils literal notranslate"><span class="pre">start</span></code>–<code class="docutils literal notranslate"><span class="pre">end</span></code> (both on one other body, or the world), within its ends.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.Contact" title="an.kinematics.Contact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Contact</span></code></a>(point, start, end[, compliance, joined])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">point</span></code> stays on the free side of the segment <code class="docutils literal notranslate"><span class="pre">start</span></code>–<code class="docutils literal notranslate"><span class="pre">end</span></code>, or on it; nothing holds it there (it may lift off), and nothing holds it beyond the segment's ends (it may fall off an edge).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.Force" title="an.kinematics.Force"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Force</span></code></a>(point[, vector, toward, strength])</p></td>
+<td><p>A driver that is not a target: a constant <code class="docutils literal notranslate"><span class="pre">vector</span></code> (force per unit mass, applied at <code class="docutils literal notranslate"><span class="pre">point</span></code>, so an off-centre push also turns the body), or a pull of <code class="docutils literal notranslate"><span class="pre">point</span></code> <code class="docutils literal notranslate"><span class="pre">toward</span></code> a position with <code class="docutils literal notranslate"><span class="pre">strength</span></code> (a compliant zero-length rope: <code class="docutils literal notranslate"><span class="pre">compliance</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">strength</span></code>), or both.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.kinematics.SolveResult" title="an.kinematics.SolveResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SolveResult</span></code></a>(bodies, poses, residuals, ...[, ...])</p></td>
+<td><p>What one frame's solve found.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.FramesResult" title="an.kinematics.FramesResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FramesResult</span></code></a>(bodies, poses, unsatisfied, ...)</p></td>
+<td><p>A run of frames: <code class="docutils literal notranslate"><span class="pre">poses</span></code> is <code class="docutils literal notranslate"><span class="pre">(frames,</span> <span class="pre">bodies,</span> <span class="pre">4)</span></code>; <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code> and <code class="docutils literal notranslate"><span class="pre">limit_violations</span></code> are per frame; <code class="docutils literal notranslate"><span class="pre">snaps</span></code> lists every joint that is enforced again after a frame it was not (the caller rejoined it, or a conflict had dropped it) as <code class="docutils literal notranslate"><span class="pre">(frame,</span> <span class="pre">joint</span> <span class="pre">index,</span> <span class="pre">distance)</span></code>, the gap it closes in one frame (the caller decides whether to blend or to refuse it; in dynamic mode a large gap yanks the bodies it joins); <code class="docutils literal notranslate"><span class="pre">final</span></code> is the last frame's bodies, ready to continue the run; <code class="docutils literal notranslate"><span class="pre">dropped</span></code> the joints each frame gave up in a conflict.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.kinematics.KinematicsError" title="an.kinematics.KinematicsError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KinematicsError</span></code></a></p></td>
+<td><p>A solve that cannot be set up: an unknown body, gravity without time, a joint on the world alone, a body with no extent.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Body">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">0.5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#Body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Body" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A rigid rectangle posed in one frame.</p>
+<p><code class="docutils literal notranslate"><span class="pre">fixed</span></code> bodies have infinite mass: joints move everything else around
+them. <code class="docutils literal notranslate"><span class="pre">vx</span></code>, <code class="docutils literal notranslate"><span class="pre">vy</span></code> (the velocity of the extent’s centre) and <code class="docutils literal notranslate"><span class="pre">omega</span></code>
+are what a dynamic solve carries from one frame to the next (zero at
+rest). <code class="docutils literal notranslate"><span class="pre">density</span></code> sets the mass per unit area, spread evenly over the
+extent, so a limb whose pose point is at its end still swings about it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"box"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">mass</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">inertia</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">(8.0, 13.333)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.kinematics.Body.posed">
+<span class="sig-name descname"><span class="pre">posed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#Body.posed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Body.posed" title="Link to this definition">#</a></dt>
+<dd><p>This body with the given pose channels (and velocities) replaced.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)</span><span class="o">.</span><span class="n">posed</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span><span class="o">.</span><span class="n">x</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.kinematics.bodies.html#an.kinematics.bodies.Body" title="an.kinematics.bodies.Body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Body</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Contact">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Contact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Contact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Contact" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">point</span></code> stays on the free side of the segment <code class="docutils literal notranslate"><span class="pre">start</span></code>–<code class="docutils literal notranslate"><span class="pre">end</span></code>, or
+on it; nothing holds it there (it may lift off), and nothing holds it
+beyond the segment’s ends (it may fall off an edge).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Contact</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"lamp"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"table"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"table"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">joined</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Distance">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Distance" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The two points keep <code class="docutils literal notranslate"><span class="pre">length</span></code> apart: exactly, at most, or at least.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Distance</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"hand"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"world"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">200.0</span><span class="p">),</span> <span class="n">length</span><span class="o">=</span><span class="mf">150.0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"at_most"</span><span class="p">)</span><span class="o">.</span><span class="n">mode</span>
+<span class="go">'at_most'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Force">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toward</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Force"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Force" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A driver that is not a target: a constant <code class="docutils literal notranslate"><span class="pre">vector</span></code> (force per unit
+mass, applied at <code class="docutils literal notranslate"><span class="pre">point</span></code>, so an off-centre push also turns the body), or
+a pull of <code class="docutils literal notranslate"><span class="pre">point</span></code> <code class="docutils literal notranslate"><span class="pre">toward</span></code> a position with <code class="docutils literal notranslate"><span class="pre">strength</span></code> (a compliant
+zero-length rope: <code class="docutils literal notranslate"><span class="pre">compliance</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">strength</span></code>), or both.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Force</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"kite"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">vector</span><span class="o">=</span><span class="p">(</span><span class="mf">30.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">toward</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.FramesResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">FramesResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsatisfied</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_violations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#FramesResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.FramesResult" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A run of frames: <code class="docutils literal notranslate"><span class="pre">poses</span></code> is <code class="docutils literal notranslate"><span class="pre">(frames,</span> <span class="pre">bodies,</span> <span class="pre">4)</span></code>; <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code>
+and <code class="docutils literal notranslate"><span class="pre">limit_violations</span></code> are per frame; <code class="docutils literal notranslate"><span class="pre">snaps</span></code> lists every joint that
+is enforced again after a frame it was not (the caller rejoined it, or a
+conflict had dropped it) as <code class="docutils literal notranslate"><span class="pre">(frame,</span> <span class="pre">joint</span> <span class="pre">index,</span> <span class="pre">distance)</span></code>, the gap
+it closes in one frame (the caller decides whether to blend or to refuse
+it; in dynamic mode a large gap yanks the bodies it joins); <code class="docutils literal notranslate"><span class="pre">final</span></code> is the last frame’s bodies, ready to continue the
+run; <code class="docutils literal notranslate"><span class="pre">dropped</span></code> the joints each frame gave up in a conflict.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Hinge">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Hinge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Hinge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Hinge" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A pin with a range for the angle of <code class="docutils literal notranslate"><span class="pre">b</span></code>’s body relative to <code class="docutils literal notranslate"><span class="pre">a</span></code>’s.</p>
+<p><code class="docutils literal notranslate"><span class="pre">limits</span></code> is <code class="docutils literal notranslate"><span class="pre">(lo,</span> <span class="pre">hi)</span></code> in radians about <code class="docutils literal notranslate"><span class="pre">rest</span></code>, within
+<code class="docutils literal notranslate"><span class="pre">[-pi,</span> <span class="pre">pi]</span></code>; <code class="docutils literal notranslate"><span class="pre">rest</span></code> is the relative angle (<code class="docutils literal notranslate"><span class="pre">b.rotation</span> <span class="pre">-</span>
+<span class="pre">a.rotation</span></code>) the range is measured from, taken from the bodies’ poses at
+the start of the solve when <code class="docutils literal notranslate"><span class="pre">None</span></code>. With no <code class="docutils literal notranslate"><span class="pre">limits</span></code> it is a pin.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Hinge</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">limits</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">limits</span>
+<span class="go">(-2.6, 0.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.kinematics.KinematicsError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">KinematicsError</span></span><a class="reference internal" href="../_modules/an/kinematics/solver.html#KinematicsError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.KinematicsError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A solve that cannot be set up: an unknown body, gravity without time,
+a joint on the world alone, a body with no extent.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Pin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Pin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Pin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Pin" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Two points coincide; free rotation about them.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"arm"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span><span class="o">.</span><span class="n">joined</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Point">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#Point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Point" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A point on a body, as a fraction of the body’s extent.</p>
+<p>On <code class="xref py py-data docutils literal notranslate"><span class="pre">WORLD</span></code> the fraction is an absolute position instead.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Point</span><span class="p">(</span><span class="s2">"hand"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
+<span class="go">'hand'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Slide">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Slide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Slide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Slide" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">point</span></code> stays on the segment <code class="docutils literal notranslate"><span class="pre">start</span></code>–<code class="docutils literal notranslate"><span class="pre">end</span></code> (both on one other
+body, or the world), within its ends.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Slide</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"bead"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"world"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"world"</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">joined</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.SolveResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">SolveResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residuals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsatisfied</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_violations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#SolveResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.SolveResult" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What one frame’s solve found.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodies</span></code> are the input bodies with their poses and velocities updated,
+ready to be the next frame’s input; <code class="docutils literal notranslate"><span class="pre">poses</span></code> is the same as an array,
+one row per body in input order, columns <code class="xref py py-data docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code>.
+<code class="docutils literal notranslate"><span class="pre">residuals</span></code> has one entry per joint in input order: how far apart a
+joined joint’s points still are (0 for an unjoined joint, or one that
+holds; a compliant joint’s stretch); <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code> lists the rigid
+joints’ <code class="docutils literal notranslate"><span class="pre">(joint</span> <span class="pre">index,</span> <span class="pre">residual)</span></code> pairs above tolerance, and
+<code class="docutils literal notranslate"><span class="pre">limit_violations</span></code> the rigid hinges and welds outside their angle range
+as <code class="docutils literal notranslate"><span class="pre">(joint</span> <span class="pre">index,</span> <span class="pre">radians)</span></code>. <code class="docutils literal notranslate"><span class="pre">dropped</span></code> lists the joints
+given up in a conflict (module docstring), in the order they were.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="an.kinematics.SolveResult.ok">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ok</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.kinematics.SolveResult.ok" title="Link to this definition">#</a></dt>
+<dd><p>Every joined joint holds and every range is kept.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">solve</span><span class="p">([</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)],</span> <span class="p">[])</span><span class="o">.</span><span class="n">ok</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.kinematics.SolveResult.pose">
+<span class="sig-name descname"><span class="pre">pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#SolveResult.pose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.SolveResult.pose" title="Link to this definition">#</a></dt>
+<dd><p>The body called <code class="docutils literal notranslate"><span class="pre">name</span></code> as solved.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solve</span><span class="p">([</span><span class="n">b</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">pose</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.kinematics.bodies.html#an.kinematics.bodies.Body" title="an.kinematics.bodies.Body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Body</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.kinematics.Weld">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">Weld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compliance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/joints.html#Weld"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.Weld" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A pin plus a fixed relative angle (<code class="docutils literal notranslate"><span class="pre">rest</span></code>, or the starting one).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Weld</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"hat"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"head"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span><span class="o">.</span><span class="n">rest</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.digest">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poses</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">quanta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.digest" title="Link to this definition">#</a></dt>
+<dd><p>A hex digest of the quantized poses’ bytes, with the solver version:
+for comparing solved poses on one platform (a golden test). A cache key
+is built on the inputs instead (<a class="reference internal" href="#an.kinematics.inputs_digest" title="an.kinematics.inputs_digest"><code class="xref py py-func docutils literal notranslate"><span class="pre">inputs_digest()</span></code></a>).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">digest</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span> <span class="o">==</span> <span class="n">digest</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.inertia">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">inertia</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#inertia"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.inertia" title="Link to this definition">#</a></dt>
+<dd><p>Rotational inertia about the body’s pose point (parallel-axis from the
+extent’s centre); <code class="docutils literal notranslate"><span class="pre">inf</span></code> for a fixed body.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">inertia</span><span class="p">(</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">45.333</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.inputs_digest">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">inputs_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#inputs_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.inputs_digest" title="Link to this definition">#</a></dt>
+<dd><p>A hex digest of everything a solve reads, with <code class="xref py py-data docutils literal notranslate"><span class="pre">SOLVER_VERSION</span></code>:
+the cache key for a solve (or a run of them: pass the per-frame targets
+as a list, and <code class="docutils literal notranslate"><span class="pre">frames</span></code>, <code class="docutils literal notranslate"><span class="pre">dt</span></code> and the rest as <code class="docutils literal notranslate"><span class="pre">options</span></code>). Floats
+are hashed exactly (<code class="docutils literal notranslate"><span class="pre">float.hex</span></code>); mappings by sorted key.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">inputs_digest</span><span class="p">([</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)],</span> <span class="p">[],</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">24</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">==</span> <span class="n">inputs_digest</span><span class="p">([</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)],</span> <span class="p">[],</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span> <span class="n">a</span> <span class="o">==</span> <span class="n">inputs_digest</span><span class="p">([</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-15</span><span class="p">)],</span> <span class="p">[],</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">24</span><span class="p">)</span>
+<span class="go">(True, False)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.mass">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">mass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#mass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.mass" title="Link to this definition">#</a></dt>
+<dd><p>The body’s mass: density × scaled area; <code class="docutils literal notranslate"><span class="pre">inf</span></code> for a fixed body.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mass</span><span class="p">(</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
+<span class="go">24.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mass</span><span class="p">(</span><span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="go">inf</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.point_world">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">point_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/bodies.html#point_world"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.point_world" title="Link to this definition">#</a></dt>
+<dd><p>The point’s position in the body’s frame of reference (the world, for
+a body posed in it); a <code class="xref py py-data docutils literal notranslate"><span class="pre">WORLD</span></code> point is returned as is.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">tuple</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">point_world</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)))</span>
+<span class="go">(1.0, 2.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.quantize">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">quantize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poses</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_quantum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_quantum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#quantize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.quantize" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">poses</span></code> (any shape whose last axis is <code class="xref py py-data docutils literal notranslate"><span class="pre">POSE_CHANNELS</span></code>) rounded
+to the quanta a document stores: positions and scale to
+<code class="docutils literal notranslate"><span class="pre">position_quantum</span></code>, rotation to <code class="docutils literal notranslate"><span class="pre">angle_quantum</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">quantize</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.00000049</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.123456789</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">float</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.1234568</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-15</span><span class="p">)</span>
+<span class="go">(1.0, True)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.reach">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">reach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/chains.html#reach"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.reach" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">(nearest,</span> <span class="pre">farthest)</span></code> distance from the root a two-link chain of
+lengths <code class="docutils literal notranslate"><span class="pre">l1</span></code> and <code class="docutils literal notranslate"><span class="pre">l2</span></code> can put its tip.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reach</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+<span class="go">(1.0, 7.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.resolve_rests">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">resolve_rests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#resolve_rests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.resolve_rests" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">joints</span></code> with every <code class="docutils literal notranslate"><span class="pre">rest=None</span></code> hinge and weld given the relative
+angle the bodies have now, so a run of frames measures its limits from
+one pose rather than from each frame’s.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.1</span><span class="p">);</span> <span class="n">b</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">resolve_rests</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="p">[</span><span class="n">Hinge</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">limits</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))])]</span>
+<span class="go">[0.3]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Pin" title="an.kinematics.joints.Pin"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pin</span></code></a> | <a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Hinge" title="an.kinematics.joints.Hinge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hinge</span></code></a> | <a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Weld" title="an.kinematics.joints.Weld"><code class="xref py py-class docutils literal notranslate"><span class="pre">Weld</span></code></a> | <a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Distance" title="an.kinematics.joints.Distance"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distance</span></code></a> | <a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Slide" title="an.kinematics.joints.Slide"><code class="xref py py-class docutils literal notranslate"><span class="pre">Slide</span></code></a> | <a class="reference internal" href="an.kinematics.joints.html#an.kinematics.joints.Contact" title="an.kinematics.joints.Contact"><code class="xref py py-class docutils literal notranslate"><span class="pre">Contact</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.solve">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_conflicts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solve" title="Link to this definition">#</a></dt>
+<dd><p>One frame: the poses of all <code class="docutils literal notranslate"><span class="pre">bodies</span></code> that satisfy the joined
+<code class="docutils literal notranslate"><span class="pre">joints</span></code> with the <code class="docutils literal notranslate"><span class="pre">targets</span></code> held, forces and <code class="docutils literal notranslate"><span class="pre">gravity</span></code> acting.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt=None</span></code> is pose mode: no inertia, no gravity, no pushes (a gravity or
+a <code class="docutils literal notranslate"><span class="pre">Force.vector</span></code> is refused there: they need time; a <code class="docutils literal notranslate"><span class="pre">Force.toward</span></code>
+pull works in both modes). With a <code class="docutils literal notranslate"><span class="pre">dt</span></code> the bodies step through
+<code class="docutils literal notranslate"><span class="pre">substeps</span></code> of <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">/</span> <span class="pre">substeps</span></code>, carrying their velocities in and out,
+and a target is reached over those substeps. <code class="docutils literal notranslate"><span class="pre">targets</span></code> hold channels
+exactly (a body held in x and y is immovable to the joints for the frame,
+one held in rotation unturnable); a target beyond a chain’s reach shows
+up in <code class="docutils literal notranslate"><span class="pre">unsatisfied</span></code> rather than stretching anything. Hinge and weld
+rests left <code class="docutils literal notranslate"><span class="pre">None</span></code> are the relative angles the bodies have on input.
+A frame that leaves a joint failing is solved again with <code class="docutils literal notranslate"><span class="pre">retry</span></code> times
+the <code class="docutils literal notranslate"><span class="pre">iterations</span></code> (1: never); <code class="docutils literal notranslate"><span class="pre">drop_conflicts</span></code>
+then gives up the joints in conflict, last declared first (module
+docstring); <code class="docutils literal notranslate"><span class="pre">False</span></code> keeps them all and reports what fails. <code class="docutils literal notranslate"><span class="pre">seed</span></code> is reserved for stochastic drivers and does nothing in this
+version: the solve has no randomness.</p>
+<p>A shoulder driven to a point, an upper arm pinned to it, a forearm
+hinged to that, the hand pinned to a handle (the two-link case): the hand
+lands on the handle and the elbow bends the way its range allows.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">torso</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">80.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upper</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fore</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handle</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"handle"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">joints</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">)),</span>
+<span class="gp">... </span>          <span class="n">Hinge</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"upper"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">limits</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+<span class="gp">... </span>          <span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"fore"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"handle"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">solve</span><span class="p">([</span><span class="n">torso</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">fore</span><span class="p">,</span> <span class="n">handle</span><span class="p">],</span> <span class="n">joints</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s2">"torso"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">ok</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">residuals</span><span class="p">)</span>
+<span class="go">(True, (0.0, 0.0, 0.0))</span>
+</pre></div>
+</div>
+<p>Out of reach, the grip is reported, and the arm stays on its shoulder:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">far</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">posed</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">300.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">solve</span><span class="p">([</span><span class="n">torso</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">fore</span><span class="p">,</span> <span class="n">far</span><span class="p">],</span> <span class="n">joints</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s2">"torso"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">unsatisfied</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">dropped</span><span class="p">,</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">residuals</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]</span>
+<span class="go">([2], (2,), [0.0, 0.0])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.kinematics.solver.html#an.kinematics.solver.SolveResult" title="an.kinematics.solver.SolveResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolveResult</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.solve_frames">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">solve_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bodies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/solver.html#solve_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.solve_frames" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">frames</span></code> solves in a row, each starting from the last: the caller’s
+time dimension. <code class="docutils literal notranslate"><span class="pre">targets_at(k)</span></code> (or <code class="docutils literal notranslate"><span class="pre">targets_at[k]</span></code>) gives frame
+<code class="docutils literal notranslate"><span class="pre">k</span></code>’s targets; <code class="docutils literal notranslate"><span class="pre">joints_at(k)</span></code> its joints (the same list with
+<code class="docutils literal notranslate"><span class="pre">joined</span></code> flags flipped is how a joint is unjoined and rejoined). Hinge
+and weld rests are fixed from the starting poses. <code class="docutils literal notranslate"><span class="pre">options</span></code> go to
+<a class="reference internal" href="#an.kinematics.solve" title="an.kinematics.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a>.</p>
+<p>A part unjoined falls, and is caught where it is when rejoined:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">peg</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"peg"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">part</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="s2">"part"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">joined</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"part"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"peg"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loose</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pin</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="s2">"part"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Point</span><span class="p">(</span><span class="s2">"peg"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">joined</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">solve_frames</span><span class="p">([</span><span class="n">peg</span><span class="p">,</span> <span class="n">part</span><span class="p">],</span> <span class="n">joined</span><span class="p">,</span> <span class="n">frames</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">24</span><span class="p">,</span> <span class="n">gravity</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">980.0</span><span class="p">),</span>
+<span class="gp">... </span>                 <span class="n">joints_at</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">loose</span> <span class="k">if</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="k">else</span> <span class="n">joined</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">poses</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">r</span><span class="o">.</span><span class="n">poses</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">r</span><span class="o">.</span><span class="n">snaps</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">snaps</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">2.0</span>
+<span class="go">(True, (8, 0), True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">unsatisfied</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.kinematics.solver.html#an.kinematics.solver.FramesResult" title="an.kinematics.solver.FramesResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">FramesResult</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.kinematics.two_bone">
+<span class="sig-prename descclassname"><span class="pre">an.kinematics.</span></span><span class="sig-name descname"><span class="pre">two_bone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/kinematics/chains.html#two_bone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.kinematics.two_bone" title="Link to this definition">#</a></dt>
+<dd><p>Absolute angles <code class="docutils literal notranslate"><span class="pre">(theta1,</span> <span class="pre">theta2)</span></code> of two links of <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
+<code class="docutils literal notranslate"><span class="pre">(l1,</span> <span class="pre">l2)</span></code> hinged at <code class="docutils literal notranslate"><span class="pre">root</span></code> so that the tip meets <code class="docutils literal notranslate"><span class="pre">target</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+when the target is out of <a class="reference internal" href="#an.kinematics.reach" title="an.kinematics.reach"><code class="xref py py-func docutils literal notranslate"><span class="pre">reach()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bend</span></code> is <code class="docutils literal notranslate"><span class="pre">+1</span></code> for a middle joint that deviates counter-clockwise from
+the root-to-target line (which, on a y-down screen, reads as clockwise),
+<code class="docutils literal notranslate"><span class="pre">-1</span></code> for the other side. Each side is a different pose of the same chain;
+which one is right is the author’s (or a hinge range’s) choice.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">two_bone</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">bend</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">t1</span><span class="p">)),</span> <span class="nb">round</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">t2</span><span class="p">))</span>
+<span class="go">(90, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">two_bone</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">bend</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">t1</span><span class="p">)),</span> <span class="nb">round</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">t2</span><span class="p">))</span>
+<span class="go">(0, 90)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Modules</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.kinematics.bodies.html#module-an.kinematics.bodies" title="an.kinematics.bodies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bodies</span></code></a></p></td>
+<td><p>Bodies and the points on them: the things a joint joins and a driver moves.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.kinematics.chains.html#module-an.kinematics.chains" title="an.kinematics.chains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chains</span></code></a></p></td>
+<td><p>Closed-form pieces for chains: the two-link reach and its reachable range.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.kinematics.joints.html#module-an.kinematics.joints" title="an.kinematics.joints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">joints</span></code></a></p></td>
+<td><p>Joints: declared relations between two bodies, or a body and the world.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.kinematics.solver.html#module-an.kinematics.solver" title="an.kinematics.solver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solver</span></code></a></p></td>
+<td><p>The solve: bodies joined at points, driven at a few, settled by gravity.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.iterate.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.iterate</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.kinematics.bodies.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.kinematics.bodies</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Body"><code class="docutils literal notranslate"><span class="pre">Body</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Body.posed"><code class="docutils literal notranslate"><span class="pre">Body.posed()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Contact"><code class="docutils literal notranslate"><span class="pre">Contact</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Distance"><code class="docutils literal notranslate"><span class="pre">Distance</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Force"><code class="docutils literal notranslate"><span class="pre">Force</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.FramesResult"><code class="docutils literal notranslate"><span class="pre">FramesResult</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Hinge"><code class="docutils literal notranslate"><span class="pre">Hinge</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.KinematicsError"><code class="docutils literal notranslate"><span class="pre">KinematicsError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Pin"><code class="docutils literal notranslate"><span class="pre">Pin</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Point"><code class="docutils literal notranslate"><span class="pre">Point</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Slide"><code class="docutils literal notranslate"><span class="pre">Slide</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.SolveResult"><code class="docutils literal notranslate"><span class="pre">SolveResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.SolveResult.ok"><code class="docutils literal notranslate"><span class="pre">SolveResult.ok</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.SolveResult.pose"><code class="docutils literal notranslate"><span class="pre">SolveResult.pose()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.Weld"><code class="docutils literal notranslate"><span class="pre">Weld</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.digest"><code class="docutils literal notranslate"><span class="pre">digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.inertia"><code class="docutils literal notranslate"><span class="pre">inertia()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.inputs_digest"><code class="docutils literal notranslate"><span class="pre">inputs_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.mass"><code class="docutils literal notranslate"><span class="pre">mass()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.point_world"><code class="docutils literal notranslate"><span class="pre">point_world()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.quantize"><code class="docutils literal notranslate"><span class="pre">quantize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.reach"><code class="docutils literal notranslate"><span class="pre">reach()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.resolve_rests"><code class="docutils literal notranslate"><span class="pre">resolve_rests()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solve"><code class="docutils literal notranslate"><span class="pre">solve()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.solve_frames"><code class="docutils literal notranslate"><span class="pre">solve_frames()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.kinematics.two_bone"><code class="docutils literal notranslate"><span class="pre">two_bone()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.kinematics.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

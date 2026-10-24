@@ -71,6 +71,7 @@
    impacts
    ir
    iterate
+   kinematics
    library
    live_api
    mcp

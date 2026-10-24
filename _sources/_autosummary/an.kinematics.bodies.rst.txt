@@ -1,0 +1,30 @@
+an.kinematics.bodies
+====================
+
+.. automodule:: an.kinematics.bodies
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WORLD
+      DFLT_DENSITY
+      DFLT_ORIGIN
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      inertia
+      local_offset
+      mass
+      point_world
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Body
+      Point
+   

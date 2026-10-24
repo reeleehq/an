@@ -1,0 +1,49 @@
+an.kinematics.solver
+====================
+
+.. automodule:: an.kinematics.solver
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_ITERATIONS
+      DFLT_SUBSTEPS
+      DFLT_DAMPING
+      DFLT_TOLERANCE
+      DFLT_ANGLE_TOLERANCE
+      DFLT_CONFLICT_RETRY
+      DFLT_CONFLICT_PROGRESS
+      DFLT_MAX_DROP_TRIALS
+      DFLT_NUDGE
+      DFLT_POSITION_QUANTUM
+      DFLT_SEGMENT_MARGIN
+      SOLVER_VERSION
+      POSE_CHANNELS
+      Targets
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      digest
+      inputs_digest
+      quantize
+      resolve_rests
+      solve
+      solve_frames
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FramesResult
+      SolveResult
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      KinematicsError
+   

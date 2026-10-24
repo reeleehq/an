@@ -1,4 +1,4 @@
-> built 2026-10-24 14:35 UTC from dbe016f (main) · an 0.1.258. Details: build_info.json
+> built 2026-10-24 15:10 UTC from 4efd402 (main) · an 0.1.259. Details: build_info.json
 
 # index.html.md
 
@@ -7426,7 +7426,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -7645,7 +7645,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'path', 'rect'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -17802,6 +17802,7 @@ which decides how long a dissolve’s overlap is.
 | [`genres`](_autosummary/an.genres.html.md#module-an.genres)               | Genres: what a kind of animation adds to the core, declared as one object.                                                                              |
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                       | Scene IR — the single source of truth for a scene.                                                                                                      |
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)             | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.                                                                          |
+| [`kinematics`](_autosummary/an.kinematics.html.md#module-an.kinematics)       | A deterministic 2D constraint solver: bodies joined at points, driven at a few of them, settled by gravity (an#499, ADR 0008).                          |
 | [`library`](_autosummary/an.library.html.md#module-an.library)             | The asset library: reusable assets that outlive their videos (ADR 0005).                                                                                |
 | [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)           | The one switch that says "yes, this run may spend money".                                                                                               |
 | [`mcp`](_autosummary/an.mcp.html.md#module-an.mcp)                     | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry.                                                      |
@@ -21791,6 +21792,1326 @@ True
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.kinematics.bodies.html.md
+
+# an.kinematics.bodies
+
+Bodies and the points on them: the things a joint joins and a driver moves.
+
+A [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body) is a rigid rectangle of `width` by `height` (its *extent*)
+posed in one frame by `(x, y, rotation, scale)`: the pose point is the
+body’s `origin`, a fraction of the extent (`(0.5, 0.5)` is the centre,
+`(0.5, 0.0)` the middle of the top edge: where a hanging part is hinged). A
+[`Point`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Point) on a body is likewise a fraction `(u, v)` of the extent, so a
+caller that knows its landmarks (a bone, a grip, a corner) resolves them to
+fractions once and the solver never learns their names. The world is the body
+named [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.WORLD): a point on it is an absolute position.
+
+Nothing here imports the scene IR or the stage: a body is four numbers and an
+extent, which is what lets this package be described without naming an
+animation (`# extraction candidate`: it becomes its own package when a
+second consumer exists).
+
+```pycon
+>>> arm = Body("arm", x=10.0, y=20.0, width=60.0, height=10.0, origin=(0.0, 0.5))
+>>> point_world(arm, Point("arm", 1.0, 0.5))   # the far end of an unrotated arm
+(70.0, 20.0)
+>>> point_world(arm, Point(WORLD, 3.0, 4.0))   # a world point is itself
+(3.0, 4.0)
+```
+
+### Module Attributes
+
+| [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.WORLD)        | a [`Point`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Point) on it is an absolute position, and it has infinite mass (a joint to it is a joint to the ground).   |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_DENSITY`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.DFLT_DENSITY) | mass = density × area.                                                                                                                                       |
+| [`DFLT_ORIGIN`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.DFLT_ORIGIN)  | the centre of its extent.                                                                                                                                    |
+
+### Functions
+
+| [`inertia`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.inertia)(body)             | Rotational inertia about the body's pose point (parallel-axis from the extent's centre); `inf` for a fixed body.                                                             |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`local_offset`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.local_offset)(body, point) | The point's offset from the body's pose point, in the body's own (unrotated) frame, scaled.                                                                                  |
+| [`mass`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.mass)(body)                | The body's mass: density × scaled area; `inf` for a fixed body.                                                                                                              |
+| [`point_world`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.point_world)(body, point)  | The point's position in the body's frame of reference (the world, for a body posed in it); a [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.WORLD) point is returned as is. |
+
+### Classes
+
+| [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body)(name[, x, y, rotation, scale, width, ...])   | A rigid rectangle posed in one frame.                  |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| [`Point`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Point)(body, u, v)                                 | A point on a body, as a fraction of the body's extent. |
+
+### *class* an.kinematics.bodies.Body(name, x=0.0, y=0.0, rotation=0.0, scale=1.0, width=1.0, height=1.0, origin=(0.5, 0.5), fixed=False, density=1.0, vx=0.0, vy=0.0, omega=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A rigid rectangle posed in one frame.
+
+`fixed` bodies have infinite mass: joints move everything else around
+them. `vx`, `vy` (the velocity of the extent’s centre) and `omega`
+are what a dynamic solve carries from one frame to the next (zero at
+rest). `density` sets the mass per unit area, spread evenly over the
+extent, so a limb whose pose point is at its end still swings about it.
+
+```pycon
+>>> b = Body("box", width=4.0, height=2.0)
+>>> round(mass(b), 3), round(inertia(b), 3)
+(8.0, 13.333)
+```
+
+#### posed(, x=None, y=None, rotation=None, vx=None, vy=None, omega=None)
+
+This body with the given pose channels (and velocities) replaced.
+
+```pycon
+>>> Body("b").posed(x=3.0).x
+3.0
+```
+
+* **Return type:**
+  [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body)
+
+### an.kinematics.bodies.DFLT_DENSITY *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+mass = density × area. Only the
+RATIO of masses matters to a solve (a heavy prop drags a light arm), so one
+unit per square unit of extent is the natural default.
+
+* **Type:**
+  Density of a body whose caller gave none
+
+### an.kinematics.bodies.DFLT_ORIGIN *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.5)*
+
+the centre of its extent.
+
+* **Type:**
+  Where a body’s pose point sits by default
+
+### *class* an.kinematics.bodies.Point(body, u, v)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A point on a body, as a fraction of the body’s extent.
+
+On [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.WORLD) the fraction is an absolute position instead.
+
+```pycon
+>>> Point("hand", 0.5, 1.0).body
+'hand'
+```
+
+### an.kinematics.bodies.WORLD *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'world'*
+
+a [`Point`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Point) on it is an absolute position,
+and it has infinite mass (a joint to it is a joint to the ground).
+
+* **Type:**
+  The name of the world body
+
+### an.kinematics.bodies.inertia(body)
+
+Rotational inertia about the body’s pose point (parallel-axis from the
+extent’s centre); `inf` for a fixed body.
+
+```pycon
+>>> round(inertia(Body("b", width=4.0, height=2.0, origin=(0.0, 0.5))), 3)
+45.333
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.kinematics.bodies.local_offset(body, point)
+
+The point’s offset from the body’s pose point, in the body’s own
+(unrotated) frame, scaled.
+
+```pycon
+>>> local_offset(Body("b", width=10.0, height=4.0), Point("b", 1.0, 0.0))
+(5.0, -2.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.kinematics.bodies.mass(body)
+
+The body’s mass: density × scaled area; `inf` for a fixed body.
+
+```pycon
+>>> mass(Body("b", width=3.0, height=2.0, scale=2.0))
+24.0
+>>> mass(Body("b", fixed=True))
+inf
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.kinematics.bodies.point_world(body, point)
+
+The point’s position in the body’s frame of reference (the world, for
+a body posed in it); a [`WORLD`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.WORLD) point is returned as is.
+
+```pycon
+>>> b = Body("b", x=1.0, y=1.0, rotation=math.pi / 2, width=2.0, height=2.0)
+>>> tuple(round(c, 9) for c in point_world(b, Point("b", 1.0, 0.5)))
+(1.0, 2.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+
+# _autosummary/an.kinematics.chains.html.md
+
+# an.kinematics.chains
+
+Closed-form pieces for chains: the two-link reach and its reachable range.
+
+A two-link chain (an upper arm and a forearm, a thigh and a shin) with its
+root held and its tip asked for is the common case of every puppet, and it
+has an exact answer by the law of cosines. The solver uses it as the initial
+guess for such chains before projecting (so the common case converges in a
+round and the bend side is an explicit choice, never an interpolation), and
+callers use it directly to ask whether a grip is in reach at all.
+
+```pycon
+>>> t1, t2 = two_bone((0.0, 0.0), (5.0, 0.0), (3.0, 4.0))
+>>> tip = (3.0 * math.cos(t1) + 4.0 * math.cos(t2), 3.0 * math.sin(t1) + 4.0 * math.sin(t2))
+>>> tuple(round(c, 9) for c in tip)
+(5.0, 0.0)
+>>> two_bone((0.0, 0.0), (8.0, 0.0), (3.0, 4.0)) is None
+True
+```
+
+### Functions
+
+| [`reach`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach)(l1, l2)                               | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                         |
+|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`two_bone`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.two_bone)(root, target, lengths, \*[, bend]) | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach). |
+
+### an.kinematics.chains.reach(l1, l2)
+
+The `(nearest, farthest)` distance from the root a two-link chain of
+lengths `l1` and `l2` can put its tip.
+
+```pycon
+>>> reach(3.0, 4.0)
+(1.0, 7.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.kinematics.chains.two_bone(root, target, lengths, , bend=1)
+
+Absolute angles `(theta1, theta2)` of two links of `lengths`
+`(l1, l2)` hinged at `root` so that the tip meets `target`; `None`
+when the target is out of [`reach()`](_autosummary/an.kinematics.chains.html.md#an.kinematics.chains.reach).
+
+`bend` is `+1` for a middle joint that deviates counter-clockwise from
+the root-to-target line (which, on a y-down screen, reads as clockwise),
+`-1` for the other side. Each side is a different pose of the same chain;
+which one is right is the author’s (or a hinge range’s) choice.
+
+```pycon
+>>> t1, t2 = two_bone((0.0, 0.0), (1.0, 1.0), (1.0, 1.0), bend=1)
+>>> round(math.degrees(t1)), round(math.degrees(t2))
+(90, 0)
+>>> t1, t2 = two_bone((0.0, 0.0), (1.0, 1.0), (1.0, 1.0), bend=-1)
+>>> round(math.degrees(t1)), round(math.degrees(t2))
+(0, 90)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+
+# _autosummary/an.kinematics.html.md
+
+# an.kinematics
+
+A deterministic 2D constraint solver: bodies joined at points, driven at a
+few of them, settled by gravity (an#499, ADR 0008).
+
+Four nouns and one verb. A [`Body`](_autosummary/an.kinematics.html.md#an.kinematics.Body) is a rigid rectangle posed by
+`(x, y, rotation, scale)`; a [`Point`](_autosummary/an.kinematics.html.md#an.kinematics.Point) on it is a fraction of its
+extent. A joint relates two bodies (or a body and `WORLD`):
+[`Pin`](_autosummary/an.kinematics.html.md#an.kinematics.Pin), [`Hinge`](_autosummary/an.kinematics.html.md#an.kinematics.Hinge) (a pin with an angle range), [`Weld`](_autosummary/an.kinematics.html.md#an.kinematics.Weld),
+[`Distance`](_autosummary/an.kinematics.html.md#an.kinematics.Distance) (`equal` a rod, `at_most` a string, `at_least` a
+spacer), [`Slide`](_autosummary/an.kinematics.html.md#an.kinematics.Slide) (a groove) and [`Contact`](_autosummary/an.kinematics.html.md#an.kinematics.Contact) (one-sided: a foot on
+the ground, a lamp on a table). A driver is a target on a body’s channels (a
+nail: met exactly where the joints allow), a [`Force`](_autosummary/an.kinematics.html.md#an.kinematics.Force) (a push, or a
+soft pull toward a point), or gravity. [`solve()`](_autosummary/an.kinematics.html.md#an.kinematics.solve) does one frame,
+[`solve_frames()`](_autosummary/an.kinematics.html.md#an.kinematics.solve_frames) a run of them with the caller’s targets and
+joined/unjoined joints per frame, and both return a typed result that names
+what could not be held instead of raising.
+
+```pycon
+>>> torso = Body("torso", width=40.0, height=80.0)
+>>> upper = Body("upper", x=20.0, y=-30.0, width=50.0, height=10.0, origin=(0.0, 0.5))
+>>> fore = Body("fore", x=70.0, y=-30.0, width=40.0, height=8.0, origin=(0.0, 0.5))
+>>> handle = Body("handle", x=80.0, y=10.0, width=4.0, height=4.0, fixed=True)
+>>> arm = [Pin(Point("upper", 0.0, 0.5), Point("torso", 1.0, 0.125)),
+...        Hinge(Point("fore", 0.0, 0.5), Point("upper", 1.0, 0.5), limits=(-2.6, 0.0)),
+...        Pin(Point("fore", 1.0, 0.5), Point("handle", 0.5, 0.5))]
+>>> solve([torso, upper, fore, handle], arm, targets={"torso": {"x": 0.0, "y": 0.0}}).ok
+True
+```
+
+Nothing here imports the scene IR or the stage, and nothing names an
+animation: bodies are numbers, joints are rows (`# extraction candidate`:
+this becomes its own package when a second consumer exists). The compile
+pass that reads joints from a scene is P2 (an#512).
+
+**The method, and why** (measured in
+`misc/docs/research/puppeteering_2026-10.md` §4, which compared analytic
+two-bone, CCD, FABRIK, PBD and XPBD on the same tasks, and re-measured on
+this module by `misc/docs/research/puppeteering_2026-10/measure_kinematics.py`,
+results in `kinematics_measurements.json` beside it; CPython 3.12, x86-64,
+one core). Extended position-based dynamics on 2D rigid bodies (XPBD,
+Macklin et al. 2016; rigid bodies and joints, Müller et al. 2020):
+Gauss–Seidel over the joints in a fixed order, each a projection with the
+generalized inverse mass `1/m + (r × n)² / I` about the body’s centre (or
+about its pose point while that is held), hinge limits as angular
+projections, a fixed count of substeps and iterations. It is the one family
+of the five that does chains, strings, rods, contacts, gravity and
+unjoining in one loop, and its compliance is a stiffness that does not
+depend on the iteration count. Its weakness, slow propagation down long
+chains, is covered for the common case by the analytic two-link solve used
+as the initial guess for every chain between two held ends (an arm with a
+hand is a two-link chain whose second link is the forearm and the hand held
+at their current angles), which also makes the elbow’s bend side an explicit
+choice (the side its range allows, else the side it already has).
+
+- **Convergence per iteration** (the arm above, pose mode, worst residual):
+  from the closed-form start, 2e-14 px after one pass; from a cold start,
+  5.8 / 3.3 / 0.80 / 0.10 / 0.0014 px after 1 / 2 / 4 / 8 / 16 passes, 5e-14
+  after 64. A frame that leaves a joint failing is retried with four times
+  the passes, so the default eight reach the sixteen-pass figure when needed.
+- **Singularities**: a target at exactly full reach (a straight arm) is met
+  with zero residual and a straight elbow; 1 px or 5 px beyond reach the
+  grip alone is refused (`dropped`, its gap in `unsatisfied`), the
+  shoulder and elbow hold exactly, and the arm points straight at the
+  target; a target on the shoulder itself (inside the nearest reach, where
+  the direction is undefined) is refused the same way, the arm left where
+  it was rather than guessed. (The torso is nailed in rotation here; free
+  to turn, it turns toward the target first.) A chain between two rigidly
+  held ends whose ends are outside its reach is refused before any pass.
+- **A straight chain pushed along its length** (a rope bridge of 3 to 20
+  planks pinned at 0.8 of its length, laid straight): no correction has a
+  sideways part, so nothing moves; the retry’s start, nudged by 1e-3 rad,
+  buckles it, and every joint holds (tests).
+- **Stability at frame-exact steps** (a 12-link chain dropped horizontal, 10 s
+  at 24 fps, under gravity): at 4 substeps (the default) no frame fails a
+  joint and the tip hangs within 0.03° of vertical; at 1 or 2 substeps the
+  whip under-converges (worst 3.2 / 0.9 px with the retry, 17 / 3.4 px
+  without), reported per frame and never given up (a tree cannot conflict).
+  Nothing diverges at any setting.
+- **Compliance**: a soft rod (`compliance=1e-4`) under a 100-unit weight
+  stretches 11.85 units after one second at 1, 2, 8 and 32 iterations alike,
+  to the digit; it settles to the static 9.8.
+- **Cost per frame**, dynamic, defaults: 14 ms for five ten-part
+  marionettes (50 bodies, 65 joints, 25 strings), no frame failing; 0.9 ms for
+  the two-link reach in pose mode. A 50-link rope or chain costs 34-48 ms (the
+  retry runs on its failing frames) and under-converges on 40-47 of 48 frames
+  (Gauss–Seidel’s n² propagation): reported, never cut. Long ropes want more
+  substeps, or the FABRIK seam the research names.
+- **Determinism**: Python floats and [`math`](https://docs.python.org/3/library/math.html#module-math) inside the loop, numpy at the
+  boundary; bitwise-equal poses across runs and across processes on one
+  platform (`tests/test_kinematics.py`). Not across platforms: a dynamic
+  run amplifies a last-ulp libm difference (1e-13 on one frame’s input is
+  0.014 units 96 frames later), so a cache key is built on the inputs
+  ([`inputs_digest()`](_autosummary/an.kinematics.html.md#an.kinematics.inputs_digest), with `SOLVER_VERSION`), never the output.
+
+Not in this version: friction (a contact is frictionless: a lamp on a table
+sliding sideways stays where it is until the edge passes), blending a snap
+(a rejoined joint closes its gap in one frame, reported in
+`FramesResult.snaps`), and the stochastic driver `seed` is reserved
+for.
+
+### Functions
+
+| [`mass`](_autosummary/an.kinematics.html.md#an.kinematics.mass)(body)                                        | The body's mass: density × scaled area; `inf` for a fixed body.                                                                                                                                                     |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`inertia`](_autosummary/an.kinematics.html.md#an.kinematics.inertia)(body)                                     | Rotational inertia about the body's pose point (parallel-axis from the extent's centre); `inf` for a fixed body.                                                                                                    |
+| [`point_world`](_autosummary/an.kinematics.html.md#an.kinematics.point_world)(body, point)                          | The point's position in the body's frame of reference (the world, for a body posed in it); a `WORLD` point is returned as is.                                                                                       |
+| [`reach`](_autosummary/an.kinematics.html.md#an.kinematics.reach)(l1, l2)                                     | The `(nearest, farthest)` distance from the root a two-link chain of lengths `l1` and `l2` can put its tip.                                                                                                         |
+| [`two_bone`](_autosummary/an.kinematics.html.md#an.kinematics.two_bone)(root, target, lengths, \*[, bend])       | Absolute angles `(theta1, theta2)` of two links of `lengths` `(l1, l2)` hinged at `root` so that the tip meets `target`; `None` when the target is out of [`reach()`](_autosummary/an.kinematics.html.md#an.kinematics.reach). |
+| [`solve`](_autosummary/an.kinematics.html.md#an.kinematics.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                         |
+| [`solve_frames`](_autosummary/an.kinematics.html.md#an.kinematics.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                 |
+| [`resolve_rests`](_autosummary/an.kinematics.html.md#an.kinematics.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                    |
+| [`quantize`](_autosummary/an.kinematics.html.md#an.kinematics.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is `POSE_CHANNELS`) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                                             |
+| [`digest`](_autosummary/an.kinematics.html.md#an.kinematics.digest)(poses, \*\*quanta)                         | A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).                                                                                    |
+| [`inputs_digest`](_autosummary/an.kinematics.html.md#an.kinematics.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with `SOLVER_VERSION`: the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`).                  |
+
+### Classes
+
+| [`Body`](_autosummary/an.kinematics.html.md#an.kinematics.Body)(name[, x, y, rotation, scale, width, ...])   | A rigid rectangle posed in one frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Point`](_autosummary/an.kinematics.html.md#an.kinematics.Point)(body, u, v)                                 | A point on a body, as a fraction of the body's extent.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| [`Pin`](_autosummary/an.kinematics.html.md#an.kinematics.Pin)(a, b[, compliance, joined])                   | Two points coincide; free rotation about them.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`Hinge`](_autosummary/an.kinematics.html.md#an.kinematics.Hinge)(a, b[, limits, rest, compliance, joined])   | A pin with a range for the angle of `b`'s body relative to `a`'s.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`Weld`](_autosummary/an.kinematics.html.md#an.kinematics.Weld)(a, b[, rest, compliance, joined])            | A pin plus a fixed relative angle (`rest`, or the starting one).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| [`Distance`](_autosummary/an.kinematics.html.md#an.kinematics.Distance)(a, b, length[, mode, compliance, ...])   | The two points keep `length` apart: exactly, at most, or at least.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [`Slide`](_autosummary/an.kinematics.html.md#an.kinematics.Slide)(point, start, end[, compliance, joined])    | `point` stays on the segment `start`–`end` (both on one other body, or the world), within its ends.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| [`Contact`](_autosummary/an.kinematics.html.md#an.kinematics.Contact)(point, start, end[, compliance, joined])  | `point` stays on the free side of the segment `start`–`end`, or on it; nothing holds it there (it may lift off), and nothing holds it beyond the segment's ends (it may fall off an edge).                                                                                                                                                                                                                                                                                                                                                      |
+| [`Force`](_autosummary/an.kinematics.html.md#an.kinematics.Force)(point[, vector, toward, strength])          | A driver that is not a target: a constant `vector` (force per unit mass, applied at `point`, so an off-centre push also turns the body), or a pull of `point` `toward` a position with `strength` (a compliant zero-length rope: `compliance = 1 / strength`), or both.                                                                                                                                                                                                                                                                         |
+| [`SolveResult`](_autosummary/an.kinematics.html.md#an.kinematics.SolveResult)(bodies, poses, residuals, ...[, ...]) | What one frame's solve found.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| [`FramesResult`](_autosummary/an.kinematics.html.md#an.kinematics.FramesResult)(bodies, poses, unsatisfied, ...)     | A run of frames: `poses` is `(frames, bodies, 4)`; `unsatisfied` and `limit_violations` are per frame; `snaps` lists every joint that is enforced again after a frame it was not (the caller rejoined it, or a conflict had dropped it) as `(frame, joint index, distance)`, the gap it closes in one frame (the caller decides whether to blend or to refuse it; in dynamic mode a large gap yanks the bodies it joins); `final` is the last frame's bodies, ready to continue the run; `dropped` the joints each frame gave up in a conflict. |
+
+### Exceptions
+
+| [`KinematicsError`](_autosummary/an.kinematics.html.md#an.kinematics.KinematicsError)   | A solve that cannot be set up: an unknown body, gravity without time, a joint on the world alone, a body with no extent.   |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+
+### *class* an.kinematics.Body(name, x=0.0, y=0.0, rotation=0.0, scale=1.0, width=1.0, height=1.0, origin=(0.5, 0.5), fixed=False, density=1.0, vx=0.0, vy=0.0, omega=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A rigid rectangle posed in one frame.
+
+`fixed` bodies have infinite mass: joints move everything else around
+them. `vx`, `vy` (the velocity of the extent’s centre) and `omega`
+are what a dynamic solve carries from one frame to the next (zero at
+rest). `density` sets the mass per unit area, spread evenly over the
+extent, so a limb whose pose point is at its end still swings about it.
+
+```pycon
+>>> b = Body("box", width=4.0, height=2.0)
+>>> round(mass(b), 3), round(inertia(b), 3)
+(8.0, 13.333)
+```
+
+#### posed(, x=None, y=None, rotation=None, vx=None, vy=None, omega=None)
+
+This body with the given pose channels (and velocities) replaced.
+
+```pycon
+>>> Body("b").posed(x=3.0).x
+3.0
+```
+
+* **Return type:**
+  [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body)
+
+### *class* an.kinematics.Contact(point, start, end, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`point` stays on the free side of the segment `start`–`end`, or
+on it; nothing holds it there (it may lift off), and nothing holds it
+beyond the segment’s ends (it may fall off an edge).
+
+```pycon
+>>> Contact(Point("lamp", 0.5, 1.0), Point("table", 0.0, 0.0), Point("table", 1.0, 0.0)).joined
+True
+```
+
+### *class* an.kinematics.Distance(a, b, length, mode='equal', compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The two points keep `length` apart: exactly, at most, or at least.
+
+```pycon
+>>> Distance(Point("hand", 0.5, 0.5), Point("world", 0.0, -200.0), length=150.0, mode="at_most").mode
+'at_most'
+```
+
+### *class* an.kinematics.Force(point, vector=None, toward=None, strength=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A driver that is not a target: a constant `vector` (force per unit
+mass, applied at `point`, so an off-centre push also turns the body), or
+a pull of `point` `toward` a position with `strength` (a compliant
+zero-length rope: `compliance = 1 / strength`), or both.
+
+```pycon
+>>> Force(Point("kite", 0.5, 0.0), vector=(30.0, 0.0)).toward is None
+True
+```
+
+### *class* an.kinematics.FramesResult(bodies, poses, unsatisfied, limit_violations, snaps, final=(), dropped=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A run of frames: `poses` is `(frames, bodies, 4)`; `unsatisfied`
+and `limit_violations` are per frame; `snaps` lists every joint that
+is enforced again after a frame it was not (the caller rejoined it, or a
+conflict had dropped it) as `(frame, joint index, distance)`, the gap
+it closes in one frame (the caller decides whether to blend or to refuse
+it; in dynamic mode a large gap yanks the bodies it joins); `final` is the last frame’s bodies, ready to continue the
+run; `dropped` the joints each frame gave up in a conflict.
+
+### *class* an.kinematics.Hinge(a, b, limits=None, rest=None, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A pin with a range for the angle of `b`’s body relative to `a`’s.
+
+`limits` is `(lo, hi)` in radians about `rest`, within
+`[-pi, pi]`; `rest` is the relative angle (`b.rotation -
+a.rotation`) the range is measured from, taken from the bodies’ poses at
+the start of the solve when `None`. With no `limits` it is a pin.
+
+```pycon
+>>> Hinge(Point("fore", 0.0, 0.5), Point("upper", 1.0, 0.5), limits=(-2.6, 0.0)).limits
+(-2.6, 0.0)
+```
+
+### *exception* an.kinematics.KinematicsError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A solve that cannot be set up: an unknown body, gravity without time,
+a joint on the world alone, a body with no extent.
+
+### *class* an.kinematics.Pin(a, b, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Two points coincide; free rotation about them.
+
+```pycon
+>>> Pin(Point("arm", 0.0, 0.5), Point("torso", 1.0, 0.2)).joined
+True
+```
+
+### *class* an.kinematics.Point(body, u, v)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A point on a body, as a fraction of the body’s extent.
+
+On `WORLD` the fraction is an absolute position instead.
+
+```pycon
+>>> Point("hand", 0.5, 1.0).body
+'hand'
+```
+
+### *class* an.kinematics.Slide(point, start, end, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`point` stays on the segment `start`–`end` (both on one other
+body, or the world), within its ends.
+
+```pycon
+>>> Slide(Point("bead", 0.5, 0.5), Point("world", 0.0, 0.0), Point("world", 100.0, 0.0)).joined
+True
+```
+
+### *class* an.kinematics.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one frame’s solve found.
+
+`bodies` are the input bodies with their poses and velocities updated,
+ready to be the next frame’s input; `poses` is the same as an array,
+one row per body in input order, columns `POSE_CHANNELS`.
+`residuals` has one entry per joint in input order: how far apart a
+joined joint’s points still are (0 for an unjoined joint, or one that
+holds; a compliant joint’s stretch); `unsatisfied` lists the rigid
+joints’ `(joint index, residual)` pairs above tolerance, and
+`limit_violations` the rigid hinges and welds outside their angle range
+as `(joint index, radians)`. `dropped` lists the joints
+given up in a conflict (module docstring), in the order they were.
+
+#### *property* ok *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Every joined joint holds and every range is kept.
+
+```pycon
+>>> solve([Body("b")], []).ok
+True
+```
+
+#### pose(name)
+
+The body called `name` as solved.
+
+```pycon
+>>> b = Body("b", x=1.0)
+>>> solve([b], []).pose("b").x
+1.0
+```
+
+* **Return type:**
+  [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body)
+
+### *class* an.kinematics.Weld(a, b, rest=None, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A pin plus a fixed relative angle (`rest`, or the starting one).
+
+```pycon
+>>> Weld(Point("hat", 0.5, 1.0), Point("head", 0.5, 0.0)).rest is None
+True
+```
+
+### an.kinematics.digest(poses, \*\*quanta)
+
+A hex digest of the quantized poses’ bytes, with the solver version:
+for comparing solved poses on one platform (a golden test). A cache key
+is built on the inputs instead ([`inputs_digest()`](_autosummary/an.kinematics.html.md#an.kinematics.inputs_digest)).
+
+```pycon
+>>> digest(np.zeros((2, 4))) == digest(np.zeros((2, 4)) + 1e-9)
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.kinematics.inertia(body)
+
+Rotational inertia about the body’s pose point (parallel-axis from the
+extent’s centre); `inf` for a fixed body.
+
+```pycon
+>>> round(inertia(Body("b", width=4.0, height=2.0, origin=(0.0, 0.5))), 3)
+45.333
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.kinematics.inputs_digest(bodies, joints, , targets=None, forces=(), gravity=None, \*\*options)
+
+A hex digest of everything a solve reads, with `SOLVER_VERSION`:
+the cache key for a solve (or a run of them: pass the per-frame targets
+as a list, and `frames`, `dt` and the rest as `options`). Floats
+are hashed exactly (`float.hex`); mappings by sorted key.
+
+```pycon
+>>> a = inputs_digest([Body("b", x=1.0)], [], dt=1 / 24)
+>>> a == inputs_digest([Body("b", x=1.0)], [], dt=1 / 24), a == inputs_digest([Body("b", x=1.0 + 1e-15)], [], dt=1 / 24)
+(True, False)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.kinematics.mass(body)
+
+The body’s mass: density × scaled area; `inf` for a fixed body.
+
+```pycon
+>>> mass(Body("b", width=3.0, height=2.0, scale=2.0))
+24.0
+>>> mass(Body("b", fixed=True))
+inf
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.kinematics.point_world(body, point)
+
+The point’s position in the body’s frame of reference (the world, for
+a body posed in it); a `WORLD` point is returned as is.
+
+```pycon
+>>> b = Body("b", x=1.0, y=1.0, rotation=math.pi / 2, width=2.0, height=2.0)
+>>> tuple(round(c, 9) for c in point_world(b, Point("b", 1.0, 0.5)))
+(1.0, 2.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.kinematics.quantize(poses, , position_quantum=1e-06, angle_quantum=1e-07)
+
+`poses` (any shape whose last axis is `POSE_CHANNELS`) rounded
+to the quanta a document stores: positions and scale to
+`position_quantum`, rotation to `angle_quantum`.
+
+```pycon
+>>> q = quantize(np.array([[1.00000049, 2.0, 0.123456789, 1.0]]))
+>>> float(q[0, 0]), bool(abs(q[0, 2] - 0.1234568) < 1e-15)
+(1.0, True)
+```
+
+* **Return type:**
+  `ndarray`
+
+### an.kinematics.reach(l1, l2)
+
+The `(nearest, farthest)` distance from the root a two-link chain of
+lengths `l1` and `l2` can put its tip.
+
+```pycon
+>>> reach(3.0, 4.0)
+(1.0, 7.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.kinematics.resolve_rests(bodies, joints)
+
+`joints` with every `rest=None` hinge and weld given the relative
+angle the bodies have now, so a run of frames measures its limits from
+one pose rather than from each frame’s.
+
+```pycon
+>>> a = Body("a", rotation=0.1); b = Body("b", rotation=0.4)
+>>> [round(j.rest, 3) for j in resolve_rests([a, b], [Hinge(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5), limits=(-1.0, 1.0))])]
+[0.3]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Pin`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Pin) | [`Hinge`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Hinge) | [`Weld`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Weld) | [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance) | [`Slide`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Slide) | [`Contact`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Contact)]
+
+### an.kinematics.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0)
+
+One frame: the poses of all `bodies` that satisfy the joined
+`joints` with the `targets` held, forces and `gravity` acting.
+
+`dt=None` is pose mode: no inertia, no gravity, no pushes (a gravity or
+a `Force.vector` is refused there: they need time; a `Force.toward`
+pull works in both modes). With a `dt` the bodies step through
+`substeps` of `dt / substeps`, carrying their velocities in and out,
+and a target is reached over those substeps. `targets` hold channels
+exactly (a body held in x and y is immovable to the joints for the frame,
+one held in rotation unturnable); a target beyond a chain’s reach shows
+up in `unsatisfied` rather than stretching anything. Hinge and weld
+rests left `None` are the relative angles the bodies have on input.
+A frame that leaves a joint failing is solved again with `retry` times
+the `iterations` (1: never); `drop_conflicts`
+then gives up the joints in conflict, last declared first (module
+docstring); `False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
+version: the solve has no randomness.
+
+A shoulder driven to a point, an upper arm pinned to it, a forearm
+hinged to that, the hand pinned to a handle (the two-link case): the hand
+lands on the handle and the elbow bends the way its range allows.
+
+```pycon
+>>> torso = Body("torso", width=40.0, height=80.0)
+>>> upper = Body("upper", x=20.0, y=-30.0, width=50.0, height=10.0, origin=(0.0, 0.5))
+>>> fore = Body("fore", x=70.0, y=-30.0, width=40.0, height=8.0, origin=(0.0, 0.5))
+>>> handle = Body("handle", x=80.0, y=10.0, width=4.0, height=4.0, fixed=True)
+>>> joints = [Pin(Point("upper", 0.0, 0.5), Point("torso", 1.0, 0.125)),
+...           Hinge(Point("fore", 0.0, 0.5), Point("upper", 1.0, 0.5), limits=(-2.6, 0.0)),
+...           Pin(Point("fore", 1.0, 0.5), Point("handle", 0.5, 0.5))]
+>>> r = solve([torso, upper, fore, handle], joints, targets={"torso": {"x": 0.0, "y": 0.0}})
+>>> r.ok, tuple(round(v, 3) for v in r.residuals)
+(True, (0.0, 0.0, 0.0))
+```
+
+Out of reach, the grip is reported, and the arm stays on its shoulder:
+
+```pycon
+>>> far = handle.posed(x=300.0)
+>>> r = solve([torso, upper, fore, far], joints, targets={"torso": {"x": 0.0, "y": 0.0}})
+>>> [j for j, _ in r.unsatisfied], r.dropped, [round(v, 6) for v in r.residuals[:2]]
+([2], (2,), [0.0, 0.0])
+```
+
+* **Return type:**
+  [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)
+
+### an.kinematics.solve_frames(bodies, joints, , frames, dt, targets_at=None, joints_at=None, forces=(), gravity=None, \*\*options)
+
+`frames` solves in a row, each starting from the last: the caller’s
+time dimension. `targets_at(k)` (or `targets_at[k]`) gives frame
+`k`’s targets; `joints_at(k)` its joints (the same list with
+`joined` flags flipped is how a joint is unjoined and rejoined). Hinge
+and weld rests are fixed from the starting poses. `options` go to
+[`solve()`](_autosummary/an.kinematics.html.md#an.kinematics.solve).
+
+A part unjoined falls, and is caught where it is when rejoined:
+
+```pycon
+>>> peg = Body("peg", width=2.0, height=2.0, fixed=True)
+>>> part = Body("part", y=10.0, width=4.0, height=20.0, origin=(0.5, 0.0))
+>>> joined = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5))]
+>>> loose = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5), joined=False)]
+>>> r = solve_frames([peg, part], joined, frames=12, dt=1 / 24, gravity=(0.0, 980.0),
+...                  joints_at=lambda k: loose if 2 <= k < 8 else joined)
+>>> bool(r.poses[1, 1, 1] < r.poses[7, 1, 1]), r.snaps[0][:2], r.snaps[0][2] > 2.0
+(True, (8, 0), True)
+>>> r.unsatisfied[-1]
+()
+```
+
+* **Return type:**
+  [`FramesResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.FramesResult)
+
+### an.kinematics.two_bone(root, target, lengths, , bend=1)
+
+Absolute angles `(theta1, theta2)` of two links of `lengths`
+`(l1, l2)` hinged at `root` so that the tip meets `target`; `None`
+when the target is out of [`reach()`](_autosummary/an.kinematics.html.md#an.kinematics.reach).
+
+`bend` is `+1` for a middle joint that deviates counter-clockwise from
+the root-to-target line (which, on a y-down screen, reads as clockwise),
+`-1` for the other side. Each side is a different pose of the same chain;
+which one is right is the author’s (or a hinge range’s) choice.
+
+```pycon
+>>> t1, t2 = two_bone((0.0, 0.0), (1.0, 1.0), (1.0, 1.0), bend=1)
+>>> round(math.degrees(t1)), round(math.degrees(t2))
+(90, 0)
+>>> t1, t2 = two_bone((0.0, 0.0), (1.0, 1.0), (1.0, 1.0), bend=-1)
+>>> round(math.degrees(t1)), round(math.degrees(t2))
+(0, 90)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### Modules
+
+| [`bodies`](_autosummary/an.kinematics.bodies.html.md#module-an.kinematics.bodies)   | Bodies and the points on them: the things a joint joins and a driver moves.   |
+|---------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`chains`](_autosummary/an.kinematics.chains.html.md#module-an.kinematics.chains)   | Closed-form pieces for chains: the two-link reach and its reachable range.    |
+| [`joints`](_autosummary/an.kinematics.joints.html.md#module-an.kinematics.joints)   | Joints: declared relations between two bodies, or a body and the world.       |
+| [`solver`](_autosummary/an.kinematics.solver.html.md#module-an.kinematics.solver)   | The solve: bodies joined at points, driven at a few, settled by gravity.      |
+
+
+# _autosummary/an.kinematics.joints.html.md
+
+# an.kinematics.joints
+
+Joints: declared relations between two bodies, or a body and the world.
+
+Every joint names its points as [`Point`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Point)s and
+carries `joined` (the caller’s time dimension: an unjoined joint is kept in
+the list, so its index is stable, and simply not enforced) and `compliance`
+(0 is rigid; a positive value is a softness in units of distance per unit of
+force, which XPBD keeps independent of the iteration count).
+
+- [`Pin`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Pin): two points coincide; the bodies turn freely about them.
+- [`Hinge`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Hinge): a pin plus a range for the relative angle, about the
+  relative angle the bodies have on the solve’s input (or the first frame
+  of a run), or an explicit `rest`.
+- [`Weld`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Weld): a pin plus a fixed relative angle.
+- [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance): the two points keep a length: `equal` (a rod),
+  `at_most` (a rope or string: slack is free), `at_least` (a spacer).
+- [`Slide`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Slide): a point stays on a segment of another body (a groove).
+- [`Contact`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Contact): a point stays on the free side of a segment, or on it
+  (a foot on the ground, a lamp on a table); one-sided, and only over the
+  segment’s own extent, so a body slides off an edge.
+
+A segment’s free side: with the segment running from `start` to `end`,
+the free side is the one a y-down screen shows ABOVE a left-to-right
+segment (normal `(ty, -tx)`).
+
+```pycon
+>>> Distance(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5), length=10.0).mode
+'equal'
+```
+
+### Module Attributes
+
+| [`DistanceMode`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.DistanceMode)   | The ways a [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance) joint may hold its length.   |
+|-----------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [`Joint`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Joint)          | Every joint kind, in the order the module documents them.                                         |
+
+### Classes
+
+| [`Contact`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Contact)(point, start, end[, compliance, joined])   | `point` stays on the free side of the segment `start`–`end`, or on it; nothing holds it there (it may lift off), and nothing holds it beyond the segment's ends (it may fall off an edge).                                                                              |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance)(a, b, length[, mode, compliance, ...])    | The two points keep `length` apart: exactly, at most, or at least.                                                                                                                                                                                                      |
+| [`Force`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Force)(point[, vector, toward, strength])           | A driver that is not a target: a constant `vector` (force per unit mass, applied at `point`, so an off-centre push also turns the body), or a pull of `point` `toward` a position with `strength` (a compliant zero-length rope: `compliance = 1 / strength`), or both. |
+| [`Hinge`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Hinge)(a, b[, limits, rest, compliance, joined])    | A pin with a range for the angle of `b`'s body relative to `a`'s.                                                                                                                                                                                                       |
+| [`Pin`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Pin)(a, b[, compliance, joined])                    | Two points coincide; free rotation about them.                                                                                                                                                                                                                          |
+| [`Slide`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Slide)(point, start, end[, compliance, joined])     | `point` stays on the segment `start`–`end` (both on one other body, or the world), within its ends.                                                                                                                                                                     |
+| [`Weld`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Weld)(a, b[, rest, compliance, joined])             | A pin plus a fixed relative angle (`rest`, or the starting one).                                                                                                                                                                                                        |
+
+### *class* an.kinematics.joints.Contact(point, start, end, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`point` stays on the free side of the segment `start`–`end`, or
+on it; nothing holds it there (it may lift off), and nothing holds it
+beyond the segment’s ends (it may fall off an edge).
+
+```pycon
+>>> Contact(Point("lamp", 0.5, 1.0), Point("table", 0.0, 0.0), Point("table", 1.0, 0.0)).joined
+True
+```
+
+### *class* an.kinematics.joints.Distance(a, b, length, mode='equal', compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The two points keep `length` apart: exactly, at most, or at least.
+
+```pycon
+>>> Distance(Point("hand", 0.5, 0.5), Point("world", 0.0, -200.0), length=150.0, mode="at_most").mode
+'at_most'
+```
+
+### an.kinematics.joints.DistanceMode
+
+The ways a [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance) joint may hold its length.
+
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘equal’, ‘at_most’, ‘at_least’]
+
+### *class* an.kinematics.joints.Force(point, vector=None, toward=None, strength=1.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A driver that is not a target: a constant `vector` (force per unit
+mass, applied at `point`, so an off-centre push also turns the body), or
+a pull of `point` `toward` a position with `strength` (a compliant
+zero-length rope: `compliance = 1 / strength`), or both.
+
+```pycon
+>>> Force(Point("kite", 0.5, 0.0), vector=(30.0, 0.0)).toward is None
+True
+```
+
+### *class* an.kinematics.joints.Hinge(a, b, limits=None, rest=None, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A pin with a range for the angle of `b`’s body relative to `a`’s.
+
+`limits` is `(lo, hi)` in radians about `rest`, within
+`[-pi, pi]`; `rest` is the relative angle (`b.rotation -
+a.rotation`) the range is measured from, taken from the bodies’ poses at
+the start of the solve when `None`. With no `limits` it is a pin.
+
+```pycon
+>>> Hinge(Point("fore", 0.0, 0.5), Point("upper", 1.0, 0.5), limits=(-2.6, 0.0)).limits
+(-2.6, 0.0)
+```
+
+### an.kinematics.joints.Joint *= an.kinematics.joints.Pin | an.kinematics.joints.Hinge | an.kinematics.joints.Weld | an.kinematics.joints.Distance | an.kinematics.joints.Slide | an.kinematics.joints.Contact*
+
+Every joint kind, in the order the module documents them.
+
+### *class* an.kinematics.joints.Pin(a, b, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Two points coincide; free rotation about them.
+
+```pycon
+>>> Pin(Point("arm", 0.0, 0.5), Point("torso", 1.0, 0.2)).joined
+True
+```
+
+### *class* an.kinematics.joints.Slide(point, start, end, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`point` stays on the segment `start`–`end` (both on one other
+body, or the world), within its ends.
+
+```pycon
+>>> Slide(Point("bead", 0.5, 0.5), Point("world", 0.0, 0.0), Point("world", 100.0, 0.0)).joined
+True
+```
+
+### *class* an.kinematics.joints.Weld(a, b, rest=None, compliance=0.0, joined=True)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A pin plus a fixed relative angle (`rest`, or the starting one).
+
+```pycon
+>>> Weld(Point("hat", 0.5, 1.0), Point("head", 0.5, 0.0)).rest is None
+True
+```
+
+
+# _autosummary/an.kinematics.solver.html.md
+
+# an.kinematics.solver
+
+The solve: bodies joined at points, driven at a few, settled by gravity.
+
+One frame at a time ([`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve)), or a run of frames with the caller’s
+targets and joined/unjoined joints per frame ([`solve_frames()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames)). The
+method and the measurements behind it are in the package docstring
+([`an.kinematics`](_autosummary/an.kinematics.html.md#module-an.kinematics)); in one line: extended position-based dynamics on 2D
+rigid bodies [Müller et al. 2020], Gauss–Seidel over the joints, a fixed
+number of substeps and iterations, hinge limits as angular projections, the
+two-link closed form as the initial guess.
+
+**Two modes.** With `dt=None` (`pose`) the bodies are projected onto the
+joints from where they stand, with no inertia and no gravity: the answer is
+a function of the targets alone (plus the starting poses, which choose
+between symmetric solutions). With a `dt` (`dynamic`) the bodies carry
+velocity from frame to frame, gravity and forces act, a target is reached
+over the frame’s substeps (the driven body moves, it does not teleport), and
+the result depends on every frame before: baked from the first frame at a
+fixed substep, it is still a pure function of the inputs.
+
+**Conflicts.** When the joints cannot all hold (a grip beyond the arm’s
+reach, an elbow asked past its range), Gauss–Seidel would spread the error
+over every joint in the loop and tear the arm off its shoulder. The rows are
+projected last-declared first, so the first-declared joint is the last
+correction of every pass. A frame that leaves a rigid joint failing is
+solved again with [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY) times the iterations from a
+start nudged by [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE) (a straight chain pushed along its length
+has no sideways correction to buckle with otherwise). If that at least
+halves the failure ([`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS)) it was slow convergence,
+and what is left is only reported. If not, it is a conflict, settled per
+LOOP: the joints that share a cycle through the held bodies with a failing
+one are tried last-declared first, and the first whose loss lets every
+other joint hold is given up for the frame (a joint on no cycle, such as
+any joint of a rope hung from one hook, is never a candidate: a tree can
+always be satisfied). The joints given up are in
+`SolveResult.dropped`, and their gaps in `unsatisfied`. So declare
+the structure (the skeleton) before what it reaches for (a grip): an
+unreachable grip is refused, and the arm reaches toward it from its
+shoulder.
+
+**Determinism.** Fixed order, fixed counts, no randomness, Python floats and
+[`math`](https://docs.python.org/3/library/math.html#module-math) only inside the loop (Gauss–Seidel is sequential, and scalar
+numpy is both slower and free to take a different SIMD path per CPU), numpy
+only at the boundary: on one platform the same inputs give the same bytes,
+run after run and process after process. Across platforms they need not: a
+libm may differ in the last ulp, and a dynamic run amplifies that (measured:
+1e-13 on one frame’s input is 0.014 units 96 frames later). So a cache key
+built on a solve is built on its INPUTS ([`inputs_digest()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.inputs_digest), which holds
+[`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)), never on its output; [`quantize()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.quantize) and
+[`digest()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.digest) are for storing and comparing poses on one platform.
+
+```pycon
+>>> arm = Body("arm", x=0.0, y=0.0, width=60.0, height=8.0, origin=(0.0, 0.5))
+>>> r = solve([arm], [Pin(Point("arm", 0.0, 0.5), Point(WORLD, 0.0, 0.0))],
+...           targets={"arm": {"rotation": 0.5}})
+>>> round(r.pose("arm").rotation, 3), r.unsatisfied
+(0.5, ())
+```
+
+### Module Attributes
+
+| [`DFLT_ITERATIONS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ITERATIONS)        | Gauss–Seidel passes over the joints per substep (dynamic) or per solve (pose).                                                                                                                              |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_SUBSTEPS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SUBSTEPS)          | "smaller time steps are more effective than more iterations" (Catto 2024), and four keeps a 24 fps frame under a quarter of its period of free fall at 980 px/s².                                           |
+| [`DFLT_DAMPING`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_DAMPING)           | the one style knob a puppet has for how long it swings.                                                                                                                                                     |
+| [`DFLT_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_TOLERANCE)         | A joined joint whose points are further apart than this after the solve is reported as unsatisfied (scene units; a quarter pixel is below what a render shows).                                             |
+| [`DFLT_ANGLE_TOLERANCE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_ANGLE_TOLERANCE)   | A hinge or weld whose angle is outside its range by more than this is reported (radians; 1e-3 rad is 0.06 degrees).                                                                                         |
+| [`DFLT_CONFLICT_RETRY`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_RETRY)    | A solve that leaves a joint failing is run again with this many times the iterations before anything is given up: what more passes fix was slow convergence (a hard swing), what they do not is a conflict. |
+| [`DFLT_CONFLICT_PROGRESS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_CONFLICT_PROGRESS) | A failing joint is in conflict when the retry left more than this fraction of its failure (residual over tolerance, or range broken over angle tolerance): a conflict is what more passes do not fix.       |
+| [`DFLT_MAX_DROP_TRIALS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_MAX_DROP_TRIALS)   | The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give up in a conflict (each is a full solve of the frame).                                   |
+| [`DFLT_NUDGE`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_NUDGE)             | Radians each free body is turned by on a retry, alternating in sign (see `_nudge`): far below what a frame shows, enough to buckle a straight chain pushed along its length.                                |
+| [`DFLT_POSITION_QUANTUM`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_POSITION_QUANTUM)  | finer than any render shows.                                                                                                                                                                                |
+| [`DFLT_SEGMENT_MARGIN`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.DFLT_SEGMENT_MARGIN)    | A contact or slide looks this far past a segment's ends (scene units) before letting the point go: a foot half a unit past the edge still stands.                                                           |
+| [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION)         | Bumped whenever the solve can give a different answer for the same inputs (a changed projection, order, or default): part of every cache key built on this module.                                          |
+| [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)          | The pose channels, in the order `SolveResult.poses` holds them.                                                                                                                                             |
+| [`Targets`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.Targets)                | `{body name: {channel: value}}`; a channel given is held at its value for the frame (a nail), the others move.                                                                                              |
+
+### Functions
+
+| [`digest`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.digest)(poses, \*\*quanta)                         | A hex digest of the quantized poses' bytes, with the solver version: for comparing solved poses on one platform (a golden test).                                                                                                                  |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`inputs_digest`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.inputs_digest)(bodies, joints, \*[, targets, ...]) | A hex digest of everything a solve reads, with [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION): the cache key for a solve (or a run of them: pass the per-frame targets as a list, and `frames`, `dt` and the rest as `options`). |
+| [`quantize`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.quantize)(poses, \*[, position_quantum, ...])      | `poses` (any shape whose last axis is [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)) rounded to the quanta a document stores: positions and scale to `position_quantum`, rotation to `angle_quantum`.                            |
+| [`resolve_rests`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.resolve_rests)(bodies, joints)                     | `joints` with every `rest=None` hinge and weld given the relative angle the bodies have now, so a run of frames measures its limits from one pose rather than from each frame's.                                                                  |
+| [`solve`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve)(bodies, joints, \*[, targets, forces, ...]) | One frame: the poses of all `bodies` that satisfy the joined `joints` with the `targets` held, forces and `gravity` acting.                                                                                                                       |
+| [`solve_frames`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve_frames)(bodies, joints, \*, frames, dt)      | `frames` solves in a row, each starting from the last: the caller's time dimension.                                                                                                                                                               |
+
+### Classes
+
+| [`FramesResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.FramesResult)(bodies, poses, unsatisfied, ...)     | A run of frames: `poses` is `(frames, bodies, 4)`; `unsatisfied` and `limit_violations` are per frame; `snaps` lists every joint that is enforced again after a frame it was not (the caller rejoined it, or a conflict had dropped it) as `(frame, joint index, distance)`, the gap it closes in one frame (the caller decides whether to blend or to refuse it; in dynamic mode a large gap yanks the bodies it joins); `final` is the last frame's bodies, ready to continue the run; `dropped` the joints each frame gave up in a conflict.   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)(bodies, poses, residuals, ...[, ...]) | What one frame's solve found.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+### Exceptions
+
+| [`KinematicsError`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.KinematicsError)   | A solve that cannot be set up: an unknown body, gravity without time, a joint on the world alone, a body with no extent.   |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+
+### an.kinematics.solver.DFLT_ANGLE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+A hinge or weld whose angle is outside its range by more than this is
+reported (radians; 1e-3 rad is 0.06 degrees).
+
+### an.kinematics.solver.DFLT_CONFLICT_PROGRESS *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+A failing joint is in conflict when the retry left more than this fraction
+of its failure (residual over tolerance, or range broken over angle
+tolerance): a conflict is what more passes do not fix.
+
+### an.kinematics.solver.DFLT_CONFLICT_RETRY *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
+
+A solve that leaves a joint failing is run again with this many times the
+iterations before anything is given up: what more passes fix was slow
+convergence (a hard swing), what they do not is a conflict.
+
+### an.kinematics.solver.DFLT_DAMPING *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
+
+the one style knob
+a puppet has for how long it swings. 0.02 reads as a wooden marionette.
+It is per substep, so changing `substeps` changes the swing too (both
+are in every cache key built on a solve).
+
+* **Type:**
+  Fraction of velocity lost per substep in dynamic mode
+
+### an.kinematics.solver.DFLT_ITERATIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+
+Gauss–Seidel passes over the joints per substep (dynamic) or per solve
+(pose). Measured (package docstring): a two-link chain with a goal and a
+hinge limit reaches its target to 1e-6 px within 6 passes from the
+closed-form start.
+
+### an.kinematics.solver.DFLT_MAX_DROP_TRIALS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 12*
+
+The most trial solves [`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve) spends looking for the joint to give
+up in a conflict (each is a full solve of the frame).
+
+### an.kinematics.solver.DFLT_NUDGE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
+
+Radians each free body is turned by on a retry, alternating in sign (see
+`_nudge`): far below what a frame shows, enough to buckle a straight
+chain pushed along its length.
+
+### an.kinematics.solver.DFLT_POSITION_QUANTUM *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-06*
+
+finer than any
+render shows.
+
+* **Type:**
+  Quanta a stored pose is rounded to by [`quantize()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.quantize)
+
+### an.kinematics.solver.DFLT_SEGMENT_MARGIN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+A contact or slide looks this far past a segment’s ends (scene units)
+before letting the point go: a foot half a unit past the edge still stands.
+
+### an.kinematics.solver.DFLT_SUBSTEPS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4*
+
+“smaller time steps are more effective
+than more iterations” (Catto 2024), and four keeps a 24 fps frame under a
+quarter of its period of free fall at 980 px/s².
+
+* **Type:**
+  Substeps per frame in dynamic mode
+
+### an.kinematics.solver.DFLT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
+
+A joined joint whose points are further apart than this after the solve is
+reported as unsatisfied (scene units; a quarter pixel is below what a
+render shows).
+
+### *class* an.kinematics.solver.FramesResult(bodies, poses, unsatisfied, limit_violations, snaps, final=(), dropped=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A run of frames: `poses` is `(frames, bodies, 4)`; `unsatisfied`
+and `limit_violations` are per frame; `snaps` lists every joint that
+is enforced again after a frame it was not (the caller rejoined it, or a
+conflict had dropped it) as `(frame, joint index, distance)`, the gap
+it closes in one frame (the caller decides whether to blend or to refuse
+it; in dynamic mode a large gap yanks the bodies it joins); `final` is the last frame’s bodies, ready to continue the
+run; `dropped` the joints each frame gave up in a conflict.
+
+### *exception* an.kinematics.solver.KinematicsError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A solve that cannot be set up: an unknown body, gravity without time,
+a joint on the world alone, a body with no extent.
+
+### an.kinematics.solver.POSE_CHANNELS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y', 'rotation', 'scale')*
+
+The pose channels, in the order `SolveResult.poses` holds them.
+
+### an.kinematics.solver.SOLVER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+Bumped whenever the solve can give a different answer for the same inputs
+(a changed projection, order, or default): part of every cache key built
+on this module.
+
+### *class* an.kinematics.solver.SolveResult(bodies, poses, residuals, unsatisfied, limit_violations, dropped=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one frame’s solve found.
+
+`bodies` are the input bodies with their poses and velocities updated,
+ready to be the next frame’s input; `poses` is the same as an array,
+one row per body in input order, columns [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS).
+`residuals` has one entry per joint in input order: how far apart a
+joined joint’s points still are (0 for an unjoined joint, or one that
+holds; a compliant joint’s stretch); `unsatisfied` lists the rigid
+joints’ `(joint index, residual)` pairs above tolerance, and
+`limit_violations` the rigid hinges and welds outside their angle range
+as `(joint index, radians)`. `dropped` lists the joints
+given up in a conflict (module docstring), in the order they were.
+
+#### *property* ok *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Every joined joint holds and every range is kept.
+
+```pycon
+>>> solve([Body("b")], []).ok
+True
+```
+
+#### pose(name)
+
+The body called `name` as solved.
+
+```pycon
+>>> b = Body("b", x=1.0)
+>>> solve([b], []).pose("b").x
+1.0
+```
+
+* **Return type:**
+  [`Body`](_autosummary/an.kinematics.bodies.html.md#an.kinematics.bodies.Body)
+
+### an.kinematics.solver.Targets
+
+`{body name: {channel: value}}`; a channel given is held at its value
+for the frame (a nail), the others move.
+
+alias of [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.kinematics.solver.digest(poses, \*\*quanta)
+
+A hex digest of the quantized poses’ bytes, with the solver version:
+for comparing solved poses on one platform (a golden test). A cache key
+is built on the inputs instead ([`inputs_digest()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.inputs_digest)).
+
+```pycon
+>>> digest(np.zeros((2, 4))) == digest(np.zeros((2, 4)) + 1e-9)
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.kinematics.solver.inputs_digest(bodies, joints, , targets=None, forces=(), gravity=None, \*\*options)
+
+A hex digest of everything a solve reads, with [`SOLVER_VERSION`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SOLVER_VERSION):
+the cache key for a solve (or a run of them: pass the per-frame targets
+as a list, and `frames`, `dt` and the rest as `options`). Floats
+are hashed exactly (`float.hex`); mappings by sorted key.
+
+```pycon
+>>> a = inputs_digest([Body("b", x=1.0)], [], dt=1 / 24)
+>>> a == inputs_digest([Body("b", x=1.0)], [], dt=1 / 24), a == inputs_digest([Body("b", x=1.0 + 1e-15)], [], dt=1 / 24)
+(True, False)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.kinematics.solver.quantize(poses, , position_quantum=1e-06, angle_quantum=1e-07)
+
+`poses` (any shape whose last axis is [`POSE_CHANNELS`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.POSE_CHANNELS)) rounded
+to the quanta a document stores: positions and scale to
+`position_quantum`, rotation to `angle_quantum`.
+
+```pycon
+>>> q = quantize(np.array([[1.00000049, 2.0, 0.123456789, 1.0]]))
+>>> float(q[0, 0]), bool(abs(q[0, 2] - 0.1234568) < 1e-15)
+(1.0, True)
+```
+
+* **Return type:**
+  `ndarray`
+
+### an.kinematics.solver.resolve_rests(bodies, joints)
+
+`joints` with every `rest=None` hinge and weld given the relative
+angle the bodies have now, so a run of frames measures its limits from
+one pose rather than from each frame’s.
+
+```pycon
+>>> a = Body("a", rotation=0.1); b = Body("b", rotation=0.4)
+>>> [round(j.rest, 3) for j in resolve_rests([a, b], [Hinge(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5), limits=(-1.0, 1.0))])]
+[0.3]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Pin`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Pin) | [`Hinge`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Hinge) | [`Weld`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Weld) | [`Distance`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Distance) | [`Slide`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Slide) | [`Contact`](_autosummary/an.kinematics.joints.html.md#an.kinematics.joints.Contact)]
+
+### an.kinematics.solver.solve(bodies, joints, , targets=None, forces=(), gravity=None, dt=None, iterations=8, substeps=4, damping=0.02, tolerance=0.25, angle_tolerance=0.001, seed_chains=True, retry=4, drop_conflicts=True, seed=0)
+
+One frame: the poses of all `bodies` that satisfy the joined
+`joints` with the `targets` held, forces and `gravity` acting.
+
+`dt=None` is pose mode: no inertia, no gravity, no pushes (a gravity or
+a `Force.vector` is refused there: they need time; a `Force.toward`
+pull works in both modes). With a `dt` the bodies step through
+`substeps` of `dt / substeps`, carrying their velocities in and out,
+and a target is reached over those substeps. `targets` hold channels
+exactly (a body held in x and y is immovable to the joints for the frame,
+one held in rotation unturnable); a target beyond a chain’s reach shows
+up in `unsatisfied` rather than stretching anything. Hinge and weld
+rests left `None` are the relative angles the bodies have on input.
+A frame that leaves a joint failing is solved again with `retry` times
+the `iterations` (1: never); `drop_conflicts`
+then gives up the joints in conflict, last declared first (module
+docstring); `False` keeps them all and reports what fails. `seed` is reserved for stochastic drivers and does nothing in this
+version: the solve has no randomness.
+
+A shoulder driven to a point, an upper arm pinned to it, a forearm
+hinged to that, the hand pinned to a handle (the two-link case): the hand
+lands on the handle and the elbow bends the way its range allows.
+
+```pycon
+>>> torso = Body("torso", width=40.0, height=80.0)
+>>> upper = Body("upper", x=20.0, y=-30.0, width=50.0, height=10.0, origin=(0.0, 0.5))
+>>> fore = Body("fore", x=70.0, y=-30.0, width=40.0, height=8.0, origin=(0.0, 0.5))
+>>> handle = Body("handle", x=80.0, y=10.0, width=4.0, height=4.0, fixed=True)
+>>> joints = [Pin(Point("upper", 0.0, 0.5), Point("torso", 1.0, 0.125)),
+...           Hinge(Point("fore", 0.0, 0.5), Point("upper", 1.0, 0.5), limits=(-2.6, 0.0)),
+...           Pin(Point("fore", 1.0, 0.5), Point("handle", 0.5, 0.5))]
+>>> r = solve([torso, upper, fore, handle], joints, targets={"torso": {"x": 0.0, "y": 0.0}})
+>>> r.ok, tuple(round(v, 3) for v in r.residuals)
+(True, (0.0, 0.0, 0.0))
+```
+
+Out of reach, the grip is reported, and the arm stays on its shoulder:
+
+```pycon
+>>> far = handle.posed(x=300.0)
+>>> r = solve([torso, upper, fore, far], joints, targets={"torso": {"x": 0.0, "y": 0.0}})
+>>> [j for j, _ in r.unsatisfied], r.dropped, [round(v, 6) for v in r.residuals[:2]]
+([2], (2,), [0.0, 0.0])
+```
+
+* **Return type:**
+  [`SolveResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.SolveResult)
+
+### an.kinematics.solver.solve_frames(bodies, joints, , frames, dt, targets_at=None, joints_at=None, forces=(), gravity=None, \*\*options)
+
+`frames` solves in a row, each starting from the last: the caller’s
+time dimension. `targets_at(k)` (or `targets_at[k]`) gives frame
+`k`’s targets; `joints_at(k)` its joints (the same list with
+`joined` flags flipped is how a joint is unjoined and rejoined). Hinge
+and weld rests are fixed from the starting poses. `options` go to
+[`solve()`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.solve).
+
+A part unjoined falls, and is caught where it is when rejoined:
+
+```pycon
+>>> peg = Body("peg", width=2.0, height=2.0, fixed=True)
+>>> part = Body("part", y=10.0, width=4.0, height=20.0, origin=(0.5, 0.0))
+>>> joined = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5))]
+>>> loose = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5), joined=False)]
+>>> r = solve_frames([peg, part], joined, frames=12, dt=1 / 24, gravity=(0.0, 980.0),
+...                  joints_at=lambda k: loose if 2 <= k < 8 else joined)
+>>> bool(r.poses[1, 1, 1] < r.poses[7, 1, 1]), r.snaps[0][:2], r.snaps[0][2] > 2.0
+(True, (8, 0), True)
+>>> r.unsatisfied[-1]
+()
+```
+
+* **Return type:**
+  [`FramesResult`](_autosummary/an.kinematics.solver.html.md#an.kinematics.solver.FramesResult)
 
 
 # _autosummary/an.library.affordances.html.md
@@ -29320,7 +30641,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -41833,7 +43154,7 @@ json: print the report as JSON instead of text
 
 # About this build
 
-This documentation was built on **2026-10-24 14:35 UTC** from commit <a href="https://github.com/reeleehq/an/commit/dbe016f9829ba189389e9511b070c8a5613ed48f"><code>dbe016f</code></a> on branch <code>main</code>, for **an 0.1.258** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-24 15:10 UTC** from commit <a href="https://github.com/reeleehq/an/commit/4efd40281c894fa68ee295d5ce5ff5b9cd39474a"><code>4efd402</code></a> on branch <code>main</code>, for **an 0.1.259** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -41842,9 +43163,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/dbe016f9829ba189389e9511b070c8a5613ed48f"><code>dbe016f9829ba189389e9511b070c8a5613ed48f</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/4efd40281c894fa68ee295d5ce5ff5b9cd39474a"><code>4efd40281c894fa68ee295d5ce5ff5b9cd39474a</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.258</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.259</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -41853,9 +43174,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40102602272">40102602272</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40105332899">40105332899</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>2441714ee39e17b1e09ea49193a09d15f471224c</code> (in the history of the built commit) |
+| Event commit | <code>1c7fdb3a8bddeb5cae48e5dfc0352f7aac9b6822</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -41880,13 +43201,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.258/">0.1.258</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.259/">0.1.259</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout dbe016f9829ba189389e9511b070c8a5613ed48f
+git checkout 4efd40281c894fa68ee295d5ce5ff5b9cd39474a
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

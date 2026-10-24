@@ -1,0 +1,54 @@
+an.kinematics
+=============
+
+.. automodule:: an.kinematics
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      mass
+      inertia
+      point_world
+      reach
+      two_bone
+      solve
+      solve_frames
+      resolve_rests
+      quantize
+      digest
+      inputs_digest
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Body
+      Point
+      Pin
+      Hinge
+      Weld
+      Distance
+      Slide
+      Contact
+      Force
+      SolveResult
+      FramesResult
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      KinematicsError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   bodies
+   chains
+   joints
+   solver

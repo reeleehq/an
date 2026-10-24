@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=c030f8de"></script>
+    <script src="../_static/documentation_options.js?v=64487cc7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.258" />
+  <meta name="docsearch:version" content="0.1.259" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -414,6 +414,13 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.kinematics.html">an.kinematics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.bodies.html">an.kinematics.bodies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.chains.html">an.kinematics.chains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.joints.html">an.kinematics.joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.kinematics.solver.html">an.kinematics.solver</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
@@ -1670,94 +1677,97 @@ which decides how long a dissolve’s overlap is.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.iterate.html#module-an.iterate" title="an.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a></p></td>
 <td><p>Iterative edit loop — free-text instruction → IR patch via Claude → re-render.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.kinematics.html#module-an.kinematics" title="an.kinematics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kinematics</span></code></a></p></td>
+<td><p>A deterministic 2D constraint solver: bodies joined at points, driven at a few of them, settled by gravity (an#499, ADR 0008).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
 <td><p>The asset library: reusable assets that outlive their videos (ADR 0005).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
 <td><p>The one switch that says &quot;yes, this run may spend money&quot;.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.mcp.html#module-an.mcp" title="an.mcp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcp</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.mcp.html#module-an.mcp" title="an.mcp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcp</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">an</span></code> MCP server: a curated, generated surface over the vocabulary and the capability registry.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.measurements.html#module-an.measurements" title="an.measurements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurements</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.measurements.html#module-an.measurements" title="an.measurements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measurements</span></code></a></p></td>
 <td><p>Measured durations: shots whose renderer, not their author, decides their length.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.media.html#module-an.media" title="an.media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.media.html#module-an.media" title="an.media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media</span></code></a></p></td>
 <td><p>Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.motion.html#module-an.motion" title="an.motion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">motion</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.motion.html#module-an.motion" title="an.motion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">motion</span></code></a></p></td>
 <td><p>Motion presets: a named vocabulary of moves, as authoring macros.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.orchestrate.html#module-an.orchestrate" title="an.orchestrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orchestrate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.orchestrate.html#module-an.orchestrate" title="an.orchestrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orchestrate</span></code></a></p></td>
 <td><p>Orchestrator: validate → audio → render → verify.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.paint.html#module-an.paint" title="an.paint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.paint.html#module-an.paint" title="an.paint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint</span></code></a></p></td>
 <td><p>Paint: what fills a shape when one flat colour is not enough -- a gradient.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.paths.html#module-an.paths" title="an.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.paths.html#module-an.paths" title="an.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.paths.html#module-an.stage.paths" title="an.stage.paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.paths</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.preview.html#module-an.preview" title="an.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.preview.html#module-an.preview" title="an.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.preview.html#module-an.stage.preview" title="an.stage.preview"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.preview</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.probe.html#module-an.probe" title="an.probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.probe.html#module-an.probe" title="an.probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">probe</span></code>: a shot's frame at chosen instants, through the very path <code class="docutils literal notranslate"><span class="pre">render</span></code> draws it (an#347).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.project.html#module-an.project" title="an.project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.project.html#module-an.project" title="an.project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project</span></code></a></p></td>
 <td><p>Project init/load/save — the on-disk anatomy of an an project.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.props.html#module-an.props" title="an.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.props.html#module-an.props" title="an.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.props.html#module-an.stage.props" title="an.stage.props"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.props</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.props_cli.html#module-an.props_cli" title="an.props_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props_cli</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.props_cli.html#module-an.props_cli" title="an.props_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props_cli</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">props</span> <span class="pre">…</span></code> — a prop's asset folder from the shell (an#340).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.raster.html#module-an.raster" title="an.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.raster.html#module-an.raster" title="an.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.raster.html#module-an.stage.raster" title="an.stage.raster"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.raster</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.semantic.html#module-an.semantic" title="an.semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">semantic</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.semantic.html#module-an.semantic" title="an.semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">semantic</span></code></a></p></td>
 <td><p>The semantic layer: one versioned vocabulary registry, methods, aspects and the matcher.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.sound_anchors.html#module-an.sound_anchors" title="an.sound_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_anchors</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.sound_anchors.html#module-an.sound_anchors" title="an.sound_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_anchors</span></code></a></p></td>
 <td><p>Sound cues timed by the picture (an#317): <code class="docutils literal notranslate"><span class="pre">at:</span> <span class="pre">{when:</span> <span class="pre">&lt;node&gt;,</span> <span class="pre">reaches:</span> <span class="pre">{y:</span> <span class="pre">px}}</span></code> and <code class="docutils literal notranslate"><span class="pre">until:</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.sound_fetch.html#module-an.sound_fetch" title="an.sound_fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_fetch</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.sound_fetch.html#module-an.sound_fetch" title="an.sound_fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sound_fetch</span></code></a></p></td>
 <td><p>Add a sound from a URL, with its provenance and the cut taken (an#318).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
 <td><p>Sound assets: what the sound layer plays, where it came from, and a synthesizer.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.sounds_cli.html#module-an.sounds_cli" title="an.sounds_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds_cli</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.sounds_cli.html#module-an.sounds_cli" title="an.sounds_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds_cli</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sounds</span> <span class="pre">…</span></code>: the project's sounds store from the shell (an#318).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stage.html#module-an.stage" title="an.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
 <td><p>The 2D stage: the default engine, shipped with <code class="docutils literal notranslate"><span class="pre">an</span></code> but outside the core (an#247).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
 <td><p>Project mall: a dict of dol-backed <code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> stores.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>StylePack: art direction as a document, and the first reader the styles store has had.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
 <td><p>Moved to <a class="reference internal" href="an.stage.text.html#module-an.stage.text" title="an.stage.text"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.text</span></code></a> (an#247); this path is a LIVE alias of it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.html#module-an.timing" title="an.timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.timing.html#module-an.timing" title="an.timing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timing</span></code></a></p></td>
 <td><p>The timing kernel: what is on screen at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, as a pure function.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
 <td><p>User-facing utility functions, plus the SSOT list for CLI dispatch.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
 <td><p>Internal helpers: file I/O, hashing, time arithmetic, light path utilities.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
 <td><p>Verification protocol — same interface for human, lint, vision-LM, MoVer.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.world_cli.html#module-an.world_cli" title="an.world_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_cli</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.world_cli.html#module-an.world_cli" title="an.world_cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_cli</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">…</span></code>: the scene's world from the shell (ADR 0009).</p></td>
 </tr>
 </tbody>
