@@ -19,7 +19,7 @@ from an.verify.constraints import Constraint, discontinuities
 
 ROOT = Path(__file__).resolve().parents[1]
 LAMP = ROOT / "misc" / "bench" / "corpus" / "prop_swap"
-ONLY = {"continuity", "solidity", "draw_order", "jump_cut"}
+ONLY = {"continuity", "solidity", "draw_order", "jump_cut", "object_permanence"}
 
 
 def _lint(tmp_path: Path, actions, *, duration=2.0, extra=None):
@@ -301,3 +301,66 @@ def test_a_turn_of_thirty_degrees_is_not_a_jump_cut(tmp_path):
         )
         == []
     )
+
+
+# -- object permanence (catalogue C1) -----------------------------------------
+
+
+def _permanence(tmp_path: Path, present, *, jump_at=None, opens_with=None):
+    """The lamp shot repeated; ``present[i]`` says whether shot ``i`` shows it."""
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    first = project.scene.timeline[0]
+    shots = []
+    for i, shown in enumerate(present):
+        data = {**first.model_dump(), "id": f"s{i}", "actions": []}
+        data["entities"] = first.model_dump()["entities"] if shown else []
+        if i == jump_at:
+            data["transition"] = {"kind": "cut", "time_jump": True}
+        if i == opens_with:
+            data["actions"] = [_tween(start=0.0)]
+        shots.append(Shot.model_validate(data))
+    scene = project.scene.model_copy(update={"timeline": shots})
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"object_permanence"},
+    )
+
+
+def test_object_permanence_is_registered_at_finish():
+    assert "object_permanence" in check_names(owner=CORE_OWNER)
+
+
+def test_an_entity_that_vanishes_and_returns_is_one_warning(tmp_path):
+    (msg,) = _msgs(_permanence(tmp_path, [True, False, True]))
+    assert "'s0'" in msg and "'s2'" in msg and "time_jump" in msg
+
+
+def test_a_time_jump_explains_the_return(tmp_path):
+    assert _msgs(_permanence(tmp_path, [True, False, True], jump_at=2)) == []
+
+
+def test_an_entrance_explains_the_return(tmp_path):
+    assert _msgs(_permanence(tmp_path, [True, False, True], opens_with=2)) == []
+
+
+def test_an_entity_in_every_shot_is_fine(tmp_path):
+    assert _msgs(_permanence(tmp_path, [True, True, True])) == []
+
+
+def test_an_entity_drawn_twice_in_a_shot_is_an_error(tmp_path):
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    first = project.scene.timeline[0].model_dump()
+    first["entities"] = first["entities"] * 2
+    scene = project.scene.model_copy(
+        update={"timeline": [Shot.model_validate(first)]}
+    )
+    report = validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"object_permanence"},
+    )
+    (f,) = report.findings
+    assert f.severity == "error" and "2 times" in f.description

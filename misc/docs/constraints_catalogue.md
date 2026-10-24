@@ -271,7 +271,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `cut_continuity` (an#394) as the placement case of (ii), amended by ADR 0007 (no comparison across two different viewpoints); the uniqueness check extends `entity_refs`.
 
-**Status.** Partial (placements between consecutive shots). Presence, persistent state and uniqueness are missing.
+**Status.** Presence (i) and uniqueness (iii) shipped as the `object_permanence` check, with `Transition.time_jump`; persistent state (ii) is missing. Placements between consecutive shots are `cut_continuity`.
 
 #### C2. Identity constancy
 
