@@ -1,0 +1,16 @@
+{
+  "kind": "PropDescriptor",
+  "schema_version": "0.2.0",
+  "name": "wheel",
+  "display_name": "A wheel with a grip at its centre (an#512)",
+  "view_box": [0, 0, 400, 400],
+  "origin": [200.0, 200.0],
+  "bones": [
+    {"name": "root", "x": 200.0, "y": 200.0},
+    {"name": "grip", "parent": "root", "x": 0.0, "y": 0.0}
+  ],
+  "slots": [{"name": "body", "bone": "root", "draw_order": 0, "attachment": "body"}],
+  "skins": {"default": {"name": "default", "slots": {
+    "body": {"body": {"path": "parts/body.svg", "anchor": [0.5, 0.5]}}
+  }}}
+}

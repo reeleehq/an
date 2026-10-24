@@ -1,0 +1,24 @@
+{
+  "kind": "PropDescriptor",
+  "schema_version": "0.2.0",
+  "name": "arm",
+  "display_name": "A torso with a two-link arm (an#512)",
+  "view_box": [0, 0, 400, 400],
+  "origin": [200.0, 300.0],
+  "bones": [
+    {"name": "torso", "x": 200.0, "y": 300.0},
+    {"name": "upper", "parent": "torso", "x": 40.0, "y": -140.0},
+    {"name": "fore", "parent": "upper", "x": 80.0, "y": 0.0, "limits": [-10.0, 150.0]},
+    {"name": "hand", "parent": "fore", "x": 70.0, "y": 0.0}
+  ],
+  "slots": [
+    {"name": "torso", "bone": "torso", "draw_order": 0, "attachment": "torso"},
+    {"name": "upper", "bone": "upper", "draw_order": 1, "attachment": "upper"},
+    {"name": "fore", "bone": "fore", "draw_order": 2, "attachment": "fore"}
+  ],
+  "skins": {"default": {"name": "default", "slots": {
+    "torso": {"torso": {"path": "parts/torso.svg", "anchor": [0.5, 1.0]}},
+    "upper": {"upper": {"path": "parts/upper.svg", "anchor": [0.0, 0.5]}},
+    "fore": {"fore": {"path": "parts/fore.svg", "anchor": [0.0, 0.5]}}
+  }}}
+}

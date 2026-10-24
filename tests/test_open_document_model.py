@@ -226,7 +226,7 @@ def test_scene_md_refuses_genre_kinds_and_sugar_until_loaded(declared_entry_poin
         with pytest.raises(SceneMarkdownError, match="cutout_animation") as err:
             markdown_to_ir(md)
         assert (
-            "must be one of set/tween/sequence/parallel/delay/loop; got 'play'"
+            "must be one of set/tween/sequence/parallel/delay/loop/pin/pull/join/unjoin; got 'play'"
             in str(err.value)
         )
         with pytest.raises(SceneMarkdownError, match=r"\[happy\].*cutout_animation"):
@@ -733,6 +733,10 @@ def test_the_report_order_is_pinned():
         "rigidity",  # catalogue A5: declared rigid / volume-preserving entities keep their shape
         "motion_style",  # catalogue B2, B5: the style pack's motion targets
         "gravity",  # catalogue B4: a declared flight is a parabola and does not hover
+        # ADR 0008 (an#512): the joint checks, after the catalogue's lints (order 250)
+        "unknown_body",
+        "unreachable_pin",
+        "joint_violation",
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so

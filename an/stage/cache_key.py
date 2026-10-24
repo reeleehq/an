@@ -566,7 +566,7 @@ def render_knobs(shot: Any, ctx: Any) -> dict[str, Any]:
     frame_samples = check_frame_samples(
         ctx.frame_samples, total_frames=total_frames, duration=shot.duration
     )
-    return {
+    knobs = {
         "fps": float(ctx.fps),
         "resolution": list(ctx.resolution),
         "supersample": check_factor(ctx.supersample),
@@ -582,6 +582,14 @@ def render_knobs(shot: Any, ctx: Any) -> dict[str, Any]:
         "scale_filter": BT709_SCALE_FILTER,
         "faststart_args": list(MP4_FASTSTART_ARGS),
     }
+    # ADR 0008: the solver's version, mode and effort, only for a shot that
+    # declares joints (every other shot's key is unchanged). The solved keys
+    # are in the compiled document, which the key digests too.
+    from an.stage.solve import shot_declares_solve, solve_knobs
+
+    if shot_declares_solve(shot, getattr(ctx, "mall", None) or {}):
+        knobs["solve"] = solve_knobs(shot)
+    return knobs
 
 
 def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:

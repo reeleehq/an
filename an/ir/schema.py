@@ -375,6 +375,11 @@ class AssetRef(_IRModel):
     #: version moves.
     library: str | None = None
 
+    #: Joints this entity declares (:class:`JointSpec`, ADR 0008): its parts'
+    #: limits, its strings, its pins to other entities; ``a`` is relative to
+    #: the entity. Omitted when empty, so no stored scene changes.
+    joints: list["JointSpec"] = Field(default_factory=list)
+
     @field_validator("library")
     @classmethod
     def _check_library_ref(cls, v: str | None) -> str | None:
@@ -404,6 +409,8 @@ class AssetRef(_IRModel):
             data.pop("stage", None)
         if self.library is None:
             data.pop("library", None)
+        if not self.joints:
+            data.pop("joints", None)
         return data
 
 
@@ -601,6 +608,8 @@ class WorldMember(AssetRef):
     @model_serializer(mode="wrap")
     def _omit_unset_world_fields(self, handler):
         data = handler(self)
+        if isinstance(data, dict) and not self.joints:
+            data.pop("joints", None)
         return _frame_key(
             _omit_none(
                 data,
@@ -641,6 +650,239 @@ class Weld(_IRModel):
     @model_serializer(mode="wrap")
     def _omit_unset(self, handler):
         return _omit_none(handler(self), "until", "offset")
+
+
+# -----------------------------------------------------------------------------
+# The constraint layer (ADR 0008, an#512): joints between bodies, and how a
+# shot is solved. The models are here beside `Weld`; the verbs that change a
+# joint over time (`pin`, `pull`, `join`, `unjoin`) are in `an.ir.joints`, the
+# reading of bodies from a rig in `an.stage.rig`, the solve in `an.stage.solve`.
+# -----------------------------------------------------------------------------
+
+#: The joint types a scene declares. ``string`` (a distance held at most) and
+#: ``rod`` (a distance held exactly) are the puppeteer's names for a
+#: ``distance`` with its ``mode`` set.
+JOINT_TYPES: tuple[str, ...] = (
+    "pin",
+    "hinge",
+    "weld",
+    "distance",
+    "string",
+    "rod",
+    "slide",
+    "contact",
+)
+#: The types that join a point to a segment (``b`` is its start, ``end`` its end).
+SEGMENT_JOINT_TYPES: frozenset[str] = frozenset({"slide", "contact"})
+#: The types that may name only ``a``: a rig part's own joint to its parent.
+PART_JOINT_TYPES: frozenset[str] = frozenset({"hinge", "weld"})
+#: How a distance holds its length; ``string`` and ``rod`` imply one.
+DISTANCE_MODES: tuple[str, ...] = ("equal", "at_most", "at_least")
+IMPLIED_DISTANCE_MODE: dict[str, str] = {"string": "at_most", "rod": "equal"}
+
+#: The pull of gravity a ``down`` with no number means, in scene px per second²
+#: (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at
+#: roughly one pixel per millimetre: the conventional animation default).
+DFLT_GRAVITY: float = 980.0
+#: Where each named gravity direction pulls, on the stage's y-down axes.
+GRAVITY_DIRECTIONS: dict[str, tuple[float, float]] = {
+    "down": (0.0, 1.0),
+    "up": (0.0, -1.0),
+    "left": (-1.0, 0.0),
+    "right": (1.0, 0.0),
+}
+#: The spellings of no gravity.
+NO_GRAVITY: frozenset[str] = frozenset({"none", "off"})
+
+
+def gravity_vector(spec: Any) -> tuple[float, float] | None:
+    """The acceleration a gravity declaration means, or ``None`` for none.
+
+    ``spec`` is how a style pack or a shot spells it: ``"down 980"``, ``"down"``
+    (:data:`DFLT_GRAVITY`), ``"none"``, a number (down at that strength), or a
+    mapping ``{strength, direction}`` (the shape the ``gravity`` lint reads).
+
+    >>> gravity_vector("down 500"), gravity_vector("none"), gravity_vector(None)
+    ((0.0, 500.0), None, None)
+    >>> gravity_vector({"direction": "left"})
+    (-980.0, 0.0)
+    >>> gravity_vector("sideways")
+    Traceback (most recent call last):
+    ...
+    ValueError: gravity 'sideways': say a direction (down, up, left, right) and an optional strength in px/s², e.g. 'down 980', or 'none'
+    """
+    if spec is None:
+        return None
+    direction, strength = "down", DFLT_GRAVITY
+    if isinstance(spec, bool):
+        raise ValueError(f"gravity {spec!r}: say 'down 980' or 'none'")
+    if isinstance(spec, (int, float)):
+        strength = float(spec)
+    elif isinstance(spec, str):
+        words = spec.lower().split()
+        if len(words) == 1 and words[0] in NO_GRAVITY:
+            return None
+        if not words or words[0] not in GRAVITY_DIRECTIONS or len(words) > 2:
+            raise ValueError(
+                f"gravity {spec!r}: say a direction ({', '.join(GRAVITY_DIRECTIONS)}) "
+                "and an optional strength in px/s², e.g. 'down 980', or 'none'"
+            )
+        direction = words[0]
+        if len(words) == 2:
+            try:
+                strength = float(words[1])
+            except ValueError:
+                raise ValueError(f"gravity {spec!r}: {words[1]!r} is not a number") from None
+    elif hasattr(spec, "get"):
+        direction = str(spec.get("direction") or "down").lower()
+        if direction in NO_GRAVITY:
+            return None
+        if direction not in GRAVITY_DIRECTIONS:
+            raise ValueError(f"gravity direction {direction!r}: one of {list(GRAVITY_DIRECTIONS)}")
+        if spec.get("strength") is not None:
+            strength = float(spec.get("strength"))
+    else:
+        raise ValueError(f"gravity {spec!r}: say 'down 980' or 'none'")
+    if not (strength >= 0.0 and strength < float("inf")):
+        raise ValueError(f"gravity strength must be a finite non-negative number, got {strength}")
+    if strength == 0.0:
+        return None
+    dx, dy = GRAVITY_DIRECTIONS[direction]
+    return (dx * strength + 0.0, dy * strength + 0.0)
+
+
+class JointSpec(_IRModel):
+    """A declared relation between two bodies (ADR 0008 decision 3).
+
+    >>> JointSpec(type="hinge", a="lamp/upper", limits=(-40, 90)).id
+    'lamp/upper'
+    >>> JointSpec(type="pin", a="paul/fore_r@hand_r", b="wheel@grip", name="grip").id
+    'grip'
+
+    A **body** is a node path (``paul/fore_r``, or an entity id for an entity
+    with one root part), and a **point** on it follows ``@``: a fraction of the
+    body's extent (``@0.5,1``), or the name of a bone of its rig (``@hand_r``:
+    a bone with no slot is a landmark). With no ``@`` the point is the body's
+    pivot for ``a`` and the centre of its extent for ``b``. ``world@x,y`` is a
+    point of the stage, in scene px from its centre (``StagePlacement.at``'s
+    ruler).
+
+    - ``pin``: the two points coincide; ``hinge`` adds an angle range
+      (``limits``, degrees about the rest pose, ``a``'s body relative to
+      ``b``'s); ``weld`` holds the rest angle too. A ``hinge`` or ``weld`` that
+      names only ``a`` (a rig part) is that part's own joint to its parent:
+      its ``limits`` override the bone's.
+    - ``distance`` keeps ``length`` (default: the distance at rest) per
+      ``mode``; ``string`` is a distance held at most, ``rod`` exactly.
+    - ``slide`` keeps ``a`` on the segment ``b`` to ``end``; ``contact`` keeps
+      it on the segment's free side (above a left-to-right segment).
+
+    ``give`` is the joint's softness (compliance, px per unit of pull; 0 is
+    rigid). ``name`` is what ``join`` and ``unjoin`` call it (default: ``a``).
+    On an entity (``AssetRef.joints``) ``a`` is relative to the entity
+    (``fore_r@hand_r``, ``@0.5,0``) and ``b`` is a path in the shot.
+    """
+
+    type: Literal[
+        "pin", "hinge", "weld", "distance", "string", "rod", "slide", "contact"
+    ]
+    a: str
+    b: str | None = None
+    end: str | None = None
+    limits: tuple[_Coord, _Coord] | None = None
+    length: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    mode: Literal["equal", "at_most", "at_least"] | None = None
+    give: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    name: str | None = None
+
+    @property
+    def id(self) -> str:
+        """What ``join`` and ``unjoin`` call this joint."""
+        return self.name or self.a
+
+    @property
+    def distance_mode(self) -> str:
+        """The mode of a distance-like joint (``equal`` unless said or implied)."""
+        return self.mode or IMPLIED_DISTANCE_MODE.get(self.type, "equal")
+
+    @model_validator(mode="after")
+    def _well_formed(self) -> "JointSpec":
+        where = f"joint {self.id!r} ({self.type})"
+        if self.b is None and self.type not in PART_JOINT_TYPES:
+            raise ValueError(f"{where} needs `b`: the body (or `world@x,y`) it joins `a` to.")
+        if (self.end is not None) != (self.type in SEGMENT_JOINT_TYPES):
+            raise ValueError(
+                f"{where}: `end` (the segment's far end, with `b` its start) is for "
+                "slide and contact joints, and they need it."
+            )
+        if self.limits is not None:
+            if self.type != "hinge":
+                raise ValueError(f"{where}: only a hinge has `limits`.")
+            lo, hi = self.limits
+            if not -180.0 <= lo <= hi <= 180.0:
+                raise ValueError(
+                    f"{where}: limits {list(self.limits)} must be [lo, hi] degrees "
+                    "with -180 <= lo <= hi <= 180."
+                )
+        distance_like = self.type in ("distance", "string", "rod")
+        if (self.length is not None or self.mode is not None) and not distance_like:
+            raise ValueError(f"{where}: `length` and `mode` are for distance, string and rod joints.")
+        if self.mode is not None and self.type in IMPLIED_DISTANCE_MODE and self.mode != IMPLIED_DISTANCE_MODE[self.type]:
+            raise ValueError(
+                f"{where}: a {self.type} is held {IMPLIED_DISTANCE_MODE[self.type]}; "
+                "use `type: distance` for another mode."
+            )
+        return self
+
+    @model_serializer(mode="wrap")
+    def _omit_unset(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and not self.give:
+            data.pop("give", None)
+        return _omit_none(data, "b", "end", "limits", "length", "mode", "name")
+
+
+class SolveSettings(_IRModel):
+    """How a shot's joints are solved: a per-shot override of the style pack's
+    ``gravity`` and ``damping``, and the solve's mode and effort (ADR 0008
+    decision 4).
+
+    >>> SolveSettings(gravity="down 500").gravity_vector()
+    (0.0, 500.0)
+    >>> SolveSettings(mode="pose").model_dump()
+    {'mode': 'pose'}
+
+    ``mode`` unset is ``dynamic`` when gravity or a string acts (follow-through,
+    baked from frame 0) and ``pose`` otherwise (projection to convergence from
+    the previous frame: dead still between keys). ``gravity`` unset is the
+    style pack's; ``"none"`` switches the pack's off for this shot.
+    """
+
+    mode: Literal["pose", "dynamic"] | None = None
+    gravity: Any = None
+    damping: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
+    iterations: int | None = Field(default=None, ge=1)
+    substeps: int | None = Field(default=None, ge=1)
+
+    @field_validator("gravity")
+    @classmethod
+    def _gravity_reads(cls, v: Any) -> Any:
+        gravity_vector(v)
+        return v
+
+    def gravity_vector(self) -> tuple[float, float] | None:
+        """This shot's own gravity (``None`` also when it says nothing)."""
+        return gravity_vector(self.gravity)
+
+    @model_serializer(mode="wrap")
+    def _omit_unset(self, handler):
+        return _omit_none(handler(self), "mode", "gravity", "damping", "iterations", "substeps")
+
+
+# `AssetRef` (and the world member that extends it) name `JointSpec` before it is
+# defined: resolve the forward reference now that it is.
+AssetRef.model_rebuild()
+WorldMember.model_rebuild()
 
 
 class Viewpoint(_IRModel):
@@ -1818,6 +2060,12 @@ class Shot(_IRModel):
     viewpoint: str | Viewpoint | None = None
     #: Items held by something for a span (:class:`Weld`); omitted when empty.
     welds: list[Weld] = Field(default_factory=list)
+    #: Joints between this shot's bodies (:class:`JointSpec`, ADR 0008); the
+    #: ``solve`` compile pass keeps them at every frame. Omitted when empty.
+    joints: list[JointSpec] = Field(default_factory=list)
+    #: How this shot is solved (:class:`SolveSettings`): mode, gravity and
+    #: damping over the style pack's. ``None`` (omitted): the defaults.
+    solve: SolveSettings | None = None
 
     @field_validator("policy")
     @classmethod
@@ -1846,6 +2094,10 @@ class Shot(_IRModel):
                 data.pop("viewpoint", None)
             if not self.welds:
                 data.pop("welds", None)
+            if not self.joints:
+                data.pop("joints", None)
+            if self.solve is None:
+                data.pop("solve", None)
         return data
 
 

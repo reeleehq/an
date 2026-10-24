@@ -26,6 +26,7 @@ from __future__ import annotations
 import hashlib
 import math
 import warnings
+from dataclasses import dataclass
 from collections.abc import Mapping
 from pathlib import Path
 from collections.abc import Collection
@@ -302,6 +303,19 @@ class Bone(RigModel):
     scale_y: float = 1.0
     #: Optional pivot name — must match a circle in the SVG ``skeleton`` group.
     pivot: Optional[str] = None
+    #: The range this bone's part may turn through relative to its parent's,
+    #: ``[lo, hi]`` degrees about the rest pose (ADR 0008: an elbow is
+    #: ``[-150, 0]``). ``None``, the default, is a free pin. Read by the
+    #: ``solve`` pass (:func:`rig_structure`); a scene's ``joints:`` overrides
+    #: it. Omitted from the stored document when unset.
+    limits: Optional[tuple[_Finite, _Finite]] = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_limits(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and self.limits is None:
+            data.pop("limits", None)
+        return data
 
 
 class Slot(RigModel):
@@ -859,6 +873,204 @@ def rig_affordances(desc: Any) -> dict[str, dict[str, Any]]:
             "chains": deep,
         }
     }
+
+
+# -----------------------------------------------------------------------------
+# Bodies and joints from any rig (ADR 0008 decision 3, an#512)
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class RigJoint:
+    """A joint a rig's bones declare: slot ``child`` turns about its bone's
+    position on slot ``parent`` (``kind="hinge"``, within the bone's
+    ``limits``, degrees about the rest pose), or is held to it (``"weld"``: a
+    second part on the same bone, which must go where the first goes)."""
+
+    child: str
+    parent: str
+    bone: str
+    kind: Literal["hinge", "weld"] = "hinge"
+    limits: tuple[float, float] | None = None
+
+
+@dataclass(frozen=True)
+class BoneAnchor:
+    """Where a bone sits at rest, in scene px: ``offset`` in the local frame
+    of slot ``on``'s node (a bone carried by a nested chain, ``nesting:
+    bones``), or in the entity's own frame when ``on`` is ``None``."""
+
+    on: str | None
+    offset: tuple[float, float]
+
+
+@dataclass(frozen=True)
+class RigStructure:
+    """What a rig is as bodies and joints (:func:`rig_structure`).
+
+    ``bodies`` maps every slot whose node is a body to its node path relative
+    to the entity, ``body_bone`` to its bone; ``joints`` are the bones'
+    joints in bone order (a parent before its children: declare the structure
+    first); ``anchors`` place every bone, so a bone with no slot is a named
+    point (a landmark: a grip, a fingertip); ``roots`` are the bodies no joint
+    hangs from a parent (what holds the rig where it is staged)."""
+
+    bodies: dict[str, str]
+    body_bone: dict[str, str]
+    joints: tuple[RigJoint, ...]
+    anchors: dict[str, BoneAnchor]
+    roots: tuple[str, ...]
+    nesting: str
+
+
+class _RigView(RigDocument):
+    """The fields of any rig document the structure reads (a prop's or a
+    character's, a model or a raw mapping)."""
+
+    view_box: tuple[float, float, float, float] = DEFAULT_VIEW_BOX
+    bones: list[Bone] = Field(default_factory=list)
+    slots: list[Slot] = Field(default_factory=list)
+    skins: dict[str, Skin] = Field(default_factory=dict)
+
+
+def rig_structure(desc: Any, *, built: Collection[str] | None = None) -> RigStructure:
+    """The bodies, joints and bone anchors of a rig: the core's reading of ANY
+    rig as a jointed figure (ADR 0008 decision 3), the one the ``solve`` pass
+    builds its bodies from.
+
+    - **Every slot's node is a body**, except a slot nested under another slot
+      on the SAME bone (a face part on its head), which rides with it.
+    - **``Bone.parent`` is a hinge** at the child bone's position, between the
+      child's part and the part of the nearest ancestor bone that has one;
+      ``Bone.limits`` is its range. Parts with no such ancestor are the rig's
+      ``roots``. Bones without a slot are skipped over (a ``root`` bone), and
+      stay as named points (``anchors``).
+    - A second body on one bone is welded to the bone's first (its primary
+      slot, else the first in draw order).
+
+    The geometry is the builder's own (:func:`build_rig_subtree`): in ``flat``
+    nesting a bone sits at its translation from the rig's origin in the
+    entity's frame; in ``bones`` nesting at its offset in the frame of the
+    part it nests under. ``built`` names the slots the builder actually built
+    (a part whose art is missing is not a body); ``None`` is every slot that
+    draws an attachment.
+
+    >>> rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],
+    ...        "bones": [{"name": "upper"}, {"name": "fore", "parent": "upper", "y": -100, "limits": [-150, 0]},
+    ...                  {"name": "tip", "parent": "fore", "y": -80}],
+    ...        "slots": [{"name": "upper", "bone": "upper"}, {"name": "fore", "bone": "fore"}],
+    ...        "skins": {"default": {"slots": {"upper": {"upper": {"path": "u.svg"}},
+    ...                                         "fore": {"fore": {"path": "f.svg"}}}}}}
+    >>> s = rig_structure(rig)
+    >>> sorted(s.bodies.items()), s.roots
+    ([('fore', 'upper/fore'), ('upper', 'upper')], ('upper',))
+    >>> s.joints
+    (RigJoint(child='fore', parent='upper', bone='fore', kind='hinge', limits=(-150.0, 0.0)),)
+    >>> s.anchors["tip"]
+    BoneAnchor(on='fore', offset=(0.0, -80.0))
+    """
+    view = desc if isinstance(desc, _RigView) else _RigView.model_validate(
+        desc if isinstance(desc, Mapping) else _dump_rig(desc)
+    )
+    k = SCENE_PX_PER_VIEW_BOX / float(view.view_box[3] or 1)
+    skin = view.skins.get("default") or next(iter(view.skins.values()), Skin())
+    parents = slot_parent_chain(view)
+    paths = slot_node_paths(view)
+    slot_of = {sl.name: sl for sl in view.slots}
+    bone_of = {b.name: b for b in view.bones}
+    drawn = {
+        sl.name: att
+        for sl in view.slots
+        if (att := drawn_attachment(view, skin, sl)) is not None
+    }
+    built_set = set(drawn) if built is None else set(built) & set(slot_of)
+    bodies: dict[str, str] = {}
+    for sl in sorted(view.slots, key=lambda x: (x.draw_order, x.name)):
+        if sl.name not in built_set:
+            continue
+        parent = parents.get(sl.name)
+        if parent is not None and slot_of[parent].bone == sl.bone:
+            continue  # rides with the part on its own bone
+        bodies[sl.name] = paths[sl.name]
+    body_bone = {name: slot_of[name].bone for name in bodies}
+    carrier: dict[str, str] = {}
+    for name, bone in body_bone.items():
+        if bone not in carrier or (name == bone and carrier[bone] != bone):
+            carrier[bone] = name
+
+    def strict_ancestors(bone: str):
+        seen, cursor = {bone}, bone_of[bone].parent if bone in bone_of else None
+        while cursor is not None and cursor not in seen and cursor in bone_of:
+            seen.add(cursor)
+            yield cursor
+            cursor = bone_of[cursor].parent
+
+    positions = bone_positions(view)
+    origin = rig_origin(view)
+    primary = {b: sl for b, sl in primary_slot_per_bone(view).items() if sl in built_set}
+    bones_mode = nesting_of(view) == BONES_NESTING
+
+    def offset_of(slot: str | None) -> tuple[float, float]:
+        att = drawn.get(slot)
+        return (att[1].x, att[1].y) if att is not None else (0.0, 0.0)
+
+    anchors: dict[str, BoneAnchor] = {}
+    for bone in bone_of:
+        bx, by = positions[bone]
+        on = next((primary[a] for a in strict_ancestors(bone) if a in primary), None) if bones_mode else None
+        if on is None:
+            anchors[bone] = BoneAnchor(None, ((bx - origin[0]) * k + 0.0, (by - origin[1]) * k + 0.0))
+            continue
+        px, py = positions[slot_of[on].bone]
+        ax, ay = offset_of(on)
+        anchors[bone] = BoneAnchor(on, ((bx - px - ax) * k + 0.0, (by - py - ay) * k + 0.0))
+
+    joints: list[RigJoint] = []
+    roots: list[str] = []
+    order = {b.name: i for i, b in enumerate(view.bones)}
+    for name in sorted(bodies, key=lambda n: (_depth(body_bone[n], bone_of), order.get(body_bone[n], 0), n)):
+        bone = body_bone[name]
+        if carrier.get(bone) != name:
+            joints.append(RigJoint(child=name, parent=carrier[bone], bone=bone, kind="weld"))
+            continue
+        parent_bone = next((a for a in strict_ancestors(bone) if a in carrier), None)
+        if parent_bone is None:
+            roots.append(name)
+            continue
+        limits = bone_of[bone].limits
+        joints.append(
+            RigJoint(
+                child=name,
+                parent=carrier[parent_bone],
+                bone=bone,
+                limits=(float(limits[0]), float(limits[1])) if limits is not None else None,
+            )
+        )
+    return RigStructure(
+        bodies=bodies,
+        body_bone=body_bone,
+        joints=tuple(joints),
+        anchors=anchors,
+        roots=tuple(roots),
+        nesting=nesting_of(view),
+    )
+
+
+def _depth(bone: str, bone_of: Mapping[str, Bone]) -> int:
+    """How many ancestors ``bone`` has (a cycle stops the count)."""
+    depth, seen, cursor = 0, {bone}, bone_of[bone].parent if bone in bone_of else None
+    while cursor is not None and cursor not in seen and cursor in bone_of:
+        seen.add(cursor)
+        depth += 1
+        cursor = bone_of[cursor].parent
+    return depth
+
+
+def _dump_rig(desc: Any) -> dict[str, Any]:
+    """A rig model's fields as a mapping :class:`_RigView` reads."""
+    if hasattr(desc, "model_dump"):
+        return desc.model_dump()
+    return {name: getattr(desc, name) for name in ("view_box", "bones", "slots", "skins", "origin", "nesting") if hasattr(desc, name)}
 
 
 def drawn_attachment(

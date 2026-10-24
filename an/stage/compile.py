@@ -1005,6 +1005,15 @@ def _camera_pass(state: CompileState) -> None:
 CAMERA_KEYS_PRODUCT: str = "camera_keys"
 
 
+def _solve_pass(state: CompileState) -> None:
+    """The constraint layer's solve (ADR 0008): after every pass that moves a
+    body, before the camera follows one (:mod:`an.stage.solve`). A no-op for a
+    shot that declares no joint and no verb."""
+    from an.stage.solve import solve_pass
+
+    solve_pass(state)
+
+
 def _camera_follow_pass(state: CompileState) -> None:
     """A following camera (an#445): its keys, from where the target IS.
 
@@ -1163,6 +1172,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     ),
     CompilePass(
         "actions", _actions_pass, order=200, description="authored actions -> clips"
+    ),
+    CompilePass(
+        "solve",
+        _solve_pass,
+        order=525,
+        description="joints kept at every frame: the bodies the joints move (ADR 0008, an#512)",
     ),
     CompilePass(
         "camera_follow",
