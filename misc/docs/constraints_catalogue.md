@@ -185,7 +185,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** The easing checks (`_check_tween_easings`, `_check_default_easing_reach`) as the vocabulary gate; the measurement follows `cutan.verify.style`'s targets-and-estimators contract.
 
-**Status.** Partial (easing names). The measurement is missing; `an.verify.prosody` and `cutan.verify.style` are the pattern.
+**Status.** Smoothness shipped as the `motion_style` check: the pack's `motion.smoothness.max` against the log dimensionless jerk of each move. Arcs are missing.
 
 #### B3. Contact-conditioned motion: no foot skate, impulses at impact
 
@@ -227,7 +227,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing as a check; the presets' overshoot and `_settled` landings are the authored form.
 
-**Status.** Missing as lints; partially encoded in presets.
+**Status.** Anticipation shipped in the `motion_style` check (`motion.anticipation`: a counter-move of a frame range ends where a big move starts). Overlap and follow-through (`follows`) are missing.
 
 #### B6. Cadence and holds: timing as a constraint
 
