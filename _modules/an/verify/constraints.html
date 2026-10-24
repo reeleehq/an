@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=282a5b1c"></script>
+    <script src="../../../_static/documentation_options.js?v=c030f8de"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.257" />
+  <meta name="docsearch:version" content="0.1.258" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -780,6 +780,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  each move) and ``anticipation`` (a big move is preceded by a small counter-move).</span>
 <span class="sd">  :func:`move_jerk` and :func:`unanticipated` are the pure functions under it.</span>
 <span class="sd">  Silent when the pack declares no ``motion``. Arcs and overlap are not built.</span>
+<span class="sd">- ``gravity`` (catalogue B4): under a style pack that declares ``gravity``, an</span>
+<span class="sd">  entity declaring ``overrides: {airborne: {from, until}}`` follows a parabola</span>
+<span class="sd">  (constant downward acceleration) and does not hover. :func:`airborne_faults`</span>
+<span class="sd">  is the pure function under it. Unsupported falls and hangs wait on supports</span>
+<span class="sd">  (catalogue A1) and joints.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -807,6 +812,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"HELD_ITEM"</span><span class="p">,</span>
     <span class="s2">"RIGIDITY"</span><span class="p">,</span>
     <span class="s2">"MOTION_STYLE"</span><span class="p">,</span>
+    <span class="s2">"GRAVITY"</span><span class="p">,</span>
+    <span class="s2">"airborne_faults"</span><span class="p">,</span>
     <span class="s2">"Move"</span><span class="p">,</span>
     <span class="s2">"move_jerk"</span><span class="p">,</span>
     <span class="s2">"unanticipated"</span><span class="p">,</span>
@@ -2236,6 +2243,154 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># gravity (catalogue B4): hover and ballistic flight</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The ``AssetRef.overrides`` key that declares a flight: ``{from: s, until: s}``.</span>
+<span class="n">AIRBORNE_OVERRIDE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"airborne"</span>
+<span class="c1">#: The key of a style pack under which its gravity is declared: ``"none"``, or</span>
+<span class="c1">#: ``{strength: px/s^2}`` (the direction is down the screen, +y).</span>
+<span class="n">GRAVITY_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"gravity"</span>
+<span class="c1">#: Frames a flying entity may stay level before it is hovering.</span>
+<span class="n">HOVER_FRAMES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="c1">#: A vertical speed under this (px per frame) is level.</span>
+<span class="n">LEVEL_PX_PER_FRAME</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="c1">#: How far (as a fraction of the mean) the acceleration of a flight may vary.</span>
+<span class="n">BALLISTIC_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="c1">#: How far (as a fraction) the measured acceleration may differ from a declared ``strength``.</span>
+<span class="n">STRENGTH_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span>
+
+
+<div class="viewcode-block" id="airborne_faults">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.airborne_faults">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">airborne_faults</span><span class="p">(</span>
+    <span class="n">ys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What is wrong with a flight sampled as ``ys`` (screen y, down is positive)</span>
+<span class="sd">    every ``dt`` s: ``hover`` (level for more than :data:`HOVER_FRAMES`),</span>
+<span class="sd">    ``straight`` (no downward acceleration: not a throw), ``not_parabolic``</span>
+<span class="sd">    (the acceleration is not constant), ``strength`` (not the declared pull).</span>
+
+<span class="sd">    &gt;&gt;&gt; g = 1200.0</span>
+<span class="sd">    &gt;&gt;&gt; arc = [-300 * (i / 30) + 0.5 * g * (i / 30) ** 2 for i in range(20)]</span>
+<span class="sd">    &gt;&gt;&gt; airborne_faults(arc, 1 / 30)</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; airborne_faults([i * 5.0 for i in range(20)], 1 / 30)</span>
+<span class="sd">    ['straight']</span>
+<span class="sd">    &gt;&gt;&gt; airborne_faults([40.0] * 20, 1 / 30)</span>
+<span class="sd">    ['hover']</span>
+<span class="sd">    &gt;&gt;&gt; airborne_faults(arc, 1 / 30, strength=300.0)</span>
+<span class="sd">    ['strength']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">faults</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">speeds</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">ys</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="n">longest</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">speeds</span><span class="p">:</span>
+        <span class="n">run</span> <span class="o">=</span> <span class="n">run</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">LEVEL_PX_PER_FRAME</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">longest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">longest</span><span class="p">,</span> <span class="n">run</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">longest</span> <span class="o">&gt;</span> <span class="n">HOVER_FRAMES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">"hover"</span><span class="p">]</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ys</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ys</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ys</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">dt</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)]</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mean</span> <span class="o">&lt;=</span> <span class="n">LEVEL_PX_PER_FRAME</span> <span class="o">/</span> <span class="n">dt</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">"straight"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">acc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">BALLISTIC_TOLERANCE</span> <span class="o">*</span> <span class="n">mean</span><span class="p">:</span>
+        <span class="n">faults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"not_parabolic"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">strength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="n">strength</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">STRENGTH_TOLERANCE</span> <span class="o">*</span> <span class="n">strength</span><span class="p">:</span>
+        <span class="n">faults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"strength"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">faults</span></div>
+
+
+
+<span class="n">_FAULT_TEXT</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"hover"</span><span class="p">:</span> <span class="s2">"hangs in the air: it stays level for more than a few frames"</span><span class="p">,</span>
+    <span class="s2">"straight"</span><span class="p">:</span> <span class="s2">"moves in a straight line: a throw falls in an arc"</span><span class="p">,</span>
+    <span class="s2">"not_parabolic"</span><span class="p">:</span> <span class="s2">"does not fall at a steady rate: a flight is a parabola"</span><span class="p">,</span>
+    <span class="s2">"strength"</span><span class="p">:</span> <span class="s2">"falls at a rate other than the style's gravity"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The style pack's gravity (``None`` when it declares none or says ``none``)."""</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">style_pack</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">styles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pack</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a missing pack is reported by the style check</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pack</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">GRAVITY_KEY</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">GRAVITY_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_gravity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``gravity`` check over the entities that declare a flight."""</span>
+    <span class="n">flights</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">overrides</span><span class="p">[</span><span class="n">AIRBORNE_OVERRIDE</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AIRBORNE_OVERRIDE</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">gravity</span> <span class="o">=</span> <span class="n">_gravity_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">flights</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">gravity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">_node_chain</span><span class="p">,</span>
+        <span class="n">_pose_for</span><span class="p">,</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">timeline_from_scene</span><span class="p">,</span>
+        <span class="n">transform_of</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span>
+    <span class="n">strength</span> <span class="o">=</span> <span class="n">gravity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"strength"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entity</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">flights</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">until</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"until"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - not drawn on the stage (a voice)</span>
+            <span class="k">continue</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">until</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="n">fps</span><span class="p">)</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">transform_of</span><span class="p">(</span>
+                <span class="n">node</span><span class="p">,</span>
+                <span class="n">_pose_for</span><span class="p">(</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">/</span> <span class="n">fps</span><span class="p">),</span> <span class="n">path</span><span class="p">),</span>
+                <span class="n">frame_height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">y</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">fault</span> <span class="ow">in</span> <span class="n">airborne_faults</span><span class="p">(</span>
+            <span class="n">ys</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">strength</span><span class="p">)</span> <span class="k">if</span> <span class="n">strength</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is airborne from </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s to </span><span class="si">{</span><span class="n">until</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s and "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_FAULT_TEXT</span><span class="p">[</span><span class="n">fault</span><span class="p">]</span><span class="si">}</span><span class="s2">. Tween its y with a falling ease, or end the "</span>
+                <span class="sa">f</span><span class="s2">"flight (`</span><span class="si">{</span><span class="n">AIRBORNE_OVERRIDE</span><span class="si">}</span><span class="s2">.until`) where it lands."</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
+<span class="n">GRAVITY</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"gravity"</span><span class="p">,</span>
+    <span class="n">check_gravity</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"an entity declared airborne follows a parabola and does not hover under a style that declares gravity (catalogue B4)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
 <span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CONTINUITY</span><span class="p">,</span>
@@ -2246,6 +2401,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">HELD_ITEM</span><span class="p">,</span>
     <span class="n">RIGIDITY</span><span class="p">,</span>
     <span class="n">MOTION_STYLE</span><span class="p">,</span>
+    <span class="n">GRAVITY</span><span class="p">,</span>
 <span class="p">)</span>
 
 

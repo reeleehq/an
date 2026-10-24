@@ -71,6 +71,11 @@ The core’s constraints:
   [`move_jerk()`](#an.verify.constraints.move_jerk) and [`unanticipated()`](#an.verify.constraints.unanticipated) are the pure functions under it.
 
   Silent when the pack declares no `motion`. Arcs and overlap are not built.
+- `gravity` (catalogue B4): under a style pack that declares `gravity`, an
+  entity declaring `overrides: {airborne: {from, until}}` follows a parabola
+  (constant downward acceleration) and does not hover. [`airborne_faults()`](#an.verify.constraints.airborne_faults)
+  is the pure function under it. Unsupported falls and hangs wait on supports
+  (catalogue A1) and joints.
 
 ### Module Attributes
 
@@ -79,16 +84,17 @@ The core’s constraints:
 
 ### Functions
 
-| [`move_jerk`](#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                   |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`unanticipated`](#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                 |
-| [`shape_drifts`](#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                            |
-| [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on. |
-| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                        |
-| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                   |
-| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                          |
-| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                              |
-| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                |
+| [`airborne_faults`](#an.verify.constraints.airborne_faults)(ys, dt, \*[, strength])            | What is wrong with a flight sampled as `ys` (screen y, down is positive) every `dt` s: `hover` (level for more than `HOVER_FRAMES`), `straight` (no downward acceleration: not a throw), `not_parabolic` (the acceleration is not constant), `strength` (not the declared pull).   |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`move_jerk`](#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                                               |
+| [`unanticipated`](#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                                             |
+| [`shape_drifts`](#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                                                        |
+| [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on.                             |
+| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                                                    |
+| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                                               |
+| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                                                      |
+| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                                                          |
+| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                                            |
 
 ### Classes
 
@@ -101,7 +107,7 @@ The core’s constraints:
 | [`Discontinuity`](#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).                                   |
 | [`ShortHold`](#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.                                     |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None), Constraint(name='motion_style', check=<function check_motion_style>, stage='shot', order=200.0, description='moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)', term=None))*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None), Constraint(name='motion_style', check=<function check_motion_style>, stage='shot', order=200.0, description='moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)', term=None), Constraint(name='gravity', check=<function check_gravity>, stage='shot', order=200.0, description='an entity declared airborne follows a parabola and does not hover under a style that declares gravity (catalogue B4)', term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
@@ -182,6 +188,29 @@ indices) but in none of the shots between.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 The item of weld `index` is `distance` px from where it is held, at `at` s.
+
+### an.verify.constraints.airborne_faults(ys, dt, , strength=None)
+
+What is wrong with a flight sampled as `ys` (screen y, down is positive)
+every `dt` s: `hover` (level for more than `HOVER_FRAMES`),
+`straight` (no downward acceleration: not a throw), `not_parabolic`
+(the acceleration is not constant), `strength` (not the declared pull).
+
+```pycon
+>>> g = 1200.0
+>>> arc = [-300 * (i / 30) + 0.5 * g * (i / 30) ** 2 for i in range(20)]
+>>> airborne_faults(arc, 1 / 30)
+[]
+>>> airborne_faults([i * 5.0 for i in range(20)], 1 / 30)
+['straight']
+>>> airborne_faults([40.0] * 20, 1 / 30)
+['hover']
+>>> airborne_faults(arc, 1 / 30, strength=300.0)
+['strength']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.verify.constraints.compiled_shot(ctx)
 

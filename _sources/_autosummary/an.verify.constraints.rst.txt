@@ -14,6 +14,7 @@ an.verify.constraints
 
    .. autosummary::
    
+      airborne_faults
       move_jerk
       unanticipated
       shape_drifts
