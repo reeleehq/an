@@ -1,0 +1,160 @@
+{
+  "python": "3.12.13",
+  "machine": "x86_64",
+  "convergence (worst residual, px, by passes)": {
+    "closed-form start": {
+      "1": 1.888293221827313e-14,
+      "2": 1.5888218580782548e-14,
+      "4": 1.464821375527116e-14,
+      "8": 1.432144669219779e-14,
+      "16": 1.432144669219779e-14,
+      "64": 1.432144669219779e-14
+    },
+    "cold start": {
+      "1": 5.775841312589222,
+      "2": 3.285470120644721,
+      "4": 0.8033142019612501,
+      "8": 0.10224304157254877,
+      "16": 0.0013856308884582723,
+      "64": 4.9769702052493514e-14
+    }
+  },
+  "singularities": {
+    "at full reach (straight)": {
+      "unsatisfied": [],
+      "dropped": [],
+      "residuals": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "elbow angle": 0.0
+    },
+    "1 px beyond reach": {
+      "unsatisfied": [
+        2
+      ],
+      "dropped": [
+        2
+      ],
+      "residuals": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "elbow angle": 0.0
+    },
+    "5 px beyond reach": {
+      "unsatisfied": [
+        2
+      ],
+      "dropped": [
+        2
+      ],
+      "residuals": [
+        0.0,
+        0.0,
+        5.0
+      ],
+      "elbow angle": 0.0
+    },
+    "at the shoulder (inside the 10 px nearest reach)": {
+      "unsatisfied": [
+        2
+      ],
+      "dropped": [
+        2
+      ],
+      "residuals": [
+        0.0,
+        0.0,
+        90.0
+      ],
+      "elbow angle": 0.0
+    }
+  },
+  "stability (12-link whip, 10 s at 24 fps)": {
+    "substeps=1 retry=1": {
+      "worst residual": 16.65006586421264,
+      "frames with a failing joint": 239,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 5.605116315422257,
+      "finite": true
+    },
+    "substeps=1 retry=4": {
+      "worst residual": 3.2221100088676744,
+      "frames with a failing joint": 238,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.7512355707726001,
+      "finite": true
+    },
+    "substeps=2 retry=1": {
+      "worst residual": 3.4392972531600834,
+      "frames with a failing joint": 238,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.3918327827623875,
+      "finite": true
+    },
+    "substeps=2 retry=4": {
+      "worst residual": 0.9353258406051658,
+      "frames with a failing joint": 235,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.1991278061694154,
+      "finite": true
+    },
+    "substeps=4 retry=1": {
+      "worst residual": 0.8108900046437959,
+      "frames with a failing joint": 236,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.1952542398990617,
+      "finite": true
+    },
+    "substeps=4 retry=4": {
+      "worst residual": 0.0,
+      "frames with a failing joint": 0,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.025048819018208705,
+      "finite": true
+    },
+    "substeps=8 retry=1": {
+      "worst residual": 0.0,
+      "frames with a failing joint": 0,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.009434838446324765,
+      "finite": true
+    },
+    "substeps=8 retry=4": {
+      "worst residual": 0.0,
+      "frames with a failing joint": 0,
+      "frames that dropped a joint": 0,
+      "tip angle from vertical (deg)": 0.009434838446324765,
+      "finite": true
+    }
+  },
+  "compliance (soft rod's extension, px, by iterations)": {
+    "1": 11.852804465372898,
+    "2": 11.852804465372898,
+    "8": 11.852804465372898,
+    "32": 11.852804465372898
+  },
+  "cost (ms per frame)": {
+    "50-link rope, its hook swung 60 units": {
+      "ms per frame": 48.430402457597665,
+      "frames with a failing joint": 47,
+      "frames that dropped a joint": 0
+    },
+    "50-link chain dropped from horizontal (a whip)": {
+      "ms per frame": 34.250116938589294,
+      "frames with a failing joint": 42,
+      "frames that dropped a joint": 0
+    },
+    "5 marionettes (50 bodies, 65 joints)": {
+      "ms per frame": 13.836569458362646,
+      "frames with a failing joint": 0,
+      "frames that dropped a joint": 0
+    },
+    "two-link reach, pose mode": {
+      "ms per frame": 0.8688374550547451
+    }
+  }
+}
