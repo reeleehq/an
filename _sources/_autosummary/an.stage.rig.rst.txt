@@ -50,6 +50,7 @@ an.stage.rig
       rig_origin_problems
       rig_problems
       rig_rest_problems
+      rig_structure
       slot_node_paths
       slot_parent_chain
    
@@ -59,8 +60,11 @@ an.stage.rig
    
       Attachment
       Bone
+      BoneAnchor
       RigDocument
+      RigJoint
       RigModel
+      RigStructure
       Skin
       Slot
    

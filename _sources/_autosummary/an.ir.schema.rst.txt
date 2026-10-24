@@ -19,6 +19,13 @@ an.ir.schema
       VEHICLE_FRAME
       FRAME_COUPLINGS
       FRAME_KEY
+      JOINT_TYPES
+      SEGMENT_JOINT_TYPES
+      PART_JOINT_TYPES
+      DISTANCE_MODES
+      DFLT_GRAVITY
+      GRAVITY_DIRECTIONS
+      NO_GRAVITY
       TRAVEL_PLATE_ROLES
       CORE_ACTION_KINDS
       EXTENSION_TAG
@@ -33,6 +40,7 @@ an.ir.schema
 
    .. autosummary::
    
+      gravity_vector
       resolve_step_hz
       stage_specimen
       unregistered_action_kind
@@ -55,6 +63,7 @@ an.ir.schema
       ExtensionAction
       Frame
       FrameMoving
+      JointSpec
       LoopAction
       Meta
       Narration
@@ -64,6 +73,7 @@ an.ir.schema
       SequenceAction
       SetAction
       Shot
+      SolveSettings
       SoundCue
       StagePlacement
       Stream

@@ -97,6 +97,7 @@
 - [an.ir.camera](_autosummary/an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](_autosummary/an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
 - [an.ir.frames](_autosummary/an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
+- [an.ir.joints](_autosummary/an.ir.joints.html.md): The constraint layer’s verbs: &#96;pin&#96;, &#96;pull&#96;, &#96;join&#96; and &#96;unjoin&#96; (ADR 0008, an#512).
 - [an.ir.schema](_autosummary/an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](_autosummary/an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
@@ -181,6 +182,7 @@
 - [an.stage.runtime_files](_autosummary/an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.stage.serialize](_autosummary/an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
 - [an.stage.snapshot](_autosummary/an.stage.snapshot.html.md): Rasterise art files to PNG in the browser the stage already uses (an#347).
+- [an.stage.solve](_autosummary/an.stage.solve.html.md): The &#96;solve&#96; compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).
 - [an.stage.surface](_autosummary/an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](_autosummary/an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
@@ -217,6 +219,7 @@
 - [an.verify](_autosummary/an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
 - [an.verify.constraints](_autosummary/an.verify.constraints.html.md): Constraints: declarative statements a lint checks and a solver may enforce (an#497).
 - [an.verify.human](_autosummary/an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
+- [an.verify.joints](_autosummary/an.verify.joints.html.md): The joint checks: what &#96;an validate&#96; says about a shot’s joints (ADR 0008, an#512).
 - [an.verify.layout](_autosummary/an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
 - [an.verify.media](_autosummary/an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](_autosummary/an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
@@ -224,7 +227,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 15:24 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 16:21 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

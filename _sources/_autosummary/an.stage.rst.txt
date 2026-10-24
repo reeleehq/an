@@ -37,6 +37,7 @@ an.stage
    runtime_files
    serialize
    snapshot
+   solve
    surface
    text
    text_layout

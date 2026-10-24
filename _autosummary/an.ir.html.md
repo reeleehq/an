@@ -36,6 +36,10 @@ authoring-time DSL to canonical-form actions.
 | [`markdown_to_ir`](#an.ir.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.                  |
 | [`ir_to_markdown`](#an.ir.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                       |
 | [`sync`](#an.ir.sync)(project_dir)                                | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
+| [`pin`](#an.ir.pin)(point, to, \*[, duration])                   | `point` held at `to`.                                                          |
+| [`pull`](#an.ir.pull)(point, to, \*[, over, give])                | `point` drawn toward `to` (a point, a body point, or a path).                  |
+| [`join`](#an.ir.join)(joint, \*[, at])                            | Rejoin the joint named `joint` at `at`.                                        |
+| [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                          | Let go of the joint named `joint` at `at`.                                     |
 
 ### Classes
 
@@ -60,7 +64,7 @@ authoring-time DSL to canonical-form actions.
 | [`ValidationFinding`](#an.ir.ValidationFinding)(severity, ir_path, description) | A single validation issue with a path into the IR.                                                                                 |
 | [`DocumentKind`](#an.ir.DocumentKind)(name, version_field, ...)            | A schema-versioned document kind.                                                                                                  |
 
-### *class* an.ir.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
+### *class* an.ir.AssetRef(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -75,6 +79,15 @@ forking the asset.
 >>> AssetRef(kind="character", id="maya", store="characters", ref="maya-v1").id
 'maya'
 ```
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](an.ir.schema.html.md#an.ir.schema.JointSpec)]*
+
+its parts’
+limits, its strings, its pins to other entities; `a` is relative to
+the entity. Omitted when empty, so no stored scene changes.
+
+* **Type:**
+  Joints this entity declares (`JointSpec`, ADR 0008)
 
 #### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -484,7 +497,7 @@ stored scene and no schema version moves.
 * **Type:**
   The scene’s **world** (ADR 0009)
 
-### *class* an.ir.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, \*\*extra_data)
+### *class* an.ir.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -492,6 +505,11 @@ A single rendered unit. A scene is a sequence of shots.
 
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](an.ir.schema.html.md#an.ir.schema.JointSpec)]*
+
+Joints between this shot’s bodies (`JointSpec`, ADR 0008); the
+`solve` compile pass keeps them at every frame. Omitted when empty.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -516,6 +534,14 @@ renderer while the thing that actually styles it went unread.
 A `str` in the schema (ADR 0001 decision 2): any name a renderer
 registered (`an.adapters.register_renderer`), checked by `an
 validate`. `cutout` stays the persisted default (decision 9).
+
+#### solve *: [SolveSettings](an.ir.schema.html.md#an.ir.schema.SolveSettings) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+mode, gravity and
+damping over the style pack’s. `None` (omitted): the defaults.
+
+* **Type:**
+  How this shot is solved (`SolveSettings`)
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
@@ -702,7 +728,7 @@ root and a travel with a `speed` adds `vehicle`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
+### *class* an.ir.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
 
 Bases: [`AssetRef`](an.ir.schema.html.md#an.ir.schema.AssetRef)
 
@@ -843,6 +869,18 @@ did not change.
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
+### an.ir.join(joint, , at=0.0)
+
+Rejoin the joint named `joint` at `at`.
+
+```pycon
+>>> join("grip", at=2.0).at
+2.0
+```
+
+* **Return type:**
+  [`JoinAction`](an.ir.joints.html.md#an.ir.joints.JoinAction)
+
 ### an.ir.kind_of(doc, , kind=None)
 
 Resolve a document’s kind, by explicit name or from its `kind` tag.
@@ -951,6 +989,30 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
+### an.ir.pin(point, to, , duration=None)
+
+`point` held at `to`. `to` is `body[@point]` or `(x, y)`.
+
+```pycon
+>>> pin("cup", (10.0, -40.0)).to
+(10.0, -40.0)
+```
+
+* **Return type:**
+  [`PinAction`](an.ir.joints.html.md#an.ir.joints.PinAction)
+
+### an.ir.pull(point, to, , over=None, give=0.0)
+
+`point` drawn toward `to` (a point, a body point, or a path).
+
+```pycon
+>>> pull("kite", "world@0,-300", over=1.0).give == DFLT_PULL_GIVE
+True
+```
+
+* **Return type:**
+  [`PullAction`](an.ir.joints.html.md#an.ir.joints.PullAction)
+
 ### an.ir.register_kind(kind)
 
 Register a document kind. Returns it, so callers can bind the result.
@@ -1055,6 +1117,18 @@ False
 * **Return type:**
   [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)
 
+### an.ir.unjoin(joint, , at=0.0)
+
+Let go of the joint named `joint` at `at`.
+
+```pycon
+>>> unjoin("grip").joint
+'grip'
+```
+
+* **Return type:**
+  [`UnjoinAction`](an.ir.joints.html.md#an.ir.joints.UnjoinAction)
+
 ### an.ir.validate_schema(doc)
 
 Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.
@@ -1119,6 +1193,7 @@ which decides how long a dissolve’s overlap is.
 | [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.              |
 | [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                   |
 | [`frames`](an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501). |
+| [`joints`](an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).    |
 | [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                    |
 | [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                   |
 | [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).          |

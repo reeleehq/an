@@ -95,6 +95,7 @@
 - [an.ir.camera](an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
 - [an.ir.frames](an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
+- [an.ir.joints](an.ir.joints.html.md): The constraint layer’s verbs: &#96;pin&#96;, &#96;pull&#96;, &#96;join&#96; and &#96;unjoin&#96; (ADR 0008, an#512).
 - [an.ir.schema](an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.ir.world](an.ir.world.html.md): One world, many shots: the scene world’s geometry and its lowering (ADR 0009).
@@ -179,6 +180,7 @@
 - [an.stage.runtime_files](an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.stage.serialize](an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
 - [an.stage.snapshot](an.stage.snapshot.html.md): Rasterise art files to PNG in the browser the stage already uses (an#347).
+- [an.stage.solve](an.stage.solve.html.md): The &#96;solve&#96; compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).
 - [an.stage.surface](an.stage.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.stage.text](an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
@@ -215,6 +217,7 @@
 - [an.verify](an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
 - [an.verify.constraints](an.verify.constraints.html.md): Constraints: declarative statements a lint checks and a solver may enforce (an#497).
 - [an.verify.human](an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
+- [an.verify.joints](an.verify.joints.html.md): The joint checks: what &#96;an validate&#96; says about a shot’s joints (ADR 0008, an#512).
 - [an.verify.layout](an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
 - [an.verify.media](an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.

@@ -48,7 +48,7 @@ True
 | [`FlatAction`](#an.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.     |
 | [`Project`](#an.Project)(root, mall, scene)                        | A loaded an project: directory + mall + current scene.   |
 
-### *class* an.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
+### *class* an.AssetRef(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -63,6 +63,15 @@ forking the asset.
 >>> AssetRef(kind="character", id="maya", store="characters", ref="maya-v1").id
 'maya'
 ```
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](an.ir.schema.html.md#an.ir.schema.JointSpec)]*
+
+its parts’
+limits, its strings, its pins to other entities; `a` is relative to
+the entity. Omitted when empty, so no stored scene changes.
+
+* **Type:**
+  Joints this entity declares (`JointSpec`, ADR 0008)
 
 #### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -398,7 +407,7 @@ stored scene and no schema version moves.
 * **Type:**
   The scene’s **world** (ADR 0009)
 
-### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, \*\*extra_data)
+### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -406,6 +415,11 @@ A single rendered unit. A scene is a sequence of shots.
 
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](an.ir.schema.html.md#an.ir.schema.JointSpec)]*
+
+Joints between this shot’s bodies (`JointSpec`, ADR 0008); the
+`solve` compile pass keeps them at every frame. Omitted when empty.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -430,6 +444,14 @@ renderer while the thing that actually styles it went unread.
 A `str` in the schema (ADR 0001 decision 2): any name a renderer
 registered (`an.adapters.register_renderer`), checked by `an
 validate`. `cutout` stays the persisted default (decision 9).
+
+#### solve *: [SolveSettings](an.ir.schema.html.md#an.ir.schema.SolveSettings) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+mode, gravity and
+damping over the style pack’s. `None` (omitted): the defaults.
+
+* **Type:**
+  How this shot is solved (`SolveSettings`)
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 

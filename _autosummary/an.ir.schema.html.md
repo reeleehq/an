@@ -52,6 +52,13 @@ True
 | [`VEHICLE_FRAME`](#an.ir.schema.VEHICLE_FRAME)             | The frame a `travel` with a `speed` is sugar for (viewpoints and members ride it by default; streams stay in the world).                                                                                                                                                  |
 | [`FRAME_COUPLINGS`](#an.ir.schema.FRAME_COUPLINGS)           | `rigid` takes the parent's whole pose, `far` only its rotation (what is at infinity turns with the camera and never translates).                                                                                                                                          |
 | [`FRAME_KEY`](#an.ir.schema.FRAME_KEY)                 | The key an element's frame is written under in a document (`frame` is the field; `in` is not a name Python lets a field have).                                                                                                                                            |
+| [`JOINT_TYPES`](#an.ir.schema.JOINT_TYPES)               | The joint types a scene declares.                                                                                                                                                                                                                                         |
+| [`SEGMENT_JOINT_TYPES`](#an.ir.schema.SEGMENT_JOINT_TYPES)       | The types that join a point to a segment (`b` is its start, `end` its end).                                                                                                                                                                                               |
+| [`PART_JOINT_TYPES`](#an.ir.schema.PART_JOINT_TYPES)          | a rig part's own joint to its parent.                                                                                                                                                                                                                                     |
+| [`DISTANCE_MODES`](#an.ir.schema.DISTANCE_MODES)            | How a distance holds its length; `string` and `rod` imply one.                                                                                                                                                                                                            |
+| [`DFLT_GRAVITY`](#an.ir.schema.DFLT_GRAVITY)              | The pull of gravity a `down` with no number means, in scene px per second² (a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth's g at roughly one pixel per millimetre: the conventional animation default).                                            |
+| [`GRAVITY_DIRECTIONS`](#an.ir.schema.GRAVITY_DIRECTIONS)        | Where each named gravity direction pulls, on the stage's y-down axes.                                                                                                                                                                                                     |
+| [`NO_GRAVITY`](#an.ir.schema.NO_GRAVITY)                | The spellings of no gravity.                                                                                                                                                                                                                                              |
 | [`TRAVEL_PLATE_ROLES`](#an.ir.schema.TRAVEL_PLATE_ROLES)        | at infinity, or rigid with the vehicle the viewpoints are mounted on.                                                                                                                                                                                                     |
 | [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                                                                                                                   |
 | [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                                                                                                                         |
@@ -64,10 +71,11 @@ True
 
 ### Functions
 
-| [`resolve_step_hz`](#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
-|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| [`stage_specimen`](#an.ir.schema.stage_specimen)(ref)                         | A short shot showing the one stage entity `ref` casts, on its own (an#347).                                                       |
-| [`unregistered_action_kind`](#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                        |
+| [`gravity_vector`](#an.ir.schema.gravity_vector)(spec)                        | The acceleration a gravity declaration means, or `None` for none.                                                               |
+|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| [`resolve_step_hz`](#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth). |
+| [`stage_specimen`](#an.ir.schema.stage_specimen)(ref)                         | A short shot showing the one stage entity `ref` casts, on its own (an#347).                                                     |
+| [`unregistered_action_kind`](#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                      |
 
 ### Classes
 
@@ -86,6 +94,7 @@ True
 | [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*[, name])                        | An action of a kind the core does not define: the IR's one open member.                                                                                             |
 | [`Frame`](#an.ir.schema.Frame)(\*[, parent, at, look, coupling, moving])    | A frame of reference: a pose (position and orientation) over film time, relative to its `parent` (ADR 0009 amendment, an#501).                                      |
 | [`FrameMoving`](#an.ir.schema.FrameMoving)(\*[, direction])                       | A frame translating at a constant velocity: sugar for a frame whose `at` grows by `direction × speed` per second of FILM time.                                      |
+| [`JointSpec`](#an.ir.schema.JointSpec)(\*, type, a[, b, end, limits, ...])      | A declared relation between two bodies (ADR 0008 decision 3).                                                                                                       |
 | [`LoopAction`](#an.ir.schema.LoopAction)(\*[, name, kind, count])                | Composition: repeat `child` `count` times.                                                                                                                          |
 | [`Meta`](#an.ir.schema.Meta)(\*[, title, author, duration, fps, ...])      | Scene metadata.                                                                                                                                                     |
 | [`Narration`](#an.ir.schema.Narration)(\*, text[, voice_ref, start, ...])       | Off-screen narration.                                                                                                                                               |
@@ -95,6 +104,7 @@ True
 | [`SequenceAction`](#an.ir.schema.SequenceAction)(\*[, name, kind, children])         | Composition: run children one after the other.                                                                                                                      |
 | [`SetAction`](#an.ir.schema.SetAction)(\*[, name, kind, at])                    | Set a property to a value at a specific time.                                                                                                                       |
 | [`Shot`](#an.ir.schema.Shot)(\*, id[, renderer, duration, camera, ...])    | A single rendered unit.                                                                                                                                             |
+| [`SolveSettings`](#an.ir.schema.SolveSettings)(\*[, mode, gravity, damping, ...])   | How a shot's joints are solved: a per-shot override of the style pack's `gravity` and `damping`, and the solve's mode and effort (ADR 0008 decision 4).             |
 | [`SoundCue`](#an.ir.schema.SoundCue)(\*, sound[, at, until, duration, ...])    | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*[, at, scale, after])             | Where an entity stands on the stage, and how big it is.                                                                                                             |
 | [`Stream`](#an.ir.schema.Stream)(\*, id, ref[, kind, store, height, ...])    | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                                                 |
@@ -122,7 +132,7 @@ with its own fields rather than the open member’s.
 
 alias of `Annotated`[`Annotated`[[`SetAction`](#an.ir.schema.SetAction), `Tag`(tag=set)] | `Annotated`[[`TweenAction`](#an.ir.schema.TweenAction), `Tag`(tag=tween)] | `Annotated`[[`SequenceAction`](#an.ir.schema.SequenceAction), `Tag`(tag=sequence)] | `Annotated`[[`ParallelAction`](#an.ir.schema.ParallelAction), `Tag`(tag=parallel)] | `Annotated`[[`DelayAction`](#an.ir.schema.DelayAction), `Tag`(tag=delay)] | `Annotated`[[`LoopAction`](#an.ir.schema.LoopAction), `Tag`(tag=loop)] | `Annotated`[[`ExtensionAction`](#an.ir.schema.ExtensionAction), `SerializeAsAny`(), `Tag`(tag=extension)], `Discriminator`(discriminator=`_action_tag`, custom_error_type=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[`None`](https://docs.python.org/3/builtins/constants.html#None))]
 
-### *class* an.ir.schema.AssetRef(, kind, id, store, ref, overrides=None, stage=None, library=None, \*\*extra_data)
+### *class* an.ir.schema.AssetRef(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -137,6 +147,15 @@ forking the asset.
 >>> AssetRef(kind="character", id="maya", store="characters", ref="maya-v1").id
 'maya'
 ```
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](#an.ir.schema.JointSpec)]*
+
+its parts’
+limits, its strings, its pins to other entities; `a` is relative to
+the entity. Omitted when empty, so no stored scene changes.
+
+* **Type:**
+  Joints this entity declares ([`JointSpec`](#an.ir.schema.JointSpec), ADR 0008)
 
 #### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
@@ -479,6 +498,12 @@ default, as captions are read while something else is watched.
 The horizontal field of view a viewpoint has when it names neither `fov`
 nor `focal`: a normal lens, neither wide nor long.
 
+### an.ir.schema.DFLT_GRAVITY *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 980.0*
+
+The pull of gravity a `down` with no number means, in scene px per second²
+(a 1080-px frame is about 1.1 m of a standing figure, so 980 is earth’s g at
+roughly one pixel per millimetre: the conventional animation default).
+
 ### an.ir.schema.DFLT_SHAKE_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
 
 how long a jolt lasts, how far the frame
@@ -509,6 +534,10 @@ passed the camera (and is hidden); beyond `far` it is effectively at infinity
 
 How far a stream instance’s screen position may stray from the fitted
 tweens between two of their keys, in pixels: the fitting’s tolerance.
+
+### an.ir.schema.DISTANCE_MODES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('equal', 'at_most', 'at_least')*
+
+How a distance holds its length; `string` and `rod` imply one.
 
 ### *class* an.ir.schema.DelayAction(, name=None, kind='delay', duration, \*\*extra_data)
 
@@ -718,6 +747,64 @@ A frame translating at a constant velocity: sugar for a frame whose
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.schema.GRAVITY_DIRECTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'down': (0.0, 1.0), 'left': (-1.0, 0.0), 'right': (1.0, 0.0), 'up': (0.0, -1.0)}*
+
+Where each named gravity direction pulls, on the stage’s y-down axes.
+
+### an.ir.schema.JOINT_TYPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('pin', 'hinge', 'weld', 'distance', 'string', 'rod', 'slide', 'contact')*
+
+The joint types a scene declares. `string` (a distance held at most) and
+`rod` (a distance held exactly) are the puppeteer’s names for a
+`distance` with its `mode` set.
+
+### *class* an.ir.schema.JointSpec(, type, a, b=None, end=None, limits=None, length=None, mode=None, give=0.0, name=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A declared relation between two bodies (ADR 0008 decision 3).
+
+```pycon
+>>> JointSpec(type="hinge", a="lamp/upper", limits=(-40, 90)).id
+'lamp/upper'
+>>> JointSpec(type="pin", a="paul/fore_r@hand_r", b="wheel@grip", name="grip").id
+'grip'
+```
+
+A **body** is a node path (`paul/fore_r`, or an entity id for an entity
+with one root part), and a **point** on it follows `@`: a fraction of the
+body’s extent (`@0.5,1`), or the name of a bone of its rig (`@hand_r`:
+a bone with no slot is a landmark). With no `@` the point is the body’s
+pivot for `a` and the centre of its extent for `b`. `world@x,y` is a
+point of the stage, in scene px from its centre (`StagePlacement.at`’s
+ruler).
+
+- `pin`: the two points coincide; `hinge` adds an angle range
+  (`limits`, degrees about the rest pose, `a`’s body relative to
+  `b`’s); `weld` holds the rest angle too. A `hinge` or `weld` that
+  names only `a` (a rig part) is that part’s own joint to its parent:
+  its `limits` override the bone’s.
+- `distance` keeps `length` (default: the distance at rest) per
+  `mode`; `string` is a distance held at most, `rod` exactly.
+- `slide` keeps `a` on the segment `b` to `end`; `contact` keeps
+  it on the segment’s free side (above a left-to-right segment).
+
+`give` is the joint’s softness (compliance, px per unit of pull; 0 is
+rigid). `name` is what `join` and `unjoin` call it (default: `a`).
+On an entity (`AssetRef.joints`) `a` is relative to the entity
+(`fore_r@hand_r`, `@0.5,0`) and `b` is a path in the shot.
+
+#### *property* distance_mode *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The mode of a distance-like joint (`equal` unless said or implied).
+
+#### *property* id *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+What `join` and `unjoin` call this joint.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.ir.schema.LoopAction(, name=None, kind='loop', child, count=1, \*\*extra_data)
 
 Bases: `_ActionBase`
@@ -815,6 +902,10 @@ cannot reach is WARNED about by name at compile.
 One loudness for every voice ([`VoiceLoudness`](#an.ir.schema.VoiceLoudness), an#315); `None`
 — the default — levels nothing, and is omitted from JSON.
 
+### an.ir.schema.NO_GRAVITY *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'none', 'off'})*
+
+The spellings of no gravity.
+
 ### *class* an.ir.schema.Narration(, text, voice_ref=None, start=None, duration=None, viseme_track=None, word_timings=None, audio_ref=None, viseme_ref=None, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -824,6 +915,13 @@ Off-screen narration. Same shape as Dialogue minus the speaker pin.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.PART_JOINT_TYPES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'hinge', 'weld'})*
+
+a rig part’s own joint to its parent.
+
+* **Type:**
+  The types that may name only `a`
 
 ### *class* an.ir.schema.ParallelAction(\*, name=None, kind='parallel', children=<factory>, \*\*extra_data)
 
@@ -854,6 +952,10 @@ Pixel dimensions of the rendered output.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.SEGMENT_JOINT_TYPES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'contact', 'slide'})*
+
+The types that join a point to a segment (`b` is its start, `end` its end).
 
 ### an.ir.schema.SHOT_SIZES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'close_up': (0.0, 0.35, 0.9), 'full': (0.0, 1.0, 0.9), 'medium': (0.0, 0.55, 0.9), 'wide': (0.0, 1.0, 0.5)}*
 
@@ -930,7 +1032,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, \*\*extra_data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, joints=<factory>, solve=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -938,6 +1040,11 @@ A single rendered unit. A scene is a sequence of shots.
 
 A shot’s `renderer` selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under `options`.
+
+#### joints *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[JointSpec](#an.ir.schema.JointSpec)]*
+
+Joints between this shot’s bodies ([`JointSpec`](#an.ir.schema.JointSpec), ADR 0008); the
+`solve` compile pass keeps them at every frame. Omitted when empty.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -962,6 +1069,14 @@ renderer while the thing that actually styles it went unread.
 A `str` in the schema (ADR 0001 decision 2): any name a renderer
 registered (`an.adapters.register_renderer`), checked by `an
 validate`. `cutout` stays the persisted default (decision 9).
+
+#### solve *: [SolveSettings](#an.ir.schema.SolveSettings) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+mode, gravity and
+damping over the style pack’s. `None` (omitted): the defaults.
+
+* **Type:**
+  How this shot is solved ([`SolveSettings`](#an.ir.schema.SolveSettings))
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](#an.ir.schema.SoundCue)]*
 
@@ -989,6 +1104,37 @@ when unset, like `policy`.
 #### welds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[Weld](#an.ir.schema.Weld)]*
 
 Items held by something for a span ([`Weld`](#an.ir.schema.Weld)); omitted when empty.
+
+### *class* an.ir.schema.SolveSettings(, mode=None, gravity=None, damping=None, iterations=None, substeps=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+How a shot’s joints are solved: a per-shot override of the style pack’s
+`gravity` and `damping`, and the solve’s mode and effort (ADR 0008
+decision 4).
+
+```pycon
+>>> SolveSettings(gravity="down 500").gravity_vector()
+(0.0, 500.0)
+>>> SolveSettings(mode="pose").model_dump()
+{'mode': 'pose'}
+```
+
+`mode` unset is `dynamic` when gravity or a string acts (follow-through,
+baked from frame 0) and `pose` otherwise (projection to convergence from
+the previous frame: dead still between keys). `gravity` unset is the
+style pack’s; `"none"` switches the pack’s off for this shot.
+
+#### gravity_vector()
+
+This shot’s own gravity (`None` also when it says nothing).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
@@ -1484,7 +1630,7 @@ root and a travel with a `speed` adds `vehicle`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.WorldMember(, kind, id, store, ref, overrides=None, stage=None, library=None, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
+### *class* an.ir.schema.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, \*\*extra_data)
 
 Bases: [`AssetRef`](#an.ir.schema.AssetRef)
 
@@ -1518,6 +1664,28 @@ cabin plate and a sky plate).
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.gravity_vector(spec)
+
+The acceleration a gravity declaration means, or `None` for none.
+
+`spec` is how a style pack or a shot spells it: `"down 980"`, `"down"`
+([`DFLT_GRAVITY`](#an.ir.schema.DFLT_GRAVITY)), `"none"`, a number (down at that strength), or a
+mapping `{strength, direction}` (the shape the `gravity` lint reads).
+
+```pycon
+>>> gravity_vector("down 500"), gravity_vector("none"), gravity_vector(None)
+((0.0, 500.0), None, None)
+>>> gravity_vector({"direction": "left"})
+(-980.0, 0.0)
+>>> gravity_vector("sideways")
+Traceback (most recent call last):
+...
+ValueError: gravity 'sideways': say a direction (down, up, left, right) and an optional strength in px/s², e.g. 'down 980', or 'none'
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.schema.resolve_step_hz(shot, scene_step_hz)
 

@@ -24,6 +24,7 @@ an.verify
 
    constraints
    human
+   joints
    layout
    media
    media_quality

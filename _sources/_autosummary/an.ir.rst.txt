@@ -28,6 +28,10 @@ an.ir
       markdown_to_ir
       ir_to_markdown
       sync
+      pin
+      pull
+      join
+      unjoin
    
    .. rubric:: Classes
 
@@ -63,6 +67,7 @@ an.ir
    camera
    compose
    frames
+   joints
    schema
    validate
    world

@@ -96,6 +96,7 @@ object, differing only in what the store returns.
 | [`constraints`](an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
 | [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
+| [`joints`](an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).          |
 | [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
 | [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                 |
 | [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                         |

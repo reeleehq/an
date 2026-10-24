@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=4ef3bb1d"></script>
+    <script src="../_static/documentation_options.js?v=ea8b3f04"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.260" />
+  <meta name="docsearch:version" content="0.1.261" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -409,6 +409,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.world.html">an.ir.world</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.snapshot.html">an.stage.snapshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.solve.html">an.stage.solve</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.surface.html">an.stage.surface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
@@ -547,6 +549,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.constraints.html">an.verify.constraints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.joints.html">an.verify.joints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
@@ -696,6 +699,18 @@ authoring-time DSL to canonical-form actions.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.sync" title="an.ir.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir)</p></td>
 <td><p>Reconcile <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> inside a project directory.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.pin" title="an.ir.pin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pin</span></code></a>(point, to, *[, duration])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">point</span></code> held at <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.pull" title="an.ir.pull"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pull</span></code></a>(point, to, *[, over, give])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">point</span></code> drawn toward <code class="docutils literal notranslate"><span class="pre">to</span></code> (a point, a body point, or a path).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.join" title="an.ir.join"><code class="xref py py-obj docutils literal notranslate"><span class="pre">join</span></code></a>(joint, *[, at])</p></td>
+<td><p>Rejoin the joint named <code class="docutils literal notranslate"><span class="pre">joint</span></code> at <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.unjoin" title="an.ir.unjoin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unjoin</span></code></a>(joint, *[, at])</p></td>
+<td><p>Let go of the joint named <code class="docutils literal notranslate"><span class="pre">joint</span></code> at <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -764,7 +779,7 @@ authoring-time DSL to canonical-form actions.</p>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.AssetRef">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">AssetRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#AssetRef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.AssetRef" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">AssetRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#AssetRef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.AssetRef" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>Reference to an entry in a project store.</p>
 <p>The IR never inlines large assets. Instead it references them by store
@@ -777,6 +792,19 @@ forking the asset.</p>
 </div>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.AssetRef.joints">
+<span class="sig-name descname"><span class="pre">joints</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.ir.schema.html#an.ir.schema.JointSpec" title="an.ir.schema.JointSpec"><span class="pre">JointSpec</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.AssetRef.joints" title="Link to this definition">#</a></dt>
+<dd><p>its parts’
+limits, its strings, its pins to other entities; <code class="docutils literal notranslate"><span class="pre">a</span></code> is relative to
+the entity. Omitted when empty, so no stored scene changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Joints this entity declares (<code class="xref py py-class docutils literal notranslate"><span class="pre">JointSpec</span></code>, ADR 0008)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.AssetRef.kind">
 <span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.AssetRef.kind" title="Link to this definition">#</a></dt>
@@ -1278,13 +1306,20 @@ stored scene and no schema version moves.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.Shot">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">Shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">narration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viewpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">welds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.Shot" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">Shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">narration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viewpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">welds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.Shot" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>A single rendered unit. A scene is a sequence of shots.</p>
 <p>A shot’s <code class="docutils literal notranslate"><span class="pre">renderer</span></code> selects the backend that draws it. Every renderer must accept the
 same Shot fields; renderer-specific options go under <code class="docutils literal notranslate"><span class="pre">options</span></code>.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.Shot.joints">
+<span class="sig-name descname"><span class="pre">joints</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="an.ir.schema.html#an.ir.schema.JointSpec" title="an.ir.schema.JointSpec"><span class="pre">JointSpec</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.Shot.joints" title="Link to this definition">#</a></dt>
+<dd><p>Joints between this shot’s bodies (<code class="xref py py-class docutils literal notranslate"><span class="pre">JointSpec</span></code>, ADR 0008); the
+<code class="docutils literal notranslate"><span class="pre">solve</span></code> compile pass keeps them at every frame. Omitted when empty.</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.Shot.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.Shot.model_config" title="Link to this definition">#</a></dt>
@@ -1315,6 +1350,18 @@ renderer while the thing that actually styles it went unread.
 A <code class="docutils literal notranslate"><span class="pre">str</span></code> in the schema (ADR 0001 decision 2): any name a renderer
 registered (<code class="docutils literal notranslate"><span class="pre">an.adapters.register_renderer</span></code>), checked by <code class="docutils literal notranslate"><span class="pre">an</span>
 <span class="pre">validate</span></code>. <code class="docutils literal notranslate"><span class="pre">cutout</span></code> stays the persisted default (decision 9).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.Shot.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SolveSettings" title="an.ir.schema.SolveSettings"><span class="pre">SolveSettings</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.Shot.solve" title="Link to this definition">#</a></dt>
+<dd><p>mode, gravity and
+damping over the style pack’s. <code class="docutils literal notranslate"><span class="pre">None</span></code> (omitted): the defaults.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How this shot is solved (<code class="xref py py-class docutils literal notranslate"><span class="pre">SolveSettings</span></code>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1551,7 +1598,7 @@ root and a travel with a <code class="docutils literal notranslate"><span class=
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.WorldMember">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">WorldMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_per_px</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">planes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#WorldMember"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.WorldMember" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">WorldMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_per_px</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attached</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">planes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#WorldMember"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.WorldMember" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="an.ir.schema.html#an.ir.schema.AssetRef" title="an.ir.schema.AssetRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetRef</span></code></a></p>
 <p>An entity of the scene’s world: the same reference a shot’s entity
 carries, at a world position with a size (ADR 0009 decision 1).</p>
@@ -1708,6 +1755,21 @@ did not change.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.join">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">join</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/joints.html#join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.join" title="Link to this definition">#</a></dt>
+<dd><p>Rejoin the joint named <code class="docutils literal notranslate"><span class="pre">joint</span></code> at <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">join</span><span class="p">(</span><span class="s2">"grip"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">at</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.joints.html#an.ir.joints.JoinAction" title="an.ir.joints.JoinAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">JoinAction</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.kind_of">
 <span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">kind_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/migrate.html#kind_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.kind_of" title="Link to this definition">#</a></dt>
 <dd><p>Resolve a document’s kind, by explicit name or from its <code class="docutils literal notranslate"><span class="pre">kind</span></code> tag.</p>
@@ -1827,6 +1889,36 @@ path exists between the source and target versions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAction</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.pin">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">pin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/joints.html#pin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.pin" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">point</span></code> held at <code class="docutils literal notranslate"><span class="pre">to</span></code>. <code class="docutils literal notranslate"><span class="pre">to</span></code> is <code class="docutils literal notranslate"><span class="pre">body[&#64;point]</span></code> or <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pin</span><span class="p">(</span><span class="s2">"cup"</span><span class="p">,</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">40.0</span><span class="p">))</span><span class="o">.</span><span class="n">to</span>
+<span class="go">(10.0, -40.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.joints.html#an.ir.joints.PinAction" title="an.ir.joints.PinAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">PinAction</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.pull">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">pull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">give</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/joints.html#pull"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.pull" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">point</span></code> drawn toward <code class="docutils literal notranslate"><span class="pre">to</span></code> (a point, a body point, or a path).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pull</span><span class="p">(</span><span class="s2">"kite"</span><span class="p">,</span> <span class="s2">"world@0,-300"</span><span class="p">,</span> <span class="n">over</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">give</span> <span class="o">==</span> <span class="n">DFLT_PULL_GIVE</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.joints.html#an.ir.joints.PullAction" title="an.ir.joints.PullAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">PullAction</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1957,6 +2049,21 @@ user is told never to do — but we warn instead of silently overwriting).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.unjoin">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">unjoin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/joints.html#unjoin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.unjoin" title="Link to this definition">#</a></dt>
+<dd><p>Let go of the joint named <code class="docutils literal notranslate"><span class="pre">joint</span></code> at <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unjoin</span><span class="p">(</span><span class="s2">"grip"</span><span class="p">)</span><span class="o">.</span><span class="n">joint</span>
+<span class="go">'grip'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.joints.html#an.ir.joints.UnjoinAction" title="an.ir.joints.UnjoinAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnjoinAction</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.validate_schema">
 <span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">validate_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#validate_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate_schema" title="Link to this definition">#</a></dt>
 <dd><p>Validate that <code class="docutils literal notranslate"><span class="pre">doc</span></code> (dict, JSON string, or SceneIR) conforms to the schema.</p>
@@ -2030,13 +2137,16 @@ which decides how long a dissolve’s overlap is.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.ir.frames.html#module-an.ir.frames" title="an.ir.frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frames</span></code></a></p></td>
 <td><p>Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.schema.html#module-an.ir.schema" title="an.ir.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.joints.html#module-an.ir.joints" title="an.ir.joints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">joints</span></code></a></p></td>
+<td><p>The constraint layer's verbs: <code class="docutils literal notranslate"><span class="pre">pin</span></code>, <code class="docutils literal notranslate"><span class="pre">pull</span></code>, <code class="docutils literal notranslate"><span class="pre">join</span></code> and <code class="docutils literal notranslate"><span class="pre">unjoin</span></code> (ADR 0008, an#512).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.schema.html#module-an.ir.schema" title="an.ir.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
 <td><p>Pydantic v2 models for the Scene IR.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.validate.html#module-an.ir.validate" title="an.ir.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.validate.html#module-an.ir.validate" title="an.ir.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
 <td><p>Schema and semantic validation for SceneIR documents.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.world.html#module-an.ir.world" title="an.ir.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.world.html#module-an.ir.world" title="an.ir.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
 <td><p>One world, many shots: the scene world's geometry and its lowering (ADR 0009).</p></td>
 </tr>
 </tbody>
@@ -2092,6 +2202,7 @@ which decides how long a dissolve’s overlap is.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.AssetRef"><code class="docutils literal notranslate"><span class="pre">AssetRef</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.AssetRef.joints"><code class="docutils literal notranslate"><span class="pre">AssetRef.joints</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.AssetRef.kind"><code class="docutils literal notranslate"><span class="pre">AssetRef.kind</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.AssetRef.library"><code class="docutils literal notranslate"><span class="pre">AssetRef.library</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.AssetRef.model_config"><code class="docutils literal notranslate"><span class="pre">AssetRef.model_config</span></code></a></li>
@@ -2155,9 +2266,11 @@ which decides how long a dissolve’s overlap is.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot"><code class="docutils literal notranslate"><span class="pre">Shot</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.joints"><code class="docutils literal notranslate"><span class="pre">Shot.joints</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.model_config"><code class="docutils literal notranslate"><span class="pre">Shot.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.policy"><code class="docutils literal notranslate"><span class="pre">Shot.policy</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.renderer"><code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.solve"><code class="docutils literal notranslate"><span class="pre">Shot.solve</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.sounds"><code class="docutils literal notranslate"><span class="pre">Shot.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.step_hz"><code class="docutils literal notranslate"><span class="pre">Shot.step_hz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Shot.transition"><code class="docutils literal notranslate"><span class="pre">Shot.transition</span></code></a></li>
@@ -2201,12 +2314,15 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.fan_out"><code class="docutils literal notranslate"><span class="pre">fan_out()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.flatten"><code class="docutils literal notranslate"><span class="pre">flatten()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.ir_to_markdown"><code class="docutils literal notranslate"><span class="pre">ir_to_markdown()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.join"><code class="docutils literal notranslate"><span class="pre">join()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.kind_of"><code class="docutils literal notranslate"><span class="pre">kind_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.loop"><code class="docutils literal notranslate"><span class="pre">loop()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.lower_world"><code class="docutils literal notranslate"><span class="pre">lower_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.markdown_to_ir"><code class="docutils literal notranslate"><span class="pre">markdown_to_ir()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.migrate"><code class="docutils literal notranslate"><span class="pre">migrate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.parallel"><code class="docutils literal notranslate"><span class="pre">parallel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.pin"><code class="docutils literal notranslate"><span class="pre">pin()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.pull"><code class="docutils literal notranslate"><span class="pre">pull()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.register_kind"><code class="docutils literal notranslate"><span class="pre">register_kind()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.register_migration"><code class="docutils literal notranslate"><span class="pre">register_migration()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.sequence"><code class="docutils literal notranslate"><span class="pre">sequence()</span></code></a></li>
@@ -2214,6 +2330,7 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.stagger"><code class="docutils literal notranslate"><span class="pre">stagger()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.sync"><code class="docutils literal notranslate"><span class="pre">sync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.tween"><code class="docutils literal notranslate"><span class="pre">tween()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.unjoin"><code class="docutils literal notranslate"><span class="pre">unjoin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate_schema"><code class="docutils literal notranslate"><span class="pre">validate_schema()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate_semantic"><code class="docutils literal notranslate"><span class="pre">validate_semantic()</span></code></a></li>
 </ul>

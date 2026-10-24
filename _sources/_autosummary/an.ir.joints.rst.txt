@@ -1,0 +1,31 @@
+an.ir.joints
+============
+
+.. automodule:: an.ir.joints
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_PULL_GIVE
+      JOINT_ACTION_KINDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      pin
+      pull
+      join
+      unjoin
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PinAction
+      PullAction
+      JoinAction
+      UnjoinAction
+   

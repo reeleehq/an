@@ -66,18 +66,22 @@ Two layers live here:
 | [`rig_origin_problems`](#an.stage.rig.rig_origin_problems)(desc)                          | What is wrong with a rig's declared origin, as warnings (an#338).                                                                                                                                                                                                                                                 |
 | [`rig_problems`](#an.stage.rig.rig_problems)(desc)                                 | What is structurally wrong with a rig's bones and slots (an#340).                                                                                                                                                                                                                                                 |
 | [`rig_rest_problems`](#an.stage.rig.rig_rest_problems)(desc)                            | Warnings about a rig's rest pose (an#339), on a model or a raw document.                                                                                                                                                                                                                                          |
+| [`rig_structure`](#an.stage.rig.rig_structure)(desc, \*[, built])                   | The bodies, joints and bone anchors of a rig: the core's reading of ANY rig as a jointed figure (ADR 0008 decision 3), the one the `solve` pass builds its bodies from.                                                                                                                                           |
 | [`slot_node_paths`](#an.stage.rig.slot_node_paths)(desc)                              | `{slot: its node path relative to the entity}` (`torso/arm/hand`), by [`slot_parent_chain()`](#an.stage.rig.slot_parent_chain); a slot caught in a cycle maps to its own name.                                                                                                                        |
 | [`slot_parent_chain`](#an.stage.rig.slot_parent_chain)(desc)                            | `{slot: the slot it nests under, or None}`: THE nesting rule (an#340).                                                                                                                                                                                                                                            |
 
 ### Classes
 
-| [`Attachment`](#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                   |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`Bone`](#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                    |
-| [`RigDocument`](#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`. |
-| [`RigModel`](#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                            |
-| [`Skin`](#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                |
-| [`Slot`](#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.            |
+| [`Attachment`](#an.stage.rig.Attachment)(\*, path[, anchor, x, y, width, ...])   | A drawable: an SVG path + anchor point (in 0..1 per-axis units).                                                                                                                                                                                                         |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Bone`](#an.stage.rig.Bone)(\*, name[, parent, x, y, rotation_deg, ...])  | A skeleton joint with a local transform relative to its parent.                                                                                                                                                                                                          |
+| [`BoneAnchor`](#an.stage.rig.BoneAnchor)(on, offset)                             | Where a bone sits at rest, in scene px: `offset` in the local frame of slot `on`'s node (a bone carried by a nested chain, `nesting: bones`), or in the entity's own frame when `on` is `None`.                                                                          |
+| [`RigDocument`](#an.stage.rig.RigDocument)(\*[, origin, rest_rotation, nesting])  | The base of every document that IS a rig: `PropDescriptor`, `CharacterDescriptor`.                                                                                                                                                                                       |
+| [`RigJoint`](#an.stage.rig.RigJoint)(child, parent, bone[, kind, limits])      | A joint a rig's bones declare: slot `child` turns about its bone's position on slot `parent` (`kind="hinge"`, within the bone's `limits`, degrees about the rest pose), or is held to it (`"weld"`: a second part on the same bone, which must go where the first goes). |
+| [`RigModel`](#an.stage.rig.RigModel)(\*\*extra_data)                           | Common config: forward-compatible reads, strict writes.                                                                                                                                                                                                                  |
+| [`RigStructure`](#an.stage.rig.RigStructure)(bodies, body_bone, joints, ...)       | What a rig is as bodies and joints ([`rig_structure()`](#an.stage.rig.rig_structure)).                                                                                                                                                                   |
+| [`Skin`](#an.stage.rig.Skin)(\*[, name, slots])                            | A named outfit/variant: maps slot → {attachment_name → Attachment}.                                                                                                                                                                                                      |
+| [`Slot`](#an.stage.rig.Slot)(\*, name, bone[, draw_order, attachment])     | A draw-order slot bound to a bone, displaying one attachment at a time.                                                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -141,7 +145,7 @@ parts share one `head` bone and still land in different places — before
 this field they all stacked on the bone, because the descriptor had no
 way to say otherwise and the compiler used hardcoded literals instead.
 
-### *class* an.stage.rig.Bone(, name, parent=None, x=0.0, y=0.0, rotation_deg=0.0, scale_x=1.0, scale_y=1.0, pivot=None, \*\*extra_data)
+### *class* an.stage.rig.Bone(, name, parent=None, x=0.0, y=0.0, rotation_deg=0.0, scale_x=1.0, scale_y=1.0, pivot=None, limits=None, \*\*extra_data)
 
 Bases: [`RigModel`](#an.stage.rig.RigModel)
 
@@ -153,6 +157,14 @@ A skeleton joint with a local transform relative to its parent.
 'torso'
 ```
 
+#### limits *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+
+The range this bone’s part may turn through relative to its parent’s,
+`[lo, hi]` degrees about the rest pose (ADR 0008: an elbow is
+`[-150, 0]`). `None`, the default, is a free pin. Read by the
+`solve` pass ([`rig_structure()`](#an.stage.rig.rig_structure)); a scene’s `joints:` overrides
+it. Omitted from the stored document when unset.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -160,6 +172,14 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### pivot *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Optional pivot name — must match a circle in the SVG `skeleton` group.
+
+### *class* an.stage.rig.BoneAnchor(on, offset)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where a bone sits at rest, in scene px: `offset` in the local frame
+of slot `on`’s node (a bone carried by a nested chain, `nesting:
+bones`), or in the entity’s own frame when `on` is `None`.
 
 ### an.stage.rig.CHARACTER_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'characters/'*
 
@@ -280,6 +300,15 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A rig cannot be built as declared (a cycle, or a chain the stage cannot draw).
 
+### *class* an.stage.rig.RigJoint(child, parent, bone, kind='hinge', limits=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A joint a rig’s bones declare: slot `child` turns about its bone’s
+position on slot `parent` (`kind="hinge"`, within the bone’s
+`limits`, degrees about the rest pose), or is held to it (`"weld"`: a
+second part on the same bone, which must go where the first goes).
+
 ### *class* an.stage.rig.RigModel(\*\*extra_data)
 
 Bases: `BaseModel`
@@ -289,6 +318,19 @@ Common config: forward-compatible reads, strict writes.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.stage.rig.RigStructure(bodies, body_bone, joints, anchors, roots, nesting)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a rig is as bodies and joints ([`rig_structure()`](#an.stage.rig.rig_structure)).
+
+`bodies` maps every slot whose node is a body to its node path relative
+to the entity, `body_bone` to its bone; `joints` are the bones’
+joints in bone order (a parent before its children: declare the structure
+first); `anchors` place every bone, so a bone with no slot is a named
+point (a landmark: a grip, a fingertip); `roots` are the bodies no joint
+hangs from a parent (what holds the rig where it is staged).
 
 ### an.stage.rig.SCENE_PX_PER_VIEW_BOX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 345.0*
 
@@ -933,6 +975,48 @@ True
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.stage.rig.rig_structure(desc, , built=None)
+
+The bodies, joints and bone anchors of a rig: the core’s reading of ANY
+rig as a jointed figure (ADR 0008 decision 3), the one the `solve` pass
+builds its bodies from.
+
+- **Every slot’s node is a body**, except a slot nested under another slot
+  on the SAME bone (a face part on its head), which rides with it.
+- **\`\`Bone.parent\`\` is a hinge** at the child bone’s position, between the
+  child’s part and the part of the nearest ancestor bone that has one;
+  `Bone.limits` is its range. Parts with no such ancestor are the rig’s
+  `roots`. Bones without a slot are skipped over (a `root` bone), and
+  stay as named points (`anchors`).
+- A second body on one bone is welded to the bone’s first (its primary
+  slot, else the first in draw order).
+
+The geometry is the builder’s own ([`build_rig_subtree()`](#an.stage.rig.build_rig_subtree)): in `flat`
+nesting a bone sits at its translation from the rig’s origin in the
+entity’s frame; in `bones` nesting at its offset in the frame of the
+part it nests under. `built` names the slots the builder actually built
+(a part whose art is missing is not a body); `None` is every slot that
+draws an attachment.
+
+```pycon
+>>> rig = {"nesting": "bones", "view_box": [0, 0, 345, 345], "origin": [0, 0],
+...        "bones": [{"name": "upper"}, {"name": "fore", "parent": "upper", "y": -100, "limits": [-150, 0]},
+...                  {"name": "tip", "parent": "fore", "y": -80}],
+...        "slots": [{"name": "upper", "bone": "upper"}, {"name": "fore", "bone": "fore"}],
+...        "skins": {"default": {"slots": {"upper": {"upper": {"path": "u.svg"}},
+...                                         "fore": {"fore": {"path": "f.svg"}}}}}}
+>>> s = rig_structure(rig)
+>>> sorted(s.bodies.items()), s.roots
+([('fore', 'upper/fore'), ('upper', 'upper')], ('upper',))
+>>> s.joints
+(RigJoint(child='fore', parent='upper', bone='fore', kind='hinge', limits=(-150.0, 0.0)),)
+>>> s.anchors["tip"]
+BoneAnchor(on='fore', offset=(0.0, -80.0))
+```
+
+* **Return type:**
+  [`RigStructure`](#an.stage.rig.RigStructure)
 
 ### an.stage.rig.slot_node_paths(desc)
 

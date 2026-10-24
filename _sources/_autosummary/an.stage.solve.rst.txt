@@ -1,0 +1,38 @@
+an.stage.solve
+==============
+
+.. automodule:: an.stage.solve
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SOLVE_ORDER
+      SOLVE_CLIP_PREFIX
+      SOLVE_EXTENSION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      declarations
+      build_puppet
+      solve_pass
+      joint_residuals
+      shot_declares_solve
+      solve_knobs
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Declarations
+      Puppet
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnknownBodyError
+   

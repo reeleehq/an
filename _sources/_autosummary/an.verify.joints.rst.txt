@@ -1,0 +1,14 @@
+an.verify.joints
+================
+
+.. automodule:: an.verify.joints
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      JOINT_TOLERANCE_PX
+      REJOIN_TOLERANCE_PX
+      JOINT_CONSTRAINTS
+   
