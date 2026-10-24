@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-10-24
+- **`an.kinematics`, the constraint solver** (an#499, P1 of an#497): bodies, pin/hinge/weld/distance/slide/contact joints, channel targets, pushes and pulls, gravity; XPBD on rigid bodies at their centre of mass, two-link closed-form seed, conflicts given up last-declared-first and reported; worked cases (cutan#97's arm, a marionette, a lamp on a driven table, a hinge range, unjoin/rejoin) and a two-process bitwise test in `tests/test_kinematics.py`; measurements in the package docstring, reproducible with `misc/docs/research/puppeteering_2026-10/measure_kinematics.py`. No compiled document changes (the compile pass is P2).
+
 ## 2026-10-21
 - **`gravity` lint** (catalogue B4, an#519 rank 14): under a style pack that declares `gravity` (`{strength?}`), an entity with `overrides: {airborne: {from, until}}` must fall along a parabola (constant downward acceleration, within the pack's `strength` when given) and not stay level for more than 6 frames; a straight-line, uneven or hovering flight is one `an validate` warning. Unsupported falls and hangs wait on supports and joints.
 - **`motion_style` lint** (catalogue B2 and B5, an#519 rank 13): the style pack's `motion` block (`smoothness: {max}` as a log dimensionless jerk per move, `anticipation: {frames: [lo, hi], min_move}`) is measured on the compiled shot, and a move over the target is one `an validate` warning. Silent for a pack that declares no `motion`. Arcs and overlap (`follows`) are not built.
