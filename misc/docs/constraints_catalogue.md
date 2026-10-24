@@ -113,7 +113,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `cutout.body_attachment` (cutan#101: the per-shot socket, view and relation check, with sockets as the weld points) and ADR 0007's `attached: {to, at, scale}` member (the weld declared in the world); cutan#98 (checking through motion) is this entry's time dimension.
 
-**Status.** Partial: body props (cutan#101), scene-space attachments (in flight). The general held-item weld with pick-up and release, and the check through motion, are missing.
+**Status.** The general held-item weld shipped as `Shot.welds` and the `held_item` check (the item stays at its offset from the carrier drawn centre between pick-up and release, sampled through motion). Partial otherwise: body props (cutan#101), scene-space attachments; rotation following and the composing derivation are missing.
 
 #### A5. Rigidity, size and volume conservation
 

@@ -570,6 +570,31 @@ class WorldMember(AssetRef):
         )
 
 
+class Weld(_IRModel):
+    """A held item: ``item`` stays at ``offset`` from ``by`` between ``start`` and
+    ``until`` (catalogue A4). Pick-up is ``start``, release is ``until``.
+
+    >>> Weld(item="cup", by="paul/hand_r", start=1.0, until=3.0).by
+    'paul/hand_r'
+
+    ``by`` is a node path (an entity, or a bone of it) and ``item`` an entity id,
+    both in the shot. ``offset`` is where the item's centre sits from the carrier's
+    centre, in scene px; without it, the offset the two have at ``start`` is the
+    one that must hold. ``until`` ``None`` is the end of the shot. A declaration
+    only: a lint reads it, nothing is composed from it.
+    """
+
+    item: str
+    by: str
+    start: Seconds = 0.0
+    until: Seconds | None = None
+    offset: Point2 | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset(self, handler):
+        return _omit_none(handler(self), "until", "offset")
+
+
 class Viewpoint(_IRModel):
     """A pinhole camera onto the world, or a composition that resolves to one
     (ADR 0009 decision 2).
@@ -1575,6 +1600,8 @@ class Shot(_IRModel):
     #: means the shot is placed by hand, as it always was. Omitted from JSON
     #: when unset, like ``policy``.
     viewpoint: str | Viewpoint | None = None
+    #: Items held by something for a span (:class:`Weld`); omitted when empty.
+    welds: list[Weld] = Field(default_factory=list)
 
     @field_validator("policy")
     @classmethod
@@ -1601,6 +1628,8 @@ class Shot(_IRModel):
                 data.pop("policy", None)
             if self.viewpoint is None:
                 data.pop("viewpoint", None)
+            if not self.welds:
+                data.pop("welds", None)
         return data
 
 

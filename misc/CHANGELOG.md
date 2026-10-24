@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-10-21
+- **`held_item` lint** (catalogue A4, an#519 rank 10): `Shot.welds` (`Weld`: item, `by` node path, `start`, `until`, optional `offset`) declares a held item; `an validate` warns when the item leaves its offset from the carrier (4 px) between pick-up and release, and errors on a weld naming an entity not in the shot. A declaration for the lint only; nothing is composed from it.
 - **`object_permanence` lint** (catalogue C1, an#519 rank 8): an entity shown, absent for whole shots, then shown again with no `transition.time_jump` into them and no opening action is one `an validate` warning; one entity drawn twice in a shot is an error. New `Transition.time_jump` (omitted from a dump unless set). The persistent-property half (ii) is not built.
 - **`jump_cut` lint** (catalogue C4, an#519 rank 9): consecutive shots of one world subject, from viewpoints under 30° apart in look direction and under x1.3 in apparent size, are one `an validate` warning.
 - **`draw_order` lint** (an#510, part ii): a pair of entities painted one way in one shot and the other way in a later one, with no change of `stage.after` for either, is one `an validate` warning naming both shots. World members are skipped (depth derives their order); the within-shot check against world depth is still open on an#510.
