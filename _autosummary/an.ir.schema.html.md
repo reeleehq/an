@@ -99,6 +99,7 @@ True
 | [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*, time, viseme, \*\*extra_data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
 | [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*[, fps_hint, keyframes])             | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
 | [`VoiceLoudness`](#an.ir.schema.VoiceLoudness)(\*[, target_lufs, peak_db])          | One loudness for every voice of the film (an#315).                                                                                                                  |
+| [`Weld`](#an.ir.schema.Weld)(\*, item, by[, start, until, offset])         | A held item: `item` stays at `offset` from `by` between `start` and `until` (catalogue A4).                                                                         |
 | [`WordTimingIR`](#an.ir.schema.WordTimingIR)(\*, text, start, end, \*\*extra_data) | One word of a line and when it was spoken, in seconds from the line's start (like [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe), never absolute). |
 | [`World`](#an.ir.schema.World)(\*[, members, viewpoints, travel])           | A scene's world: members at positions, the named viewpoints that are its coverage, and its travel (ADR 0009).                                                       |
 | [`WorldMember`](#an.ir.schema.WorldMember)(\*, kind, id, store, ref[, ...])       | An entity of the scene's world: the same reference a shot's entity carries, at a world position with a size (ADR 0009 decision 1).                                  |
@@ -868,7 +869,7 @@ Set a property to a value at a specific time. Discrete, no tween.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, \*\*extra_data)
+### *class* an.ir.schema.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -923,6 +924,10 @@ when unset, like `policy`.
 
 * **Type:**
   This shot’s **viewpoint** onto the scene’s world (ADR 0009)
+
+#### welds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[Weld](#an.ir.schema.Weld)]*
+
+Items held by something for a span ([`Weld`](#an.ir.schema.Weld)); omitted when empty.
 
 ### *class* an.ir.schema.SoundCue(, sound, at=0.0, until=None, duration=None, gain_db=0.0, loop=False, fade_in=0.0, fade_out=0.0, duck_db=None, duck_attack=0.08, duck_release=0.3, \*\*extra_data)
 
@@ -1307,6 +1312,28 @@ speech for the web;
 
 * **Type:**
   The level every voice is brought to, LUFS (-16
+
+### *class* an.ir.schema.Weld(, item, by, start=0.0, until=None, offset=None, \*\*extra_data)
+
+Bases: `_IRModel`
+
+A held item: `item` stays at `offset` from `by` between `start` and
+`until` (catalogue A4). Pick-up is `start`, release is `until`.
+
+```pycon
+>>> Weld(item="cup", by="paul/hand_r", start=1.0, until=3.0).by
+'paul/hand_r'
+```
+
+`by` is a node path (an entity, or a bone of it) and `item` an entity id,
+both in the shot. `offset` is where the item’s centre sits from the carrier’s
+centre, in scene px; without it, the offset the two have at `start` is the
+one that must hold. `until` `None` is the end of the shot. A declaration
+only: a lint reads it, nothing is composed from it.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.WordTimingIR(, text, start, end, \*\*extra_data)
 

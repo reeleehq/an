@@ -398,7 +398,7 @@ stored scene and no schema version moves.
 * **Type:**
   The scene’s **world** (ADR 0009)
 
-### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, \*\*extra_data)
+### *class* an.Shot(\*, id, renderer='cutout', duration=5.0, camera=None, entities=<factory>, actions=<factory>, dialogue=<factory>, narration=<factory>, options=<factory>, step_hz=None, transition=None, sounds=<factory>, policy=None, viewpoint=None, welds=<factory>, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -453,6 +453,10 @@ when unset, like `policy`.
 
 * **Type:**
   This shot’s **viewpoint** onto the scene’s world (ADR 0009)
+
+#### welds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[Weld](an.ir.schema.html.md#an.ir.schema.Weld)]*
+
+Items held by something for a span (`Weld`); omitted when empty.
 
 ### an.build_project_mall(project_dir, , ensure=False, \*\*overrides)
 

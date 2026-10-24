@@ -57,6 +57,9 @@ The core’s constraints:
 - `object_permanence` (catalogue C1): an entity shown, then absent for whole
   shots, then shown again with no `time_jump` between and no entrance; and one
   entity drawn twice in a shot. [`vanishings()`](#an.verify.constraints.vanishings) is the pure function under it.
+- `held_item` (catalogue A4, the weld): an item declared held by a node
+  (`Shot.welds`) stays at its offset from the carrier between pick-up and
+  release. [`weld_drifts()`](#an.verify.constraints.weld_drifts) is the pure function under it.
 
 ### Module Attributes
 
@@ -65,22 +68,24 @@ The core’s constraints:
 
 ### Functions
 
-| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                           |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                      |
-| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                             |
-| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`. |
-| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                   |
+| [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on.   |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                          |
+| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                     |
+| [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                            |
+| [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                                |
+| [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                  |
 
 ### Classes
 
 | [`Constraint`](#an.verify.constraints.Constraint)(name, check[, stage, order, ...])     | One constraint: a declarative statement with a `check` and, optionally, a `term`.                           |
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`WeldDrift`](#an.verify.constraints.WeldDrift)(index, at, distance)                   | The item of weld `index` is `distance` px from where it is held, at `at` s.                                 |
 | [`Vanishing`](#an.verify.constraints.Vanishing)(entity, before, after)                 | `entity` is in shot `before` and again in shot `after` (timeline indices) but in none of the shots between. |
 | [`Discontinuity`](#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).                                   |
 | [`ShortHold`](#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.                                     |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None))*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
@@ -143,6 +148,12 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 `entity` is in shot `before` and again in shot `after` (timeline
 indices) but in none of the shots between.
+
+### *class* an.verify.constraints.WeldDrift(index, at, distance)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The item of weld `index` is `distance` px from where it is held, at `at` s.
 
 ### an.verify.constraints.compiled_shot(ctx)
 
@@ -238,3 +249,23 @@ into any shot from the first absent one to the returning one, or by an entrance.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Vanishing`](#an.verify.constraints.Vanishing)]
+
+### an.verify.constraints.weld_drifts(samples, , index=0, offset=None, tolerance=4.0)
+
+The first instant of `samples` `(t, carrier centre, item centre)` at which
+the item is more than `tolerance` from its `offset` to the carrier (the
+first sample’s offset when `offset` is `None`), as one drift: the worst
+distance seen from then on.
+
+```pycon
+>>> held = [(0.0, (0, 0), (10, 0)), (1.0, (50, 0), (60, 0))]
+>>> weld_drifts(held)
+[]
+>>> weld_drifts([*held, (2.0, (90, 0), (60, 0))])
+[WeldDrift(index=0, at=2.0, distance=40.0)]
+>>> weld_drifts(held, offset=(0, 0))[0].distance
+10.0
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`WeldDrift`](#an.verify.constraints.WeldDrift)]
