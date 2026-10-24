@@ -94,9 +94,11 @@ __all__ = [
     "WorldNote",
     "fit_channel",
     "focal_length",
+    "frame_poses",
     "has_world",
     "lower_world",
     "member_placements",
+    "pose_look",
     "resolve_viewpoint",
     "stream_instances",
     "stream_slots",
@@ -1663,6 +1665,80 @@ def _entity_of(member: WorldMember, *, stage: StagePlacement | None = None) -> A
         library=member.library,
         stage=stage,
     )
+
+
+def pose_look(pose: Pose) -> tuple[float, float]:
+    """The ``(yaw, pitch)`` in degrees a pose faces.
+
+    >>> pose_look(Pose())
+    (0.0, 0.0)
+    """
+    return _angles_toward(pose.rotate((0.0, 0.0, 1.0)))
+
+
+def frame_poses(
+    scene: SceneIR, *, film_starts: Sequence[float] | None = None
+) -> list[dict[str, Any]]:
+    """Per framed shot, where each frame stands in the world as the shot opens
+    and as it closes (after the shot's own ``<frame>:at_*`` actions): what
+    `an world show --frames` prints.
+
+    >>> from an.ir.schema import Frame, FrameMoving, Viewpoint, World
+    >>> scene = SceneIR(world=World(frames={"car": Frame(moving=FrameMoving(speed=10.0))},
+    ...                             viewpoints={"v": Viewpoint(at=(0.0, 0.0, 0.0), frame="car")}),
+    ...                 timeline=[Shot(id="s", duration=2.0, viewpoint="v")])
+    >>> row = frame_poses(scene)[0]
+    >>> row["viewpoint_frame"], row["frames"][0]["name"], row["frames"][0]["end"]["at"]
+    ('car', 'car', (0.0, 0.0, 20.0))
+    """
+    world = scene.world
+    if world is None:
+        return []
+    starts = list(film_starts) if film_starts is not None else _film_starts(scene)
+    frames = world.all_frames()
+    rows: list[dict[str, Any]] = []
+    for i, shot in enumerate(scene.timeline):
+        if shot.viewpoint is None:
+            continue
+        vp = viewpoint_of(world, shot.viewpoint)
+        assert vp is not None
+        split = _split_frame_actions(
+            shot,
+            default_easing=scene.meta.default_easing,
+            frames=frames,
+            members={m.id for m in world.members if m.at is not None},
+        )
+        try:
+            tree = FrameTree(frames, tracks=split.frame_tracks)
+        except FrameError as e:
+            raise WorldError(f"shot {shot.id!r}: {e}") from None
+
+        def at(name: str, t: float) -> dict[str, Any]:
+            pose = tree.world_pose(name, t, film_start=starts[i])
+            yaw, pitch = pose_look(pose)
+            return {
+                "at": tuple(round(v, 6) + 0.0 for v in pose.at),
+                "yaw": round(yaw, 6) + 0.0,
+                "pitch": round(pitch, 6) + 0.0,
+            }
+
+        rows.append(
+            {
+                "shot": shot.id,
+                "viewpoint_frame": vp.frame or world.default_frame(),
+                "frames": [
+                    {
+                        "name": name,
+                        "parent": frames[name].parent,
+                        "coupling": frames[name].coupling,
+                        "start": at(name, 0.0),
+                        "end": at(name, float(shot.duration)),
+                    }
+                    for name in frames
+                ],
+            }
+        )
+    return rows
 
 
 def lower_world(
