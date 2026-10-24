@@ -175,9 +175,7 @@ def compiled_shot(ctx: Any) -> Any | None:
                     step_hz=step_hz,
                     default_easing=scene.meta.default_easing,
                 )
-        except (
-            Exception
-        ):  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
+        except Exception:  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
             return None
 
     return ctx.cached((COMPILED_KEY, ctx.index), build)
@@ -692,9 +690,7 @@ def check_solidity(ctx: Any) -> None:
             return False
         try:
             return (props[entity.ref] or {}).get("kind") in DRAWING_DESCRIPTOR_KINDS
-        except (
-            Exception
-        ):  # noqa: BLE001 - a prop the store cannot read is reported elsewhere
+        except Exception:  # noqa: BLE001 - a prop the store cannot read is reported elsewhere
             return False
 
     entities = [e for e in ctx.shot.entities if not is_drawing(e)]
@@ -896,9 +892,7 @@ def check_jump_cut(ctx: Any) -> None:
                     ),
                 )
             )
-        except (
-            Exception
-        ):  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check
+        except Exception:  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check
             views.append(None)
     for i in range(1, len(views)):
         before, after = views[i - 1], views[i]
