@@ -739,3 +739,73 @@ def test_an_world_show_frames_prints_each_frame_as_the_shot_opens_and_closes(
     assert "[far]" in a
     rows = json.loads(show(str(project.root), frames=True, json=True))
     assert [r["shot"] for r in rows] == ["a", "b"]
+
+
+# --- what the adversarial review found (PR 532) -----------------------------------------
+
+
+def test_motion_that_ends_where_it_began_is_still_motion():
+    scene = _scene(
+        Shot(
+            id="s",
+            duration=2.0,
+            viewpoint="road",
+            actions=[
+                sequence(
+                    tween("right", "at_x", to=1.0, duration=1.0, from_=0.5, easing="linear"),
+                    tween("right", "at_x", to=0.5, duration=1.0, easing="linear"),
+                )
+            ],
+        )
+    )
+    xs = _channel(_lowered(scene), "right", "x")
+    assert xs and max(t[3] for t in xs) == pytest.approx(150.0, abs=2.0), "out to 150 px and back"
+
+
+def test_a_member_that_goes_behind_the_camera_and_returns_is_hidden_meanwhile():
+    from an.ir.compose import flatten, parallel
+
+    scene = _scene(
+        Shot(
+            id="s",
+            duration=4.0,
+            viewpoint="road",
+            actions=[
+                sequence(
+                    tween("right", "at_z", to=-3.0, duration=2.0, from_=6.0, easing="linear"),
+                    tween("right", "at_z", to=6.0, duration=2.0, easing="linear"),
+                )
+            ],
+        )
+    )
+    shot = _lowered(scene)
+    alphas = sorted(
+        (f.start, f.action.value)
+        for f in flatten(parallel(*shot.actions))
+        if getattr(f.action, "kind", "") == "set"
+        and f.action.target == "right"
+        and f.action.property == "alpha"
+    )
+    assert 0.0 in [v for _, v in alphas] and 1.0 in [v for _, v in alphas]
+    hidden = [t for t, v in alphas if v == 0.0]
+    shown = [t for t, v in alphas if v == 1.0]
+    assert hidden and shown and max(shown) > min(hidden), "gone, then back"
+
+
+def test_a_hidden_member_that_moves_leaves_no_actions_on_an_absent_entity():
+    scene = _scene(
+        Shot(
+            id="s",
+            duration=2.0,
+            viewpoint=Viewpoint(at=(0.0, 0.0, 0.0), focal=300.0, hide=["right"]),
+            actions=[tween("right", "at_x", to=1.0, duration=1.0, from_=0.5)],
+        )
+    )
+    shot = _lowered(scene)
+    assert [e.id for e in shot.entities] == ["left"]
+    assert all(getattr(a, "target", "left") != "right" for a in shot.actions)
+
+
+def test_a_frame_and_a_member_may_not_share_a_name():
+    with pytest.raises(ValueError, match="both a frame and a member"):
+        _scene(frames={"left": Frame()})

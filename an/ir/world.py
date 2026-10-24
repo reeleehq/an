@@ -48,6 +48,7 @@ from an.ir.compose import (
     delay,
     flatten,
     iter_actions,
+    map_leaves,
     parallel,
     sequence,
     set_,
@@ -739,7 +740,12 @@ def fit_channel(
     def fit(t0: float, t1: float, v0: float, v1: float) -> tuple[Any, float]:
         h, dv = t1 - t0, v1 - v0
         if abs(dv) <= _FLAT_CHANNEL_EPS:
-            return "linear", 0.0
+            # Flat at the ends is not flat between them (a bounce, an orbit):
+            # the deviation from the end value is the error that splits it.
+            return "linear", max(
+                abs(g(t0 + u * h) - v0)
+                for u in (0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875)
+            )
         eps = h * 1e-3
         d0 = (g(t0 + eps) - v0) / eps * h / dv
         d1 = (v1 - g(t1 - eps)) / eps * h / dv
@@ -928,6 +934,38 @@ def _depth_window(
     first = max(0, inside.index(True) - 1)
     last = min(n, n - inside[::-1].index(True) + 1)
     return times[first], times[last]
+
+
+def _depth_runs(
+    depth: Callable[[float], float],
+    a: float,
+    b: float,
+    lo: float,
+    *,
+    step: float,
+) -> list[tuple[float, float]]:
+    """The stretches of ``[a, b]`` during which ``depth >= lo`` (in front of
+    the camera), scanned at ``step`` and widened by a step each side; runs that
+    touch after widening are one."""
+    n = max(1, int(math.ceil((b - a) / step)))
+    times = [a + (b - a) * i / n for i in range(n + 1)]
+    inside = [depth(t) >= lo for t in times]
+    runs: list[list[int]] = []
+    for i, ok in enumerate(inside):
+        if not ok:
+            continue
+        if runs and runs[-1][1] == i - 1:
+            runs[-1][1] = i
+        else:
+            runs.append([i, i])
+    widened: list[list[int]] = []
+    for first, last in runs:
+        first, last = max(0, first - 1), min(n, last + 1)
+        if widened and first <= widened[-1][1]:
+            widened[-1][1] = max(widened[-1][1], last)
+        else:
+            widened.append([first, last])
+    return [(times[f], times[l]) for f, l in widened]
 
 
 #: Sample points along a shot when asking how far the camera travels.
@@ -1140,8 +1178,9 @@ def _split_frame_actions(
 ) -> _Split:
     """Take ``<frame>:at_x|at_y|at_z|yaw|pitch|roll`` and ``<member>:at_x|at_y|at_z``
     out of the shot's actions, as tracks in shot time. A shot with none keeps
-    its actions as they are; one with some is flattened (the rest become
-    absolute-time atoms, in the same order)."""
+    its actions as they are; one with some has them replaced by delays of
+    their own length, so everything else keeps its time (the leaves' own times
+    are read with the default extent of a duration-less ``play``)."""
 
     def kind_of_target(a: Any) -> str | None:
         if getattr(a, "kind", None) not in ("set", "tween"):
@@ -1155,15 +1194,10 @@ def _split_frame_actions(
     if not any(kind_of_target(a) for top in shot.actions for a in iter_actions(top)):
         return _Split(list(shot.actions), {}, {})
     events: dict[tuple[str, str, str], list[TrackEvent]] = {}
-    kept: list[Any] = []
     for f in flatten(parallel(*shot.actions)):
         a = f.action
         which = kind_of_target(a)
         if which is None:
-            if a.kind == "set":
-                kept.append(a.model_copy(update={"at": f.start}))
-            else:
-                kept.append(sequence(delay(f.start), a) if f.start > 0 else a)
             continue
         where = f"shot {shot.id!r}: {a.target}:{a.property}"
         try:
@@ -1182,6 +1216,15 @@ def _split_frame_actions(
                 f"{where} needs numbers, not {a.value if a.kind == 'set' else a.to_value!r}"
             ) from None
         events.setdefault((which, a.target, a.property), []).append(ev)
+
+    def lowered_away(a: Any) -> Any:
+        """A lowered leaf stands in as a delay of its own length, so what
+        follows it in a sequence keeps its time and the tree its shape."""
+        if kind_of_target(a) is None:
+            return a
+        return delay(0.0 if a.kind == "set" else a.duration)
+
+    kept = [map_leaves(top, lowered_away) for top in shot.actions]
     tracks: dict[str, dict[str, dict[str, Track]]] = {"frame": {}, "member": {}}
     for (which, target, prop), evs in events.items():
         tracks[which].setdefault(target, {})[prop] = Track(evs)
@@ -1211,7 +1254,7 @@ def _tracks_vary(tracks: Mapping[str, Track] | None, duration: float) -> bool:
     return False
 
 
-def _member_pass(
+def _member_passes(
     member: WorldMember,
     ctx: _FrameCtx,
     frame: str,
@@ -1224,16 +1267,12 @@ def _member_pass(
     min_step: float,
     width: float,
     height: float,
-) -> tuple[_Pass, float] | None:
-    """A positioned member in motion relative to the camera, as one passage:
-    its channels on the stretch of the shot it is in front of the camera and
-    on screen, and its depth as it enters. ``None`` when it never is."""
+) -> list[tuple[_Pass, float]]:
+    """A positioned member in motion relative to the camera, as one passage per
+    stretch of the shot it is in front of the camera and on screen (it can
+    leave and come back), each with its depth as it enters. Empty when it
+    never is."""
     view = ctx.view_fn(frame, lambda t: _member_point(member, tracks, t))
-    in_front = _depth_window(
-        lambda t: view(t)[2], 0.0, ctx.duration, near, math.inf, step=min_step
-    )
-    if in_front is None:
-        return None
     focal = ctx.projection.focal
 
     def g(t: float) -> tuple[float, float, float]:
@@ -1241,20 +1280,24 @@ def _member_pass(
         depth = max(depth, near)
         return focal * rx / depth, focal * ry / depth, m * focal / depth
 
-    fitted = _fit_pass(
-        g,
-        in_front[0],
-        in_front[1],
-        box=box,
-        ref_height=(box[3] - box[1]) if box is not None else 1.0,
-        tol=tol,
-        min_step=min_step,
-        width=width,
-        height=height,
-    )
-    if fitted is None:
-        return None
-    return fitted, view(fitted.t_in)[2]
+    out: list[tuple[_Pass, float]] = []
+    for t0, t1 in _depth_runs(
+        lambda t: view(t)[2], 0.0, ctx.duration, near, step=min_step
+    ):
+        fitted = _fit_pass(
+            g,
+            t0,
+            t1,
+            box=box,
+            ref_height=(box[3] - box[1]) if box is not None else 1.0,
+            tol=tol,
+            min_step=min_step,
+            width=width,
+            height=height,
+        )
+        if fitted is not None:
+            out.append((fitted, view(fitted.t_in)[2]))
+    return out
 
 
 # --- lowering ------------------------------------------------------------------
@@ -1404,13 +1447,13 @@ def _lower_shot(
         else DFLT_TRAVEL_MAX_ACTIONS
     )
     min_step = _MIN_SAMPLE_FRAMES / float(fps)
-    passes: dict[str, tuple[_Pass, float]] = {}
+    passes: dict[str, list[tuple[_Pass, float]]] = {}
     for mid in sorted(moving):
         member, box = positioned[mid], extents.get(mid)
         m = _unit_scale(member, box, where=f"member {mid!r}")
         if m is None:
             continue  # unmeasured: the static path says so
-        found = _member_pass(
+        found = _member_passes(
             member,
             ctx,
             frame_of[mid],
@@ -1423,7 +1466,7 @@ def _lower_shot(
             width=width,
             height=height,
         )
-        if found is not None:
+        if found:
             passes[mid] = found
     # A lowered scene lowered again: the shot lists the member where its pass
     # begins, so its motion is already there.
@@ -1434,8 +1477,8 @@ def _lower_shot(
         and e.stage is not None
         and e.stage.at is not None
         and math.hypot(
-            e.stage.at[0] - passes[e.id][0].first[0],
-            e.stage.at[1] - passes[e.id][0].first[1],
+            e.stage.at[0] - passes[e.id][0][0].first[0],
+            e.stage.at[1] - passes[e.id][0][0].first[1],
         )
         <= HAND_PLACEMENT_TOLERANCE_PX
         and any(
@@ -1459,14 +1502,18 @@ def _lower_shot(
     fixed = {
         mid: Placed(
             mid,
-            (p.first[0], p.first[1]),
-            p.first[2],
-            depth,
-            _screen_box((p.first[0], p.first[1]), p.first[2], extents.get(mid)),
+            (runs[0][0].first[0], runs[0][0].first[1]),
+            runs[0][0].first[2],
+            runs[0][1],
+            _screen_box(
+                (runs[0][0].first[0], runs[0][0].first[1]),
+                runs[0][0].first[2],
+                extents.get(mid),
+            ),
             mid not in vp.hide,
             "world",
         )
-        for mid, (p, depth) in passes.items()
+        for mid, runs in passes.items()
         if mid not in hand
     }
     placed = (
@@ -1592,15 +1639,18 @@ def _lower_shot(
         note("info", "added", member.id, f"the world adds it {where}")
 
     actions = list(split.actions)
-    in_motion = [mid for mid in passes if mid in fixed and mid not in already]
-    for mid in in_motion:
-        actions.extend(_pass_actions(mid, [passes[mid][0]], duration=duration))
-    if len(actions) - len(split.actions) > budget:
+    emitted = {e.id for _, e, _ in ordered} | {e.id for e, _ in envs}
+    for mid in passes:
+        if mid in fixed and mid not in already and mid in emitted:
+            actions.extend(
+                _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
+            )
+    n_motion = len(actions) - len(split.actions)
+    if n_motion > budget:
         raise WorldError(
-            f"shot {shot.id!r}: the members in motion lower to "
-            f"{len(actions) - len(split.actions)} actions, past the "
-            f"`max_actions` ({budget}). Raise `tolerance_px` on the travel, cut the "
-            "shot, or keep fewer members moving relative to the camera."
+            f"shot {shot.id!r}: the members in motion lower to {n_motion} actions, "
+            f"past the `max_actions` ({budget}). Raise `tolerance_px` on the travel, "
+            "cut the shot, or keep fewer members moving relative to the camera."
         )
     for member in world.members:
         host = member.attached.to if member.attached is not None else None
@@ -1630,6 +1680,13 @@ def _lower_shot(
         for si, (entity, depth0) in enumerate(extra):
             ordered.append(((1.0, -depth0, 10_000.0 + si), entity, None))
         actions.extend(extra_actions)
+        if n_motion and n_motion + len(extra_actions) > budget:
+            raise WorldError(
+                f"shot {shot.id!r}: the members in motion ({n_motion} actions) and the "
+                f"travel's streams ({len(extra_actions)}) together pass `max_actions` "
+                f"({budget}). Raise `tolerance_px`, cut the shot, or raise `max_actions` "
+                "knowingly."
+            )
         for stream_id, problem in problems:
             note("warning", "stream", stream_id, problem)
     ordered.sort(key=lambda item: item[0])

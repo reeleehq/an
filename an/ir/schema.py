@@ -1023,6 +1023,15 @@ class World(_IRModel):
                 f"and put the motion in `frames.{VEHICLE_FRAME}.moving`."
             )
         names = {WORLD_FRAME, *self.all_frames()}
+        things = {m.id for m in self.members} | {
+            st.id for st in (self.travel.streams if self.travel is not None else ())
+        }
+        clash = sorted(set(self.frames) & things)
+        if clash:
+            raise ValueError(
+                f"{clash} names both a frame and a member or stream: an action on "
+                "`<name>:at_x` could mean either. Rename the frame."
+            )
         for name, frame in self.frames.items():
             if not name or "/" in name or name == WORLD_FRAME:
                 raise ValueError(
