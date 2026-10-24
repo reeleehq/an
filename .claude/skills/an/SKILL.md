@@ -76,6 +76,10 @@ Every core name a scene may use, with its version and the spectrum levels it acc
 | `parallel` | 1 | a | run children at once |
 | `delay` | 1 | a | an empty span that consumes time |
 | `loop` | 1 | a | repeat a child count times |
+| `pin` | 1 | a | hold a body's point exactly at a point for a span (a rod, a nail) |
+| `pull` | 1 | a | draw a body's point toward a point or along a path (a string) |
+| `join` | 1 | a | enforce a declared joint from an instant on |
+| `unjoin` | 1 | a | let a declared joint go from an instant on |
 
 ### Entity kinds
 

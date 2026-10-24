@@ -50,6 +50,49 @@
    }
   },
   {
+   "id": "action.join",
+   "kind": "action",
+   "name": "join",
+   "version": "1",
+   "title": "",
+   "description": "enforce a declared joint from an instant on",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "The declared joint named ``joint`` is enforced from ``at`` on.\n\n>>> JoinAction(joint=\"grip\", at=1.0).at\n1.0",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "joint": {
+      "title": "Joint",
+      "type": "string"
+     },
+     "at": {
+      "default": 0.0,
+      "title": "At",
+      "type": "number"
+     }
+    },
+    "required": [
+     "joint"
+    ],
+    "title": "JoinAction",
+    "type": "object"
+   }
+  },
+  {
    "id": "action.loop",
    "kind": "action",
    "name": "loop",
@@ -826,6 +869,174 @@
    }
   },
   {
+   "id": "action.pin",
+   "kind": "action",
+   "name": "pin",
+   "version": "1",
+   "title": "",
+   "description": "hold a body's point exactly at a point for a span (a rod, a nail)",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "``point`` (``body[@point]``) held exactly at ``to`` for ``duration``\nseconds (``None``: to the shot's end). It frees the body ``point`` is on\nfor the span: a pinned cup goes to the hand, wherever it was staged.\n\n>>> PinAction(point=\"cup\", to=\"paul/fore_r@hand\").to\n'paul/fore_r@hand'",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "point": {
+      "title": "Point",
+      "type": "string"
+     },
+     "to": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "number"
+         }
+        ],
+        "type": "array"
+       }
+      ],
+      "title": "To"
+     },
+     "duration": {
+      "anyOf": [
+       {
+        "minimum": 0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Duration"
+     }
+    },
+    "required": [
+     "point",
+     "to"
+    ],
+    "title": "PinAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.pull",
+   "kind": "action",
+   "name": "pull",
+   "version": "1",
+   "title": "",
+   "description": "draw a body's point toward a point or along a path (a string)",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "``point`` drawn toward ``to`` (a point, or a path of stage points walked\nat an even speed over the span) for ``over`` seconds (``None``: to the\nshot's end), as close as the joints allow; ``give`` is the string's\nsoftness (compliance, px per unit of pull).\n\n>>> PullAction(point=\"puppet/hand_l\", to=[[0, -200], [100, -200]], over=2.0).over\n2.0",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "point": {
+      "title": "Point",
+      "type": "string"
+     },
+     "to": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "number"
+         }
+        ],
+        "type": "array"
+       },
+       {
+        "items": {
+         "maxItems": 2,
+         "minItems": 2,
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "type": "array"
+        },
+        "type": "array"
+       }
+      ],
+      "title": "To"
+     },
+     "over": {
+      "anyOf": [
+       {
+        "minimum": 0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Over"
+     },
+     "give": {
+      "default": 1e-06,
+      "exclusiveMinimum": 0,
+      "title": "Give",
+      "type": "number"
+     }
+    },
+    "required": [
+     "point",
+     "to"
+    ],
+    "title": "PullAction",
+    "type": "object"
+   }
+  },
+  {
    "id": "action.sequence",
    "kind": "action",
    "name": "sequence",
@@ -1361,6 +1572,49 @@
      "to_value"
     ],
     "title": "TweenAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.unjoin",
+   "kind": "action",
+   "name": "unjoin",
+   "version": "1",
+   "title": "",
+   "description": "let a declared joint go from an instant on",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "The declared joint named ``joint`` lets go from ``at`` on.\n\n>>> UnjoinAction(joint=\"grip\").kind\n'unjoin'",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "joint": {
+      "title": "Joint",
+      "type": "string"
+     },
+     "at": {
+      "default": 0.0,
+      "title": "At",
+      "type": "number"
+     }
+    },
+    "required": [
+     "joint"
+    ],
+    "title": "UnjoinAction",
     "type": "object"
    }
   },
