@@ -1,4 +1,4 @@
-> built 2026-10-24 14:17 UTC from 4a35072 (main) · an 0.1.256. Details: build_info.json
+> built 2026-10-24 14:26 UTC from e8e6452 (main) · an 0.1.257. Details: build_info.json
 
 # index.html.md
 
@@ -40651,6 +40651,12 @@ The core’s constraints:
   declares `overrides: {preserve_volume: true}` keeps `scale_x * scale_y`.
   [`shape_drifts()`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.shape_drifts) is the pure function under it. Opt-in, since the
   > `squash_stretch` preset deforms on purpose.
+- `motion_style` (catalogue B2, B5): the style pack’s `motion` targets,
+  measured on the compiled shot: `smoothness` (the log dimensionless jerk of
+  each move) and `anticipation` (a big move is preceded by a small counter-move).
+  [`move_jerk()`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.move_jerk) and [`unanticipated()`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.unanticipated) are the pure functions under it.
+
+  Silent when the pack declares no `motion`. Arcs and overlap are not built.
 
 ### Module Attributes
 
@@ -40659,26 +40665,29 @@ The core’s constraints:
 
 ### Functions
 
-| [`shape_drifts`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...])   | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                            |
-|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`weld_drifts`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])       | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on. |
-| [`vanishings`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])        | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                        |
-| [`compiled_shot`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.compiled_shot)(ctx)                                   | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                   |
-| [`continuity_findings`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...])   | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                          |
-| [`discontinuities`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)        | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                              |
-| [`short_holds`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.short_holds)(timeline, \*, fps)                       | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                |
+| [`move_jerk`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.move_jerk)(values, dt)                              | The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move sampled every `dt` s: lower is smoother.                                                                                                                                   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`unanticipated`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.unanticipated)(moves, \*, min_move, frames, fps)    | The moves of at least `min_move` with no anticipation: a move of the same channel, the other way, at most half as far, lasting `frames` frames, that ends at the big move's start (to within a frame).                                                 |
+| [`shape_drifts`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                            |
+| [`weld_drifts`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on. |
+| [`vanishings`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                        |
+| [`compiled_shot`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                   |
+| [`continuity_findings`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                          |
+| [`discontinuities`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                              |
+| [`short_holds`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                |
 
 ### Classes
 
 | [`Constraint`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint)(name, check[, stage, order, ...])     | One constraint: a declarative statement with a `check` and, optionally, a `term`.                           |
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`Move`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Move)(key, start, end, delta)                     | One clip's change of one channel: from `start` to `end` s, by `delta`.                                      |
 | [`ShapeDrift`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.ShapeDrift)(entity, quantity, at, ratio)          | The `quantity` (`aspect` or `volume`) of `entity` is `ratio` times its start at `at` s.                     |
 | [`WeldDrift`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.WeldDrift)(index, at, distance)                   | The item of weld `index` is `distance` px from where it is held, at `at` s.                                 |
 | [`Vanishing`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Vanishing)(entity, before, after)                 | `entity` is in shot `before` and again in shot `after` (timeline indices) but in none of the shots between. |
 | [`Discontinuity`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).                                   |
 | [`ShortHold`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.                                     |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None))*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None), Constraint(name='motion_style', check=<function check_motion_style>, stage='shot', order=200.0, description='moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)', term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
@@ -40728,6 +40737,12 @@ the author’s.
 
 * **Type:**
   A `set` (a step-held value equal to what shows) explains it
+
+### *class* an.verify.constraints.Move(key, start, end, delta)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One clip’s change of one channel: from `start` to `end` s, by `delta`.
 
 ### *class* an.verify.constraints.ShapeDrift(entity, quantity, at, ratio)
 
@@ -40807,6 +40822,26 @@ True
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Discontinuity`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Discontinuity)]
 
+### an.verify.constraints.move_jerk(values, dt)
+
+The log dimensionless jerk `ln(T^5 / A^2 * integral |jerk|^2 dt)` of a move
+sampled every `dt` s: lower is smoother. A minimum-jerk move scores about `ln 720`
+(6.6) whatever its size and duration; corners score far higher. `None` for a
+move too short or too small to measure.
+
+```pycon
+>>> import math
+>>> s = [10 * u**3 - 15 * u**4 + 6 * u**5 for u in (i / 60 for i in range(61))]
+>>> 6.0 < move_jerk(s, 1 / 30) < 7.0
+True
+>>> linear = [i / 60 for i in range(61)]
+>>> move_jerk(linear, 1 / 30) > 9
+True
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
 ### an.verify.constraints.shape_drifts(entity, samples, , quantity, tolerance=None)
 
 The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left
@@ -40843,6 +40878,24 @@ closer than ``1/fps`, so the first may never land on a frame.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ShortHold`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.ShortHold)]
+
+### an.verify.constraints.unanticipated(moves, , min_move, frames, fps)
+
+The moves of at least `min_move` with no anticipation: a move of the same
+channel, the other way, at most half as far, lasting `frames` frames, that
+ends at the big move’s start (to within a frame).
+
+```pycon
+>>> big = Move(("a", "x"), 1.0, 2.0, 100.0)
+>>> wind = Move(("a", "x"), 0.8, 1.0, -20.0)
+>>> unanticipated([wind, big], min_move=50.0, frames=(3, 10), fps=24.0)
+[]
+>>> unanticipated([big], min_move=50.0, frames=(3, 10), fps=24.0) == [big]
+True
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Move`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Move)]
 
 ### an.verify.constraints.vanishings(presence, time_jumps, entrances=None)
 
@@ -41751,20 +41804,20 @@ json: print the report as JSON instead of text
 
 # About this build
 
-This documentation was built on **2026-10-24 14:17 UTC** from commit <a href="https://github.com/reeleehq/an/commit/4a350726b691a18ad0657904b4a784d6bc04937a"><code>4a35072</code></a> on branch <code>main</code>, for **an 0.1.256** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-24 14:26 UTC** from commit <a href="https://github.com/reeleehq/an/commit/e8e6452d76cbf46c413b556251816abee09957b7"><code>e8e6452</code></a> on branch <code>main</code>, for **an 0.1.257** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.256) is ahead of the latest release on PyPI (0.1.255): these docs describe unreleased code.
+- The documented version (0.1.257) is ahead of the latest release on PyPI (0.1.256): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/4a350726b691a18ad0657904b4a784d6bc04937a"><code>4a350726b691a18ad0657904b4a784d6bc04937a</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/e8e6452d76cbf46c413b556251816abee09957b7"><code>e8e6452d76cbf46c413b556251816abee09957b7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.256</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.257</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -41773,9 +41826,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40101286989">40101286989</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40101993742">40101993742</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f1a9172cd793784c0b6d59ae9985a44ebbbdf837</code> (in the history of the built commit) |
+| Event commit | <code>57f4a4ad86850451a2b14ddaf25a2641bf68d592</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -41800,13 +41853,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.255/">0.1.255</a>, older than the documented version (0.1.256).
+Latest release: <a href="https://pypi.org/project/an/0.1.256/">0.1.256</a>, older than the documented version (0.1.257).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 4a350726b691a18ad0657904b4a784d6bc04937a
+git checkout e8e6452d76cbf46c413b556251816abee09957b7
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

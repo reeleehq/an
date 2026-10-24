@@ -14,6 +14,8 @@ an.verify.constraints
 
    .. autosummary::
    
+      move_jerk
+      unanticipated
       shape_drifts
       weld_drifts
       vanishings
@@ -27,6 +29,7 @@ an.verify.constraints
    .. autosummary::
    
       Constraint
+      Move
       ShapeDrift
       WeldDrift
       Vanishing

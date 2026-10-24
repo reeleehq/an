@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=8c52df05"></script>
+    <script src="../../../_static/documentation_options.js?v=282a5b1c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.256" />
+  <meta name="docsearch:version" content="0.1.257" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -775,6 +775,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  declares ``overrides: {preserve_volume: true}`` keeps ``scale_x * scale_y``.</span>
 <span class="sd">  :func:`shape_drifts` is the pure function under it. Opt-in, since the</span>
 <span class="sd">  ``squash_stretch`` preset deforms on purpose.</span>
+<span class="sd">- ``motion_style`` (catalogue B2, B5): the style pack's ``motion`` targets,</span>
+<span class="sd">  measured on the compiled shot: ``smoothness`` (the log dimensionless jerk of</span>
+<span class="sd">  each move) and ``anticipation`` (a big move is preceded by a small counter-move).</span>
+<span class="sd">  :func:`move_jerk` and :func:`unanticipated` are the pure functions under it.</span>
+<span class="sd">  Silent when the pack declares no ``motion``. Arcs and overlap are not built.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -801,6 +806,10 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"OBJECT_PERMANENCE"</span><span class="p">,</span>
     <span class="s2">"HELD_ITEM"</span><span class="p">,</span>
     <span class="s2">"RIGIDITY"</span><span class="p">,</span>
+    <span class="s2">"MOTION_STYLE"</span><span class="p">,</span>
+    <span class="s2">"Move"</span><span class="p">,</span>
+    <span class="s2">"move_jerk"</span><span class="p">,</span>
+    <span class="s2">"unanticipated"</span><span class="p">,</span>
     <span class="s2">"ShapeDrift"</span><span class="p">,</span>
     <span class="s2">"shape_drifts"</span><span class="p">,</span>
     <span class="s2">"WeldDrift"</span><span class="p">,</span>
@@ -2025,6 +2034,208 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># motion_style (catalogue B2, B5): smoothness and anticipation as style targets</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The key of a style pack under which its motion targets are declared (the pack</span>
+<span class="c1">#: allows extra keys): ``motion: {smoothness: {max: 9.5}, anticipation: {frames: [2, 8], min_move: 40}}``.</span>
+<span class="n">MOTION_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"motion"</span>
+<span class="c1">#: A move shorter than this many frames, or travelling less than this (in the</span>
+<span class="c1">#: channel's units), has no shape worth measuring.</span>
+<span class="n">MIN_MOVE_FRAMES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">MIN_MOVE_AMPLITUDE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="c1">#: A counter-move is anticipation when it is at most this fraction of the move it prepares.</span>
+<span class="n">ANTICIPATION_MAX_FRACTION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+
+<div class="viewcode-block" id="move_jerk">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.move_jerk">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">move_jerk</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The log dimensionless jerk ``ln(T^5 / A^2 * integral |jerk|^2 dt)`` of a move</span>
+<span class="sd">    sampled every ``dt`` s: lower is smoother. A minimum-jerk move scores about ``ln 720``</span>
+<span class="sd">    (6.6) whatever its size and duration; corners score far higher. ``None`` for a</span>
+<span class="sd">    move too short or too small to measure.</span>
+
+<span class="sd">    &gt;&gt;&gt; import math</span>
+<span class="sd">    &gt;&gt;&gt; s = [10 * u**3 - 15 * u**4 + 6 * u**5 for u in (i / 60 for i in range(61))]</span>
+<span class="sd">    &gt;&gt;&gt; 6.0 &lt; move_jerk(s, 1 / 30) &lt; 7.0</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; linear = [i / 60 for i in range(61)]</span>
+<span class="sd">    &gt;&gt;&gt; move_jerk(linear, 1 / 30) &gt; 9</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">if</span> <span class="n">values</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">MIN_MOVE_FRAMES</span> <span class="ow">or</span> <span class="n">amplitude</span> <span class="o">&lt;</span> <span class="n">MIN_MOVE_AMPLITUDE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1"># a move starts and ends at rest, so the corner a linear ramp makes there counts</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="mi">3</span>
+    <span class="n">jerk</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">dt</span><span class="o">**</span><span class="mi">3</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="n">integral</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">j</span> <span class="o">*</span> <span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">jerk</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="k">if</span> <span class="n">integral</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">duration</span><span class="o">**</span><span class="mi">5</span> <span class="o">/</span> <span class="n">amplitude</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">integral</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Move">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.Move">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Move</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One clip's change of one channel: from ``start`` to ``end`` s, by ``delta``."""</span>
+
+    <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="unanticipated">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.constraints.html#an.verify.constraints.unanticipated">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unanticipated</span><span class="p">(</span>
+    <span class="n">moves</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Move</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">min_move</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Move</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The moves of at least ``min_move`` with no anticipation: a move of the same</span>
+<span class="sd">    channel, the other way, at most half as far, lasting ``frames`` frames, that</span>
+<span class="sd">    ends at the big move's start (to within a frame).</span>
+
+<span class="sd">    &gt;&gt;&gt; big = Move(("a", "x"), 1.0, 2.0, 100.0)</span>
+<span class="sd">    &gt;&gt;&gt; wind = Move(("a", "x"), 0.8, 1.0, -20.0)</span>
+<span class="sd">    &gt;&gt;&gt; unanticipated([wind, big], min_move=50.0, frames=(3, 10), fps=24.0)</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; unanticipated([big], min_move=50.0, frames=(3, 10), fps=24.0) == [big]</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_move</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">m</span><span class="o">.</span><span class="n">key</span>
+            <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">m</span>
+            <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span>
+            <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">ANTICIPATION_MAX_FRACTION</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="n">fps</span> <span class="o">&lt;=</span> <span class="n">frames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">moves</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_motion_targets</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ``motion`` block of the style pack the scene names (``{}`` when none)."""</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">style_pack</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">styles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pack</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a missing pack is reported by the style check</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pack</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MOTION_KEY</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="n">MOTION_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_moves</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Move</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Every clip's numeric, non-stepped channel as a :class:`Move` with its samples."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span>
+    <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">timeline</span><span class="o">.</span><span class="n">tracks</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">placed</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">clips</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">placed</span><span class="o">.</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">_numeric_channels</span><span class="p">(</span><span class="n">placed</span><span class="o">.</span><span class="n">clip</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">easing</span> <span class="o">==</span> <span class="n">STEP_EASING</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">keyframes</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">length</span> <span class="o">*</span> <span class="n">fps</span><span class="p">))</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">placed</span><span class="o">.</span><span class="n">start_time</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dt</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span>
+                    <span class="n">placed</span><span class="o">.</span><span class="n">end_time</span>
+                <span class="p">]</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">_value_of</span><span class="p">(</span><span class="n">placed</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">Move</span><span class="p">(</span>
+                            <span class="n">key</span><span class="p">,</span>
+                            <span class="n">placed</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                            <span class="n">placed</span><span class="o">.</span><span class="n">end_time</span><span class="p">,</span>
+                            <span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="p">),</span>
+                        <span class="n">values</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_motion_style</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``motion_style`` check: the shot's moves against the pack's targets."""</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="n">_motion_targets</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">targets</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeline_from_scene</span>
+
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="n">measured</span> <span class="o">=</span> <span class="n">_moves</span><span class="p">(</span><span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">fps</span><span class="p">)</span>
+    <span class="n">smooth</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"smoothness"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">smooth</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"max"</span> <span class="ow">in</span> <span class="n">smooth</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">move</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">measured</span><span class="p">:</span>
+            <span class="n">jerk</span> <span class="o">=</span> <span class="n">move_jerk</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jerk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">jerk</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">smooth</span><span class="p">[</span><span class="s2">"max"</span><span class="p">]):</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">move</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">move</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> moves from </span><span class="si">{</span><span class="n">move</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s with "</span>
+                    <span class="sa">f</span><span class="s2">"jerk </span><span class="si">{</span><span class="n">jerk</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, over the style's </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">smooth</span><span class="p">[</span><span class="s1">'max'</span><span class="p">])</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">: it "</span>
+                    <span class="s2">"has corners. Ease it (a slower in and out), or split it at a rest."</span><span class="p">,</span>
+                <span class="p">)</span>
+    <span class="n">anticipation</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"anticipation"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">anticipation</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"frames"</span> <span class="ow">in</span> <span class="n">anticipation</span><span class="p">:</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">anticipation</span><span class="p">[</span><span class="s2">"frames"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">unanticipated</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">measured</span><span class="p">],</span>
+            <span class="n">min_move</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">anticipation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"min_move"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+            <span class="n">frames</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lo</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">hi</span><span class="p">)),</span>
+            <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> moves </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">delta</span><span class="si">:</span><span class="s2">+g</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s with no "</span>
+                <span class="sa">f</span><span class="s2">"anticipation: the style wants a counter-move of </span><span class="si">{</span><span class="n">lo</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">hi</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> frames "</span>
+                <span class="s2">"ending where it starts."</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
+<span class="n">MOTION_STYLE</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"motion_style"</span><span class="p">,</span>
+    <span class="n">check_motion_style</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
 <span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CONTINUITY</span><span class="p">,</span>
@@ -2034,6 +2245,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">OBJECT_PERMANENCE</span><span class="p">,</span>
     <span class="n">HELD_ITEM</span><span class="p">,</span>
     <span class="n">RIGIDITY</span><span class="p">,</span>
+    <span class="n">MOTION_STYLE</span><span class="p">,</span>
 <span class="p">)</span>
 
 
