@@ -49,10 +49,13 @@ __all__ = [
     "unjoin",
 ]
 
-#: How soft a ``pull`` is when it says nothing: a compliance small enough that
-#: a reachable point is met within a fraction of a pixel, and non-zero so an
-#: unreachable one is approached (the rigid joints win) rather than refused.
-DFLT_PULL_GIVE: float = 1e-6
+#: How soft a ``pull`` is when it says nothing: not at all. A reachable point is
+#: met exactly; an unreachable one is given up for the frame before any joint of
+#: the structure is (the solver drops the last-declared joint of a conflict), so
+#: the chain reaches toward it as far as its joints allow, and nothing is torn.
+#: A positive ``give`` is a soft string, which yields in proportion to the masses
+#: it pulls (a compliance, px per unit of pull).
+DFLT_PULL_GIVE: float = 0.0
 
 #: The verbs' kind names.
 JOINT_ACTION_KINDS: tuple[str, ...] = ("pin", "pull", "join", "unjoin")
@@ -90,7 +93,7 @@ class PullAction(ExtensionAction):
     point: str
     to: Target | list[Point2]
     over: Seconds | None = Field(default=None, ge=0)
-    give: float = Field(default=DFLT_PULL_GIVE, gt=0, allow_inf_nan=False)
+    give: float = Field(default=DFLT_PULL_GIVE, ge=0, allow_inf_nan=False)
 
 
 class JoinAction(ExtensionAction):

@@ -148,7 +148,14 @@ def check_unreachable_pin(ctx: Any) -> None:
         if row.get("source") != "pin":
             continue
         reach = entry.get("reach")
-        if reach:
+        if reach and reach.get("within"):
+            how = (
+                f"it is within reach ({reach['distance']:.0f} px from {reach['from']!r}, the "
+                f"chain reaches {reach['reach']:.0f} px), but the joints or an authored "
+                "channel hold the chain away from it. Let the solve move the parts in "
+                "between (drop the channel that fights it), or widen a hinge's `limits`."
+            )
+        elif reach:
             how = (
                 f"it is {reach['distance']:.0f} px from {reach['from']!r}, and the chain "
                 f"reaches {reach['reach']:.0f} px. Move the target within reach (on the "

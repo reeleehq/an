@@ -39,13 +39,17 @@ HAND = (70.0 * K, 0.0)
 JOINT_CHECKS = {"unknown_body", "unreachable_pin", "joint_violation"}
 
 
-def _project(tmp_path: Path, *, nesting: str | None = None):
+def _project(tmp_path: Path, *, nesting: str | None = None, draw_order=None, prop=None, joints=None):
     root = stage_copy(FIXTURE, tmp_path / "p")
+    desc_path = root / "assets" / "props" / (prop or "arm") / "prop.json"
+    desc = json.loads(desc_path.read_text(encoding="utf-8"))
     if nesting is not None:
-        desc_path = root / "assets" / "props" / "arm" / "prop.json"
-        desc = json.loads(desc_path.read_text(encoding="utf-8"))
         desc["nesting"] = nesting
-        desc_path.write_text(json.dumps(desc), encoding="utf-8")
+    for slot in desc["slots"]:
+        slot["draw_order"] = (draw_order or {}).get(slot["name"], slot["draw_order"])
+    if joints is not None:
+        desc["joints"] = joints
+    desc_path.write_text(json.dumps(desc), encoding="utf-8")
     return load(root)
 
 
@@ -323,3 +327,82 @@ def test_the_core_corpus_compiles_byte_identically_without_the_pass(tmp_path, na
         tuple(p for p in stage_compile.STAGE_COMPILE_PASSES if p.name != "solve"),
     )
     assert compiled() == with_pass
+
+
+# -- regressions found in review ------------------------------------------------------
+
+
+def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
+    """A back arm drawn behind its torso: bodies are solved and read parents first."""
+    project = _project(tmp_path, nesting="bones", draw_order={"torso": 2, "upper": 1, "fore": 0})
+    doc = _compile(project)
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+
+
+@pytest.mark.parametrize(
+    "extra, wheel_at",
+    [
+        ([{"kind": "set", "target": "puppet", "property": "scale_x", "value": -1.0}], [-210.0, 10.0]),
+        (
+            [
+                {"kind": "tween", "target": "puppet", "property": p, "from_value": 1.0, "to_value": 1.3, "duration": 0.5}
+                for p in ("scale_x", "scale_y")
+            ],
+            [10.0, 10.0],
+        ),
+    ],
+    ids=["mirrored", "scaled"],
+)
+def test_an_authored_mirror_or_scale_is_solved_at_the_frames_geometry(tmp_path, extra, wheel_at):
+    project = _project(tmp_path)
+    data = project.scene.timeline[0].model_dump()
+    data["entities"][1]["stage"]["at"] = wheel_at
+    data["actions"] = data["actions"] + extra
+    shot = Shot.model_validate(data)
+    doc = _compile(project, shot)
+    assert not doc.meta.extensions["solve"]["dropped"]
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    assert _lint(project, shot) == []
+
+
+def test_a_pull_reaches_what_it_can_and_is_never_a_violation(tmp_path):
+    project = _project(tmp_path)
+    reachable = _shot(project, actions=[pull("puppet/fore@hand", "wheel@grip")])
+    doc = _compile(project, reachable)
+    assert doc.meta.extensions["solve"]["mode"] == "pose"  # a pull is a goal, not a string
+    assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
+    far = _shot(project, actions=[pull("puppet/fore@hand", "world@300,-300")])
+    assert _lint(project, reachable) == [] and _lint(project, far) == []
+
+
+def test_a_pin_held_off_by_an_authored_channel_is_not_called_out_of_reach(tmp_path):
+    project = _project(tmp_path)
+    fight = {"kind": "sequence", "children": [
+        {"kind": "delay", "duration": 0.2},
+        {"kind": "tween", "target": "puppet/fore", "property": "rotation", "from_value": 0.5, "to_value": 1.0, "duration": 0.2},
+    ]}
+    shot = _shot(project, actions=list(project.scene.timeline[0].model_dump()["actions"]) + [fight])
+    findings = _lint(project, shot)
+    errors = [m for sev, m in findings if sev == "error"]
+    assert len(errors) == 1 and "within reach" in errors[0]
+    assert not [m for sev, m in findings if sev == "info"]  # the held tween is not "replaced"
+
+
+def test_a_descriptor_joint_that_does_not_read_is_named_not_raised(tmp_path):
+    project = _project(tmp_path, prop="wheel", joints=[{"type": "pin", "a": "@0.5,0"}])
+    with pytest.raises(UnknownBodyError):
+        _compile(project)
+    findings = _lint(project, project.scene.timeline[0])
+    assert [s for s, _ in findings] == ["error"] and "does not read" in findings[0][1]
+
+
+def test_a_shot_that_declares_nothing_reads_no_other_store_entry():
+    """The pass's gate reads only rig descriptors (which the compile reads anyway)."""
+    from an.stage.solve import declarations
+
+    class Untouchable(dict):
+        def __contains__(self, key):
+            raise AssertionError("read a voice entry")
+
+    shot = Shot(id="s", entities=[{"kind": "voice", "id": "n", "store": "voices", "ref": "narrator"}])
+    assert declarations(shot, {"voices": Untouchable()}).empty

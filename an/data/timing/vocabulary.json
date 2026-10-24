@@ -1022,8 +1022,8 @@
       "title": "Over"
      },
      "give": {
-      "default": 1e-06,
-      "exclusiveMinimum": 0,
+      "default": 0.0,
+      "minimum": 0,
       "title": "Give",
       "type": "number"
      }
