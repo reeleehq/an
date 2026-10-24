@@ -66,6 +66,11 @@ The core's constraints:
   each move) and ``anticipation`` (a big move is preceded by a small counter-move).
   :func:`move_jerk` and :func:`unanticipated` are the pure functions under it.
   Silent when the pack declares no ``motion``. Arcs and overlap are not built.
+- ``gravity`` (catalogue B4): under a style pack that declares ``gravity``, an
+  entity declaring ``overrides: {airborne: {from, until}}`` follows a parabola
+  (constant downward acceleration) and does not hover. :func:`airborne_faults`
+  is the pure function under it. Unsupported falls and hangs wait on supports
+  (catalogue A1) and joints.
 """
 
 from __future__ import annotations
@@ -93,6 +98,8 @@ __all__ = [
     "HELD_ITEM",
     "RIGIDITY",
     "MOTION_STYLE",
+    "GRAVITY",
+    "airborne_faults",
     "Move",
     "move_jerk",
     "unanticipated",
@@ -1471,6 +1478,147 @@ MOTION_STYLE = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# gravity (catalogue B4): hover and ballistic flight
+# -----------------------------------------------------------------------------
+
+#: The ``AssetRef.overrides`` key that declares a flight: ``{from: s, until: s}``.
+AIRBORNE_OVERRIDE: str = "airborne"
+#: The key of a style pack under which its gravity is declared: ``"none"``, or
+#: ``{strength: px/s^2}`` (the direction is down the screen, +y).
+GRAVITY_KEY: str = "gravity"
+#: Frames a flying entity may stay level before it is hovering.
+HOVER_FRAMES: int = 6
+#: A vertical speed under this (px per frame) is level.
+LEVEL_PX_PER_FRAME: float = 0.5
+#: How far (as a fraction of the mean) the acceleration of a flight may vary.
+BALLISTIC_TOLERANCE: float = 0.25
+#: How far (as a fraction) the measured acceleration may differ from a declared ``strength``.
+STRENGTH_TOLERANCE: float = 0.35
+
+
+def airborne_faults(
+    ys: list[float], dt: float, *, strength: float | None = None
+) -> list[str]:
+    """What is wrong with a flight sampled as ``ys`` (screen y, down is positive)
+    every ``dt`` s: ``hover`` (level for more than :data:`HOVER_FRAMES`),
+    ``straight`` (no downward acceleration: not a throw), ``not_parabolic``
+    (the acceleration is not constant), ``strength`` (not the declared pull).
+
+    >>> g = 1200.0
+    >>> arc = [-300 * (i / 30) + 0.5 * g * (i / 30) ** 2 for i in range(20)]
+    >>> airborne_faults(arc, 1 / 30)
+    []
+    >>> airborne_faults([i * 5.0 for i in range(20)], 1 / 30)
+    ['straight']
+    >>> airborne_faults([40.0] * 20, 1 / 30)
+    ['hover']
+    >>> airborne_faults(arc, 1 / 30, strength=300.0)
+    ['strength']
+    """
+    if len(ys) < 4:
+        return []
+    faults = []
+    speeds = [abs(b - a) for a, b in zip(ys, ys[1:])]
+    run = longest = 0
+    for s in speeds:
+        run = run + 1 if s < LEVEL_PX_PER_FRAME else 0
+        longest = max(longest, run)
+    if longest > HOVER_FRAMES:
+        return ["hover"]
+    acc = [(ys[i + 2] - 2 * ys[i + 1] + ys[i]) / dt**2 for i in range(len(ys) - 2)]
+    mean = sum(acc) / len(acc)
+    if mean <= LEVEL_PX_PER_FRAME / dt**2 * 0.1:
+        return ["straight"]
+    if max(abs(a - mean) for a in acc) > BALLISTIC_TOLERANCE * mean:
+        faults.append("not_parabolic")
+    if strength is not None and abs(mean - strength) > STRENGTH_TOLERANCE * strength:
+        faults.append("strength")
+    return faults
+
+
+_FAULT_TEXT: dict[str, str] = {
+    "hover": "hangs in the air: it stays level for more than a few frames",
+    "straight": "moves in a straight line: a throw falls in an arc",
+    "not_parabolic": "does not fall at a steady rate: a flight is a parabola",
+    "strength": "falls at a rate other than the style's gravity",
+}
+
+
+def _gravity_of(ctx: Any) -> dict[str, Any] | None:
+    """The style pack's gravity (``None`` when it declares none or says ``none``)."""
+    name = ctx.scene.meta.style_pack
+    styles = (ctx.stores or {}).get("styles")
+    if not name or styles is None:
+        return None
+    try:
+        pack = styles[name]
+    except Exception:  # noqa: BLE001 - a missing pack is reported by the style check
+        return None
+    g = pack.get(GRAVITY_KEY) if isinstance(pack, Mapping) else getattr(pack, GRAVITY_KEY, None)
+    return dict(g) if isinstance(g, Mapping) else None
+
+
+def check_gravity(ctx: Any) -> None:
+    """The core's ``gravity`` check over the entities that declare a flight."""
+    flights = [
+        (e, e.overrides[AIRBORNE_OVERRIDE])
+        for e in ctx.shot.entities
+        if isinstance((e.overrides or {}).get(AIRBORNE_OVERRIDE), Mapping)
+    ]
+    gravity = _gravity_of(ctx) if flights else None
+    if gravity is None:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.stage.timeline import (
+        _node_chain,
+        _pose_for,
+        evaluate_timeline,
+        timeline_from_scene,
+        transform_of,
+    )
+
+    fps = _fps(ctx)
+    timeline = timeline_from_scene(doc)
+    height = ctx.scene.meta.resolution.height
+    strength = gravity.get("strength")
+    for entity, span in flights:
+        start = float(span.get("from", 0.0))
+        until = float(span.get("until", ctx.shot.duration))
+        try:
+            node, path = _node_chain(doc.scene, entity.id)[-1]
+        except Exception:  # noqa: BLE001 - not drawn on the stage (a voice)
+            continue
+        n = int((until - start) * fps)
+        ys = [
+            transform_of(
+                node,
+                _pose_for(evaluate_timeline(timeline, start + i / fps), path),
+                frame_height=height,
+            ).y
+            for i in range(n + 1)
+        ]
+        for fault in airborne_faults(
+            ys, 1.0 / fps, strength=float(strength) if strength else None
+        ):
+            ctx.report.add(
+                "warning",
+                f"{ctx.path}/entities",
+                f"{entity.id!r} is airborne from {start:.2f} s to {until:.2f} s and "
+                f"{_FAULT_TEXT[fault]}. Tween its y with a falling ease, or end the "
+                f"flight (`{AIRBORNE_OVERRIDE}.until`) where it lands.",
+            )
+
+
+GRAVITY = Constraint(
+    "gravity",
+    check_gravity,
+    description="an entity declared airborne follows a parabola and does not hover under a style that declares gravity (catalogue B4)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1481,6 +1629,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     HELD_ITEM,
     RIGIDITY,
     MOTION_STYLE,
+    GRAVITY,
 )
 
 

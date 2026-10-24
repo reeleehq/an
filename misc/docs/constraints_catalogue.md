@@ -213,7 +213,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; `puppet-research`'s gravity-to-settle-among-options is the solver side of this entry.
 
-**Status.** Missing.
+**Status.** (ii) ballistic and the hover half of (i) shipped as the `gravity` check, for entities that declare `airborne` under a pack that declares `gravity`. Unsupported falls (need supports, A1) and hangs (need joints) are missing.
 
 #### B5. Anticipation, follow-through and overlapping action
 
