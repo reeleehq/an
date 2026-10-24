@@ -28,6 +28,7 @@ ONLY = {
     "held_item",
     "rigidity",
     "motion_style",
+    "gravity",
 }
 
 
@@ -559,3 +560,57 @@ def test_a_counter_move_before_it_is_anticipation(tmp_path):
         }
     ]
     assert _msgs(_styled(tmp_path, actions, ANTICIPATE)) == []
+
+
+# -- gravity: hover and ballistic flight (catalogue B4) ------------------------
+
+
+def _flown(tmp_path: Path, actions, *, gravity="default", flight=None):
+    """The lamp declared airborne for 1 s under a pack with ``gravity`` (``None``: no pack gravity)."""
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    project = load(root)
+    first = project.scene.timeline[0].model_dump()
+    lamp = first["entities"][0]
+    lamp = {**lamp, "overrides": {"airborne": flight or {"from": 0.0, "until": 1.0}}}
+    shot = Shot.model_validate(
+        {**first, "duration": 1.0, "entities": [lamp], "actions": list(actions)}
+    )
+    meta = project.scene.meta.model_copy(update={"style_pack": "house"})
+    scene = project.scene.model_copy(update={"timeline": [shot], "meta": meta})
+    pack = {"name": "house"}
+    if gravity is not None:
+        pack["gravity"] = {} if gravity == "default" else gravity
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        available_styles={"house": pack},
+        only={"gravity"},
+    )
+
+
+def _fall(**kw):
+    return _tween(property="y", from_value=0.0, to_value=300.0, duration=1.0, **kw)
+
+
+def test_gravity_is_registered_under_the_core_owner():
+    assert "gravity" in check_names(owner=CORE_OWNER)
+
+
+def test_a_fall_with_a_falling_ease_is_a_parabola(tmp_path):
+    assert _msgs(_flown(tmp_path, [_fall(easing="ease_in")])) == []
+
+
+def test_a_straight_line_throw_is_one_warning(tmp_path):
+    (msg,) = _msgs(_flown(tmp_path, [_fall(easing="linear")]))
+    assert "'lamp'" in msg and "straight line" in msg
+
+
+def test_an_entity_level_in_the_air_is_hovering(tmp_path):
+    actions = [_tween(property="y", from_value=40.0, to_value=40.0, duration=1.0)]
+    (msg,) = _msgs(_flown(tmp_path, actions))
+    assert "hangs in the air" in msg
+
+
+def test_no_pack_gravity_no_finding(tmp_path):
+    assert _msgs(_flown(tmp_path, [_fall(easing="linear")], gravity=None)) == []
