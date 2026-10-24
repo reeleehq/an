@@ -19,7 +19,14 @@ from an.verify.constraints import Constraint, discontinuities
 
 ROOT = Path(__file__).resolve().parents[1]
 LAMP = ROOT / "misc" / "bench" / "corpus" / "prop_swap"
-ONLY = {"continuity", "solidity", "draw_order", "jump_cut", "object_permanence"}
+ONLY = {
+    "continuity",
+    "solidity",
+    "draw_order",
+    "jump_cut",
+    "object_permanence",
+    "held_item",
+}
 
 
 def _lint(tmp_path: Path, actions, *, duration=2.0, extra=None):
@@ -353,9 +360,7 @@ def test_an_entity_drawn_twice_in_a_shot_is_an_error(tmp_path):
     project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
     first = project.scene.timeline[0].model_dump()
     first["entities"] = first["entities"] * 2
-    scene = project.scene.model_copy(
-        update={"timeline": [Shot.model_validate(first)]}
-    )
+    scene = project.scene.model_copy(update={"timeline": [Shot.model_validate(first)]})
     report = validate_semantic(
         scene,
         available_props=project.mall["props"],
@@ -364,3 +369,72 @@ def test_an_entity_drawn_twice_in_a_shot_is_an_error(tmp_path):
     )
     (f,) = report.findings
     assert f.severity == "error" and "2 times" in f.description
+
+
+# -- held item, the weld (catalogue A4) ---------------------------------------
+
+
+def _held(tmp_path: Path, weld: dict, *, carrier_moves=True, item_moves=True):
+    """``twin`` (the item) and ``lamp`` (the carrier), each tweened across 1 s."""
+    project = load(Path(shutil.copytree(LAMP, tmp_path / "p")))
+    first = project.scene.timeline[0].model_dump()
+    lamp = first["entities"][0]
+    twin = {**lamp, "id": "twin", "stage": {"at": [300.0, 90.0], "scale": 0.55}}
+    actions = []
+    for target, moves, start in (
+        ("lamp", carrier_moves, 0.0),
+        ("twin", item_moves, 300.0),
+    ):
+        if moves:  # both travel 100 px, so the offset between them is kept
+            actions.append(
+                {
+                    **_tween(duration=1.0, from_value=start, to_value=start + 100.0),
+                    "target": target,
+                }
+            )
+    shot = Shot.model_validate(
+        {
+            **first,
+            "duration": 1.0,
+            "entities": [lamp, twin],
+            "actions": actions,
+            "welds": [weld],
+        }
+    )
+    scene = project.scene.model_copy(update={"timeline": [shot]})
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        only={"held_item"},
+    )
+
+
+def test_held_item_is_registered_under_the_core_owner():
+    assert "held_item" in check_names(owner=CORE_OWNER)
+
+
+def test_an_item_that_stays_when_its_carrier_moves_is_one_warning(tmp_path):
+    (msg,) = _msgs(_held(tmp_path, {"item": "twin", "by": "lamp"}, item_moves=False))
+    assert "'twin'" in msg and "'lamp'" in msg and "not held" in msg
+
+
+def test_an_item_that_moves_with_its_carrier_is_held(tmp_path):
+    report = _held(tmp_path, {"item": "twin", "by": "lamp"})
+    assert _msgs(report) == []
+
+
+def test_releasing_before_the_carrier_moves_ends_the_check(tmp_path):
+    weld = {"item": "twin", "by": "lamp", "until": 0.01}
+    assert _msgs(_held(tmp_path, weld, item_moves=False)) == []
+
+
+def test_a_weld_to_an_entity_not_in_the_shot_is_an_error(tmp_path):
+    (f,) = _held(tmp_path, {"item": "cup", "by": "lamp"}).findings
+    assert f.severity == "error" and "'cup'" in f.description
+
+
+def test_weld_drifts_is_pure():
+    from an.verify.constraints import weld_drifts
+
+    assert weld_drifts([(0.0, (0, 0), (5, 0)), (1.0, (9, 0), (14, 0))]) == []

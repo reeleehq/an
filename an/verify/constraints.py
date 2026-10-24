@@ -53,6 +53,9 @@ The core's constraints:
 - ``object_permanence`` (catalogue C1): an entity shown, then absent for whole
   shots, then shown again with no ``time_jump`` between and no entrance; and one
   entity drawn twice in a shot. :func:`vanishings` is the pure function under it.
+- ``held_item`` (catalogue A4, the weld): an item declared held by a node
+  (``Shot.welds``) stays at its offset from the carrier between pick-up and
+  release. :func:`weld_drifts` is the pure function under it.
 """
 
 from __future__ import annotations
@@ -77,6 +80,9 @@ __all__ = [
     "DRAW_ORDER",
     "JUMP_CUT",
     "OBJECT_PERMANENCE",
+    "HELD_ITEM",
+    "WeldDrift",
+    "weld_drifts",
     "Vanishing",
     "vanishings",
     "Discontinuity",
@@ -169,7 +175,9 @@ def compiled_shot(ctx: Any) -> Any | None:
                     step_hz=step_hz,
                     default_easing=scene.meta.default_easing,
                 )
-        except Exception:  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
+        except (
+            Exception
+        ):  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
             return None
 
     return ctx.cached((COMPILED_KEY, ctx.index), build)
@@ -684,7 +692,9 @@ def check_solidity(ctx: Any) -> None:
             return False
         try:
             return (props[entity.ref] or {}).get("kind") in DRAWING_DESCRIPTOR_KINDS
-        except Exception:  # noqa: BLE001 - a prop the store cannot read is reported elsewhere
+        except (
+            Exception
+        ):  # noqa: BLE001 - a prop the store cannot read is reported elsewhere
             return False
 
     entities = [e for e in ctx.shot.entities if not is_drawing(e)]
@@ -886,7 +896,9 @@ def check_jump_cut(ctx: Any) -> None:
                     ),
                 )
             )
-        except Exception:  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check
+        except (
+            Exception
+        ):  # noqa: BLE001 - an unresolvable viewpoint is reported by the world check
             views.append(None)
     for i in range(1, len(views)):
         before, after = views[i - 1], views[i]
@@ -1007,6 +1019,138 @@ OBJECT_PERMANENCE = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# held_item (catalogue A4): a held item goes where its carrier goes
+# -----------------------------------------------------------------------------
+
+#: How far (scene px) an item may sit from its offset to the carrier and still be held.
+WELD_TOLERANCE_PX: float = 4.0
+
+
+@dataclass(frozen=True)
+class WeldDrift:
+    """The item of weld ``index`` is ``distance`` px from where it is held, at ``at`` s."""
+
+    index: int
+    at: float
+    distance: float
+
+
+def weld_drifts(
+    samples: list[tuple[float, tuple[float, float], tuple[float, float]]],
+    *,
+    index: int = 0,
+    offset: tuple[float, float] | None = None,
+    tolerance: float = WELD_TOLERANCE_PX,
+) -> list[WeldDrift]:
+    """The first instant of ``samples`` ``(t, carrier centre, item centre)`` at which
+    the item is more than ``tolerance`` from its ``offset`` to the carrier (the
+    first sample's offset when ``offset`` is ``None``), as one drift: the worst
+    distance seen from then on.
+
+    >>> held = [(0.0, (0, 0), (10, 0)), (1.0, (50, 0), (60, 0))]
+    >>> weld_drifts(held)
+    []
+    >>> weld_drifts([*held, (2.0, (90, 0), (60, 0))])
+    [WeldDrift(index=0, at=2.0, distance=40.0)]
+    >>> weld_drifts(held, offset=(0, 0))[0].distance
+    10.0
+    """
+    if not samples:
+        return []
+    if offset is None:
+        _, c0, i0 = samples[0]
+        offset = (i0[0] - c0[0], i0[1] - c0[1])
+    first, worst = None, 0.0
+    for t, c, i in samples:
+        d = math.hypot(i[0] - c[0] - offset[0], i[1] - c[1] - offset[1])
+        if d > tolerance:
+            first = first or t
+            worst = max(worst, d)
+    return [] if first is None else [WeldDrift(index, first, worst)]
+
+
+def _centre(box: tuple[float, float, float, float]) -> tuple[float, float]:
+    return ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
+
+
+def check_held_item(ctx: Any) -> None:
+    """The core's ``held_item`` check: each ``Shot.welds`` entry holds through its span."""
+    shot = ctx.shot
+    welds = shot.welds
+    if not welds:
+        return
+    ids = {e.id for e in shot.entities}
+    doc = compiled_shot(ctx)
+    from an.stage.timeline import node_box, timeline_from_scene
+    from an.stage.tree import walk_document
+    from an.timing.timeline import evaluate_timeline
+
+    paths = [path for path, node in walk_document(doc)] if doc is not None else []
+    timeline = timeline_from_scene(doc) if doc is not None else None
+
+    def visuals(root: str) -> list[str]:
+        return [
+            p
+            for p, node in walk_document(doc)
+            if node.visual is not None and (p == root or p.startswith(f"{root}/"))
+        ]
+
+    for k, w in enumerate(welds):
+        where = f"{ctx.path}/welds/{k}"
+        until = float(shot.duration) if w.until is None else float(w.until)
+        if w.item not in ids:
+            ctx.report.add(
+                "error",
+                where,
+                f"the held item {w.item!r} is not an entity of shot {shot.id!r}.",
+            )
+            continue
+        if w.by.split("/")[0] not in ids:
+            ctx.report.add(
+                "error",
+                where,
+                f"{w.item!r} is held by {w.by!r}, which is not in shot {shot.id!r}.",
+            )
+            continue
+        if until <= w.start:
+            ctx.report.add(
+                "error",
+                where,
+                f"{w.item!r} is released ({until:g} s) before it is picked up ({w.start:g} s).",
+            )
+            continue
+        if doc is None or w.by not in paths:
+            continue  # the shot did not compile, or the carrier is a node it does not draw
+        carrier, item = visuals(w.by), visuals(w.item)
+        samples = []
+        for t in (
+            x for x in _sample_times(float(shot.duration)) if w.start <= x <= until
+        ):
+            pose = evaluate_timeline(timeline, t)
+            cb = [b for p in carrier if (b := node_box(doc, p, pose=pose))]
+            ib = [b for p in item if (b := node_box(doc, p, pose=pose))]
+            if cb and ib:
+                samples.append((t, _centre(_union_box(cb)), _centre(_union_box(ib))))
+        for d in weld_drifts(
+            samples, index=k, offset=tuple(w.offset) if w.offset else None
+        ):
+            ctx.report.add(
+                "warning",
+                where,
+                f"{w.item!r} is not held by {w.by!r} from {d.at:.2f} s: it is up to "
+                f"{d.distance:.0f} px from where it is held. Move them together, "
+                f"or end the weld (`until`) when the item is released.",
+            )
+
+
+HELD_ITEM = Constraint(
+    "held_item",
+    check_held_item,
+    description="an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1014,6 +1158,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     DRAW_ORDER,
     JUMP_CUT,
     OBJECT_PERMANENCE,
+    HELD_ITEM,
 )
 
 

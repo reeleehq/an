@@ -729,6 +729,7 @@ def test_the_report_order_is_pinned():
         # an#497: the constraint layer's lints (an.verify.constraints), after everything that was here
         "continuity",
         "solidity",
+        "held_item",  # catalogue A4: a declared weld holds through its span
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
