@@ -61,6 +61,11 @@ The core's constraints:
   declares ``overrides: {preserve_volume: true}`` keeps ``scale_x * scale_y``.
   :func:`shape_drifts` is the pure function under it. Opt-in, since the
   ``squash_stretch`` preset deforms on purpose.
+- ``motion_style`` (catalogue B2, B5): the style pack's ``motion`` targets,
+  measured on the compiled shot: ``smoothness`` (the log dimensionless jerk of
+  each move) and ``anticipation`` (a big move is preceded by a small counter-move).
+  :func:`move_jerk` and :func:`unanticipated` are the pure functions under it.
+  Silent when the pack declares no ``motion``. Arcs and overlap are not built.
 """
 
 from __future__ import annotations
@@ -87,6 +92,10 @@ __all__ = [
     "OBJECT_PERMANENCE",
     "HELD_ITEM",
     "RIGIDITY",
+    "MOTION_STYLE",
+    "Move",
+    "move_jerk",
+    "unanticipated",
     "ShapeDrift",
     "shape_drifts",
     "WeldDrift",
@@ -1269,6 +1278,184 @@ RIGIDITY = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# motion_style (catalogue B2, B5): smoothness and anticipation as style targets
+# -----------------------------------------------------------------------------
+
+#: The key of a style pack under which its motion targets are declared (the pack
+#: allows extra keys): ``motion: {smoothness: {max: 9.5}, anticipation: {frames: [2, 8], min_move: 40}}``.
+MOTION_KEY: str = "motion"
+#: A move shorter than this many frames, or travelling less than this (in the
+#: channel's units), has no shape worth measuring.
+MIN_MOVE_FRAMES: int = 4
+MIN_MOVE_AMPLITUDE: float = 1e-3
+#: A counter-move is anticipation when it is at most this fraction of the move it prepares.
+ANTICIPATION_MAX_FRACTION: float = 0.5
+
+
+def move_jerk(values: list[float], dt: float) -> float | None:
+    """The log dimensionless jerk ``ln(T^5 / A^2 * integral |jerk|^2 dt)`` of a move
+    sampled every ``dt`` s: lower is smoother. A minimum-jerk move scores about ``ln 720``
+    (6.6) whatever its size and duration; corners score far higher. ``None`` for a
+    move too short or too small to measure.
+
+    >>> import math
+    >>> s = [10 * u**3 - 15 * u**4 + 6 * u**5 for u in (i / 60 for i in range(61))]
+    >>> 6.0 < move_jerk(s, 1 / 30) < 7.0
+    True
+    >>> linear = [i / 60 for i in range(61)]
+    >>> move_jerk(linear, 1 / 30) > 9
+    True
+    """
+    import math
+
+    n = len(values)
+    amplitude = max(values) - min(values) if values else 0.0
+    if n < MIN_MOVE_FRAMES or amplitude < MIN_MOVE_AMPLITUDE:
+        return None
+    # a move starts and ends at rest, so the corner a linear ramp makes there counts
+    v = [values[0]] * 3 + list(values) + [values[-1]] * 3
+    jerk = [
+        (v[i + 3] - 3 * v[i + 2] + 3 * v[i + 1] - v[i]) / dt**3 for i in range(len(v) - 3)
+    ]
+    duration = (n - 1) * dt
+    integral = sum(j * j for j in jerk) * dt
+    if integral <= 0:
+        return None
+    return math.log(duration**5 / amplitude**2 * integral)
+
+
+@dataclass(frozen=True)
+class Move:
+    """One clip's change of one channel: from ``start`` to ``end`` s, by ``delta``."""
+
+    key: tuple[str, str]
+    start: float
+    end: float
+    delta: float
+
+
+def unanticipated(
+    moves: list[Move],
+    *,
+    min_move: float,
+    frames: tuple[float, float],
+    fps: float,
+) -> list[Move]:
+    """The moves of at least ``min_move`` with no anticipation: a move of the same
+    channel, the other way, at most half as far, lasting ``frames`` frames, that
+    ends at the big move's start (to within a frame).
+
+    >>> big = Move(("a", "x"), 1.0, 2.0, 100.0)
+    >>> wind = Move(("a", "x"), 0.8, 1.0, -20.0)
+    >>> unanticipated([wind, big], min_move=50.0, frames=(3, 10), fps=24.0)
+    []
+    >>> unanticipated([big], min_move=50.0, frames=(3, 10), fps=24.0) == [big]
+    True
+    """
+    out = []
+    for m in moves:
+        if abs(m.delta) < min_move:
+            continue
+        ok = any(
+            p.key == m.key
+            and p is not m
+            and abs(p.end - m.start) <= 1.0 / fps
+            and p.delta * m.delta < 0
+            and abs(p.delta) <= ANTICIPATION_MAX_FRACTION * abs(m.delta)
+            and frames[0] <= (p.end - p.start) * fps <= frames[1]
+            for p in moves
+        )
+        if not ok:
+            out.append(m)
+    return out
+
+
+def _motion_targets(ctx: Any) -> dict[str, Any]:
+    """The ``motion`` block of the style pack the scene names (``{}`` when none)."""
+    name = ctx.scene.meta.style_pack
+    styles = (ctx.stores or {}).get("styles")
+    if not name or styles is None:
+        return {}
+    try:
+        pack = styles[name]
+    except Exception:  # noqa: BLE001 - a missing pack is reported by the style check
+        return {}
+    block = pack.get(MOTION_KEY) if isinstance(pack, Mapping) else getattr(pack, MOTION_KEY, None)
+    return dict(block) if isinstance(block, Mapping) else {}
+
+
+def _moves(timeline: Any, fps: float) -> list[tuple[Move, list[float]]]:
+    """Every clip's numeric, non-stepped channel as a :class:`Move` with its samples."""
+    out = []
+    dt = 1.0 / fps
+    for track in timeline.tracks:
+        for placed in track.clips:
+            length = placed.end_time - placed.start_time
+            for ch in _numeric_channels(placed.clip):
+                if any(k.easing == STEP_EASING for k in ch.keyframes):
+                    continue
+                key = (ch.target, ch.property)
+                n = int(round(length * fps))
+                times = [placed.start_time + i * dt for i in range(n)] + [placed.end_time]
+                values = [_value_of(placed, key, t) for t in times]
+                if any(v is None for v in values):
+                    continue
+                out.append(
+                    (Move(key, placed.start_time, placed.end_time, values[-1] - values[0]), values)
+                )
+    return out
+
+
+def check_motion_style(ctx: Any) -> None:
+    """The core's ``motion_style`` check: the shot's moves against the pack's targets."""
+    targets = _motion_targets(ctx)
+    if not targets:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.stage.timeline import timeline_from_scene
+
+    fps = _fps(ctx)
+    measured = _moves(timeline_from_scene(doc), fps)
+    smooth = targets.get("smoothness")
+    if isinstance(smooth, Mapping) and "max" in smooth:
+        for move, values in measured:
+            jerk = move_jerk(values, 1.0 / fps)
+            if jerk is not None and jerk > float(smooth["max"]):
+                ctx.report.add(
+                    "warning",
+                    f"{ctx.path}/actions",
+                    f"{move.key[0]}:{move.key[1]} moves from {move.start:.2f} s with "
+                    f"jerk {jerk:.1f}, over the style's {float(smooth['max']):g}: it "
+                    "has corners. Ease it (a slower in and out), or split it at a rest.",
+                )
+    anticipation = targets.get("anticipation")
+    if isinstance(anticipation, Mapping) and "frames" in anticipation:
+        lo, hi = anticipation["frames"]
+        for m in unanticipated(
+            [m for m, _ in measured],
+            min_move=float(anticipation.get("min_move", 0.0)),
+            frames=(float(lo), float(hi)),
+            fps=fps,
+        ):
+            ctx.report.add(
+                "warning",
+                f"{ctx.path}/actions",
+                f"{m.key[0]}:{m.key[1]} moves {m.delta:+g} from {m.start:.2f} s with no "
+                f"anticipation: the style wants a counter-move of {lo:g} to {hi:g} frames "
+                "ending where it starts.",
+            )
+
+
+MOTION_STYLE = Constraint(
+    "motion_style",
+    check_motion_style,
+    description="moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -1278,6 +1465,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     OBJECT_PERMANENCE,
     HELD_ITEM,
     RIGIDITY,
+    MOTION_STYLE,
 )
 
 

@@ -27,6 +27,7 @@ ONLY = {
     "object_permanence",
     "held_item",
     "rigidity",
+    "motion_style",
 }
 
 
@@ -492,3 +493,69 @@ def test_a_stretch_that_grows_the_area_breaks_the_volume_check(tmp_path):
 def test_nothing_declared_nothing_said(tmp_path):
     report = _scaled(tmp_path, {}, scale_x=1.5)
     assert [m for m in _msgs(report) if "proportions" in m] == []
+
+
+# -- motion style: smoothness and anticipation (catalogue B2, B5) --------------
+
+
+def _styled(tmp_path: Path, actions, motion: dict):
+    """The lamp shot with ``actions`` under a style pack declaring ``motion``."""
+    root = Path(shutil.copytree(LAMP, tmp_path / "p"))
+    project = load(root)
+    first = project.scene.timeline[0]
+    shot = Shot.model_validate(
+        {**first.model_dump(), "duration": 2.0, "actions": list(actions)}
+    )
+    meta = project.scene.meta.model_copy(update={"style_pack": "house"})
+    scene = project.scene.model_copy(update={"timeline": [shot], "meta": meta})
+    return validate_semantic(
+        scene,
+        available_props=project.mall["props"],
+        available_environments=project.mall["environments"],
+        available_styles={"house": {"name": "house", "motion": motion}},
+        only={"motion_style"},
+    )
+
+
+SMOOTH = {"smoothness": {"max": 9.0}}
+
+
+def test_motion_style_is_registered_under_the_core_owner():
+    assert "motion_style" in check_names(owner=CORE_OWNER)
+
+
+def test_a_linear_move_is_over_the_smoothness_target(tmp_path):
+    (msg,) = _msgs(_styled(tmp_path, [_tween(duration=1.0, easing="linear", from_value=0.0)], SMOOTH))
+    assert "lamp:x" in msg and "corners" in msg
+
+
+def test_an_eased_move_is_within_it(tmp_path):
+    actions = [_tween(duration=1.0, easing="ease_in_out", from_value=0.0)]
+    assert _msgs(_styled(tmp_path, actions, SMOOTH)) == []
+
+
+def test_a_pack_with_no_motion_declares_nothing_to_miss(tmp_path):
+    actions = [_tween(duration=1.0, easing="linear", from_value=0.0)]
+    assert _msgs(_styled(tmp_path, actions, {})) == []
+
+
+ANTICIPATE = {"anticipation": {"frames": [3, 12], "min_move": 50.0}}
+
+
+def test_a_big_move_with_no_wind_up_is_one_warning(tmp_path):
+    actions = [_tween(duration=0.5, from_value=0.0, to_value=200.0)]
+    (msg,) = _msgs(_styled(tmp_path, actions, ANTICIPATE))
+    assert "anticipation" in msg and "lamp:x" in msg
+
+
+def test_a_counter_move_before_it_is_anticipation(tmp_path):
+    actions = [
+        {
+            "kind": "sequence",
+            "children": [
+                _tween(duration=0.25, from_value=0.0, to_value=-30.0),
+                _tween(duration=0.5, from_value=-30.0, to_value=200.0),
+            ],
+        }
+    ]
+    assert _msgs(_styled(tmp_path, actions, ANTICIPATE)) == []
