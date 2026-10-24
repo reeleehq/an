@@ -199,7 +199,8 @@ def markdown_to_ir(md_text: str) -> SceneIR:
             shot_kwargs["step_hz"] = shot_yaml["step_hz"]
         # The assembly fields (transitions, the sound layer) and the shot's
         # method policy (an#348): same whitelist.
-        for key in ("transition", "sounds", "policy", "viewpoint"):
+        # ADR 0008: the shot's joints and how it is solved, same whitelist.
+        for key in ("transition", "sounds", "policy", "viewpoint", "joints", "solve"):
             if key in shot_yaml:
                 shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
@@ -865,6 +866,10 @@ def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
             if isinstance(shot.viewpoint, str)
             else shot.viewpoint.model_dump(exclude_none=True)
         )
+    if shot.joints:  # ADR 0008, same rule
+        shot_yaml["joints"] = [j.model_dump(mode="json") for j in shot.joints]
+    if shot.solve is not None:
+        shot_yaml["solve"] = shot.solve.model_dump(mode="json")
     blocks[("yaml", "shot")] = yaml.safe_dump(shot_yaml, sort_keys=False).rstrip()
     if shot.entities:
         entities_dump = [

@@ -43,6 +43,10 @@ from an.ir.compose import (
     FlatAction,
 )
 from an.ir.crowd import crowd, fan_out
+
+# The constraint layer's verbs (ADR 0008: pin, pull, join, unjoin) are core action
+# kinds, registered on import like `compose`'s.
+from an.ir.joints import pin, pull, join, unjoin  # noqa: E402
 from an.ir.validate import (
     validate_schema,
     validate_semantic,
@@ -53,6 +57,7 @@ from an.ir.validate import (
 # The core's constraint lints (an#497, an#508) register themselves when imported;
 # importing them here gives `validate_semantic` them wherever `an.ir.validate` loads.
 import an.verify.constraints  # noqa: F401
+import an.verify.joints  # noqa: F401  (ADR 0008: the joint checks, after the catalogue's)
 from an.ir.migrate import (
     migrate,
     register_migration,
@@ -107,6 +112,10 @@ __all__ = [
     "markdown_to_ir",
     "ir_to_markdown",
     "sync",
+    "pin",
+    "pull",
+    "join",
+    "unjoin",
 ]
 
 # Document kinds self-register on import of the package that owns their schema.
