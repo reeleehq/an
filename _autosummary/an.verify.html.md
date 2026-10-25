@@ -95,6 +95,7 @@ object, differing only in what the store returns.
 
 | [`constraints`](an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`holds`](an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4). |
 | [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
 | [`joints`](an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).          |
 | [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |

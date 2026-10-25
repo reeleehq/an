@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=ea8b3f04"></script>
+    <script src="../../../_static/documentation_options.js?v=dd73b56e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.261" />
+  <meta name="docsearch:version" content="0.1.262" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -912,7 +912,16 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: ``(ref: AssetRef) -&gt; Shot``: a short shot showing one entity of this kind</span>
     <span class="c1">#: on its own, the one ``ref`` casts — what ``an library sheet`` draws for a</span>
     <span class="c1">#: version of it (an#347). ``None``: the sheet shows a labelled placeholder.</span>
-    <span class="n">specimen</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">specimen</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: ``(descriptor) -&gt; {name: (slot, point)}``: named points of this kind's</span>
+    <span class="c1">#: rigs that are not bones (an#502): a character's ``hand_r`` is the far end</span>
+    <span class="c1">#: of its arm's chain. ``point`` is ``(u, v)``, a fraction of that slot's</span>
+    <span class="c1">#: drawing, or ``None`` for the slot's far end from its pivot (its end</span>
+    <span class="c1">#: effector). Read wherever a body point is resolved (``entity@name``): a</span>
+    <span class="c1">#: bone of that name wins. ``None``: the kind names no point.</span>
+    <span class="n">landmarks</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -1481,6 +1490,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_ENTITY_KINDS</span><span class="p">):</span>
         <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">swap_declaration</span><span class="p">)</span>
         <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">swap_checks</span><span class="p">)</span>
+        <span class="n">add</span><span class="p">(</span><span class="n">kind</span><span class="o">.</span><span class="n">landmarks</span><span class="p">)</span>  <span class="c1"># read by the solve pass: a hand's point moves pixels</span>
     <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_CHECKS</span><span class="p">):</span>
         <span class="n">add</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">compile_pass</span> <span class="ow">in</span> <span class="n">owned</span><span class="p">(</span><span class="n">_COMPILE_PASSES</span><span class="p">):</span>

@@ -32,6 +32,11 @@ an.ir
       pull
       join
       unjoin
+      grasp
+      place
+      release
+      handover
+      swap
    
    .. rubric:: Classes
 
@@ -67,6 +72,7 @@ an.ir
    camera
    compose
    frames
+   holds
    joints
    schema
    validate

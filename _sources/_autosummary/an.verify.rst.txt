@@ -23,6 +23,7 @@ an.verify
    :recursive:
 
    constraints
+   holds
    human
    joints
    layout

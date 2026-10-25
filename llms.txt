@@ -97,6 +97,7 @@
 - [an.ir.camera](_autosummary/an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](_autosummary/an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
 - [an.ir.frames](_autosummary/an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
+- [an.ir.holds](_autosummary/an.ir.holds.html.md): Holding things: &#96;grasp&#96;, &#96;place&#96;, &#96;release&#96;, &#96;handover&#96; and &#96;swap&#96; (an#502, catalogue A4).
 - [an.ir.joints](_autosummary/an.ir.joints.html.md): The constraint layer’s verbs: &#96;pin&#96;, &#96;pull&#96;, &#96;join&#96; and &#96;unjoin&#96; (ADR 0008, an#512).
 - [an.ir.schema](_autosummary/an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
 - [an.ir.validate](_autosummary/an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
@@ -169,6 +170,7 @@
 - [an.stage.environments](_autosummary/an.stage.environments.html.md): Environments: a stage made of planes, at declared depths.
 - [an.stage.fidelity](_autosummary/an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.stage.gradients](_autosummary/an.stage.gradients.html.md): Gradient fills on the stage: a &#96;Gradient&#96; drawn as an inline SVG texture.
+- [an.stage.hold](_autosummary/an.stage.hold.html.md): The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogu...
 - [an.stage.path_geometry](_autosummary/an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.stage.path_wobble](_autosummary/an.stage.path_wobble.html.md): A hand-drawn wobble for stroked paths, applied at compile time (an#161).
 - [an.stage.paths](_autosummary/an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
@@ -218,6 +220,7 @@
 - [an.util](_autosummary/an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](_autosummary/an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
 - [an.verify.constraints](_autosummary/an.verify.constraints.html.md): Constraints: declarative statements a lint checks and a solver may enforce (an#497).
+- [an.verify.holds](_autosummary/an.verify.holds.html.md): The hold checks: what &#96;an validate&#96; says about a shot’s holds (an#502, catalogue A1 and A4).
 - [an.verify.human](_autosummary/an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
 - [an.verify.joints](_autosummary/an.verify.joints.html.md): The joint checks: what &#96;an validate&#96; says about a shot’s joints (ADR 0008, an#512).
 - [an.verify.layout](_autosummary/an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
@@ -227,7 +230,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-24 16:21 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-25 08:34 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

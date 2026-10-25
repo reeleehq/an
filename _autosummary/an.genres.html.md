@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 7*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -140,6 +140,10 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 7 = where a genre’s new projects go (reeleehq/cutan#91): the `projects.dir.<library>`
 
 > service ([`PROJECT_DIR_SERVICE_PREFIX`](#an.genres.PROJECT_DIR_SERVICE_PREFIX)) that `an init --id` consults.
+
+8 = named points of a rig (an#502): `EntityKind.landmarks` (a character’s hands for
+: the hold verbs), and `an.stage.solve.end_effector`.
+
 * **Type:**
   The level of the genre-facing API this `an` provides
 
@@ -256,7 +260,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -271,6 +275,18 @@ a voice); `store` is the project-mall store its `ref` keys into.
 The `kind` tag of the descriptor document `store` holds for this kind
 (`"CharacterDescriptor"`): what makes the validator treat the entity as a
 rig whose declared asset sets it can check (an#246).
+
+#### landmarks *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+named points of this kind’s
+rigs that are not bones (an#502): a character’s `hand_r` is the far end
+of its arm’s chain. `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot (its end
+effector). Read wherever a body point is resolved (`entity@name`): a
+bone of that name wins. `None`: the kind names no point.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 

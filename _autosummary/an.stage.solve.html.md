@@ -67,30 +67,51 @@ True
 
 ### Classes
 
-| [`Declarations`](#an.stage.solve.Declarations)([joints, verbs, problems])   | Every joint and verb a shot declares, in solver order (structure first).   |
-|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`Puppet`](#an.stage.solve.Puppet)(bodies, rows, held, events, rest)  | A shot's bodies (structure first) and joints, ready to solve.              |
+| [`Declarations`](#an.stage.solve.Declarations)([joints, verbs, problems, holds])   | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).   |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Puppet`](#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])  | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                  |
 
 ### Exceptions
 
 | [`UnknownBodyError`](#an.stage.solve.UnknownBodyError)(message, problems)   | A declaration names a body, a point or a joint the shot does not have.   |
 |----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list())
+### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Every joint and verb a shot declares, in solver order (structure first).
+Every joint and verb a shot declares, in solver order (structure first),
+and what it holds ([`an.stage.hold.HoldDeclarations`](an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).
+
+#### holds *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+The hold verbs and `held_by` overrides ([`an.stage.hold`](an.stage.hold.html.md#module-an.stage.hold)), or `None`.
 
 #### problems *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `(where, message)` for a declaration that does not read (a descriptor’s).
 
-### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest)
+### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest, located=dict(), nodes=dict(), lean=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A shot’s bodies (structure first) and joints, ready to solve.
+
+#### lean *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)]]*
+
+Per-frame rotation targets the hold layer gives bodies (a lean, and what
+rides on it): `body -> [rotation or None, per frame]`.
+
+#### located *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+`(ref, side) -> Located`.
+
+* **Type:**
+  The holder points the hold verbs name
+
+#### nodes *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+The built tree’s nodes by path.
 
 ### an.stage.solve.SOLVE_CLIP_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_solve_\_'*
 
@@ -161,7 +182,7 @@ shot’s mode and effort as declared, and a digest of its declarations.
 
 ```pycon
 >>> sorted(solve_knobs(Shot(id="s")))
-['declared', 'iterations', 'mode', 'solver_version', 'substeps']
+['declared', 'hold_version', 'iterations', 'mode', 'solver_version', 'substeps']
 ```
 
 * **Return type:**

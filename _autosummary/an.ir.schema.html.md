@@ -1105,7 +1105,7 @@ when unset, like `policy`.
 
 Items held by something for a span ([`Weld`](#an.ir.schema.Weld)); omitted when empty.
 
-### *class* an.ir.schema.SolveSettings(, mode=None, gravity=None, damping=None, iterations=None, substeps=None, \*\*extra_data)
+### *class* an.ir.schema.SolveSettings(, mode=None, gravity=None, damping=None, iterations=None, substeps=None, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -1124,6 +1124,17 @@ decision 4).
 baked from frame 0) and `pose` otherwise (projection to convergence from
 the previous frame: dead still between keys). `gravity` unset is the
 style pack’s; `"none"` switches the pack’s off for this shot.
+
+`ground` is the floor line, a stage `y` (scene px from the stage
+centre, down positive): where `place` puts an item `onto: ground`, a
+`release` lands it, and an item `overrides: {held_by: ground}` rests
+([`an.ir.holds`](an.ir.holds.html.md#module-an.ir.holds)). Unset, a hand puts things on the floor its body
+stands on (the bottom of its rig’s root parts).
+
+```pycon
+>>> SolveSettings(ground=502).model_dump()
+{'ground': 502.0}
+```
 
 #### gravity_vector()
 

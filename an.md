@@ -1,4 +1,4 @@
-> built 2026-10-24 16:21 UTC from 6ab778e (main) · an 0.1.261. Details: build_info.json
+> built 2026-10-25 08:34 UTC from 5f0cbf3 (main) · an 0.1.262. Details: build_info.json
 
 # index.html.md
 
@@ -15825,7 +15825,7 @@ genre defined in the same process).
 | [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 7*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
 
 every hook, registry
 field and moved path a genre package may rely on. Bumped by each change a
@@ -15859,6 +15859,10 @@ Levels (one line each; `tests/test_genre_gate.py` holds the list complete):
 7 = where a genre’s new projects go (reeleehq/cutan#91): the `projects.dir.<library>`
 
 > service ([`PROJECT_DIR_SERVICE_PREFIX`](_autosummary/an.genres.html.md#an.genres.PROJECT_DIR_SERVICE_PREFIX)) that `an init --id` consults.
+
+8 = named points of a rig (an#502): `EntityKind.landmarks` (a character’s hands for
+: the hold verbs), and `an.stage.solve.end_effector`.
+
 * **Type:**
   The level of the genre-facing API this `an` provides
 
@@ -15975,7 +15979,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -15990,6 +15994,18 @@ a voice); `store` is the project-mall store its `ref` keys into.
 The `kind` tag of the descriptor document `store` holds for this kind
 (`"CharacterDescriptor"`): what makes the validator treat the entity as a
 rig whose declared asset sets it can check (an#246).
+
+#### landmarks *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+named points of this kind’s
+rigs that are not bones (an#502): a character’s `hand_r` is the far end
+of its arm’s chain. `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot (its end
+effector). Read wherever a body point is resolved (`entity@name`): a
+bone of that name wins. `None`: the kind names no point.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
@@ -16661,7 +16677,7 @@ compiler and `an validate` pass one bound to the entity’s descriptor), or
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
-### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None)
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -16676,6 +16692,18 @@ a voice); `store` is the project-mall store its `ref` keys into.
 The `kind` tag of the descriptor document `store` holds for this kind
 (`"CharacterDescriptor"`): what makes the validator treat the entity as a
 rig whose declared asset sets it can check (an#246).
+
+#### landmarks *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]]] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+named points of this kind’s
+rigs that are not bones (an#502): a character’s `hand_r` is the far end
+of its arm’s chain. `point` is `(u, v)`, a fraction of that slot’s
+drawing, or `None` for the slot’s far end from its pivot (its end
+effector). Read wherever a body point is resolved (`entity@name`): a
+bone of that name wins. `None`: the kind names no point.
+
+* **Type:**
+  `(descriptor) -> {name: (slot, point)}`
 
 #### placeholder_on_missing *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= False*
 
@@ -18802,6 +18830,290 @@ right moves to the bottom), in degrees.
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
+# _autosummary/an.ir.holds.html.md
+
+# an.ir.holds
+
+Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4).
+
+A **hold** says what carries an item over a span of a shot: a hand (any point
+of a body), a socket of another body (a figurine’s hand), the ground, a point
+of the stage, or nothing (it is in flight). These five action kinds change
+holds, and each one moves the holder the way a hand would, so the change
+reads as handled rather than teleported:
+
+- `grasp`: the holder’s point (`by`) **reaches** the item’s grip over
+  `reach` seconds, takes it at the instant it arrives (the item keeps the
+  pose it has at that instant: no slide, no jump), and **retracts** to where
+  the shot would have it over `retract` seconds, carrying it. The item is
+  taken from whatever held it: the ground, a socket, another hand (a
+  hand-over between two hands is the receiver’s `grasp`).
+- `place`: the hand that holds the item brings it `onto` a target over
+  `reach` seconds (its contact point onto the ground at floor height, its
+  grip into a socket, aligned with the socket’s frame), lets it go there, and
+  retracts empty.
+- `release`: the hand lets go at `at`; the item falls under gravity with
+  the velocity it had and lands on the ground at its rest angle, or is tossed
+  `onto: ground@x` on an arc of height `arc`.
+- `handover`: `place` into another holder’s point (`to`), or, with
+  `meet` below 1, both hands reach toward each other and the receiver takes
+  it where they meet.
+- `swap`: a hand takes the item a holder has (`take`) and the hand
+  holding another item gives it in its place (`give`), a beat later.
+
+A reach that cannot arrive is never cheated: the body it hangs from may bend
+(`lean`, degrees; the chain’s root turns about its own pivot, the way a
+figure bends at the hip), and beyond that `an validate` says how far the
+hand stays short and where to stand instead.
+
+None of these makes a clip: the `solve` compile pass reads them
+([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)) and emits the holders’ and the items’ keys.
+
+```pycon
+>>> from an.ir.compose import flatten, sequence, delay
+>>> [(f.start, f.end, f.action.kind) for f in flatten(sequence(delay(1.0), grasp("paul/arm_r", "cup")))]
+[(1.0, 1.75, 'grasp')]
+>>> [(f.start, f.action.kind) for f in flatten(sequence(delay(2.0), release("cup", at=0.5)))]
+[(2.5, 'release')]
+>>> [(round(f.start, 2), f.action.kind) for f in flatten(swap("nap/hand", take="musket", give="sword", by="stu@hand_r"))]
+[(0.0, 'grasp'), (0.25, 'place')]
+```
+
+These kinds are the core’s (ADR 0001’s test: a robot arm putting a box on a
+shelf needs them without saying character), registered when [`an.ir`](_autosummary/an.ir.html.md#module-an.ir) loads.
+
+### Module Attributes
+
+| [`DFLT_REACH`](_autosummary/an.ir.holds.html.md#an.ir.holds.DFLT_REACH)        | a deliberate reach at arm's length, about two thirds of a second there and back.                                            |
+|--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_RETRACT`](_autosummary/an.ir.holds.html.md#an.ir.holds.DFLT_RETRACT)      | How long the hand takes to come back to where the shot has it (s).                                                          |
+| [`DFLT_LEAN_DEG`](_autosummary/an.ir.holds.html.md#an.ir.holds.DFLT_LEAN_DEG)     | a figure bent well over at the hip.                                                                                         |
+| [`DFLT_TOSS_ARC`](_autosummary/an.ir.holds.html.md#an.ir.holds.DFLT_TOSS_ARC)     | How high a toss rises above the higher of its two ends (scene px).                                                          |
+| [`DFLT_SWAP_LAG`](_autosummary/an.ir.holds.html.md#an.ir.holds.DFLT_SWAP_LAG)     | In a `swap`, how long after the taking hand starts the giving hand starts (s): it arrives a beat after the socket is empty. |
+| [`GROUND`](_autosummary/an.ir.holds.html.md#an.ir.holds.GROUND)            | The name of the floor in a target (`ground`, `ground@x`).                                                                   |
+| [`HOLD_ACTION_KINDS`](_autosummary/an.ir.holds.html.md#an.ir.holds.HOLD_ACTION_KINDS) | The kinds' names.                                                                                                           |
+| [`GESTURE_KINDS`](_autosummary/an.ir.holds.html.md#an.ir.holds.GESTURE_KINDS)     | The kinds that move a hand (a reach and a retract), as flattened leaves.                                                    |
+
+### Functions
+
+| [`grasp`](_autosummary/an.ir.holds.html.md#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                               |
+|-------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| [`place`](_autosummary/an.ir.holds.html.md#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                 |
+| [`release`](_autosummary/an.ir.holds.html.md#an.ir.holds.release)(item, \*[, at, onto, arc, rotation])         | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).      |
+| [`handover`](_autosummary/an.ir.holds.html.md#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                             |
+| [`swap`](_autosummary/an.ir.holds.html.md#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place. |
+
+### Classes
+
+| [`GraspAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.GraspAction)(\*[, name, kind, reach, retract, ...])   | `by` (a body's point: a hand) reaches `item`'s grip and takes it.                                                                                                                                       |
+|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                         |
+| [`ReleaseAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls with the velocity it had onto the ground, or is tossed `onto: ground@x` on an arc `arc` px high, and lands at `rotation` (default: as in `place`). |
+| [`HandoverAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                         |
+| [`SwapAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.SwapAction)(\*[, name, kind, lag, reach, ...])        | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                              |
+
+### an.ir.holds.DFLT_LEAN_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 60.0*
+
+a figure
+bent well over at the hip. `0` never bends.
+
+* **Type:**
+  How far the body a hand hangs from may turn to reach (degrees)
+
+### an.ir.holds.DFLT_REACH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.4*
+
+a
+deliberate reach at arm’s length, about two thirds of a second there and back.
+
+* **Type:**
+  How long a hand takes to reach what it takes or where it puts it (s)
+
+### an.ir.holds.DFLT_RETRACT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.35*
+
+How long the hand takes to come back to where the shot has it (s).
+
+### an.ir.holds.DFLT_SWAP_LAG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
+
+In a `swap`, how long after the taking hand starts the giving hand starts
+(s): it arrives a beat after the socket is empty.
+
+### an.ir.holds.DFLT_TOSS_ARC *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 40.0*
+
+How high a toss rises above the higher of its two ends (scene px).
+
+### an.ir.holds.GESTURE_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'handover')*
+
+The kinds that move a hand (a reach and a retract), as flattened leaves.
+
+### an.ir.holds.GROUND *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'ground'*
+
+The name of the floor in a target (`ground`, `ground@x`).
+
+### *class* an.ir.holds.GraspAction(, name=None, kind='grasp', by, item, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
+
+`by` (a body’s point: a hand) reaches `item`’s grip and takes it.
+
+`item` is an entity id, with `@<point>` the grip (a bone of its rig,
+or `u,v` a fraction of its drawing); unset: its `grip` bone, else its
+stage point. `by` with no `@` is the far end of the body (an arm’s
+hand). The item is held from `start + reach` on, and over the retract it
+turns to how the hand holds things (`align`): drawn as it is, upright
+along the hand’s part, the way a socket holds it; `align: false` keeps
+the angle it was taken at.
+
+```pycon
+>>> GraspAction(by="stu@hand_r", item="musket").reach == DFLT_REACH
+True
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.holds.HOLD_ACTION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'release', 'handover', 'swap')*
+
+The kinds’ names.
+
+### *class* an.ir.holds.HandoverAction(, name=None, kind='handover', item, to, by=None, meet=1.0, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
+
+The hand holding `item` gives it to `to` (a hand, or a socket).
+
+`meet` is where the two meet, as a fraction of the way from the giver’s
+hand to the receiver’s: `1` (the default) puts it into the receiver’s
+point, which does not move (a figurine’s hand, a waiting hand); below 1
+both hands reach and the receiver takes it where they meet (and turns it
+as a `grasp` does, `align`).
+
+```pycon
+>>> HandoverAction(item="sword", to="nap/arm_r/weapon").meet
+1.0
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.holds.PlaceAction(, name=None, kind='place', item, onto, by=None, rotation=None, reach=0.4, retract=0.35, lean=60.0, \*\*extra_data)
+
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
+
+The hand holding `item` puts it `onto` a target and lets it go.
+
+`onto` is `ground` (straight down, at floor height), `ground@x` (at
+stage `x`), a body’s point (a socket: the item’s grip goes there, its
+frame aligned with the socket’s) or `world@x,y` (hung on a point).
+`item@<point>` names the item’s point that touches the target (default:
+its grip on a socket, its lowest point on the ground). `rotation`: the
+item’s rotation where it rests (radians, the stage’s; default: the angle it
+last rested at on the ground, else the nearest quarter turn; a socket’s own).
+
+```pycon
+>>> PlaceAction(item="musket", onto="nap/arm_r/weapon").by is None
+True
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.holds.ReleaseAction(, name=None, kind='release', item, at=0.0, onto=None, arc=40.0, rotation=None, \*\*extra_data)
+
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
+
+The hand holding `item` lets it go at `at`: it falls with the
+velocity it had onto the ground, or is tossed `onto: ground@x` on an
+arc `arc` px high, and lands at `rotation` (default: as in `place`).
+
+```pycon
+>>> ReleaseAction(item="cup", at=1.0).onto is None
+True
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.holds.SwapAction(, name=None, kind='swap', holder, take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
+
+`by` takes `take` from `holder` and the hand holding `give`
+puts that there, `lag` seconds later: a `grasp` and a `place`.
+
+```pycon
+>>> SwapAction(holder="nap/hand", take="musket", give="sword", by="stu@hand_r").lag == DFLT_SWAP_LAG
+True
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.holds.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `item`.
+
+```pycon
+>>> grasp("stu@hand_r", "musket@grip").item
+'musket@grip'
+```
+
+* **Return type:**
+  [`GraspAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.GraspAction)
+
+### an.ir.holds.handover(item, to, , by=None, meet=1.0, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+Give `item` to `to`.
+
+```pycon
+>>> handover("cup", "jo@hand_l", meet=0.5).meet
+0.5
+```
+
+* **Return type:**
+  [`HandoverAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.HandoverAction)
+
+### an.ir.holds.place(item, onto, , by=None, rotation=None, reach=0.4, retract=0.35, lean=60.0)
+
+The hand holding `item` puts it `onto` a target.
+
+```pycon
+>>> place("book", "ground@-860").onto
+'ground@-860'
+```
+
+* **Return type:**
+  [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)
+
+### an.ir.holds.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+
+Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+
+```pycon
+>>> release("musket", onto="ground@-620", arc=60).arc
+60.0
+```
+
+* **Return type:**
+  [`ReleaseAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.ReleaseAction)
+
+### an.ir.holds.swap(holder, , take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `take` from `holder`; `give` goes there in its place.
+
+```pycon
+>>> swap("nap/hand", take="musket", give="sword", by="stu@hand_r").give
+'sword'
+```
+
+* **Return type:**
+  [`SwapAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.SwapAction)
+
+
 # _autosummary/an.ir.html.md
 
 # an.ir
@@ -18821,31 +19133,36 @@ authoring-time DSL to canonical-form actions.
 
 ### Functions
 
-| [`lower_world`](_autosummary/an.ir.html.md#an.ir.lower_world)(scene, \*, extents[, ...])           | The scene with every framed shot's placements derived from the world.          |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`set_`](_autosummary/an.ir.html.md#an.ir.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).          |
-| [`tween`](_autosummary/an.ir.html.md#an.ir.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                |
-| [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                              | Run children one after the other.                                              |
-| [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                              | Run all children at once.                                                      |
-| [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                 |
-| [`crowd`](_autosummary/an.ir.html.md#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])    | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
-| [`fan_out`](_autosummary/an.ir.html.md#an.ir.fan_out)(action, members, \*[, crowd_id])         | A copy of `action` per member, its targets moved from the crowd to the member. |
-| [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                  | An empty span that consumes time.                                              |
-| [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                                 |
-| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.            |
-| [`validate_schema`](_autosummary/an.ir.html.md#an.ir.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
-| [`validate_semantic`](_autosummary/an.ir.html.md#an.ir.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                   |
-| [`migrate`](_autosummary/an.ir.html.md#an.ir.migrate)(doc[, target_version, kind])             | Migrate a document to `target_version` (default: its kind's current).          |
-| [`register_migration`](_autosummary/an.ir.html.md#an.ir.register_migration)(kind, from_version, ...)      | Decorator: register a migration for one kind in `MIGRATIONS`.                  |
-| [`register_kind`](_autosummary/an.ir.html.md#an.ir.register_kind)(kind)                              | Register a document kind.                                                      |
-| [`kind_of`](_autosummary/an.ir.html.md#an.ir.kind_of)(doc, \*[, kind])                         | Resolve a document's kind, by explicit name or from its `kind` tag.            |
-| [`markdown_to_ir`](_autosummary/an.ir.html.md#an.ir.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.                  |
-| [`ir_to_markdown`](_autosummary/an.ir.html.md#an.ir.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                       |
-| [`sync`](_autosummary/an.ir.html.md#an.ir.sync)(project_dir)                                | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
-| [`pin`](_autosummary/an.ir.html.md#an.ir.pin)(point, to, \*[, duration])                   | `point` held at `to`.                                                          |
-| [`pull`](_autosummary/an.ir.html.md#an.ir.pull)(point, to, \*[, over, give])                | `point` drawn toward `to` (a point, a body point, or a path).                  |
-| [`join`](_autosummary/an.ir.html.md#an.ir.join)(joint, \*[, at])                            | Rejoin the joint named `joint` at `at`.                                        |
-| [`unjoin`](_autosummary/an.ir.html.md#an.ir.unjoin)(joint, \*[, at])                          | Let go of the joint named `joint` at `at`.                                     |
+| [`lower_world`](_autosummary/an.ir.html.md#an.ir.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.          |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`set_`](_autosummary/an.ir.html.md#an.ir.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).          |
+| [`tween`](_autosummary/an.ir.html.md#an.ir.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                |
+| [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                                | Run children one after the other.                                              |
+| [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                                | Run all children at once.                                                      |
+| [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                 |
+| [`crowd`](_autosummary/an.ir.html.md#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
+| [`fan_out`](_autosummary/an.ir.html.md#an.ir.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member. |
+| [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                    | An empty span that consumes time.                                              |
+| [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                 |
+| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.            |
+| [`validate_schema`](_autosummary/an.ir.html.md#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
+| [`validate_semantic`](_autosummary/an.ir.html.md#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                   |
+| [`migrate`](_autosummary/an.ir.html.md#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).          |
+| [`register_migration`](_autosummary/an.ir.html.md#an.ir.register_migration)(kind, from_version, ...)        | Decorator: register a migration for one kind in `MIGRATIONS`.                  |
+| [`register_kind`](_autosummary/an.ir.html.md#an.ir.register_kind)(kind)                                | Register a document kind.                                                      |
+| [`kind_of`](_autosummary/an.ir.html.md#an.ir.kind_of)(doc, \*[, kind])                           | Resolve a document's kind, by explicit name or from its `kind` tag.            |
+| [`markdown_to_ir`](_autosummary/an.ir.html.md#an.ir.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                  |
+| [`ir_to_markdown`](_autosummary/an.ir.html.md#an.ir.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                       |
+| [`sync`](_autosummary/an.ir.html.md#an.ir.sync)(project_dir)                                  | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
+| [`pin`](_autosummary/an.ir.html.md#an.ir.pin)(point, to, \*[, duration])                     | `point` held at `to`.                                                          |
+| [`pull`](_autosummary/an.ir.html.md#an.ir.pull)(point, to, \*[, over, give])                  | `point` drawn toward `to` (a point, a body point, or a path).                  |
+| [`join`](_autosummary/an.ir.html.md#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                        |
+| [`unjoin`](_autosummary/an.ir.html.md#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                     |
+| [`grasp`](_autosummary/an.ir.html.md#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                             |
+| [`place`](_autosummary/an.ir.html.md#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                               |
+| [`release`](_autosummary/an.ir.html.md#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                    |
+| [`handover`](_autosummary/an.ir.html.md#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                           |
+| [`swap`](_autosummary/an.ir.html.md#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.               |
 
 ### Classes
 
@@ -19652,6 +19969,30 @@ loaded is validated by the registered model on the way through.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
+### an.ir.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `item`.
+
+```pycon
+>>> grasp("stu@hand_r", "musket@grip").item
+'musket@grip'
+```
+
+* **Return type:**
+  [`GraspAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.GraspAction)
+
+### an.ir.handover(item, to, , by=None, meet=1.0, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+Give `item` to `to`.
+
+```pycon
+>>> handover("cup", "jo@hand_l", meet=0.5).meet
+0.5
+```
+
+* **Return type:**
+  [`HandoverAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.HandoverAction)
+
 ### an.ir.ir_to_markdown(scene)
 
 Render a SceneIR back into the structured Markdown form.
@@ -19807,6 +20148,18 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`PinAction`](_autosummary/an.ir.joints.html.md#an.ir.joints.PinAction)
 
+### an.ir.place(item, onto, , by=None, rotation=None, reach=0.4, retract=0.35, lean=60.0)
+
+The hand holding `item` puts it `onto` a target.
+
+```pycon
+>>> place("book", "ground@-860").onto
+'ground@-860'
+```
+
+* **Return type:**
+  [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)
+
 ### an.ir.pull(point, to, , over=None, give=0.0)
 
 `point` drawn toward `to` (a point, a body point, or a path).
@@ -19847,6 +20200,18 @@ True
 
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
+
+### an.ir.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+
+Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+
+```pycon
+>>> release("musket", onto="ground@-620", arc=60).arc
+60.0
+```
+
+* **Return type:**
+  [`ReleaseAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.ReleaseAction)
 
 ### an.ir.sequence(\*actions)
 
@@ -19894,6 +20259,18 @@ ValueError: stagger lag must be >= 0, got -1.0
 
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
+### an.ir.swap(holder, , take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `take` from `holder`; `give` goes there in its place.
+
+```pycon
+>>> swap("nap/hand", take="musket", give="sword", by="stu@hand_r").give
+'sword'
+```
+
+* **Return type:**
+  [`SwapAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.SwapAction)
 
 ### an.ir.sync(project_dir)
 
@@ -19994,15 +20371,16 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](_autosummary/an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                      |
-|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [`camera`](_autosummary/an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.              |
-| [`compose`](_autosummary/an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                   |
-| [`frames`](_autosummary/an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501). |
-| [`joints`](_autosummary/an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).    |
-| [`schema`](_autosummary/an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                    |
-| [`validate`](_autosummary/an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                   |
-| [`world`](_autosummary/an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).          |
+| [`assets`](_autosummary/an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                         |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`camera`](_autosummary/an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.                 |
+| [`compose`](_autosummary/an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                      |
+| [`frames`](_autosummary/an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
+| [`holds`](_autosummary/an.ir.holds.html.md#module-an.ir.holds)       | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
+| [`joints`](_autosummary/an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
+| [`schema`](_autosummary/an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                       |
+| [`validate`](_autosummary/an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                      |
+| [`world`](_autosummary/an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |
 
 
 # _autosummary/an.ir.joints.html.md
@@ -21299,7 +21677,7 @@ when unset, like `policy`.
 
 Items held by something for a span ([`Weld`](_autosummary/an.ir.schema.html.md#an.ir.schema.Weld)); omitted when empty.
 
-### *class* an.ir.schema.SolveSettings(, mode=None, gravity=None, damping=None, iterations=None, substeps=None, \*\*extra_data)
+### *class* an.ir.schema.SolveSettings(, mode=None, gravity=None, damping=None, iterations=None, substeps=None, ground=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -21318,6 +21696,17 @@ decision 4).
 baked from frame 0) and `pose` otherwise (projection to convergence from
 the previous frame: dead still between keys). `gravity` unset is the
 style pack’s; `"none"` switches the pack’s off for this shot.
+
+`ground` is the floor line, a stage `y` (scene px from the stage
+centre, down positive): where `place` puts an item `onto: ground`, a
+`release` lands it, and an item `overrides: {held_by: ground}` rests
+([`an.ir.holds`](_autosummary/an.ir.holds.html.md#module-an.ir.holds)). Unset, a hand puts things on the floor its body
+stands on (the bottom of its rig’s root parts).
+
+```pycon
+>>> SolveSettings(ground=502).model_dump()
+{'ground': 502.0}
+```
 
 #### gravity_vector()
 
@@ -31657,7 +32046,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -34021,6 +34410,220 @@ True
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/an.stage.hold.html.md
+
+# an.stage.hold
+
+The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogue A4).
+
+The verbs are [`an.ir.holds`](_autosummary/an.ir.holds.html.md#module-an.ir.holds) (`grasp`, `place`, `release`,
+`handover`, `swap`). This module runs them inside the `solve` compile
+pass ([`an.stage.solve`](_autosummary/an.stage.solve.html.md#module-an.stage.solve)), because a hold needs the SOLVED hand at every
+frame: the hand is a body of the shot’s puppet, the item is not.
+
+**The model.** Every item is, at each instant, in exactly one \*holder’s
+frame\*: a body’s point (a hand, a figurine’s socket), the ground, a point of
+the stage, or none (in flight). A change of holder is a reframe that keeps the
+item’s world pose at that instant (`keep: world`, an#502): the item’s local
+transform in the new holder’s frame is computed so the picture is continuous,
+so there is never a slide or a jump. What makes the change look *handled* is
+that the hand first goes where the item is:
+
+- **Reach and retract.** A gesture drives its hand’s point (an end effector:
+  `stu@hand_r`, `stu/arm_r`) along a minimum-jerk path from where the shot
+  would have it to the goal (the item’s grip; for a `place`, the point that
+  puts the item’s contact point on its target), and back, as a `pull` row of
+  the solver whose goal moves frame by frame. The arm follows by the solver’s
+  joints. The item changes holder at the frame the hand arrives.
+- **Lean.** When the goal is out of the arm’s reach, the body the arm hangs
+  from (the chain’s root: a torso, a crane’s base) turns about its own pivot
+  by the least angle that brings the goal in reach (closed form, the two-link
+  triangle), up to `lean` degrees, rising with the reach and falling with
+  the retract, and every part riding on it turns with it (the head, the other
+  arm). A reach that still cannot arrive is reported (`unreachable_hold`,
+  with how far it stays short and which way to move the carrier).
+- **Carry.** A held item’s world transform is its holder’s times a fixed local
+  transform, so it turns, mirrors and squashes with the hand (a character
+  turning round carries the musket round with it).
+- **Place.** Over a `place`’s reach the item keeps its point in the hand and
+  turns from how it is carried to how it will rest (a wrist), so it arrives
+  aligned with a socket’s frame or lying on the ground at its rest angle, its
+  lowest INK point at floor height (the texture’s alpha, not its box, so a
+  carved part with a transparent margin does not float).
+- **Release.** A parabola under gravity (the shot’s or the style pack’s, else
+  [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)) from the velocity the hand gave it, turning to its
+  > rest angle on the way down, landing on the ground exactly; `onto:
+  > ground@x` solves the throw that lands there on an arc `arc` px high.
+
+**Two passes.** The goals and the leans are planned from a solve without the
+gestures (the shot as authored), the shot is solved with them, and the plan is
+made again from that solve (an item carried after a grasp hangs where the
+grasp really put it) before the final solve. [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES) says how
+many times.
+
+The item’s channels (`x`, `y`, `rotation`, `scale_x`, `scale_y` of its
+entity node) are emitted with the puppet’s in the entity’s `__solve__` clip;
+`meta.extensions.solve.holds` records each gesture (its contact instant,
+where the hand arrived, how far it stayed short, its lean) and each item’s
+holders, what `an validate`’s hold checks read ([`an.verify.holds`](_autosummary/an.verify.holds.html.md#module-an.verify.holds)).
+
+```pycon
+>>> from an.ir.schema import Shot
+>>> declares_holds(Shot(id="s"))
+False
+```
+
+### Module Attributes
+
+| [`HOLD_VERSION`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                               |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                  |
+| [`ON_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                             |
+| [`GRASP_TOLERANCE_PX`](_autosummary/an.stage.hold.html.md#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                |
+| [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen). |
+| [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                       |
+
+### Functions
+
+| [`declares_holds`](_autosummary/an.stage.hold.html.md#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
+|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`hold_declarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.hold_declarations)(shot, \*[, play_extent]) | The hold verbs of `shot` flattened to shot time, its `held_by` overrides, the holder points they name and who moves a hand.                                                                                                                                                                      |
+| [`solve_holds`](_autosummary/an.stage.hold.html.md#an.stage.hold.solve_holds)(state, doc, puppet, decl, ...) | Plan and solve a shot's holds: the final run, the items' channels `{(path, prop): (values, as the document shows them)}`, and the report.                                                                                                                                                        |
+| [`ink_box`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_box)(doc, node, mall)                   | The box round a node's ink ([`ink_points()`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_points)), in its own frame.                                                                                                                                                                                    |
+| [`ink_points`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_points)(doc, node, mall)                | A node's drawn ink as points in its own frame: the corners of the box its art is fitted into, or, for a raster the store can read, the convex hull of its painted pixels inside that box (so the lowest point of a part turned any way is the lowest painted pixel, not a corner of its margin). |
+
+### Classes
+
+| [`HoldVerb`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldVerb)(action, start, end, where)           | A flattened hold verb (a `swap` is its `grasp` and its `place`).             |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)([verbs, initial, refs, ...]) | The hold verbs of a shot and its `held_by` overrides, read without geometry. |
+
+### Exceptions
+
+| [`HoldError`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldError)(message, problems)   | The holds of a shot do not make sense (a hand puts down what it does not hold, a socket gets a second item, one hand does two things at once).   |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### an.stage.hold.DFLT_FALL_GRAVITY *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 980.0*
+
+Gravity for a released item when neither the shot nor the style pack says
+(scene px / s², down the screen).
+
+### an.stage.hold.GRASP_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+A reach that ends farther than this from its goal did not arrive (scene px).
+
+### an.stage.hold.HOLDS_REPORT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'holds'*
+
+The key of the hold report inside `meta.extensions.solve`.
+
+### an.stage.hold.HOLD_PLAN_PASSES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+
+How many times the gestures are planned (each from the solve the previous
+plan made).
+
+### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+bump it
+when the same declarations can compile to other keys.
+
+* **Type:**
+  The hold layer’s version, in the shot-cache key (`solve_knobs`)
+
+### *class* an.stage.hold.HoldDeclarations(verbs=list(), initial=dict(), refs=list(), items=dict(), movers=set())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The hold verbs of a shot and its `held_by` overrides, read without geometry.
+
+`refs` are the holder points to resolve as `(ref, where, side)` (side
+`hand`: a moving point, `socket`: one that holds still); `items` the
+entities held (`id -> where first named`); `movers` the entities that
+move a hand (they are solved; a holder that never moves is held fixed).
+
+### *exception* an.stage.hold.HoldError(message, problems)
+
+Bases: [`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileError)
+
+The holds of a shot do not make sense (a hand puts down what it does not
+hold, a socket gets a second item, one hand does two things at once).
+
+`problems` lists each one as `(where, message)`, `where` relative to
+the shot: what `an validate`’s `hold_conflict` check reports.
+
+### *class* an.stage.hold.HoldVerb(action, start, end, where)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A flattened hold verb (a `swap` is its `grasp` and its `place`).
+
+### an.stage.hold.ON_OVERRIDE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'held_by'*
+
+what holds an item when the shot opens
+(`ground`, a body’s point, `world@x,y`).
+
+* **Type:**
+  `AssetRef.overrides` key
+
+### an.stage.hold.declares_holds(shot)
+
+Whether `shot` has a hold verb or an item `held_by` something.
+
+```pycon
+>>> from an.ir.schema import Shot
+>>> cup = {"kind": "prop", "id": "cup", "store": "props", "ref": "cup", "overrides": {"held_by": "ground"}}
+>>> declares_holds(Shot(id="s", entities=[cup]))
+True
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### an.stage.hold.hold_declarations(shot, , play_extent=None)
+
+The hold verbs of `shot` flattened to shot time, its `held_by` overrides,
+the holder points they name and who moves a hand.
+
+* **Return type:**
+  [`HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)
+
+### an.stage.hold.ink_box(doc, node, mall)
+
+The box round a node’s ink ([`ink_points()`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_points)), in its own frame.
+
+```pycon
+>>> from an.stage.serialize import NodeJSON, VisualJSON
+>>> ink_box(None, NodeJSON(name="n", visual=VisualJSON(width=10, height=20)), None)
+(-5.0, -10.0, 10.0, 20.0)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.stage.hold.ink_points(doc, node, mall)
+
+A node’s drawn ink as points in its own frame: the corners of the box
+its art is fitted into, or, for a raster the store can read, the convex
+hull of its painted pixels inside that box (so the lowest point of a part
+turned any way is the lowest painted pixel, not a corner of its margin).
+
+```pycon
+>>> from an.stage.serialize import NodeJSON, VisualJSON
+>>> ink_points(None, NodeJSON(name="n", visual=VisualJSON(width=10, height=20)), None)
+[(-5.0, -10.0), (5.0, -10.0), (-5.0, 10.0), (5.0, 10.0)]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+### an.stage.hold.solve_holds(state, doc, puppet, decl, settings, times)
+
+Plan and solve a shot’s holds: the final run, the items’ channels
+`{(path, prop): (values, as the document shows them)}`, and the report.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[`Run`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)], [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+
 # _autosummary/an.stage.html.md
 
 # an.stage
@@ -34077,6 +34680,7 @@ the engine’s own `stage` (ADR 0001 decision 9). The ONE copy.
 | [`environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments)     | Environments: a stage made of planes, at declared depths.                                                                                   |
 | [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                       |
 | [`gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)           | Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.  |
+| [`hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)                     | The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogue A4).                                  |
 | [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                  |
 | [`path_wobble`](_autosummary/an.stage.path_wobble.html.md#module-an.stage.path_wobble)       | A hand-drawn wobble for stroked paths, applied at compile time (an#161).                                                                    |
 | [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                     |
@@ -37371,30 +37975,51 @@ True
 
 ### Classes
 
-| [`Declarations`](_autosummary/an.stage.solve.html.md#an.stage.solve.Declarations)([joints, verbs, problems])   | Every joint and verb a shot declares, in solver order (structure first).   |
-|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet)(bodies, rows, held, events, rest)  | A shot's bodies (structure first) and joints, ready to solve.              |
+| [`Declarations`](_autosummary/an.stage.solve.html.md#an.stage.solve.Declarations)([joints, verbs, problems, holds])   | Every joint and verb a shot declares, in solver order (structure first), and what it holds ([`an.stage.hold.HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).   |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Puppet`](_autosummary/an.stage.solve.html.md#an.stage.solve.Puppet)(bodies, rows, held, events, rest[, ...])  | A shot's bodies (structure first) and joints, ready to solve.                                                                                                                                                  |
 
 ### Exceptions
 
 | [`UnknownBodyError`](_autosummary/an.stage.solve.html.md#an.stage.solve.UnknownBodyError)(message, problems)   | A declaration names a body, a point or a joint the shot does not have.   |
 |----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 
-### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list())
+### *class* an.stage.solve.Declarations(joints=list(), verbs=list(), problems=list(), holds=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Every joint and verb a shot declares, in solver order (structure first).
+Every joint and verb a shot declares, in solver order (structure first),
+and what it holds ([`an.stage.hold.HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)).
+
+#### holds *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= None*
+
+The hold verbs and `held_by` overrides ([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)), or `None`.
 
 #### problems *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
 
 `(where, message)` for a declaration that does not read (a descriptor’s).
 
-### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest)
+### *class* an.stage.solve.Puppet(bodies, rows, held, events, rest, located=dict(), nodes=dict(), lean=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A shot’s bodies (structure first) and joints, ready to solve.
+
+#### lean *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)]]*
+
+Per-frame rotation targets the hold layer gives bodies (a lean, and what
+rides on it): `body -> [rotation or None, per frame]`.
+
+#### located *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+`(ref, side) -> Located`.
+
+* **Type:**
+  The holder points the hold verbs name
+
+#### nodes *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]*
+
+The built tree’s nodes by path.
 
 ### an.stage.solve.SOLVE_CLIP_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_\_solve_\_'*
 
@@ -37465,7 +38090,7 @@ shot’s mode and effort as declared, and a digest of its declarations.
 
 ```pycon
 >>> sorted(solve_knobs(Shot(id="s")))
-['declared', 'iterations', 'mode', 'solver_version', 'substeps']
+['declared', 'hold_version', 'iterations', 'mode', 'solver_version', 'substeps']
 ```
 
 * **Return type:**
@@ -43573,6 +44198,43 @@ distance seen from then on.
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`WeldDrift`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.WeldDrift)]
 
 
+# _autosummary/an.verify.holds.html.md
+
+# an.verify.holds
+
+The hold checks: what `an validate` says about a shot’s holds (an#502, catalogue A1 and A4).
+
+Three constraints on the one interface ([`an.verify.constraints.Constraint`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint)),
+over the compiled shot (the hold layer, [`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold), records what it
+did in `meta.extensions.solve.holds`):
+
+- `hold_conflict` (error): the holds do not add up: a hand puts down what
+  it does not hold, a socket gets a second item, one hand does two things at
+  once, a verb names an item that is not in the shot;
+- `unreachable_hold` (error): a hand does not arrive where it takes or puts
+  its item (even bending as far as its `lean` allows), with how far it
+  stays short and which way to move the carrier;
+- `floating_item` (warning): an item that a hand takes from the floor
+  hovers above it (or sinks into it) before it is taken, and a released item
+  with no ground below it or no gravity, that stays in the air.
+
+All three are silent for a shot that holds nothing.
+
+```pycon
+>>> [c.name for c in HOLD_CONSTRAINTS]
+['hold_conflict', 'unreachable_hold', 'floating_item']
+```
+
+### Module Attributes
+
+| [`HOLD_CONSTRAINTS`](_autosummary/an.verify.holds.html.md#an.verify.holds.HOLD_CONSTRAINTS)   | The hold checks, in the order they run.   |
+|---------------------------------------------------------------------|-------------------------------------------|
+
+### an.verify.holds.HOLD_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='hold_conflict', check=<function check_hold_conflict>, stage='shot', order=255.0, description='what holds each item, and when, adds up (grasp, place, release, handover, swap)', term=None), Constraint(name='unreachable_hold', check=<function check_unreachable_hold>, stage='shot', order=255.0, description='a hand arrives where it takes or puts its item (an#502)', term=None), Constraint(name='floating_item', check=<function check_floating_item>, stage='shot', order=255.0, description='an item taken from the floor lies on it, and a released item comes down (catalogue A1)', term=None))*
+
+The hold checks, in the order they run.
+
+
 # _autosummary/an.verify.html.md
 
 # an.verify
@@ -43672,6 +44334,7 @@ object, differing only in what the store returns.
 
 | [`constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)     | Constraints: declarative statements a lint checks and a solver may enforce (an#497).         |
 |-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`holds`](_autosummary/an.verify.holds.html.md#module-an.verify.holds)                 | The hold checks: what `an validate` says about a shot's holds (an#502, catalogue A1 and A4). |
 | [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                       |
 | [`joints`](_autosummary/an.verify.joints.html.md#module-an.verify.joints)               | The joint checks: what `an validate` says about a shot's joints (ADR 0008, an#512).          |
 | [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                      |
@@ -44491,18 +45154,20 @@ frames: print instead the scene’s frames of reference, one line per frame per 
 
 # About this build
 
-This documentation was built on **2026-10-24 16:21 UTC** from commit <a href="https://github.com/reeleehq/an/commit/6ab778eed597a11f788ba6cf115552f8f5c961d3"><code>6ab778e</code></a> on branch <code>main</code>, for **an 0.1.261** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-25 08:34 UTC** from commit <a href="https://github.com/reeleehq/an/commit/5f0cbf35334b73156c388d0d588d122d1fe7f8e9"><code>5f0cbf3</code></a> on branch <code>main</code>, for **an 0.1.262** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.262) is ahead of the latest release on PyPI (0.1.261): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/6ab778eed597a11f788ba6cf115552f8f5c961d3"><code>6ab778eed597a11f788ba6cf115552f8f5c961d3</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/5f0cbf35334b73156c388d0d588d122d1fe7f8e9"><code>5f0cbf35334b73156c388d0d588d122d1fe7f8e9</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.261</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.262</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -44511,9 +45176,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40110643931">40110643931</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/40176627053">40176627053</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>b869551975390fc8265b8d0de3546d892b2abcf0</code> (in the history of the built commit) |
+| Event commit | <code>3d147b50ff45c087a09632e96bd1eda59a4eee68</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -44538,13 +45203,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.261/">0.1.261</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.261/">0.1.261</a>, older than the documented version (0.1.262).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 6ab778eed597a11f788ba6cf115552f8f5c961d3
+git checkout 5f0cbf35334b73156c388d0d588d122d1fe7f8e9
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

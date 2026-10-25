@@ -1,0 +1,39 @@
+an.ir.holds
+===========
+
+.. automodule:: an.ir.holds
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_REACH
+      DFLT_RETRACT
+      DFLT_LEAN_DEG
+      DFLT_TOSS_ARC
+      DFLT_SWAP_LAG
+      GROUND
+      HOLD_ACTION_KINDS
+      GESTURE_KINDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      grasp
+      place
+      release
+      handover
+      swap
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      GraspAction
+      PlaceAction
+      ReleaseAction
+      HandoverAction
+      SwapAction
+   

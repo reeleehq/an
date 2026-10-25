@@ -1,0 +1,40 @@
+an.stage.hold
+=============
+
+.. automodule:: an.stage.hold
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      HOLD_VERSION
+      HOLDS_REPORT
+      ON_OVERRIDE
+      GRASP_TOLERANCE_PX
+      DFLT_FALL_GRAVITY
+      HOLD_PLAN_PASSES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      declares_holds
+      hold_declarations
+      solve_holds
+      ink_box
+      ink_points
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      HoldVerb
+      HoldDeclarations
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      HoldError
+   

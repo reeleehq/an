@@ -15,31 +15,36 @@ authoring-time DSL to canonical-form actions.
 
 ### Functions
 
-| [`lower_world`](#an.ir.lower_world)(scene, \*, extents[, ...])           | The scene with every framed shot's placements derived from the world.          |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`set_`](#an.ir.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).          |
-| [`tween`](#an.ir.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                |
-| [`sequence`](#an.ir.sequence)(\*actions)                              | Run children one after the other.                                              |
-| [`parallel`](#an.ir.parallel)(\*actions)                              | Run all children at once.                                                      |
-| [`stagger`](#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                 |
-| [`crowd`](#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])    | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
-| [`fan_out`](#an.ir.fan_out)(action, members, \*[, crowd_id])         | A copy of `action` per member, its targets moved from the crowd to the member. |
-| [`delay`](#an.ir.delay)(duration)                                  | An empty span that consumes time.                                              |
-| [`loop`](#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                                 |
-| [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.            |
-| [`validate_schema`](#an.ir.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
-| [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                   |
-| [`migrate`](#an.ir.migrate)(doc[, target_version, kind])             | Migrate a document to `target_version` (default: its kind's current).          |
-| [`register_migration`](#an.ir.register_migration)(kind, from_version, ...)      | Decorator: register a migration for one kind in `MIGRATIONS`.                  |
-| [`register_kind`](#an.ir.register_kind)(kind)                              | Register a document kind.                                                      |
-| [`kind_of`](#an.ir.kind_of)(doc, \*[, kind])                         | Resolve a document's kind, by explicit name or from its `kind` tag.            |
-| [`markdown_to_ir`](#an.ir.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.                  |
-| [`ir_to_markdown`](#an.ir.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                       |
-| [`sync`](#an.ir.sync)(project_dir)                                | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
-| [`pin`](#an.ir.pin)(point, to, \*[, duration])                   | `point` held at `to`.                                                          |
-| [`pull`](#an.ir.pull)(point, to, \*[, over, give])                | `point` drawn toward `to` (a point, a body point, or a path).                  |
-| [`join`](#an.ir.join)(joint, \*[, at])                            | Rejoin the joint named `joint` at `at`.                                        |
-| [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                          | Let go of the joint named `joint` at `at`.                                     |
+| [`lower_world`](#an.ir.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.          |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`set_`](#an.ir.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).          |
+| [`tween`](#an.ir.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                |
+| [`sequence`](#an.ir.sequence)(\*actions)                                | Run children one after the other.                                              |
+| [`parallel`](#an.ir.parallel)(\*actions)                                | Run all children at once.                                                      |
+| [`stagger`](#an.ir.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                 |
+| [`crowd`](#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.         |
+| [`fan_out`](#an.ir.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member. |
+| [`delay`](#an.ir.delay)(duration)                                    | An empty span that consumes time.                                              |
+| [`loop`](#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                 |
+| [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.            |
+| [`validate_schema`](#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.    |
+| [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                   |
+| [`migrate`](#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).          |
+| [`register_migration`](#an.ir.register_migration)(kind, from_version, ...)        | Decorator: register a migration for one kind in `MIGRATIONS`.                  |
+| [`register_kind`](#an.ir.register_kind)(kind)                                | Register a document kind.                                                      |
+| [`kind_of`](#an.ir.kind_of)(doc, \*[, kind])                           | Resolve a document's kind, by explicit name or from its `kind` tag.            |
+| [`markdown_to_ir`](#an.ir.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                  |
+| [`ir_to_markdown`](#an.ir.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                       |
+| [`sync`](#an.ir.sync)(project_dir)                                  | Reconcile `scene.md` and `ir/scene.json` inside a project directory.           |
+| [`pin`](#an.ir.pin)(point, to, \*[, duration])                     | `point` held at `to`.                                                          |
+| [`pull`](#an.ir.pull)(point, to, \*[, over, give])                  | `point` drawn toward `to` (a point, a body point, or a path).                  |
+| [`join`](#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                        |
+| [`unjoin`](#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                     |
+| [`grasp`](#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                             |
+| [`place`](#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                               |
+| [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                    |
+| [`handover`](#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                           |
+| [`swap`](#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.               |
 
 ### Classes
 
@@ -846,6 +851,30 @@ loaded is validated by the registered model on the way through.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
+### an.ir.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `item`.
+
+```pycon
+>>> grasp("stu@hand_r", "musket@grip").item
+'musket@grip'
+```
+
+* **Return type:**
+  [`GraspAction`](an.ir.holds.html.md#an.ir.holds.GraspAction)
+
+### an.ir.handover(item, to, , by=None, meet=1.0, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+Give `item` to `to`.
+
+```pycon
+>>> handover("cup", "jo@hand_l", meet=0.5).meet
+0.5
+```
+
+* **Return type:**
+  [`HandoverAction`](an.ir.holds.html.md#an.ir.holds.HandoverAction)
+
 ### an.ir.ir_to_markdown(scene)
 
 Render a SceneIR back into the structured Markdown form.
@@ -1001,6 +1030,18 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`PinAction`](an.ir.joints.html.md#an.ir.joints.PinAction)
 
+### an.ir.place(item, onto, , by=None, rotation=None, reach=0.4, retract=0.35, lean=60.0)
+
+The hand holding `item` puts it `onto` a target.
+
+```pycon
+>>> place("book", "ground@-860").onto
+'ground@-860'
+```
+
+* **Return type:**
+  [`PlaceAction`](an.ir.holds.html.md#an.ir.holds.PlaceAction)
+
 ### an.ir.pull(point, to, , over=None, give=0.0)
 
 `point` drawn toward `to` (a point, a body point, or a path).
@@ -1041,6 +1082,18 @@ True
 
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
+
+### an.ir.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+
+Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+
+```pycon
+>>> release("musket", onto="ground@-620", arc=60).arc
+60.0
+```
+
+* **Return type:**
+  [`ReleaseAction`](an.ir.holds.html.md#an.ir.holds.ReleaseAction)
 
 ### an.ir.sequence(\*actions)
 
@@ -1088,6 +1141,18 @@ ValueError: stagger lag must be >= 0, got -1.0
 
 * **Return type:**
   [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
+### an.ir.swap(holder, , take, give, by, lag=0.25, reach=0.4, retract=0.35, lean=60.0, align=True)
+
+`by` takes `take` from `holder`; `give` goes there in its place.
+
+```pycon
+>>> swap("nap/hand", take="musket", give="sword", by="stu@hand_r").give
+'sword'
+```
+
+* **Return type:**
+  [`SwapAction`](an.ir.holds.html.md#an.ir.holds.SwapAction)
 
 ### an.ir.sync(project_dir)
 
@@ -1188,12 +1253,13 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                      |
-|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.              |
-| [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                   |
-| [`frames`](an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501). |
-| [`joints`](an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).    |
-| [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                    |
-| [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                   |
-| [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).          |
+| [`assets`](an.ir.assets.html.md#module-an.ir.assets)     | Where a third-party asset came from, and what its licence obliges.                         |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`camera`](an.ir.camera.html.md#module-an.ir.camera)     | Camera semantics: the named moves, and the one resolver that expands them.                 |
+| [`compose`](an.ir.compose.html.md#module-an.ir.compose)   | Composition combinators for authoring action trees, plus a flattener.                      |
+| [`frames`](an.ir.frames.html.md#module-an.ir.frames)     | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
+| [`holds`](an.ir.holds.html.md#module-an.ir.holds)       | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
+| [`joints`](an.ir.joints.html.md#module-an.ir.joints)     | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
+| [`schema`](an.ir.schema.html.md#module-an.ir.schema)     | Pydantic v2 models for the Scene IR.                                                       |
+| [`validate`](an.ir.validate.html.md#module-an.ir.validate) | Schema and semantic validation for SceneIR documents.                                      |
+| [`world`](an.ir.world.html.md#module-an.ir.world)       | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |

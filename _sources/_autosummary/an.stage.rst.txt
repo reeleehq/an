@@ -24,6 +24,7 @@ an.stage
    environments
    fidelity
    gradients
+   hold
    path_geometry
    path_wobble
    paths
