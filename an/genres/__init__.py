@@ -131,7 +131,9 @@ class GenreError(RegistryError):
 #: 6 = the rest pose's protection said aloud (an#407): ``an.stage.rig.rest_pose_protection``.
 #: 7 = where a genre's new projects go (reeleehq/cutan#91): the ``projects.dir.<library>``
 #:     service (:data:`PROJECT_DIR_SERVICE_PREFIX`) that ``an init --id`` consults.
-API_LEVEL: int = 7
+#: 8 = named points of a rig (an#502): ``EntityKind.landmarks`` (a character's hands for
+#:     the hold verbs), and ``an.stage.solve.end_effector``.
+API_LEVEL: int = 8
 
 
 class GenreAPILevelError(GenreError, ImportError):

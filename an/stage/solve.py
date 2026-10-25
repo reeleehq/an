@@ -89,10 +89,15 @@ ANGLE_QUANTUM: float = 1e-7
 WORLD_REF: str = "world"
 #: The pose channels a solve drives and emits.
 SOLVED_CHANNELS: tuple[str, ...] = ("x", "y", "rotation")
+#: The ``source`` of a joint row the hold layer adds: a hand's reach (a pull
+#: along a moving goal, :mod:`an.stage.hold`).
+REACH_SOURCE: str = "reach"
 #: How close a solved value must be to what the document already shows for the
 #: channel to be left unemitted: a few quanta (the round trip through stage
 #: space costs float noise, never a visible move).
 SAME_VALUE: dict[str, float] = {"x": 1e-5, "y": 1e-5, "rotation": 1e-6}
+#: The same, for a held item's scale (a factor).
+SAME_SCALE: float = 1e-6
 
 
 class UnknownBodyError(CutoutCompileError):
@@ -145,16 +150,24 @@ class Verb:
 
 @dataclass
 class Declarations:
-    """Every joint and verb a shot declares, in solver order (structure first)."""
+    """Every joint and verb a shot declares, in solver order (structure first),
+    and what it holds (:class:`an.stage.hold.HoldDeclarations`)."""
 
     joints: list[DeclaredJoint] = field(default_factory=list)
     verbs: list[Verb] = field(default_factory=list)
     #: ``(where, message)`` for a declaration that does not read (a descriptor's).
     problems: list[tuple[str, str]] = field(default_factory=list)
+    #: The hold verbs and ``held_by`` overrides (:mod:`an.stage.hold`), or ``None``.
+    holds: Any = None
 
     @property
     def empty(self) -> bool:
-        return not self.joints and not self.verbs and not self.problems
+        return (
+            not self.joints
+            and not self.verbs
+            and not self.problems
+            and (self.holds is None or self.holds.empty)
+        )
 
 
 def shot_declares_solve(shot: Shot, mall: Mapping[str, Any] | None = None) -> bool:
@@ -163,7 +176,15 @@ def shot_declares_solve(shot: Shot, mall: Mapping[str, Any] | None = None) -> bo
     >>> shot_declares_solve(Shot(id="s"))
     False
     """
-    return not declarations(shot, mall or {}, verbs=_has_verb(shot)).empty
+    return not declarations(
+        shot, mall or {}, verbs=_has_verb(shot) or _declares_holds(shot)
+    ).empty
+
+
+def _declares_holds(shot: Shot) -> bool:
+    from an.stage.hold import declares_holds
+
+    return declares_holds(shot)
 
 
 def solve_knobs(shot: Shot) -> dict[str, Any]:
@@ -171,12 +192,13 @@ def solve_knobs(shot: Shot) -> dict[str, Any]:
     shot's mode and effort as declared, and a digest of its declarations.
 
     >>> sorted(solve_knobs(Shot(id="s")))
-    ['declared', 'iterations', 'mode', 'solver_version', 'substeps']
+    ['declared', 'hold_version', 'iterations', 'mode', 'solver_version', 'substeps']
     """
     import hashlib
     import json
 
     from an.kinematics import DFLT_ITERATIONS, DFLT_SUBSTEPS, SOLVER_VERSION
+    from an.stage.hold import HOLD_VERSION
 
     own = shot.solve
     declared = {
@@ -189,6 +211,7 @@ def solve_knobs(shot: Shot) -> dict[str, Any]:
     }
     return {
         "solver_version": SOLVER_VERSION,
+        "hold_version": HOLD_VERSION,
         "mode": (own.mode if own is not None else None) or "auto",
         "iterations": (
             own.iterations if own is not None and own.iterations else DFLT_ITERATIONS
@@ -291,6 +314,11 @@ def declarations(
                     out.verbs.append(
                         Verb(flat.action, flat.start, flat.end, where=f"actions/{k}")
                     )
+    if verbs or any(e.overrides and "held_by" in e.overrides for e in shot.entities):
+        from an.stage.hold import hold_declarations
+
+        holds = hold_declarations(shot, play_extent=play_extent)
+        out.holds = None if holds.empty else holds
     return out
 
 
@@ -487,6 +515,12 @@ class JointRow:
     frees: tuple[str, ...] = ()
     #: The stage point a pin holds to (for a refused pin's message), when fixed.
     verb: str | None = None
+    #: A goal that moves frame by frame (a hand's reach): its stage point at
+    #: each of the solve's frames, ``None`` outside the span.
+    track: tuple[tuple[float, float] | None, ...] | None = None
+    #: Bodies whose authored channels this row replaces over its span (the
+    #: chain a reaching hand hangs from).
+    overrides: tuple[str, ...] = ()
 
 
 @dataclass
@@ -498,6 +532,13 @@ class Puppet:
     held: set[str]  # bodies held where the author put them (roots, fixed entities)
     events: dict[str, list[tuple[float, bool]]]  # joint id -> [(time, joined)]
     rest: dict[str, Affine]  # body -> its rest (declared) stage transform
+    #: The holder points the hold verbs name: ``(ref, side) -> Located``.
+    located: dict[tuple[str, str], Any] = field(default_factory=dict)
+    #: The built tree's nodes by path.
+    nodes: dict[str, Any] = field(default_factory=dict)
+    #: Per-frame rotation targets the hold layer gives bodies (a lean, and what
+    #: rides on it): ``body -> [rotation or None, per frame]``.
+    lean: dict[str, list[float | None]] = field(default_factory=dict)
 
 
 def _node_index(doc: Any) -> dict[str, Any]:
@@ -515,6 +556,18 @@ def _parent_path(path: str, nodes: Mapping[str, Any]) -> str:
 
 
 def _local_box(node: Any) -> tuple[float, float, float, float]:
+    """The extent a node's body has: its drawing, or a :data:`DFLT_BODY_EXTENT`
+    square about its pivot when it draws nothing or next to nothing.
+
+    A drawing smaller than that square on both sides (a one-pixel "empty" key
+    of a swap set, the transparent-part workaround) is not an extent: as a body
+    it would be a speck with its pivot many widths away, whose rotation the
+    solver cannot hold, and the part would drift off its joint.
+
+    >>> from an.stage.serialize import NodeJSON, VisualJSON
+    >>> _local_box(NodeJSON(name="speck", visual=VisualJSON(width=1, height=1, anchor_y=68)))
+    (-5.0, -5.0, 10.0, 10.0)
+    """
     v = node.visual
     t = node.transform
     if v is not None and v.path is not None and v.path.points:
@@ -525,7 +578,8 @@ def _local_box(node: Any) -> tuple[float, float, float, float]:
             return (min(xs), min(ys), w, h)
     if v is not None and v.width and v.height:
         w, h = float(v.width), float(v.height)
-        return (-float(v.anchor_x) * w, -float(v.anchor_y) * h, w, h)
+        if w >= DFLT_BODY_EXTENT or h >= DFLT_BODY_EXTENT:
+            return (-float(v.anchor_x) * w, -float(v.anchor_y) * h, w, h)
     e = DFLT_BODY_EXTENT
     return (t.pivot_x - e / 2.0, t.pivot_y - e / 2.0, e, e)
 
@@ -623,6 +677,21 @@ def build_puppet(
     for verb in decl.verbs:
         note(getattr(verb.action, "point", None))
         note(getattr(verb.action, "to", None))
+    holds = decl.holds
+    solved_by_joints = set(named)
+    if holds is not None:
+        for ref, _where, _side in holds.refs:
+            note(ref)
+        for item, where in sorted(holds.items.items()):
+            if item in solved_by_joints:
+                problems.append(
+                    (
+                        where,
+                        f"{item!r} is held (grasp/place/release) and also named by a joint or a "
+                        "pin/pull: an item is moved by what holds it, never by both",
+                    )
+                )
+        named = [eid for eid in named if eid not in holds.items]
 
     bodies: dict[str, BodyInfo] = {}
     held: set[str] = set()
@@ -635,7 +704,13 @@ def build_puppet(
         rigs[eid] = rig
         overrides = entity.overrides or {}
         free = overrides.get(FREE_OVERRIDE)
-        fixed = bool(overrides.get(FIXED_OVERRIDE))
+        # A holder that never moves a hand (a figurine's socket, a shelf) and
+        # no joint names is held where it is put: nothing of it is solved.
+        fixed = bool(overrides.get(FIXED_OVERRIDE)) or (
+            holds is not None
+            and eid not in solved_by_joints
+            and eid not in holds.movers
+        )
         if rig is None or not rig.bodies:
             path = eid
             bodies[path] = BodyInfo(
@@ -715,8 +790,39 @@ def build_puppet(
         )
         return _apply(frame, anchor.offset)
 
-    def resolve(ref: Any, *, where: str, side: str) -> Any:
-        """A reference as a solver Point (and its body), or ``None`` after noting the problem."""
+    landmark_cache: dict[str, Mapping[str, Any]] = {}
+
+    def landmarks_of(eid: str) -> Mapping[str, Any]:
+        """The named points a genre declares for ``eid``'s rig beyond its bones
+        (:attr:`an.genres.EntityKind.landmarks`: a character's hands)."""
+        if eid not in landmark_cache:
+            from an.genres.registry import entity_kind
+
+            kind = entity_kind(entities[eid].kind)
+            hook = getattr(kind, "landmarks", None) if kind is not None else None
+            found: Mapping[str, Any] = {}
+            if hook is not None and rigs.get(eid) is not None:
+                desc = (
+                    (getattr(vocab, "descriptors", None) or {}).get(eid)
+                    if vocab is not None
+                    else None
+                ) or _descriptor(entities[eid], mall)
+                try:
+                    found = dict(hook(desc) or {}) if desc is not None else {}
+                except Exception:  # noqa: BLE001 - a genre that cannot say names nothing
+                    found = {}
+            landmark_cache[eid] = found
+        return landmark_cache[eid]
+
+    def locate(ref: Any, *, where: str, side: str) -> Any:
+        """A reference as ``Located(body, local, frame, node)`` (a point of a
+        body, in its node's own coordinates, and the frame of the node named),
+        a world ``Point``, or ``None`` after noting the problem.
+
+        ``side`` says what a reference with no ``@`` means: ``"a"`` (and
+        ``"socket"``) the node's pivot, ``"b"`` the centre of its drawing,
+        ``"hand"`` the far end of the body from its pivot (its end effector).
+        """
         if (
             isinstance(ref, (list, tuple))
             and len(ref) == 2
@@ -742,11 +848,33 @@ def build_puppet(
         if eid not in entities:
             problems.append((where, f"{ref!r}: {eid!r} is not an entity of this shot"))
             return None
-        node_path = (
-            _slot_path(eid, head.split("/", 1)[1], nodes, rigs.get(eid))
-            if "/" in head
-            else head
+        landmark = (
+            landmarks_of(eid).get(at)
+            if at
+            and _numbers(at) is None
+            and not (rigs.get(eid) is not None and at in rigs[eid].anchors)
+            else None
         )
+        if landmark is not None:
+            slot, fraction = landmark
+            rig = rigs.get(eid)
+            if rig is None or slot not in rig.bodies:
+                problems.append(
+                    (
+                        where,
+                        f"{ref!r}: {at!r} names part {slot!r}, which {eid!r} does not draw",
+                    )
+                )
+                return None
+            node_path = f"{eid}/{rig.bodies[slot]}"
+            at = "" if fraction is None else f"{fraction[0]},{fraction[1]}"
+            side = "hand" if fraction is None else side
+        else:
+            node_path = (
+                _slot_path(eid, head.split("/", 1)[1], nodes, rigs.get(eid))
+                if "/" in head
+                else head
+            )
         if node_path not in nodes:
             near = sorted(p for p in nodes if p.split("/", 1)[0] == eid)
             problems.append(
@@ -771,10 +899,14 @@ def build_puppet(
             )
             return None
         body, inner = found
-        info = bodies[body]
         node = nodes[node_path]
         if not at:
-            local_on_node = _pivot(node) if side == "a" else _centre(_local_box(node))
+            if side == "hand" and node_path == body:
+                local_on_node = end_effector(_local_box(node), _pivot(node))
+            elif side in ("a", "socket", "hand"):
+                local_on_node = _pivot(node)
+            else:
+                local_on_node = _centre(_local_box(node))
             local = _apply(inner, local_on_node)
         else:
             xy = _numbers(at)
@@ -786,16 +918,25 @@ def build_puppet(
                 if world is None:
                     rig = rigs.get(eid)
                     known = sorted(rig.anchors) if rig is not None else []
+                    named_points = sorted(landmarks_of(eid))
+                    also = f", named points: {named_points}" if named_points else ""
                     problems.append(
                         (
                             where,
-                            f"{ref!r}: {at!r} is not a bone of {eid!r} (bones: {known}) nor a fraction `u,v`",
+                            f"{ref!r}: {at!r} is not a bone of {eid!r} (bones: {known}{also}) nor a fraction `u,v`",
                         )
                     )
                     return None
                 local = _apply(_invert(rest[body]), world)
-        u, v = info.fraction(local)
-        return Point(body, u, v)
+        return Located(body, local, inner, node_path)
+
+    def resolve(ref: Any, *, where: str, side: str) -> Any:
+        """A reference as a solver Point (and its body), or ``None`` after noting the problem."""
+        found = locate(ref, where=where, side=side)
+        if found is None or not isinstance(found, Located):
+            return found
+        u, v = bodies[found.body].fraction(found.local)
+        return Point(found.body, u, v)
 
     rows: list[JointRow] = []
     # 1. The rigs' own joints, parents first: the structure before what it reaches for.
@@ -955,6 +1096,21 @@ def build_puppet(
             )
     for jid in events:
         events[jid].sort(key=lambda e: e[0])
+    # 4. What holds things: every holder point a hold verb names.
+    located: dict[tuple[str, str], Located] = {}
+    if holds is not None:
+        for ref, where, side in holds.refs:
+            found = locate(ref, where=where, side=side)
+            if isinstance(found, Located):
+                located[(ref, side)] = found
+            elif found is not None:
+                problems.append(
+                    (
+                        where,
+                        f"{ref!r}: a stage point holds nothing; name a body's point "
+                        "(`nap/arm_r@hand`), or `ground`",
+                    )
+                )
     if problems:
         raise _unknown_body_error(problems, shot_id=shot.id)
     return Puppet(
@@ -963,6 +1119,55 @@ def build_puppet(
         held=held,
         events=events,
         rest={p: rest[p] for p in bodies},
+        located=located,
+        nodes=nodes,
+    )
+
+
+@dataclass(frozen=True)
+class Located:
+    """A point of a body: ``local`` in the body node's own coordinates;
+    ``frame`` the named node's rest transform in the body's frame (its
+    orientation, for a socket); ``node`` the node the reference named."""
+
+    body: str
+    local: tuple[float, float]
+    frame: Affine
+    node: str
+
+
+#: How far inside its far end a body's end effector sits, as a fraction of its
+#: length: the palm of a hand drawn at the end of an arm, not the fingertips.
+DFLT_EFFECTOR_INSET: float = 0.04
+
+
+def end_effector(
+    box: tuple[float, float, float, float],
+    pivot: tuple[float, float],
+    *,
+    inset: float = DFLT_EFFECTOR_INSET,
+) -> tuple[float, float]:
+    """The point of a body farthest from its pivot along its long axis, a
+    little inside its end: where an arm hung from its shoulder has its hand.
+
+    >>> end_effector((-8.0, 0.0, 16.0, 100.0), (0.0, 0.0))   # an arm hanging down
+    (0.0, 96.0)
+    >>> end_effector((-100.0, -5.0, 100.0, 10.0), (0.0, 0.0))  # a crane's jib, pointing left
+    (-96.0, 0.0)
+    """
+    left, top, w, h = box
+    if h >= w:
+        ends = ((left + w / 2.0, top), (left + w / 2.0, top + h))
+        length = h
+    else:
+        ends = ((left, top + h / 2.0), (left + w, top + h / 2.0))
+        length = w
+    far = max(ends, key=lambda e: (math.hypot(e[0] - pivot[0], e[1] - pivot[1]), e))
+    near = ends[0] if far is ends[1] else ends[1]
+    f = inset * length / max(1e-9, math.hypot(far[0] - near[0], far[1] - near[1]))
+    return (
+        far[0] + (near[0] - far[0]) * f + 0.0,
+        far[1] + (near[1] - far[1]) * f + 0.0,
     )
 
 
@@ -1137,6 +1342,9 @@ class Run:
     local: list[dict[str, tuple[float, float, float]]] = field(default_factory=list)
     #: per frame: body -> its scale and mirroring as the document shows it
     geometry: list[dict[str, Geometry]] = field(default_factory=list)
+    #: per frame: a non-body path (``extra_paths``) -> its node's channels
+    #: ``(x, y, rotation, scale_x, scale_y)`` as the document shows them
+    extra: list[dict[str, tuple[float, ...]]] = field(default_factory=list)
     digest: str = ""
 
 
@@ -1168,9 +1376,17 @@ def _along(path: Sequence[tuple[float, float]], f: float) -> tuple[float, float]
 
 
 def run_solve(
-    doc: Any, puppet: Puppet, times: Sequence[float], settings: Settings
+    doc: Any,
+    puppet: Puppet,
+    times: Sequence[float],
+    settings: Settings,
+    *,
+    extra_paths: Sequence[str] = (),
 ) -> Run:
-    """Solve ``puppet`` at each of ``times`` under the authored motion in ``doc``."""
+    """Solve ``puppet`` at each of ``times`` under the authored motion in ``doc``.
+
+    ``extra_paths`` are nodes that are not bodies whose authored transforms the
+    run records too (``evaluated``, ``extra``): the items the hold layer moves."""
     from dataclasses import replace
 
     from an.kinematics import Body, Point, Weld, WORLD, inputs_digest, solve
@@ -1190,13 +1406,26 @@ def run_solve(
         else (times[1] - times[0] if len(times) > 1 else None)
     )
     run = Run(list(times), [], [], [], [], [], [], [], [])
+    parent_of = {
+        row.child: row.parent
+        for row in puppet.rows
+        if row.source == "rig" and row.child is not None and row.parent is not None
+    }
     current: list[Any] | None = None
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
-        world = _world_matrices(doc, order, pose, nodes)
+        world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
         run.evaluated.append(world)
+        if extra_paths:
+            extra = {}
+            for path in extra_paths:
+                tr = transform_of(
+                    nodes[path], _pose_for(pose, path), frame_height=doc.meta.height
+                )
+                extra[path] = (tr.x, tr.y, tr.rotation, tr.scale_x, tr.scale_y)
+            run.extra.append(extra)
         local_now, geometry = {}, {}
         for path in order:
             tr = transform_of(
@@ -1218,17 +1447,36 @@ def run_solve(
             and row.span[0] - 1e-9 <= t <= row.span[1] + 1e-9
             for body in row.frees
         }
+        # A reaching hand's chain: the reach, not the authored channels, moves it.
+        overridden = {
+            body
+            for row in puppet.rows
+            if row.overrides
+            and row.span is not None
+            and row.span[0] - 1e-9 <= t <= row.span[1] + 1e-9
+            for body in row.overrides
+        }
         targets: dict[str, dict[str, float]] = {}
         held: dict[str, set[str]] = {}
         welded: dict[str, float] = {}
+        driven = (
+            _driven_bodies(puppet, t, parent_of) if settings.mode == "pose" else None
+        )
         for path in order:
             info = puppet.bodies[path]
             x, y = _apply(world[path], info.pivot)
             theta = _decompose(world[path])[0]
-            if path in puppet.held and path not in freed:
+            if path in overridden:
+                channels = set()
+            elif path in puppet.held and path not in freed:
                 channels = set(SOLVED_CHANNELS)
             else:
                 channels = {prop for (p, prop) in authored_props if p == path}
+                if driven is not None and path not in driven and path not in freed:
+                    # A passenger (no joint, verb or reach acts on it): in pose
+                    # mode it keeps the angle the document gives it, so a body
+                    # carried along by its parent does not swing about its joint.
+                    channels |= {"rotation"}
                 if info.parent_body is not None:
                     if "rotation" in channels:
                         welded[path] = _wrap(
@@ -1237,6 +1485,12 @@ def run_solve(
                     channels = set()
                 elif channels & {"x", "y"}:
                     channels |= {"x", "y"}
+            lean = puppet.lean.get(path)
+            if lean is not None and lean[k] is not None:
+                # The hold layer turns it (a body bending to reach, or riding one).
+                welded.pop(path, None)
+                channels = channels | {"rotation"}
+                theta = lean[k]
             held[path] = channels
             if channels:
                 targets[path] = {
@@ -1249,7 +1503,11 @@ def run_solve(
         for row in puppet.rows:
             j = _frame_joint(row.joint, flips)
             on = _joined_at(puppet, row, t)
-            if row.path is not None and row.span is not None:
+            if row.track is not None:
+                goal = row.track[k] if k < len(row.track) else None
+                if goal is not None:
+                    j = replace(j, b=Point(WORLD, *goal))
+            elif row.path is not None and row.span is not None:
                 s0, s1 = row.span
                 f = (t - s0) / (s1 - s0) if s1 > s0 else 1.0
                 j = replace(j, b=Point(WORLD, *_along(row.path, f)))
@@ -1354,6 +1612,25 @@ def run_solve(
     return run
 
 
+def _driven_bodies(puppet: Puppet, t: float, parent_of: Mapping[str, str]) -> set[str]:
+    """The bodies a joint, a verb or a reach acts on at ``t`` (every body a
+    joined row that is not a rig's own joint names), and every body they hang
+    from: the rest are passengers."""
+    from an.kinematics import WORLD
+
+    out: set[str] = set()
+    for row in puppet.rows:
+        if row.source == "rig" or not _joined_at(puppet, row, t):
+            continue
+        j = row.joint
+        for p in (getattr(j, n, None) for n in ("a", "b", "point", "start", "end")):
+            body = getattr(p, "body", None)
+            while body is not None and body != WORLD and body not in out:
+                out.add(body)
+                body = parent_of.get(body)
+    return out
+
+
 def _body_point(body: Any, point: Any) -> tuple[float, float]:
     from an.kinematics import point_world
 
@@ -1392,6 +1669,7 @@ def solve_pass(state: Any) -> None:
         not shot.joints
         and not _has_verb(shot)
         and not any(e.joints for e in shot.entities)
+        and not _declares_holds(shot)
     ):
         if not any(
             _field(_descriptor(e, state.mall), "joints")
@@ -1417,13 +1695,27 @@ def solve_pass(state: Any) -> None:
         return
     doc = _assemble_document(state, background="#000000")
     puppet = build_puppet(doc, shot, state.mall, decl, vocab=state.vocab)
-    if not puppet.bodies:
+    if not puppet.bodies and decl.holds is None:
         return
     settings = resolve_settings(shot, state.style_pack, puppet)
     times = frame_times(shot.duration, fps=state.fps, step_hz=state.step_hz)
-    run = run_solve(doc, puppet, times, settings)
-    overridden = _emit(state, doc, puppet, run, stepped=state.step_hz is not None)
-    state.meta_extensions[SOLVE_EXTENSION] = _report(puppet, run, settings, overridden)
+    held_channels: dict[tuple[str, str], tuple[list[float], list[float]]] = {}
+    holds_report = None
+    if decl.holds is not None:
+        from an.stage.hold import HOLDS_REPORT, solve_holds
+
+        run, held_channels, holds_report = solve_holds(
+            state, doc, puppet, decl, settings, times
+        )
+    else:
+        run = run_solve(doc, puppet, times, settings)
+    overridden = _emit(
+        state, doc, puppet, run, stepped=state.step_hz is not None, extra=held_channels
+    )
+    report = _report(puppet, run, settings, overridden)
+    if holds_report is not None:
+        report[HOLDS_REPORT] = holds_report
+    state.meta_extensions[SOLVE_EXTENSION] = report
 
 
 def _local_channels(
@@ -1449,8 +1741,18 @@ def _local_channels(
 
 
 def _emit(
-    state: Any, doc: Any, puppet: Puppet, run: Run, *, stepped: bool
+    state: Any,
+    doc: Any,
+    puppet: Puppet,
+    run: Run,
+    *,
+    stepped: bool,
+    extra: Mapping[tuple[str, str], tuple[Sequence[float], Sequence[float]]]
+    | None = None,
 ) -> list[dict[str, Any]]:
+    """Emit the solved channels (and ``extra``: ``{(path, prop): (values, as
+    the document shows them)}``, the held items') as each entity's
+    ``__solve__`` clip; return the authored spans they replace."""
     from an.stage.serialize import (
         AnimationClipJSON,
         ChannelJSON,
@@ -1485,6 +1787,24 @@ def _emit(
         shown = [run.local[k][path][index[prop]] for k in range(len(run.times))]
         if all(abs(v - w) <= SAME_VALUE[prop] for v, w in zip(qs, shown)):
             continue  # the solve leaves it where the document already has it
+        root = path.split("/", 1)[0]
+        clips.setdefault(root, []).append(
+            ChannelJSON(
+                target=path,
+                property=prop,
+                keyframes=[
+                    KeyframeJSON(time=_q(t, 1e-9), value=v, easing=easing)
+                    for t, v in zip(run.times, qs)
+                ],
+            )
+        )
+        emitted.add((path, prop))
+    for (path, prop), (vs, shown) in sorted((extra or {}).items()):
+        quantum = ANGLE_QUANTUM if prop == "rotation" else POSITION_QUANTUM
+        qs = [_q(v, quantum) for v in vs]
+        same = SAME_VALUE.get(prop, SAME_SCALE)
+        if all(abs(v - w) <= same for v, w in zip(qs, shown)):
+            continue
         root = path.split("/", 1)[0]
         clips.setdefault(root, []).append(
             ChannelJSON(
@@ -1589,6 +1909,8 @@ def _report(
             gaps[(j, k)] = gap if math.isfinite(gap) else 1e9
     dropped = []
     for j in sorted(refused):
+        if puppet.rows[j].source == REACH_SOURCE:
+            continue  # a reach is a goal on its way: the hold report says where it arrived
         for a, b in _spans(run.times, refused[j]):
             worst = max(
                 (gaps.get((j, k), 0.0) for k, t in enumerate(run.times) if a <= t <= b),
@@ -1718,7 +2040,7 @@ def joint_residuals(
     # (it knew every leaf's natural length; this reading does not).
     report = (doc.meta.extensions or {}).get(SOLVE_EXTENSION) or {}
     recorded = report.get("joints") or []
-    if len(recorded) == len(puppet.rows):
+    if len(recorded) >= len(puppet.rows):  # the reaches the hold layer added come last
         for row, rec in zip(puppet.rows, recorded):
             if rec.get("span") is not None:
                 row.span = (float(rec["span"][0]), float(rec["span"][1]))
