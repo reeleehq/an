@@ -303,15 +303,18 @@ def test_a_swap_takes_one_item_and_gives_another(tmp_path):
 
 def test_a_handover_between_two_hands_meets_in_the_middle(tmp_path):
     entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-160, 200]}}
-- {kind: prop, id: jo, store: props, ref: figure, stage: {at: [100, 200], scale_x: -1}}
+- {kind: prop, id: jo, store: props, ref: figure, stage: {at: [100, 200]}}
 - {kind: prop, id: stick, store: props, ref: stick, stage: {at: [-140, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
 """
-    actions = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.2}
+    actions = """- {kind: set, target: jo, property: scale_x, value: -1.0, at: 0.0}
+- {kind: grasp, by: fig/arm_r, item: stick, start: 0.2}
 - {kind: handover, item: stick, to: jo/arm_r, meet: 0.5, start: 1.5}"""
     doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
     take = _gesture(doc, "take")
     assert take["gap"] <= GRASP_TOLERANCE_PX
     assert _holds(doc)["holders"]["stick"][-1][1] == "jo/arm_r"
+    # jo faces the other way: the stick, aligned to jo's hand, is drawn mirrored
+    assert _pose(doc, 3.5)[("stick", "scale_x")] < 0
 
 
 # -- what an validate says ------------------------------------------------------------
@@ -527,3 +530,71 @@ def test_a_part_that_draws_a_speck_stays_on_its_joint(tmp_path):
         assert (
             math.dist(_stage(doc, "fig/badge", t), _stage(doc, "fig/head", t)) < 0.25
         ), t
+
+
+# -- regressions found in review ------------------------------------------------------
+
+
+def test_a_hand_catches_what_another_lets_go_of_at_that_instant(tmp_path):
+    """A release and a grasp of the same item at one instant: the release
+    comes first and the other hand catches it (it used to fall to the floor
+    while the catching hand arrived empty)."""
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: jo, store: props, ref: figure, stage: {at: [60, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 150], scale: 0.5, after: jo}, overrides: {held_by: ground}}
+"""
+    actions = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.2}
+- {kind: release, item: stick, at: 2.0}
+- {kind: grasp, by: jo/arm_l, item: stick, start: 1.6}"""
+    doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+    holders = _holds(doc)["holders"]["stick"]
+    assert [h for _t, h in holders] == ["ground", "fig/arm_r", "air", "jo/arm_l"]
+
+
+def test_a_gesture_that_would_reach_after_the_shot_ends_is_refused(tmp_path):
+    project = _project(
+        tmp_path, "- {kind: grasp, by: fig/arm_r, item: stick, start: 3.9}"
+    )
+    with pytest.raises(HoldError):
+        _compile(project)
+    assert any("after the shot ends" in m for s, m in _lint(project) if s == "error")
+
+
+def test_one_arm_holds_one_item_whatever_point_of_it_is_named(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+- {kind: prop, id: rod, store: props, ref: stick, stage: {at: [-20, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+    actions = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.2}
+- {kind: grasp, by: 'fig/arm_r@0.5,0.9', item: rod, start: 1.5}"""
+    project = make_project(tmp_path / "p", scene(actions, entities=entities))
+    messages = [m for s, m in _lint(project) if s == "error"]
+    assert any("still holds 'stick'" in m for m in messages), messages
+
+
+def test_a_reach_that_starts_while_the_body_moves_is_not_called_a_rejoin(tmp_path):
+    actions = """- {kind: tween, target: fig, property: x, from: -100, to: -60, duration: 1.0, start: 0.0}
+- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}"""
+    project = _project(tmp_path, actions)
+    report = _compile(project).meta.extensions["solve"]
+    assert not [
+        s for s in report["snaps"] if "grasp" in report["joints"][s["joint"]]["id"]
+    ]
+    assert not any(
+        "rejoined" in m for _s, m in _lint(project, only={"joint_violation"})
+    )
+
+
+def test_an_item_that_holds_another_is_refused_by_name(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}, overrides: {held_by: ground}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 0], scale: 0.5}, overrides: {held_by: stand@hand}}
+"""
+    project = make_project(
+        tmp_path / "p",
+        scene(
+            "- {kind: grasp, by: fig/arm_r, item: stand, start: 0.2}", entities=entities
+        ),
+    )
+    messages = [m for s, m in _lint(project) if s == "error"]
+    assert any("is itself held" in m for m in messages), messages

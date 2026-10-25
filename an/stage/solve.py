@@ -79,6 +79,9 @@ SOLVE_EXTENSION: str = "solve"
 #: The side of the square a body that draws nothing is given (scene px): a
 #: body needs an extent for its mass and for points given as fractions.
 DFLT_BODY_EXTENT: float = 10.0
+#: A drawing this small on both sides (scene px) is a speck, not an extent: the
+#: one-pixel "empty" key of a swap set (the transparent-part workaround).
+SPECK_EXTENT: float = 2.0
 #: ``AssetRef.overrides`` keys: free a rig's roots, or hold every part.
 FREE_OVERRIDE: str = "free"
 FIXED_OVERRIDE: str = "fixed"
@@ -557,12 +560,13 @@ def _parent_path(path: str, nodes: Mapping[str, Any]) -> str:
 
 def _local_box(node: Any) -> tuple[float, float, float, float]:
     """The extent a node's body has: its drawing, or a :data:`DFLT_BODY_EXTENT`
-    square about its pivot when it draws nothing or next to nothing.
+    square about its pivot when it draws nothing, or a speck.
 
-    A drawing smaller than that square on both sides (a one-pixel "empty" key
+    A drawing under :data:`SPECK_EXTENT` on both sides (a one-pixel "empty" key
     of a swap set, the transparent-part workaround) is not an extent: as a body
     it would be a speck with its pivot many widths away, whose rotation the
-    solver cannot hold, and the part would drift off its joint.
+    solver cannot hold, and the part would drift off its joint. A small drawing
+    (a bead, a button) keeps its own box.
 
     >>> from an.stage.serialize import NodeJSON, VisualJSON
     >>> _local_box(NodeJSON(name="speck", visual=VisualJSON(width=1, height=1, anchor_y=68)))
@@ -578,7 +582,7 @@ def _local_box(node: Any) -> tuple[float, float, float, float]:
             return (min(xs), min(ys), w, h)
     if v is not None and v.width and v.height:
         w, h = float(v.width), float(v.height)
-        if w >= DFLT_BODY_EXTENT or h >= DFLT_BODY_EXTENT:
+        if w >= SPECK_EXTENT or h >= SPECK_EXTENT:
             return (-float(v.anchor_x) * w, -float(v.anchor_y) * h, w, h)
     e = DFLT_BODY_EXTENT
     return (t.pivot_x - e / 2.0, t.pivot_y - e / 2.0, e, e)
@@ -682,6 +686,17 @@ def build_puppet(
     if holds is not None:
         for ref, _where, _side in holds.refs:
             note(ref)
+        for ref, where, _side in holds.refs:
+            holder = ref.partition("@")[0].split("/", 1)[0]
+            if holder in holds.items:
+                problems.append(
+                    (
+                        where,
+                        f"{ref!r}: {holder!r} is itself held (grasp/place/release or "
+                        "`held_by`), and an item that holds another is not built: hold "
+                        "the outer one, or make the inner one part of its drawing",
+                    )
+                )
         for item, where in sorted(holds.items.items()):
             if item in solved_by_joints:
                 problems.append(
@@ -1100,6 +1115,8 @@ def build_puppet(
     located: dict[tuple[str, str], Located] = {}
     if holds is not None:
         for ref, where, side in holds.refs:
+            if ref.partition("@")[0].split("/", 1)[0] in holds.items:
+                continue  # an item holding another: said above
             found = locate(ref, where=where, side=side)
             if isinstance(found, Located):
                 located[(ref, side)] = found
@@ -1411,6 +1428,7 @@ def run_solve(
         for row in puppet.rows
         if row.source == "rig" and row.child is not None and row.parent is not None
     }
+    ever_driven = _bodies_ever_driven(puppet, parent_of)
     current: list[Any] | None = None
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
@@ -1460,7 +1478,9 @@ def run_solve(
         held: dict[str, set[str]] = {}
         welded: dict[str, float] = {}
         driven = (
-            _driven_bodies(puppet, t, parent_of) if settings.mode == "pose" else None
+            _driven_bodies(puppet, t, parent_of, always=ever_driven)
+            if settings.mode == "pose"
+            else None
         )
         for path in order:
             info = puppet.bodies[path]
@@ -1612,23 +1632,51 @@ def run_solve(
     return run
 
 
-def _driven_bodies(puppet: Puppet, t: float, parent_of: Mapping[str, str]) -> set[str]:
-    """The bodies a joint, a verb or a reach acts on at ``t`` (every body a
-    joined row that is not a rig's own joint names), and every body they hang
-    from: the rest are passengers."""
-    from an.kinematics import WORLD
+def _driven_bodies(
+    puppet: Puppet, t: float, parent_of: Mapping[str, str], *, always: set[str]
+) -> set[str]:
+    """The bodies something other than their own rig acts on at ``t``, and
+    every body they hang from; the rest are passengers.
 
+    A joint or a ``pin``/``pull`` makes its bodies driven for the WHOLE shot
+    (``always``, from :func:`_bodies_ever_driven`): after a pin's span the part
+    stays where the pin left it, as it always did, instead of snapping back to
+    its document angle. A hand's reach (the hold layer's row) drives only over
+    its span: it starts from, and retracts to, where the part is as a passenger,
+    so the hand-off is continuous."""
+    out: set[str] = set(always)
+    for row in puppet.rows:
+        if row.source != REACH_SOURCE or not _joined_at(puppet, row, t):
+            continue
+        _add_row_bodies(row, parent_of, out)
+    return out
+
+
+def _bodies_ever_driven(puppet: Puppet, parent_of: Mapping[str, str]) -> set[str]:
+    """Every body a joint or a verb (not a rig's own joint, not a reach) names
+    at any time, and every body they hang from."""
     out: set[str] = set()
     for row in puppet.rows:
-        if row.source == "rig" or not _joined_at(puppet, row, t):
+        if row.source in ("rig", REACH_SOURCE):
             continue
-        j = row.joint
-        for p in (getattr(j, n, None) for n in ("a", "b", "point", "start", "end")):
-            body = getattr(p, "body", None)
-            while body is not None and body != WORLD and body not in out:
-                out.add(body)
-                body = parent_of.get(body)
+        _add_row_bodies(row, parent_of, out)
     return out
+
+
+def _add_row_bodies(row: JointRow, parent_of: Mapping[str, str], out: set[str]) -> None:
+    from an.kinematics import WORLD
+
+    j = row.joint
+    for p in (getattr(j, n, None) for n in ("a", "b", "point", "start", "end")):
+        body = getattr(p, "body", None)
+        while body is not None and body != WORLD and body not in out:
+            out.add(body)
+            body = parent_of.get(body)
+    for body in row.frees:
+        cursor = body
+        while cursor is not None and cursor not in out:
+            out.add(cursor)
+            cursor = parent_of.get(cursor)
 
 
 def _body_point(body: Any, point: Any) -> tuple[float, float]:
@@ -1953,7 +2001,9 @@ def _report(
         },
         "dropped": dropped,
         "snaps": [
-            {"joint": j, "at": r2(run.times[k]), "gap": r2(g)} for k, j, g in run.snaps
+            {"joint": j, "at": r2(run.times[k]), "gap": r2(g)}
+            for k, j, g in run.snaps
+            if puppet.rows[j].source != REACH_SOURCE  # a reach starts where the hand is
         ],
         "overridden": overridden,
     }

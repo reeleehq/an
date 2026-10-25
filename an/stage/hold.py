@@ -58,6 +58,7 @@ False
 
 from __future__ import annotations
 
+import itertools
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -280,11 +281,15 @@ def hold_declarations(shot: Any, *, play_extent: Any = None) -> HoldDeclarations
 def _by_instant(verbs: Sequence[HoldVerb]) -> list[HoldVerb]:
     """Verbs in the order their holds change: a gesture at its contact, a release at its instant."""
 
-    def instant(v: HoldVerb) -> float:
+    def instant(v: HoldVerb) -> tuple[float, int, float]:
         a = v.action
-        return v.start if a.kind == "release" else v.start + float(a.reach)
+        if a.kind == "release":
+            # A hand that lets go at the instant another takes hold: the
+            # release comes first, so the other hand catches it.
+            return (v.start, 0, v.start)
+        return (v.start + float(a.reach), 1, v.start)
 
-    return sorted(verbs, key=lambda v: (instant(v), v.start))
+    return sorted(verbs, key=instant)
 
 
 # -----------------------------------------------------------------------------
@@ -518,9 +523,16 @@ class Holder:
     entity: str | None = None
     x: float | None = None  # ground@x, world@x,y
     y: float | None = None
+    #: ``hand`` (a part the solve moves: one item at a time, one gesture at a
+    #: time, whatever point of it is named) or ``socket`` (a point of a part
+    #: held still: each point holds its own item).
+    role: str = "socket"
 
     def key(self) -> tuple:
+        """Who this holder is: a hand is its part, a socket its point."""
         if self.kind == "body":
+            if self.role == "hand":
+                return ("body", self.body)
             return ("body", self.body, round(self.local[0], 6), round(self.local[1], 6))
         return (self.kind,)
 
@@ -551,6 +563,8 @@ class Gesture:
     partner: int | None = None
     #: A taking hand turns the item, over its retract, to how it holds things.
     align: bool = False
+    #: Gestures that bend the same body the other way while this one runs.
+    against: tuple[int, ...] = ()
     # frame indices (contact snapped to the grid)
     k0: int = 0
     kc: int = 0
@@ -566,15 +580,22 @@ class Gesture:
     reach_gap: float = 0.0
 
 
+#: The order in which an item's holds change, ever increasing: what breaks a
+#: tie between two changes at one frame (a release, then the catch).
+_EVENT_SEQ = itertools.count()
+
+
 @dataclass
 class Event:
-    """A change of what holds an item, at frame ``k``."""
+    """A change of what holds an item, at frame ``k``; ``seq`` is the order the
+    schedule decided it in (a tie at one frame keeps that order)."""
 
     k: int
-    kind: str  # "take" | "carry" | "put" | "drop"
+    kind: str  # "take" | "settle" | "carry" | "put" | "drop"
     gesture: Gesture | None = None
     release: Any = None
     where: str = ""
+    seq: int = field(default_factory=lambda: next(_EVENT_SEQ))
 
 
 @dataclass
@@ -701,6 +722,9 @@ def _holder(ctx_puppet: Puppet, ref: str, side: str) -> Holder | None:
         local=found.local,
         frame=found.frame,
         entity=_entity(ref),
+        # A part the solve may move (an arm) is a hand; one held where it is
+        # put (a root, a figurine that never gestures) is a socket.
+        role="socket" if found.body in ctx_puppet.held else "hand",
     )
 
 
@@ -782,6 +806,15 @@ def _schedule(
         a = v.action
         start, contact = v.start, v.start + float(a.reach)
         end = contact + float(a.retract)
+        if contact > times[-1] + 1e-6:
+            problems.append(
+                (
+                    v.where,
+                    f"the {a.kind} of {item!r} by {ref!r} starts at {start:.2f} s and would reach "
+                    f"its goal at {contact:.2f} s, after the shot ends ({times[-1]:.2f} s): start "
+                    f"it by {times[-1] - float(a.reach):.2f} s, or shorten its `reach`",
+                )
+            )
         k0, kc, k1 = frames(start, contact, end)
         g = Gesture(
             len(gestures),
@@ -974,12 +1007,7 @@ def _schedule(
                     )
                 )
     for item in events:
-        events[item].sort(
-            key=lambda e: (
-                e.k,
-                {"take": 0, "settle": 1, "carry": 2, "put": 3, "drop": 4}[e.kind],
-            )
-        )
+        events[item].sort(key=lambda e: (e.k, e.seq))
     return _Ctx(
         doc,
         shot,
@@ -1173,12 +1201,17 @@ def _place_target(
     return lin, _on_ground(ctx, lin, item, x, ground, about=about), None
 
 
-def walk_items(ctx: _Ctx, run: Run, *, ideal: bool) -> Walk:
+def walk_items(
+    ctx: _Ctx, run: Run, *, ideal: bool, ideal_take: bool | None = None
+) -> Walk:
     """Every item's world transform at every frame of ``run``.
 
-    ``ideal`` (planning): a hand that takes an item takes it by its grip, and a
-    place puts it exactly where it is going, whatever the hand reached; else
-    (the picture) every change of holder keeps the item where it is."""
+    ``ideal`` (planning): a place puts its item exactly where it is going, and
+    a hand that takes an item takes it by its grip (``ideal_take``, default
+    ``ideal``: false plans a later place from where a grasp REALLY put the item
+    in the hand), whatever the hand reached; else (the picture) every change of
+    holder keeps the item where it is."""
+    ideal_take = ideal if ideal_take is None else ideal_take
     out = Walk({}, {}, {}, {}, {})
     puppet, times = ctx.puppet, ctx.times
     for item, info in ctx.items.items():
@@ -1233,6 +1266,7 @@ def walk_items(ctx: _Ctx, run: Run, *, ideal: bool) -> Walk:
                     rests,
                     out,
                     ideal=ideal,
+                    ideal_take=ideal_take,
                 )
             poses.append(current)
         out.poses[item] = poses
@@ -1300,6 +1334,7 @@ def _transition(
     out: Walk,
     *,
     ideal: bool,
+    ideal_take: bool,
 ) -> tuple[_State, Affine]:
     puppet = ctx.puppet
     info = ctx.items[item]
@@ -1324,7 +1359,7 @@ def _transition(
         out.before[g.index] = current
         hand_world = _point_world(puppet, run, k, g.hand)
         m = current
-        if ideal and g.point is not None:
+        if ideal_take and g.point is not None:
             at = _apply(current, g.point)
             m = _compose(
                 _translate(hand_world[0] - at[0], hand_world[1] - at[1]), current
@@ -1656,7 +1691,9 @@ def _plan(ctx: _Ctx, base: Run, run: Run) -> None:
     ``base`` is the shot solved without any gesture (where a hand is when it is
     not reaching); ``run`` the latest solve (where the items are)."""
     puppet, times = ctx.puppet, ctx.times
-    walk = walk_items(ctx, run, ideal=True)
+    # The first plan (from the shot without gestures) takes every item by its
+    # grip; a later one plans each place from where its grasp really put the item.
+    walk = walk_items(ctx, run, ideal=True, ideal_take=run is base)
     goals: dict[int, list[tuple[float, float] | None]] = {}
     for g in ctx.gestures:
         g.chain, g.recruit = _chain(puppet, g.hand.body)
@@ -1694,6 +1731,15 @@ def _plan(ctx: _Ctx, base: Run, run: Run) -> None:
                 g.delta = delta
             if moved < 1e-10:
                 break
+        for g in group:
+            g.against = tuple(
+                o.index
+                for o in group
+                if o is not g
+                and o.delta * g.delta < 0
+                and o.start < g.end
+                and g.start < o.end
+            )
 
     def lean_at(root: str, k: int, skip: Gesture | None = None) -> float:
         return sum(
@@ -1728,24 +1774,27 @@ def _plan(ctx: _Ctx, base: Run, run: Run) -> None:
         if goal_c is None:
             continue
         track: list[tuple[float, float] | None] = [None] * len(times)
-        top = g.chain[-1] if g.chain else None
         t0, tc = times[g.k0], times[g.kc]
+        turn: dict[
+            str, float
+        ] = {}  # the way round each phase goes, kept for its frames
         for k in range(g.k0, len(times)):
             t = times[k]
             if t > g.end + 1e-9:
                 break
             rest = turned(_point_world(puppet, base, k, g.hand), g.hand.body, k, g)
             if k <= g.kc:
+                phase, a, b = "reach", rest, goals[g.index][k] or goal_c
                 f = _min_jerk((t - t0) / (tc - t0)) if tc > t0 else 1.0
-                point = _lerp(rest, goals[g.index][k] or goal_c, f)
             else:
+                phase, a, b = "retract", goal_c, rest
                 f = _min_jerk((t - tc) / (g.end - tc)) if g.end > tc else 1.0
-                point = _lerp(goal_c, rest, f)
             shoulder, near, far = _reach_range(puppet, base, k, g)
-            if shoulder is not None and top is not None:
-                centre = turned(shoulder, puppet_root_of(g), k, None)
-                point = _into_ring(point, centre, near, far)
-            track[k] = point
+            if shoulder is None or not g.chain:
+                track[k] = _lerp(a, b, f)
+                continue
+            centre = turned(shoulder, _root_of(g), k, None)
+            track[k] = _swing(a, b, f, centre, near, far, turn, phase)
         info = puppet.bodies[g.hand.body]
         u, v = info.fraction(g.hand.local)
         puppet.rows.append(
@@ -1787,25 +1836,47 @@ def _plan(ctx: _Ctx, base: Run, run: Run) -> None:
                 puppet.lean[body] = values
 
 
-def puppet_root_of(g: Gesture) -> str:
+def _swing(
+    a: tuple[float, float],
+    b: tuple[float, float],
+    f: float,
+    centre: tuple[float, float],
+    near: float,
+    far: float,
+    turn: dict[str, float],
+    phase: str,
+) -> tuple[float, float]:
+    """The point ``f`` of the way from ``a`` to ``b`` as a hand swings about
+    ``centre`` (its shoulder): angle and distance blended apart, the distance
+    kept between ``near`` and ``far``. A straight line through the shoulder
+    would make the arm flip across it; an arc never does. ``turn`` keeps the
+    way round a phase first chose, so a goal straight across does not make it
+    swap sides from one frame to the next.
+
+    >>> p = _swing((0.0, 100.0), (100.0, 0.0), 0.5, (0.0, 0.0), 100.0, 100.0, {}, "reach")
+    >>> [round(v, 3) for v in p]
+    [70.711, 70.711]
+    """
+    ra = math.hypot(a[0] - centre[0], a[1] - centre[1])
+    rb = math.hypot(b[0] - centre[0], b[1] - centre[1])
+    if ra == 0 or rb == 0:
+        return _lerp(a, b, f)
+    angle_a = math.atan2(a[1] - centre[1], a[0] - centre[0])
+    angle_b = math.atan2(b[1] - centre[1], b[0] - centre[0])
+    raw = angle_b - angle_a
+    first = turn.setdefault(phase, _wrap(raw))
+    delta = first + _wrap(raw - first)
+    angle = angle_a + delta * f
+    r = min(max(ra + (rb - ra) * f, near), far)
+    return (
+        centre[0] + r * math.cos(angle) + 0.0,
+        centre[1] + r * math.sin(angle) + 0.0,
+    )
+
+
+def _root_of(g: Gesture) -> str:
     """The body a gesture's shoulder is on: the root its chain hangs from."""
     return g.recruit if g.recruit is not None else g.hand.body
-
-
-def _into_ring(
-    point: tuple[float, float], centre: tuple[float, float], near: float, far: float
-) -> tuple[float, float]:
-    """``point`` moved along the line from ``centre`` into the ring between ``near`` and ``far``.
-
-    >>> _into_ring((0.0, 300.0), (0.0, 0.0), 100.0, 100.0)
-    (0.0, 100.0)
-    """
-    dx, dy = point[0] - centre[0], point[1] - centre[1]
-    d = math.hypot(dx, dy)
-    if d == 0:
-        return point
-    r = min(max(d, near), far)
-    return (centre[0] + dx * r / d + 0.0, centre[1] + dy * r / d + 0.0)
 
 
 def _goal(
@@ -1896,6 +1967,7 @@ def solve_holds(
         for _pass in range(HOLD_PLAN_PASSES):
             _plan(ctx, base, run)
             run = run_solve(doc, puppet, times, settings, extra_paths=extra)
+    ctx.warnings.clear()  # the plans' walks said it too; the picture's walk says it once
     walk = walk_items(ctx, run, ideal=False)
     _measure(ctx, run, walk)
     channels = _item_channels(ctx, run, walk)
@@ -1931,6 +2003,13 @@ def _measure(ctx: _Ctx, run: Run, walk: Walk) -> None:
                 g.gap = math.hypot(there_item[0] - socket[0], there_item[1] - socket[1])
                 continue
             there = g.goal or hand
+            if g.target.kind == "ground":
+                before = walk.before.get(g.index)
+                ground = _ground_at(ctx, run, g.k0, g.hand.entity)
+                if before is not None and ground is not None:
+                    off = abs(ground - _lowest(before, info.corners))
+                    g.gap = max(off, math.hypot(hand[0] - there[0], hand[1] - there[1]))
+                    continue
         g.gap = math.hypot(hand[0] - there[0], hand[1] - there[1])
 
 
@@ -1987,6 +2066,16 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
         }
         if g.target is not None:
             entry["onto"] = g.target.text()
+        if g.against:
+            entry["against"] = [
+                {
+                    "kind": ctx.gestures[o].kind,
+                    "item": ctx.gestures[o].item,
+                    "by": ctx.gestures[o].ref,
+                    "start": r2(ctx.gestures[o].start),
+                }
+                for o in g.against
+            ]
         if g.goal is not None and g.arrived is not None:
             entry["goal"] = [r2(g.goal[0]), r2(g.goal[1])]
             entry["hand"] = [r2(g.arrived[0]), r2(g.arrived[1])]

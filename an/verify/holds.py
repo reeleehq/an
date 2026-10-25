@@ -72,6 +72,14 @@ HOLD_CONFLICT = Constraint(
 def _move_hint(gesture: dict[str, Any]) -> str:
     goal, hand = gesture.get("goal"), gesture.get("hand")
     carrier = gesture.get("carrier") or "the carrier"
+    against = gesture.get("against") or []
+    if against:
+        other = against[0]
+        return (
+            f"{carrier} bends the other way at the same time to {other['kind']} "
+            f"{other['item']!r} with {other['by']!r} (from {other['start']:.2f} s): do one after "
+            "the other, or stage the two goals on the same side of the body"
+        )
     if not goal or not hand:
         return f"move {carrier} closer"
     dx, dy = goal[0] - hand[0], goal[1] - hand[1]
