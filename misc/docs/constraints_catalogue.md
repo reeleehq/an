@@ -71,7 +71,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; the first constraint of its group. The walk presets' contact instants become its input.
 
-**Status.** Missing. No surface notion exists (environments became planes, `ground_y` was retired); scene space's `at: [x, y, z]` gives a world `y` to put one on.
+**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. Characters' feet, `support_top` on members and scene space's ground are missing.
 
 #### A2. Solidity: non-penetration
 
@@ -113,7 +113,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** `cutout.body_attachment` (cutan#101: the per-shot socket, view and relation check, with sockets as the weld points) and ADR 0007's `attached: {to, at, scale}` member (the weld declared in the world); cutan#98 (checking through motion) is this entry's time dimension.
 
-**Status.** The general held-item weld shipped as `Shot.welds` and the `held_item` check (the item stays at its offset from the carrier drawn centre between pick-up and release, sampled through motion). Partial otherwise: body props (cutan#101), scene-space attachments; rotation following and the composing derivation are missing.
+**Status.** The general held-item weld shipped as `Shot.welds` and the `held_item` check (the item stays at its offset from the carrier drawn centre between pick-up and release, sampled through motion). The composing derivation shipped as the hold verbs (an#502: `grasp`, `place`, `release`, `handover`, `swap`, `an/stage/hold.py`): an item follows its holder's solved transform, rotation and mirror included, between a pick-up and a release that keep its world pose, with the hand reaching it. Partial otherwise: body props (cutan#101), scene-space attachments.
 
 #### A5. Rigidity, size and volume conservation
 

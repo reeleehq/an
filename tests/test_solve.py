@@ -39,7 +39,14 @@ HAND = (70.0 * K, 0.0)
 JOINT_CHECKS = {"unknown_body", "unreachable_pin", "joint_violation"}
 
 
-def _project(tmp_path: Path, *, nesting: str | None = None, draw_order=None, prop=None, joints=None):
+def _project(
+    tmp_path: Path,
+    *,
+    nesting: str | None = None,
+    draw_order=None,
+    prop=None,
+    joints=None,
+):
     root = stage_copy(FIXTURE, tmp_path / "p")
     desc_path = root / "assets" / "props" / (prop or "arm") / "prop.json"
     desc = json.loads(desc_path.read_text(encoding="utf-8"))
@@ -63,7 +70,12 @@ def _compile(project, shot=None, **kw):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return compile_shot(
-            shot or project.scene.timeline[0], project.mall, fps=24, width=320, height=240, **kw
+            shot or project.scene.timeline[0],
+            project.mall,
+            fps=24,
+            width=320,
+            height=240,
+            **kw,
         )
 
 
@@ -100,7 +112,12 @@ def _lint(project, shot, *, only=JOINT_CHECKS):
 
 
 def test_joint_specs_are_checked_where_they_are_written():
-    assert JointSpec(type="string", a="p@0.5,0", b="world@0,-200", length=150).distance_mode == "at_most"
+    assert (
+        JointSpec(
+            type="string", a="p@0.5,0", b="world@0,-200", length=150
+        ).distance_mode
+        == "at_most"
+    )
     with pytest.raises(ValueError, match="needs `b`"):
         JointSpec(type="pin", a="p")
     with pytest.raises(ValueError, match="only a hinge"):
@@ -124,12 +141,24 @@ def test_joints_and_verbs_round_trip_through_scene_md():
         duration=2.0,
         entities=[
             {
-                "kind": "prop", "id": "p", "store": "props", "ref": "arm",
+                "kind": "prop",
+                "id": "p",
+                "store": "props",
+                "ref": "arm",
                 "joints": [{"type": "hinge", "a": "fore", "limits": [-10, 150]}],
                 "overrides": {"free": True},
             }
         ],
-        joints=[{"type": "string", "a": "p/fore@hand", "b": "world@0,-200", "length": 150, "give": 0.001, "name": "s"}],
+        joints=[
+            {
+                "type": "string",
+                "a": "p/fore@hand",
+                "b": "world@0,-200",
+                "length": 150,
+                "give": 0.001,
+                "name": "s",
+            }
+        ],
         solve={"gravity": "down 500", "mode": "dynamic"},
         actions=[
             pin("p/fore@hand", "wheel@grip", duration=1.0),
@@ -149,7 +178,9 @@ def test_joints_and_verbs_round_trip_through_scene_md():
 
 @pytest.mark.parametrize("nesting", ["flat", "bones"])
 def test_a_rig_reads_as_bodies_hinged_at_its_bones(nesting):
-    desc = json.loads((FIXTURE / "assets" / "props" / "arm" / "prop.json").read_text(encoding="utf-8"))
+    desc = json.loads(
+        (FIXTURE / "assets" / "props" / "arm" / "prop.json").read_text(encoding="utf-8")
+    )
     desc["nesting"] = nesting
     s = rig_structure(desc)
     assert set(s.bodies) == {"torso", "upper", "fore"} and s.roots == ("torso",)
@@ -172,7 +203,9 @@ def test_the_hand_stays_on_the_grip_while_the_torso_sways(tmp_path, nesting):
     solved = doc.animations[f"{SOLVE_CLIP_PREFIX}puppet"]
     emitted = {(c.target.rsplit("/", 1)[-1], c.property) for c in solved.channels}
     if nesting == "flat":
-        assert emitted == {(part, p) for part in ("upper", "fore") for p in ("x", "y", "rotation")}
+        assert emitted == {
+            (part, p) for part in ("upper", "fore") for p in ("x", "y", "rotation")
+        }
     else:  # a chain moves by its rotations alone
         assert emitted == {("upper", "rotation"), ("fore", "rotation")}
     for t in _times(0.5):
@@ -182,7 +215,10 @@ def test_the_hand_stays_on_the_grip_while_the_torso_sways(tmp_path, nesting):
     upper = next(p for p in _paths(doc) if p.endswith("/upper"))
     for t in _times(0.5):
         pose = evaluate_timeline(timeline, t)
-        bend = math.degrees(pose[(_fore(doc), "rotation")] - (pose[(upper, "rotation")] if nesting == "flat" else 0.0))
+        bend = math.degrees(
+            pose[(_fore(doc), "rotation")]
+            - (pose[(upper, "rotation")] if nesting == "flat" else 0.0)
+        )
         assert -10.0 - 1e-6 <= bend <= 150.0 + 1e-6
     report = doc.meta.extensions["solve"]
     assert report["mode"] == "pose" and not report["dropped"]
@@ -195,16 +231,29 @@ def test_a_string_under_gravity_settles_in_dynamic_mode(tmp_path):
         project,
         duration=3.0,
         actions=[],
-        joints=[{"type": "string", "a": "puppet/fore@hand", "b": "world@0,-40", "length": 60}],
+        joints=[
+            {
+                "type": "string",
+                "a": "puppet/fore@hand",
+                "b": "world@0,-40",
+                "length": 60,
+            }
+        ],
         solve={"gravity": "down", "damping": 0.1},
     )
     doc = _compile(project, shot)
     assert doc.meta.extensions["solve"]["mode"] == "dynamic"
     hands = [_hand_and_grip(doc, t)[0] for t in _times(3.0)]
     anchor = (160.0, 80.0)  # world@0,-40 on a 320x240 canvas
-    assert all(math.dist(h, anchor) <= 60.0 + 0.25 for h in hands)  # the string never stretches
-    assert math.dist(hands[0], anchor) < 50.0 and math.dist(hands[-1], anchor) == pytest.approx(60.0, abs=0.25)
-    assert max(math.dist(a, b) for a, b in zip(hands[-24:], hands[-23:])) < 0.05  # settled
+    assert all(
+        math.dist(h, anchor) <= 60.0 + 0.25 for h in hands
+    )  # the string never stretches
+    assert math.dist(hands[0], anchor) < 50.0 and math.dist(
+        hands[-1], anchor
+    ) == pytest.approx(60.0, abs=0.25)
+    assert (
+        max(math.dist(a, b) for a, b in zip(hands[-24:], hands[-23:])) < 0.05
+    )  # settled
 
 
 def test_a_pin_out_of_reach_is_refused_with_where_to_put_it(tmp_path):
@@ -214,8 +263,12 @@ def test_a_pin_out_of_reach_is_refused_with_where_to_put_it(tmp_path):
     shot = Shot.model_validate(data)
     findings = _lint(project, shot)
     assert [s for s, _ in findings] == ["error"]
-    (_, message), = findings
-    assert "cannot be held" in message and "reaches 129 px" in message and "275 px" in message
+    ((_, message),) = findings
+    assert (
+        "cannot be held" in message
+        and "reaches 129 px" in message
+        and "275 px" in message
+    )
     hand, grip = _hand_and_grip(_compile(project, shot), 0.25)
     assert math.dist(hand, grip) > 100  # the arm reaches toward it, from its shoulder
 
@@ -224,15 +277,34 @@ def test_a_join_broken_by_authored_motion_is_a_joint_violation(tmp_path):
     project = _project(tmp_path)
     shot = _shot(
         project,
-        joints=[{"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}],
+        joints=[
+            {"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}
+        ],
         actions=[
-            {"kind": "tween", "target": "puppet/upper", "property": "rotation", "from_value": 0.0, "to_value": 0.6, "duration": 0.5},
-            {"kind": "tween", "target": "puppet/fore", "property": "rotation", "from_value": 0.8, "to_value": 1.2, "duration": 0.5},
+            {
+                "kind": "tween",
+                "target": "puppet/upper",
+                "property": "rotation",
+                "from_value": 0.0,
+                "to_value": 0.6,
+                "duration": 0.5,
+            },
+            {
+                "kind": "tween",
+                "target": "puppet/fore",
+                "property": "rotation",
+                "from_value": 0.8,
+                "to_value": 1.2,
+                "duration": 0.5,
+            },
         ],
     )
     findings = _lint(project, shot)
     assert len(findings) == 1 and findings[0][0] == "warning"
-    assert "joint 'grip'" in findings[0][1] and "does not hold from 0.00 s" in findings[0][1]
+    assert (
+        "joint 'grip'" in findings[0][1]
+        and "does not hold from 0.00 s" in findings[0][1]
+    )
 
 
 def test_unknown_bodies_points_and_joints_are_named(tmp_path):
@@ -269,7 +341,9 @@ def test_a_rejoin_across_a_gap_is_a_snap(tmp_path):
     shot = _shot(
         project,
         duration=1.0,
-        joints=[{"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}],
+        joints=[
+            {"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}
+        ],
         solve={"gravity": "down"},
         actions=[unjoin("grip", at=0.1), join("grip", at=0.6)],
     )
@@ -302,7 +376,9 @@ def test_the_joint_checks_are_core_checks():
 
 
 @pytest.mark.parametrize("name", sorted(CORE_FIXTURES))
-def test_the_core_corpus_compiles_byte_identically_without_the_pass(tmp_path, name, monkeypatch):
+def test_the_core_corpus_compiles_byte_identically_without_the_pass(
+    tmp_path, name, monkeypatch
+):
     project = load(stage_copy(ROOT / CORE_FIXTURES[name].path, tmp_path / name))
     res = project.scene.meta.resolution
 
@@ -312,8 +388,11 @@ def test_the_core_corpus_compiles_byte_identically_without_the_pass(tmp_path, na
             return [
                 to_dict(
                     compile_shot(
-                        shot, project.mall, fps=project.scene.meta.fps,
-                        width=res.width, height=res.height,
+                        shot,
+                        project.mall,
+                        fps=project.scene.meta.fps,
+                        width=res.width,
+                        height=res.height,
                     )
                 )
                 for shot in project.scene.timeline
@@ -334,7 +413,9 @@ def test_the_core_corpus_compiles_byte_identically_without_the_pass(tmp_path, na
 
 def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
     """A back arm drawn behind its torso: bodies are solved and read parents first."""
-    project = _project(tmp_path, nesting="bones", draw_order={"torso": 2, "upper": 1, "fore": 0})
+    project = _project(
+        tmp_path, nesting="bones", draw_order={"torso": 2, "upper": 1, "fore": 0}
+    )
     doc = _compile(project)
     assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
 
@@ -342,10 +423,20 @@ def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
 @pytest.mark.parametrize(
     "extra, wheel_at",
     [
-        ([{"kind": "set", "target": "puppet", "property": "scale_x", "value": -1.0}], [-210.0, 10.0]),
+        (
+            [{"kind": "set", "target": "puppet", "property": "scale_x", "value": -1.0}],
+            [-210.0, 10.0],
+        ),
         (
             [
-                {"kind": "tween", "target": "puppet", "property": p, "from_value": 1.0, "to_value": 1.3, "duration": 0.5}
+                {
+                    "kind": "tween",
+                    "target": "puppet",
+                    "property": p,
+                    "from_value": 1.0,
+                    "to_value": 1.3,
+                    "duration": 0.5,
+                }
                 for p in ("scale_x", "scale_y")
             ],
             [10.0, 10.0],
@@ -353,7 +444,9 @@ def test_a_chain_drawn_child_first_still_follows_its_parent(tmp_path):
     ],
     ids=["mirrored", "scaled"],
 )
-def test_an_authored_mirror_or_scale_is_solved_at_the_frames_geometry(tmp_path, extra, wheel_at):
+def test_an_authored_mirror_or_scale_is_solved_at_the_frames_geometry(
+    tmp_path, extra, wheel_at
+):
     project = _project(tmp_path)
     data = project.scene.timeline[0].model_dump()
     data["entities"][1]["stage"]["at"] = wheel_at
@@ -369,7 +462,9 @@ def test_a_pull_reaches_what_it_can_and_is_never_a_violation(tmp_path):
     project = _project(tmp_path)
     reachable = _shot(project, actions=[pull("puppet/fore@hand", "wheel@grip")])
     doc = _compile(project, reachable)
-    assert doc.meta.extensions["solve"]["mode"] == "pose"  # a pull is a goal, not a string
+    assert (
+        doc.meta.extensions["solve"]["mode"] == "pose"
+    )  # a pull is a goal, not a string
     assert max(math.dist(*_hand_and_grip(doc, t)) for t in _times(0.5)) < 1e-3
     far = _shot(project, actions=[pull("puppet/fore@hand", "world@300,-300")])
     assert _lint(project, reachable) == [] and _lint(project, far) == []
@@ -377,15 +472,30 @@ def test_a_pull_reaches_what_it_can_and_is_never_a_violation(tmp_path):
 
 def test_a_pin_held_off_by_an_authored_channel_is_not_called_out_of_reach(tmp_path):
     project = _project(tmp_path)
-    fight = {"kind": "sequence", "children": [
-        {"kind": "delay", "duration": 0.2},
-        {"kind": "tween", "target": "puppet/fore", "property": "rotation", "from_value": 0.5, "to_value": 1.0, "duration": 0.2},
-    ]}
-    shot = _shot(project, actions=list(project.scene.timeline[0].model_dump()["actions"]) + [fight])
+    fight = {
+        "kind": "sequence",
+        "children": [
+            {"kind": "delay", "duration": 0.2},
+            {
+                "kind": "tween",
+                "target": "puppet/fore",
+                "property": "rotation",
+                "from_value": 0.5,
+                "to_value": 1.0,
+                "duration": 0.2,
+            },
+        ],
+    }
+    shot = _shot(
+        project,
+        actions=list(project.scene.timeline[0].model_dump()["actions"]) + [fight],
+    )
     findings = _lint(project, shot)
     errors = [m for sev, m in findings if sev == "error"]
     assert len(errors) == 1 and "within reach" in errors[0]
-    assert not [m for sev, m in findings if sev == "info"]  # the held tween is not "replaced"
+    assert not [
+        m for sev, m in findings if sev == "info"
+    ]  # the held tween is not "replaced"
 
 
 def test_a_descriptor_joint_that_does_not_read_is_named_not_raised(tmp_path):
@@ -404,5 +514,51 @@ def test_a_shot_that_declares_nothing_reads_no_other_store_entry():
         def __contains__(self, key):
             raise AssertionError("read a voice entry")
 
-    shot = Shot(id="s", entities=[{"kind": "voice", "id": "n", "store": "voices", "ref": "narrator"}])
+    shot = Shot(
+        id="s",
+        entities=[{"kind": "voice", "id": "n", "store": "voices", "ref": "narrator"}],
+    )
     assert declarations(shot, {"voices": Untouchable()}).empty
+
+
+@pytest.mark.parametrize("ends", ["pin span", "unjoin"])
+def test_a_part_a_joint_let_go_of_stays_where_it_was_left(tmp_path, ends):
+    """Pose mode keeps a part nothing acts on at its document angle (a
+    passenger), but a part a joint or a verb drives is never one: when the pin's
+    span ends (or the joint is unjoined) the arm stays where it was, it does not
+    snap back to the angle the document gives it (a 101 px jump in one frame
+    before this was caught in review, an#502)."""
+    project = _project(tmp_path)
+    sway = {
+        "kind": "tween",
+        "target": "puppet/torso",
+        "property": "rotation",
+        "from_value": 0.0,
+        "to_value": 0.6,
+        "duration": 1.0,
+        "easing": "linear",
+    }
+    if ends == "pin span":
+        shot = _shot(
+            project,
+            duration=1.0,
+            actions=[sway, pin("puppet/fore@hand", "wheel@grip", duration=0.4)],
+        )
+    else:
+        shot = _shot(
+            project,
+            duration=1.0,
+            joints=[
+                {
+                    "type": "pin",
+                    "a": "puppet/fore@hand",
+                    "b": "wheel@grip",
+                    "name": "grip",
+                }
+            ],
+            solve={"mode": "pose"},
+            actions=[sway, unjoin("grip", at=0.4)],
+        )
+    doc = _compile(project, shot)
+    hands = [_hand_and_grip(doc, t)[0] for t in _times(1.0)]
+    assert max(math.dist(a, b) for a, b in zip(hands, hands[1:])) < 5.0

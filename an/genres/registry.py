@@ -182,6 +182,15 @@ class EntityKind:
     #: on its own, the one ``ref`` casts — what ``an library sheet`` draws for a
     #: version of it (an#347). ``None``: the sheet shows a labelled placeholder.
     specimen: Callable[[Any], Any] | None = None
+    #: ``(descriptor) -> {name: (slot, point)}``: named points of this kind's
+    #: rigs that are not bones (an#502): a character's ``hand_r`` is the far end
+    #: of its arm's chain. ``point`` is ``(u, v)``, a fraction of that slot's
+    #: drawing, or ``None`` for the slot's far end from its pivot (its end
+    #: effector). Read wherever a body point is resolved (``entity@name``): a
+    #: bone of that name wins. ``None``: the kind names no point.
+    landmarks: (
+        Callable[[Any], Mapping[str, tuple[str, tuple[float, float] | None]]] | None
+    ) = None
 
 
 #: When a check runs: once before the shots, once per shot, once after them.
@@ -669,6 +678,7 @@ def hook_modules(*, exclude_owner: str = CORE_OWNER) -> tuple[str, ...]:
     for kind in owned(_ENTITY_KINDS):
         add(kind.swap_declaration)
         add(kind.swap_checks)
+        add(kind.landmarks)  # read by the solve pass: a hand's point moves pixels
     for check in owned(_CHECKS):
         add(check.run)
     for compile_pass in owned(_COMPILE_PASSES):

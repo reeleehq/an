@@ -870,6 +870,15 @@ class SolveSettings(_IRModel):
     baked from frame 0) and ``pose`` otherwise (projection to convergence from
     the previous frame: dead still between keys). ``gravity`` unset is the
     style pack's; ``"none"`` switches the pack's off for this shot.
+
+    ``ground`` is the floor line, a stage ``y`` (scene px from the stage
+    centre, down positive): where ``place`` puts an item ``onto: ground``, a
+    ``release`` lands it, and an item ``overrides: {held_by: ground}`` rests
+    (:mod:`an.ir.holds`). Unset, a hand puts things on the floor its body
+    stands on (the bottom of its rig's root parts).
+
+    >>> SolveSettings(ground=502).model_dump()
+    {'ground': 502.0}
     """
 
     mode: Literal["pose", "dynamic"] | None = None
@@ -877,6 +886,7 @@ class SolveSettings(_IRModel):
     damping: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
     iterations: int | None = Field(default=None, ge=1)
     substeps: int | None = Field(default=None, ge=1)
+    ground: float | None = Field(default=None, allow_inf_nan=False)
 
     @field_validator("gravity")
     @classmethod
@@ -891,7 +901,13 @@ class SolveSettings(_IRModel):
     @model_serializer(mode="wrap")
     def _omit_unset(self, handler):
         return _omit_none(
-            handler(self), "mode", "gravity", "damping", "iterations", "substeps"
+            handler(self),
+            "mode",
+            "gravity",
+            "damping",
+            "iterations",
+            "substeps",
+            "ground",
         )
 
 

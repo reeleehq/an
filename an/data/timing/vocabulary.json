@@ -50,6 +50,159 @@
    }
   },
   {
+   "id": "action.grasp",
+   "kind": "action",
+   "name": "grasp",
+   "version": "1",
+   "title": "",
+   "description": "reach an item with a body's point (a hand) and take it, keeping its pose",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "``by`` (a body's point: a hand) reaches ``item``'s grip and takes it.\n\n``item`` is an entity id, with ``@<point>`` the grip (a bone of its rig,\nor ``u,v`` a fraction of its drawing); unset: its ``grip`` bone, else its\nstage point. ``by`` with no ``@`` is the far end of the body (an arm's\nhand). The item is held from ``start + reach`` on, and over the retract it\nturns to how the hand holds things (``align``): drawn as it is, upright\nalong the hand's part, the way a socket holds it; ``align: false`` keeps\nthe angle it was taken at.\n\n>>> GraspAction(by=\"stu@hand_r\", item=\"musket\").reach == DFLT_REACH\nTrue",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "by": {
+      "title": "By",
+      "type": "string"
+     },
+     "item": {
+      "title": "Item",
+      "type": "string"
+     },
+     "reach": {
+      "default": 0.4,
+      "exclusiveMinimum": 0,
+      "title": "Reach",
+      "type": "number"
+     },
+     "retract": {
+      "default": 0.35,
+      "exclusiveMinimum": 0,
+      "title": "Retract",
+      "type": "number"
+     },
+     "lean": {
+      "default": 60.0,
+      "maximum": 180,
+      "minimum": 0,
+      "title": "Lean",
+      "type": "number"
+     },
+     "align": {
+      "default": true,
+      "title": "Align",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "by",
+     "item"
+    ],
+    "title": "GraspAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.handover",
+   "kind": "action",
+   "name": "handover",
+   "version": "1",
+   "title": "",
+   "description": "give a held item to another holder (a hand, a socket)",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "The hand holding ``item`` gives it to ``to`` (a hand, or a socket).\n\n``meet`` is where the two meet, as a fraction of the way from the giver's\nhand to the receiver's: ``1`` (the default) puts it into the receiver's\npoint, which does not move (a figurine's hand, a waiting hand); below 1\nboth hands reach and the receiver takes it where they meet (and turns it\nas a ``grasp`` does, ``align``).\n\n>>> HandoverAction(item=\"sword\", to=\"nap/arm_r/weapon\").meet\n1.0",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "item": {
+      "title": "Item",
+      "type": "string"
+     },
+     "to": {
+      "title": "To",
+      "type": "string"
+     },
+     "by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "By"
+     },
+     "meet": {
+      "default": 1.0,
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "title": "Meet",
+      "type": "number"
+     },
+     "reach": {
+      "default": 0.4,
+      "exclusiveMinimum": 0,
+      "title": "Reach",
+      "type": "number"
+     },
+     "retract": {
+      "default": 0.35,
+      "exclusiveMinimum": 0,
+      "title": "Retract",
+      "type": "number"
+     },
+     "lean": {
+      "default": 60.0,
+      "maximum": 180,
+      "minimum": 0,
+      "title": "Lean",
+      "type": "number"
+     },
+     "align": {
+      "default": true,
+      "title": "Align",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "item",
+     "to"
+    ],
+    "title": "HandoverAction",
+    "type": "object"
+   }
+  },
+  {
    "id": "action.join",
    "kind": "action",
    "name": "join",
@@ -942,6 +1095,92 @@
    }
   },
   {
+   "id": "action.place",
+   "kind": "action",
+   "name": "place",
+   "version": "1",
+   "title": "",
+   "description": "bring a held item onto the ground, a socket or a point, and let it go there",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "The hand holding ``item`` puts it ``onto`` a target and lets it go.\n\n``onto`` is ``ground`` (straight down, at floor height), ``ground@x`` (at\nstage ``x``), a body's point (a socket: the item's grip goes there, its\nframe aligned with the socket's) or ``world@x,y`` (hung on a point).\n``item@<point>`` names the item's point that touches the target (default:\nits grip on a socket, its lowest point on the ground). ``rotation``: the\nitem's rotation where it rests (radians, the stage's; default: the angle it\nlast rested at on the ground, else the nearest quarter turn; a socket's own).\n\n>>> PlaceAction(item=\"musket\", onto=\"nap/arm_r/weapon\").by is None\nTrue",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "item": {
+      "title": "Item",
+      "type": "string"
+     },
+     "onto": {
+      "title": "Onto",
+      "type": "string"
+     },
+     "by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "By"
+     },
+     "rotation": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Rotation"
+     },
+     "reach": {
+      "default": 0.4,
+      "exclusiveMinimum": 0,
+      "title": "Reach",
+      "type": "number"
+     },
+     "retract": {
+      "default": 0.35,
+      "exclusiveMinimum": 0,
+      "title": "Retract",
+      "type": "number"
+     },
+     "lean": {
+      "default": 60.0,
+      "maximum": 180,
+      "minimum": 0,
+      "title": "Lean",
+      "type": "number"
+     }
+    },
+    "required": [
+     "item",
+     "onto"
+    ],
+    "title": "PlaceAction",
+    "type": "object"
+   }
+  },
+  {
    "id": "action.pull",
    "kind": "action",
    "name": "pull",
@@ -1033,6 +1272,79 @@
      "to"
     ],
     "title": "PullAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.release",
+   "kind": "action",
+   "name": "release",
+   "version": "1",
+   "title": "",
+   "description": "let a held item go: it falls, or is tossed, onto the ground",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "The hand holding ``item`` lets it go at ``at``: it falls with the\nvelocity it had onto the ground, or is tossed ``onto: ground@x`` on an\narc ``arc`` px high, and lands at ``rotation`` (default: as in ``place``).\n\n>>> ReleaseAction(item=\"cup\", at=1.0).onto is None\nTrue",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "item": {
+      "title": "Item",
+      "type": "string"
+     },
+     "at": {
+      "default": 0.0,
+      "title": "At",
+      "type": "number"
+     },
+     "onto": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Onto"
+     },
+     "arc": {
+      "default": 40.0,
+      "minimum": 0,
+      "title": "Arc",
+      "type": "number"
+     },
+     "rotation": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Rotation"
+     }
+    },
+    "required": [
+     "item"
+    ],
+    "title": "ReleaseAction",
     "type": "object"
    }
   },
@@ -1473,6 +1785,89 @@
      "value"
     ],
     "title": "SetAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.swap",
+   "kind": "action",
+   "name": "swap",
+   "version": "1",
+   "title": "",
+   "description": "take the item a holder has and give it another in its place",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "``by`` takes ``take`` from ``holder`` and the hand holding ``give``\nputs that there, ``lag`` seconds later: a ``grasp`` and a ``place``.\n\n>>> SwapAction(holder=\"nap/hand\", take=\"musket\", give=\"sword\", by=\"stu@hand_r\").lag == DFLT_SWAP_LAG\nTrue",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "holder": {
+      "title": "Holder",
+      "type": "string"
+     },
+     "take": {
+      "title": "Take",
+      "type": "string"
+     },
+     "give": {
+      "title": "Give",
+      "type": "string"
+     },
+     "by": {
+      "title": "By",
+      "type": "string"
+     },
+     "lag": {
+      "default": 0.25,
+      "exclusiveMinimum": 0,
+      "title": "Lag",
+      "type": "number"
+     },
+     "reach": {
+      "default": 0.4,
+      "exclusiveMinimum": 0,
+      "title": "Reach",
+      "type": "number"
+     },
+     "retract": {
+      "default": 0.35,
+      "exclusiveMinimum": 0,
+      "title": "Retract",
+      "type": "number"
+     },
+     "lean": {
+      "default": 60.0,
+      "maximum": 180,
+      "minimum": 0,
+      "title": "Lean",
+      "type": "number"
+     },
+     "align": {
+      "default": true,
+      "title": "Align",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "holder",
+     "take",
+     "give",
+     "by"
+    ],
+    "title": "SwapAction",
     "type": "object"
    }
   },

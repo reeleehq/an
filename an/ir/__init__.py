@@ -47,6 +47,9 @@ from an.ir.crowd import crowd, fan_out
 # The constraint layer's verbs (ADR 0008: pin, pull, join, unjoin) are core action
 # kinds, registered on import like `compose`'s.
 from an.ir.joints import pin, pull, join, unjoin  # noqa: E402
+
+# Holding things (an#502, catalogue A4): grasp, place, release, handover, swap.
+from an.ir.holds import grasp, place, release, handover, swap  # noqa: E402
 from an.ir.validate import (
     validate_schema,
     validate_semantic,
@@ -58,6 +61,7 @@ from an.ir.validate import (
 # importing them here gives `validate_semantic` them wherever `an.ir.validate` loads.
 import an.verify.constraints  # noqa: F401
 import an.verify.joints  # noqa: F401  (ADR 0008: the joint checks, after the catalogue's)
+import an.verify.holds  # noqa: F401  (an#502: the hold checks, beside the joint checks)
 from an.ir.migrate import (
     migrate,
     register_migration,
@@ -116,6 +120,11 @@ __all__ = [
     "pull",
     "join",
     "unjoin",
+    "grasp",
+    "place",
+    "release",
+    "handover",
+    "swap",
 ]
 
 # Document kinds self-register on import of the package that owns their schema.

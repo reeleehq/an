@@ -226,7 +226,8 @@ def test_scene_md_refuses_genre_kinds_and_sugar_until_loaded(declared_entry_poin
         with pytest.raises(SceneMarkdownError, match="cutout_animation") as err:
             markdown_to_ir(md)
         assert (
-            "must be one of set/tween/sequence/parallel/delay/loop/pin/pull/join/unjoin; got 'play'"
+            "must be one of set/tween/sequence/parallel/delay/loop/pin/pull/join/unjoin/"
+            "grasp/place/release/handover/swap; got 'play'"
             in str(err.value)
         )
         with pytest.raises(SceneMarkdownError, match=r"\[happy\].*cutout_animation"):
@@ -737,6 +738,10 @@ def test_the_report_order_is_pinned():
         "unknown_body",
         "unreachable_pin",
         "joint_violation",
+        # an#502: the hold checks, beside the joint checks (order 255)
+        "hold_conflict",
+        "unreachable_hold",
+        "floating_item",
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so
