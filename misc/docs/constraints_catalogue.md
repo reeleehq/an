@@ -141,7 +141,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** ADR 0007's `viewpoint` check ("a hand placement that disagrees with the world"): the perspective relation is what that disagreement measures for members on one ground plane; `framing` (an#211) stays beside it as the plate's own check.
 
-**Status.** Missing as a lint; the derivation is in flight (ADR 0007).
+**Status.** Shipped for hand placements in a framed shot (an#519 rank 15), as a `perspective` note of the world lowering (`an validate` warning): a member the world places, put by hand at a row whose ground-plane scale (`an.ir.world.ground_scale`, the member taken to stand on the horizontal plane through its world position) differs from its `stage.scale` by over `PERSPECTIVE_TOLERANCE` (15%). Not built: members outside a world (needs contacts, A1), flying members.
 
 #### A7. View and facing agreement with the viewpoint
 
