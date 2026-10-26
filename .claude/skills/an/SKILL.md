@@ -77,7 +77,6 @@ Every core name a scene may use, with its version and the spectrum levels it acc
 | `parallel` | 1 | a | run children at once |
 | `delay` | 1 | a | an empty span that consumes time |
 | `loop` | 1 | a | repeat a child count times |
-| `reframe` | 1 | a | move a world member to another frame of reference at an instant, keeping its place in the world; optionally flying free under gravity |
 | `pin` | 1 | a | hold a body's point exactly at a point for a span (a rod, a nail) |
 | `pull` | 1 | a | draw a body's point toward a point or along a path (a string) |
 | `join` | 1 | a | enforce a declared joint from an instant on |
@@ -87,6 +86,7 @@ Every core name a scene may use, with its version and the spectrum levels it acc
 | `release` | 1 | a | let a held item go: it falls, or is tossed, onto the ground |
 | `handover` | 1 | a | give a held item to another holder (a hand, a socket) |
 | `swap` | 1 | a | take the item a holder has and give it another in its place |
+| `reframe` | 1 | a | move a world member to another frame of reference at an instant, keeping its place in the world; optionally flying free under gravity |
 
 ### Entity kinds
 

@@ -69,15 +69,15 @@ def _rotation_at(shot, entity, t):
 def test_braking_with_sway_leans_the_members_by_atan_a_over_g():
     scene = _braking(FrameSway())
     shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
-    want = -math.degrees(math.atan(20.0 / DFLT_WORLD_GRAVITY))  # leans forward: top toward the camera's left
-    assert _rotation_at(shot, "right", 0.5) == pytest.approx(want, abs=1.0)
-    assert _rotation_at(shot, "right", 1.8) == pytest.approx(0.0, abs=0.2)  # stopped: upright
+    want = -math.atan(20.0 / DFLT_WORLD_GRAVITY)  # radians: the runtime's unit  # leans forward: top toward the camera's left
+    assert _rotation_at(shot, "right", 0.5) == pytest.approx(want, abs=0.02)
+    assert _rotation_at(shot, "right", 1.8) == pytest.approx(0.0, abs=0.005)  # stopped: upright
 
 
 def test_gain_scales_the_lean_and_no_sway_means_no_lean():
     half = lower_world(_braking(FrameSway(gain=0.5)), extents=EXTENTS).scene.timeline[0]
-    full = math.degrees(math.atan(20.0 / DFLT_WORLD_GRAVITY))
-    assert _rotation_at(half, "right", 0.5) == pytest.approx(-0.5 * full, abs=1.0)
+    full = math.atan(20.0 / DFLT_WORLD_GRAVITY)
+    assert _rotation_at(half, "right", 0.5) == pytest.approx(-0.5 * full, abs=0.02)
     off = lower_world(_braking(None), extents=EXTENTS).scene.timeline[0]
     assert _rotation_at(off, "right", 0.5) is None
 
@@ -97,11 +97,40 @@ def test_settle_lets_the_lean_die_away_instead_of_stopping_dead():
     quick = lower_world(_braking(FrameSway()), extents=EXTENTS).scene.timeline[0]
     slow = lower_world(_braking(FrameSway(settle=0.4)), extents=EXTENTS).scene.timeline[0]
     # braking ends at 1 s; the quick one is upright at once, the settled one rights itself over ~0.4 s
-    assert abs(_rotation_at(quick, "right", 1.3)) < 0.5
-    assert abs(_rotation_at(slow, "right", 1.3)) > 10.0
+    assert abs(_rotation_at(quick, "right", 1.3)) < 0.01
+    assert abs(_rotation_at(slow, "right", 1.3)) > 0.2
     assert _rotation_at(slow, "right", 0.0) == pytest.approx(_rotation_at(quick, "right", 0.0))
 
 
 def test_a_frame_without_sway_dumps_as_it_did():
     assert "sway" not in Frame().model_dump()
     assert Frame(sway=FrameSway(gain=2.0)).model_dump()["sway"]["gain"] == 2.0
+
+
+def test_a_stop_with_no_easing_is_capped_not_a_flip():
+    scene = _braking(FrameSway())
+    scene.timeline[0].actions[-1] = tween("car", "at_z", to=10.0, duration=1.0, from_=0.0, easing="linear")
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    cap = math.radians(FrameSway().limit)
+    for t in (0.0, 0.5, 0.99, 1.0, 1.04, 1.5):
+        assert abs(_rotation_at(shot, "right", t)) <= cap + 1e-9
+
+
+def test_a_member_that_reframes_out_stops_leaning_and_an_attached_one_is_told():
+    from an.ir.reframe import reframe
+    from an.ir.schema import Attachment
+
+    scene = _braking(FrameSway())
+    scene.timeline[0].actions.append(reframe("right", to="world", at=0.2))
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    assert abs(_rotation_at(shot, "right", 0.5)) < 0.01
+    scene = _braking(FrameSway())
+    scene.world.members.append(_lamp("hat", attached=Attachment(to="right")))
+    notes = lower_world(scene, extents={**EXTENTS}).notes
+    assert [n.entity for n in notes if n.kind == "sway_attached"] == ["hat"]
+
+
+def test_gravity_is_the_frames_to_set():
+    a = lower_world(_braking(FrameSway()), extents=EXTENTS).scene.timeline[0]
+    b = lower_world(_braking(FrameSway(gravity=19.62)), extents=EXTENTS).scene.timeline[0]
+    assert abs(_rotation_at(b, "right", 0.5)) < abs(_rotation_at(a, "right", 0.5))

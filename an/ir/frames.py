@@ -50,10 +50,10 @@ __all__ = [
     "FrameError",
     "FrameTree",
     "Pose",
-    "lag_filter",
     "Track",
     "TrackEvent",
     "Vec3",
+    "lag_filter",
     "look_basis",
 ]
 
@@ -462,7 +462,9 @@ class FrameTree:
             for t in sorted(times)
         )
 
-    def acceleration(self, name: str, t: float, *, film_start: float = 0.0) -> Vec3:
+    def acceleration(
+        self, name: str, t: float, *, film_start: float = 0.0, dt: float = _ACCEL_DT
+    ) -> Vec3:
         """The world acceleration of ``name``'s origin at shot time ``t``
         (central second difference, units/s²): zero for a frame at rest or at a
         constant speed.
@@ -476,7 +478,7 @@ class FrameTree:
         >>> [round(v, 1) + 0.0 for v in braking.acceleration("car", 0.5)]   # 20 m/s to 0 in a second
         [0.0, 0.0, -20.0]
         """
-        h = _ACCEL_DT
+        h = dt
         a, b, c = (
             self.world_pose(name, t + k * h, film_start=film_start).at
             for k in (-1, 0, 1)

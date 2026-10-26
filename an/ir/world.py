@@ -82,7 +82,6 @@ from an.ir.schema import (
     World,
     WorldMember,
 )
-from an.ir.reframe import DFLT_WORLD_GRAVITY
 from an.timing.easing import apply_easing
 
 __all__ = [
@@ -1485,9 +1484,9 @@ def _reframe_notes(
         )
 
 
-#: Rotation (degrees) a sway channel's fit may stray from the lean; a lean
-#: below it all shot long is none.
-SWAY_TOLERANCE_DEG: float = 0.05
+#: Rotation (radians) a sway channel's fit may stray from the lean (about
+#: 0.05 degrees); a lean below it all shot long is none.
+SWAY_TOLERANCE_RAD: float = 0.0009
 #: How far inside the shot a sway's acceleration is read at its ends (s).
 _SWAY_EDGE: float = 0.02
 
@@ -1499,23 +1498,30 @@ def _sway_actions(
     ctx: _FrameCtx,
     *,
     shot: Shot,
+    until: float | None = None,
     tol: float,
     min_step: float,
     fps: float,
     note: Callable[[str, str, str, str], None],
 ) -> list[Any]:
     """The lean of a member riding an accelerating frame (an#504): its
-    ``rotation`` (degrees, clockwise) follows ``-gain × atan(a / g)``, ``a``
-    being the frame's acceleration along the camera's right axis, so a frame
-    braking toward the camera's left (acceleration right) tips what rides in it
-    to the left. Constant speed is no lean. ``settle`` smooths it (a first-order
-    lag); the channel is fitted by :func:`fit_channel`. No actions when the
-    lean stays under ``tol`` degrees all shot long."""
+    ``rotation`` (radians, the runtime's; clockwise is positive) follows
+    ``-gain × atan(a / g)`` up to ``limit``, ``a`` being the frame's
+    acceleration along the camera's right axis, so a frame braking toward the
+    picture's left (acceleration right) tips what rides in it to the left.
+    Constant speed is no lean. ``settle`` smooths it (a first-order lag that
+    starts on the lean the shot opens with: the frame was already moving);
+    the channel is fitted by :func:`fit_channel`. ``until``: the lean ends
+    there (the member left the frame). No actions when the lean stays under
+    ``tol`` all shot long."""
     duration = ctx.duration
     n = max(1, int(math.ceil(duration * fps)))
     times = [duration * i / n for i in range(n + 1)]
+    limit = math.radians(float(sway.limit))
 
     def raw(t: float) -> float:
+        if until is not None and t >= until:
+            return 0.0
         right = ctx.eye_at(t).right
         # Read inside the shot: at its very edges the second difference would
         # straddle the instant the motion starts, and see an impulse.
@@ -1523,7 +1529,8 @@ def _sway_actions(
             x * y
             for x, y in zip(accel(min(max(t, _SWAY_EDGE), duration - _SWAY_EDGE)), right)
         )
-        return -float(sway.gain) * math.degrees(math.atan2(a, DFLT_WORLD_GRAVITY))
+        lean = -float(sway.gain) * math.atan2(a, float(sway.gravity))
+        return max(-limit, min(limit, lean))
 
     lean = lag_filter([raw(t) for t in times], lag=float(sway.settle), dt=duration / n)
     if max(abs(v) for v in lean) <= tol:
@@ -1972,25 +1979,40 @@ def _lower_shot(
             actions.extend(
                 _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
             )
+    swayed: set[str] = set()
     for mid in sorted(emitted & frame_of.keys()):
         if members[mid].kind == "environment" or mid in vp.hide:
             continue
         sway = tree.sway_frame(frame_of[mid])
         if sway is None:
             continue
+        swayed.add(mid)
         actions.extend(
             _sway_actions(
                 mid,
                 tree.frames[sway].sway,
-                lambda t, sway=sway: tree.acceleration(sway, t, film_start=film_start),
+                lambda t, sway=sway: tree.acceleration(
+                    sway, t, film_start=film_start, dt=1.0 / fps
+                ),
                 ctx,
                 shot=shot,
-                tol=SWAY_TOLERANCE_DEG,
+                until=courses[mid].changes[0].at if mid in courses and courses[mid].changes else None,
+                tol=SWAY_TOLERANCE_RAD,
                 min_step=min_step,
                 fps=fps,
                 note=note,
             )
         )
+    for member in world.members:
+        if member.attached is not None and member.attached.to in swayed:
+            note(
+                "info",
+                "sway_attached",
+                member.id,
+                f"attached to {member.attached.to!r}, which leans with its frame's "
+                "acceleration: the attachment does not lean with it. Put the member "
+                "in the frame (`in:`) to sway it too.",
+            )
     n_motion = len(actions) - len(split.actions)
     if n_motion > budget:
         raise WorldError(

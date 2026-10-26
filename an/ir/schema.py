@@ -1225,6 +1225,21 @@ class FrameSway(_IRModel):
 
     gain: float = Field(default=1.0, allow_inf_nan=False)
     settle: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+    #: Gravity in the frame's units per second² (the world is in metres): the
+    #: lean is ``atan(a / gravity)``.
+    gravity: float = Field(default=9.81, gt=0, allow_inf_nan=False)
+    #: The most a member leans, degrees: a stop with no easing is an impulse,
+    #: and an impulse would flip it over for a frame.
+    limit: float = Field(default=75.0, gt=0, le=90, allow_inf_nan=False)
+
+    @model_serializer(mode="wrap")
+    def _omit_defaults(self, handler):
+        data = handler(self)
+        if isinstance(data, dict):
+            for name, default in (("settle", 0.0), ("gravity", 9.81), ("limit", 75.0)):
+                if data.get(name) == default:
+                    data.pop(name, None)
+        return data
 
 
 class Frame(_IRModel):
