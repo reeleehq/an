@@ -123,9 +123,7 @@ def validate_project(
         # Kinds are REPORTED here, as findings, not refused at load.
         with warnings.catch_warnings(record=True) as load_warnings:
             warnings.simplefilter("always")
-            project: Project = load(
-                project_dir, check_kinds=False, scene_file=resolved
-            )
+            project: Project = load(project_dir, check_kinds=False, scene_file=resolved)
     except (DocumentMigrationError, SceneValidationError) as e:
         # NOT "scene.md does not parse": the md may be perfect and the stored
         # JSON from another build. Routing an agent to edit the file that is

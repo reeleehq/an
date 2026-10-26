@@ -56,7 +56,9 @@ def _project(
     """``project`` itself when loaded, else the project at that folder, read
     from ``scene_file`` (a loaded project already holds its scene)."""
     return (
-        project if isinstance(project, Project) else load(project, scene_file=scene_file)
+        project
+        if isinstance(project, Project)
+        else load(project, scene_file=scene_file)
     )
 
 
