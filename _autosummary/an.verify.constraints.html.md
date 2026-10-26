@@ -97,7 +97,8 @@ The core’s constraints:
 | [`shape_drifts`](#an.verify.constraints.shape_drifts)(entity, samples, \*, quantity[, ...]) | The first of `samples` `(t, scale_x, scale_y)` whose `quantity` has left its starting value by more than `tolerance` (a fraction), as one drift carrying the worst ratio seen from then on.                                                                                      |
 | [`weld_drifts`](#an.verify.constraints.weld_drifts)(samples, \*[, index, offset, ...])     | The first instant of `samples` `(t, carrier centre, item centre)` at which the item is more than `tolerance` from its `offset` to the carrier (the first sample's offset when `offset` is `None`), as one drift: the worst distance seen from then on.                           |
 | [`vanishings`](#an.verify.constraints.vanishings)(presence, time_jumps[, entrances])      | The entities that vanish and return with nothing to explain it.                                                                                                                                                                                                                  |
-| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | `ctx.shot` compiled as `an render` compiles it, once per validation.                                                                                                                                                                                                             |
+| [`compile_outcome`](#an.verify.constraints.compile_outcome)(ctx)                               | `ctx.shot` compiled as `an render` compiles it, once per validation: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render.                                                                                                    |
+| [`compiled_shot`](#an.verify.constraints.compiled_shot)(ctx)                                 | The document of [`compile_outcome()`](#an.verify.constraints.compile_outcome), `None` for a shot the stage does not render or that does not compile: the checks that own those problems report them, and a constraint says nothing about a shot it could not see.           |
 | [`continuity_findings`](#an.verify.constraints.continuity_findings)(doc, \*, duration, fps[, ...]) | `[(severity, ir path, message)]` for a compiled shot's jumps and short holds.                                                                                                                                                                                                    |
 | [`discontinuities`](#an.verify.constraints.discontinuities)(timeline, \*, rest, duration)      | Every instant in `(0, duration]` where a numeric value of `timeline` jumps: the pose read just before the instant and just after it differ beyond `CONTINUITY_TOLERANCE`.                                                                                                        |
 | [`short_holds`](#an.verify.constraints.short_holds)(timeline, \*, fps)                     | Step-held values shown for less than a frame: two `set``s of one property closer than ``1/fps`, so the first may never land on a frame.                                                                                                                                          |
@@ -234,16 +235,28 @@ How a sound at `sound_t` sits against its visible cause at `cause_t` (seconds): 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.verify.constraints.compiled_shot(ctx)
+### an.verify.constraints.compile_outcome(ctx)
 
-`ctx.shot` compiled as `an render` compiles it, once per validation.
+`ctx.shot` compiled as `an render` compiles it, once per validation:
+`(document, None)`, `(None, the compile error)`, or `(None, None)` for
+a shot the stage does not render.
 
 The stores validate was given stand in for the mall; the scene’s frame rate
-(the render’s when `an validate --fps` says), resolution, step grid and
-default easing are the ones the render uses, so what is linted is the
-document that is drawn. `None` for a shot the stage does not render or
-that does not compile: the checks that own those problems report them, and
-a constraint says nothing about a shot it could not see.
+(the render’s when `an validate --fps` says), resolution, step grid,
+default easing and **style pack** are the ones the render uses, so what is
+linted is the document that is drawn: the `solve` pass reads the pack’s
+gravity and damping, and a document compiled without them is a different
+solve (an#534). Every compile-based check reads this one document.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None), [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+### an.verify.constraints.compiled_shot(ctx)
+
+The document of [`compile_outcome()`](#an.verify.constraints.compile_outcome), `None` for a shot the stage
+does not render or that does not compile: the checks that own those
+problems report them, and a constraint says nothing about a shot it could
+not see.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

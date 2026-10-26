@@ -21,6 +21,7 @@ an.verify.constraints
       shape_drifts
       weld_drifts
       vanishings
+      compile_outcome
       compiled_shot
       continuity_findings
       discontinuities

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=2a3c6b59"></script>
+    <script src="../_static/documentation_options.js?v=8e44ef40"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.270" />
+  <meta name="docsearch:version" content="0.1.271" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -747,16 +747,19 @@ lip-sync consistency are not built.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.vanishings" title="an.verify.constraints.vanishings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vanishings</span></code></a>(presence, time_jumps[, entrances])</p></td>
 <td><p>The entities that vanish and return with nothing to explain it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.compiled_shot" title="an.verify.constraints.compiled_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_shot</span></code></a>(ctx)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_outcome</span></code></a>(ctx)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation: <code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for a shot the stage does not render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.continuity_findings" title="an.verify.constraints.continuity_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuity_findings</span></code></a>(doc, *, duration, fps[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.compiled_shot" title="an.verify.constraints.compiled_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_shot</span></code></a>(ctx)</p></td>
+<td><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage does not render or that does not compile: the checks that own those problems report them, and a constraint says nothing about a shot it could not see.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.continuity_findings" title="an.verify.constraints.continuity_findings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuity_findings</span></code></a>(doc, *, duration, fps[, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">[(severity,</span> <span class="pre">ir</span> <span class="pre">path,</span> <span class="pre">message)]</span></code> for a compiled shot's jumps and short holds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.discontinuities" title="an.verify.constraints.discontinuities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discontinuities</span></code></a>(timeline, *, rest, duration)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.discontinuities" title="an.verify.constraints.discontinuities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discontinuities</span></code></a>(timeline, *, rest, duration)</p></td>
 <td><p>Every instant in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">duration]</span></code> where a numeric value of <code class="docutils literal notranslate"><span class="pre">timeline</span></code> jumps: the pose read just before the instant and just after it differ beyond <code class="xref py py-data docutils literal notranslate"><span class="pre">CONTINUITY_TOLERANCE</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.constraints.short_holds" title="an.verify.constraints.short_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short_holds</span></code></a>(timeline, *, fps)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.constraints.short_holds" title="an.verify.constraints.short_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">short_holds</span></code></a>(timeline, *, fps)</p></td>
 <td><p>Step-held values shown for less than a frame: two <code class="docutils literal notranslate"><span class="pre">set``s</span> <span class="pre">of</span> <span class="pre">one</span> <span class="pre">property</span> <span class="pre">closer</span> <span class="pre">than</span> <span class="pre">``1/fps</span></code>, so the first may never land on a frame.</p></td>
 </tr>
 </tbody>
@@ -950,15 +953,31 @@ every <code class="docutils literal notranslate"><span class="pre">dt</span></co
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.verify.constraints.compile_outcome">
+<span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">compile_outcome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#compile_outcome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.compile_outcome" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation:
+<code class="docutils literal notranslate"><span class="pre">(document,</span> <span class="pre">None)</span></code>, <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">the</span> <span class="pre">compile</span> <span class="pre">error)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for
+a shot the stage does not render.</p>
+<p>The stores validate was given stand in for the mall; the scene’s frame rate
+(the render’s when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--fps</span></code> says), resolution, step grid,
+default easing and <strong>style pack</strong> are the ones the render uses, so what is
+linted is the document that is drawn: the <code class="docutils literal notranslate"><span class="pre">solve</span></code> pass reads the pack’s
+gravity and damping, and a document compiled without them is a different
+solve (an#534). Every compile-based check reads this one document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>, <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.verify.constraints.compiled_shot">
 <span class="sig-prename descclassname"><span class="pre">an.verify.constraints.</span></span><span class="sig-name descname"><span class="pre">compiled_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/constraints.html#compiled_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.constraints.compiled_shot" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">ctx.shot</span></code> compiled as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> compiles it, once per validation.</p>
-<p>The stores validate was given stand in for the mall; the scene’s frame rate
-(the render’s when <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span> <span class="pre">--fps</span></code> says), resolution, step grid and
-default easing are the ones the render uses, so what is linted is the
-document that is drawn. <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage does not render or
-that does not compile: the checks that own those problems report them, and
-a constraint says nothing about a shot it could not see.</p>
+<dd><p>The document of <a class="reference internal" href="#an.verify.constraints.compile_outcome" title="an.verify.constraints.compile_outcome"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">None</span></code> for a shot the stage
+does not render or that does not compile: the checks that own those
+problems report them, and a constraint says nothing about a shot it could
+not see.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
@@ -1213,6 +1232,7 @@ distance seen from then on.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.WeldDrift"><code class="docutils literal notranslate"><span class="pre">WeldDrift</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.airborne_faults"><code class="docutils literal notranslate"><span class="pre">airborne_faults()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.av_offset_fault"><code class="docutils literal notranslate"><span class="pre">av_offset_fault()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.compile_outcome"><code class="docutils literal notranslate"><span class="pre">compile_outcome()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.compiled_shot"><code class="docutils literal notranslate"><span class="pre">compiled_shot()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.continuity_findings"><code class="docutils literal notranslate"><span class="pre">continuity_findings()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.constraints.discontinuities"><code class="docutils literal notranslate"><span class="pre">discontinuities()</span></code></a></li>
