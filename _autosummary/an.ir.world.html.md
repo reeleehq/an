@@ -45,12 +45,14 @@ move, and a close-up is the same world seen from nearer.
 |------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Extents`](#an.ir.world.Extents)                     | `{member or stream id: Box | None}`, measured by the stage ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)); the IR layer only reads it. |
 | [`HAND_PLACEMENT_TOLERANCE_PX`](#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX) | A hand `stage.at` this far from the world's placement is "the same" (the cut-continuity tolerance, an#394); farther is a lint warning.                                                                   |
+| [`PERSPECTIVE_TOLERANCE`](#an.ir.world.PERSPECTIVE_TOLERANCE)       | A hand placement whose scale differs from the ground plane's by more than this fraction is out of perspective (catalogue A6).                                                                            |
 
 ### Functions
 
 | [`fit_channel`](#an.ir.world.fit_channel)(g, a, b, \*, tolerance, min_step)      | One channel's motion `g` on `[a, b]` as tweens: `[(t0, t1, v0, v1, easing)]`, each a cubic-Bézier easing whose end slopes match `g`'s (a Hermite fit: control points `(1/3, d0/3, 2/3, 1 − d1/3)`), split in two wherever the fit strays more than `tolerance` from `g` — dense where the motion bends (a stream instance near the camera), one segment where it is straight.   |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`focal_length`](#an.ir.world.focal_length)(viewpoint, \*, width)                 | The lens in pixels: `focal` as given, else from `fov` (horizontal, degrees; `DFLT_FOV_DEG` when unset) and the frame width.                                                                                                                                                                                                                                                     |
+| [`ground_scale`](#an.ir.world.ground_scale)(projection, at, \*, floor_y, unit)    | The `stage.scale` of a member standing on the horizontal plane `y = floor_y` whose feet are drawn at screen `at` (px from the frame centre), or `None` at or above the horizon or when the plane is not below the eye.                                                                                                                                                          |
 | [`frame_poses`](#an.ir.world.frame_poses)(scene, \*[, film_starts])              | Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own `<frame>:at_*` actions): what `an world show --frames` prints.                                                                                                                                                                                                   |
 | [`has_world`](#an.ir.world.has_world)(scene)                                   | Whether lowering would change anything: a world, or a shot with a viewpoint.                                                                                                                                                                                                                                                                                                    |
 | [`lower_world`](#an.ir.world.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                                                                                                                                                                                                           |
@@ -106,6 +108,11 @@ The scene as the compiler will see it, the notes to report, and for
 each framed shot where its lowered entities came from (`origins`: per
 lowered entity index, the author’s entity index, or `None` for one the
 world added), so a finding on a lowered shot can name the author’s line.
+
+### an.ir.world.PERSPECTIVE_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
+
+A hand placement whose scale differs from the ground plane’s by more than
+this fraction is out of perspective (catalogue A6).
 
 ### *class* an.ir.world.Placed(id, at, scale, depth, box, in_frame, via, note='')
 
@@ -258,6 +265,28 @@ and as it closes (after the shot’s own `<frame>:at_*` actions): what
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.ir.world.ground_scale(projection, at, , floor_y, unit)
+
+The `stage.scale` of a member standing on the horizontal plane `y = floor_y` whose feet are drawn at screen `at` (px from the frame centre), or `None` at or above the horizon or when the plane is not below the eye.
+
+The single-view relation (catalogue A6): the ray through the pixel meets the
+floor at depth `t * f`, and a member of `unit` world units per native
+pixel is drawn at `unit * f / depth` = `unit * ray_y / (floor_y - eye_y)`,
+so scale grows with the pixel’s distance below the horizon.
+
+```pycon
+>>> eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 1000.0)
+>>> round(ground_scale(eye, (0.0, 100.0), floor_y=1.0, unit=0.01), 3)    # feet 100 px below the horizon
+1.0
+>>> round(ground_scale(eye, (0.0, 200.0), floor_y=1.0, unit=0.01), 3)    # nearer: twice the size
+2.0
+>>> ground_scale(eye, (0.0, -50.0), floor_y=1.0, unit=0.01) is None      # above the horizon
+True
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.ir.world.has_world(scene)
 

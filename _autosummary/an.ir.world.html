@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=857a2bd0"></script>
+    <script src="../_static/documentation_options.js?v=6d608812"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.267" />
+  <meta name="docsearch:version" content="0.1.268" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -678,6 +678,9 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX" title="an.ir.world.HAND_PLACEMENT_TOLERANCE_PX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HAND_PLACEMENT_TOLERANCE_PX</span></code></a></p></td>
 <td><p>A hand <code class="docutils literal notranslate"><span class="pre">stage.at</span></code> this far from the world's placement is &quot;the same&quot; (the cut-continuity tolerance, an#394); farther is a lint warning.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.PERSPECTIVE_TOLERANCE" title="an.ir.world.PERSPECTIVE_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PERSPECTIVE_TOLERANCE</span></code></a></p></td>
+<td><p>A hand placement whose scale differs from the ground plane's by more than this fraction is out of perspective (catalogue A6).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -690,31 +693,34 @@ move, and a close-up is the same world seen from nearer.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.focal_length" title="an.ir.world.focal_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">focal_length</span></code></a>(viewpoint, *, width)</p></td>
 <td><p>The lens in pixels: <code class="docutils literal notranslate"><span class="pre">focal</span></code> as given, else from <code class="docutils literal notranslate"><span class="pre">fov</span></code> (horizontal, degrees; <code class="code docutils literal notranslate"><span class="pre">DFLT_FOV_DEG</span></code> when unset) and the frame width.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.frame_poses" title="an.ir.world.frame_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_poses</span></code></a>(scene, *[, film_starts])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.ground_scale" title="an.ir.world.ground_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ground_scale</span></code></a>(projection, at, *, floor_y, unit)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">stage.scale</span></code> of a member standing on the horizontal plane <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">floor_y</span></code> whose feet are drawn at screen <code class="docutils literal notranslate"><span class="pre">at</span></code> (px from the frame centre), or <code class="docutils literal notranslate"><span class="pre">None</span></code> at or above the horizon or when the plane is not below the eye.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.frame_poses" title="an.ir.world.frame_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_poses</span></code></a>(scene, *[, film_starts])</p></td>
 <td><p>Per framed shot, where each frame stands in the world as the shot opens and as it closes (after the shot's own <code class="docutils literal notranslate"><span class="pre">&lt;frame&gt;:at_*</span></code> actions): what <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">world</span> <span class="pre">show</span> <span class="pre">--frames</span></code> prints.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.has_world" title="an.ir.world.has_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_world</span></code></a>(scene)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.has_world" title="an.ir.world.has_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_world</span></code></a>(scene)</p></td>
 <td><p>Whether lowering would change anything: a world, or a shot with a viewpoint.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_world</span></code></a>(scene, *, extents[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.lower_world" title="an.ir.world.lower_world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower_world</span></code></a>(scene, *, extents[, ...])</p></td>
 <td><p>The scene with every framed shot's placements derived from the world.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.member_placements" title="an.ir.world.member_placements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">member_placements</span></code></a>(world, projection, *, ...)</p></td>
 <td><p>Every member's placement under <code class="docutils literal notranslate"><span class="pre">projection</span></code>: <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">Placed}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.pose_look" title="an.ir.world.pose_look"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose_look</span></code></a>(pose)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(yaw,</span> <span class="pre">pitch)</span></code> in degrees a pose faces.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_viewpoint</span></code></a>(world, viewpoint, *, ...)</p></td>
 <td><p>The camera a viewpoint is, as a <a class="reference internal" href="#an.ir.world.Projection" title="an.ir.world.Projection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Projection</span></code></a>, in its own frame's units.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_instances" title="an.ir.world.stream_instances"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_instances</span></code></a>(stream, travel, *, s_min, s_max)</p></td>
 <td><p>The instances of <code class="docutils literal notranslate"><span class="pre">stream</span></code> whose position along the travel lies in <code class="docutils literal notranslate"><span class="pre">[s_min,</span> <span class="pre">s_max]</span></code>: <code class="docutils literal notranslate"><span class="pre">[(k,</span> <span class="pre">world</span> <span class="pre">position)]</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> the instance index.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.stream_slots" title="an.ir.world.stream_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream_slots</span></code></a>(stream, travel)</p></td>
 <td><p>How many entities a stream needs: one per instance that can be between <code class="docutils literal notranslate"><span class="pre">near</span></code> and <code class="docutils literal notranslate"><span class="pre">far</span></code> at once, plus one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.world.viewpoint_of" title="an.ir.world.viewpoint_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewpoint_of</span></code></a>(world, viewpoint)</p></td>
 <td><p>The shot's viewpoint as a model: a name is looked up in the world.</p></td>
 </tr>
 </tbody>
@@ -787,6 +793,13 @@ lowered entity index, the author’s entity index, or <code class="docutils lite
 world added), so a finding on a lowered shot can name the author’s line.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.world.PERSPECTIVE_TOLERANCE">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">PERSPECTIVE_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.15</span></span><a class="headerlink" href="#an.ir.world.PERSPECTIVE_TOLERANCE" title="Link to this definition">#</a></dt>
+<dd><p>A hand placement whose scale differs from the ground plane’s by more than
+this fraction is out of perspective (catalogue A6).</p>
 </dd></dl>
 
 <dl class="py class">
@@ -978,6 +991,30 @@ and as it closes (after the shot’s own <code class="docutils literal notransla
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.world.ground_scale">
+<span class="sig-prename descclassname"><span class="pre">an.ir.world.</span></span><span class="sig-name descname"><span class="pre">ground_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/world.html#ground_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.world.ground_scale" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">stage.scale</span></code> of a member standing on the horizontal plane <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">floor_y</span></code> whose feet are drawn at screen <code class="docutils literal notranslate"><span class="pre">at</span></code> (px from the frame centre), or <code class="docutils literal notranslate"><span class="pre">None</span></code> at or above the horizon or when the plane is not below the eye.</p>
+<p>The single-view relation (catalogue A6): the ray through the pixel meets the
+floor at depth <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">*</span> <span class="pre">f</span></code>, and a member of <code class="docutils literal notranslate"><span class="pre">unit</span></code> world units per native
+pixel is drawn at <code class="docutils literal notranslate"><span class="pre">unit</span> <span class="pre">*</span> <span class="pre">f</span> <span class="pre">/</span> <span class="pre">depth</span></code> = <code class="docutils literal notranslate"><span class="pre">unit</span> <span class="pre">*</span> <span class="pre">ray_y</span> <span class="pre">/</span> <span class="pre">(floor_y</span> <span class="pre">-</span> <span class="pre">eye_y)</span></code>,
+so scale grows with the pixel’s distance below the horizon.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eye</span> <span class="o">=</span> <span class="n">Projection</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">ground_scale</span><span class="p">(</span><span class="n">eye</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span> <span class="n">floor_y</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="mf">0.01</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>    <span class="c1"># feet 100 px below the horizon</span>
+<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">ground_scale</span><span class="p">(</span><span class="n">eye</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">),</span> <span class="n">floor_y</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="mf">0.01</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>    <span class="c1"># nearer: twice the size</span>
+<span class="go">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ground_scale</span><span class="p">(</span><span class="n">eye</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">50.0</span><span class="p">),</span> <span class="n">floor_y</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>      <span class="c1"># above the horizon</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1205,6 +1242,7 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Extents"><code class="docutils literal notranslate"><span class="pre">Extents</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.HAND_PLACEMENT_TOLERANCE_PX"><code class="docutils literal notranslate"><span class="pre">HAND_PLACEMENT_TOLERANCE_PX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Lowered"><code class="docutils literal notranslate"><span class="pre">Lowered</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.PERSPECTIVE_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">PERSPECTIVE_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed"><code class="docutils literal notranslate"><span class="pre">Placed</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed.at"><code class="docutils literal notranslate"><span class="pre">Placed.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.Placed.box"><code class="docutils literal notranslate"><span class="pre">Placed.box</span></code></a></li>
@@ -1224,6 +1262,7 @@ slot in every shot, which is what keeps a cut continuous.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.fit_channel"><code class="docutils literal notranslate"><span class="pre">fit_channel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.focal_length"><code class="docutils literal notranslate"><span class="pre">focal_length()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.frame_poses"><code class="docutils literal notranslate"><span class="pre">frame_poses()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.ground_scale"><code class="docutils literal notranslate"><span class="pre">ground_scale()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.has_world"><code class="docutils literal notranslate"><span class="pre">has_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.lower_world"><code class="docutils literal notranslate"><span class="pre">lower_world()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.world.member_placements"><code class="docutils literal notranslate"><span class="pre">member_placements()</span></code></a></li>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=857a2bd0"></script>
+    <script src="../../../_static/documentation_options.js?v=6d608812"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.267" />
+  <meta name="docsearch:version" content="0.1.268" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -802,6 +802,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"Extents"</span><span class="p">,</span>
     <span class="s2">"HAND_PLACEMENT_TOLERANCE_PX"</span><span class="p">,</span>
     <span class="s2">"HAND_SCALE_TOLERANCE"</span><span class="p">,</span>
+    <span class="s2">"PERSPECTIVE_TOLERANCE"</span><span class="p">,</span>
     <span class="s2">"Lowered"</span><span class="p">,</span>
     <span class="s2">"Placed"</span><span class="p">,</span>
     <span class="s2">"Projection"</span><span class="p">,</span>
@@ -809,6 +810,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"WorldNote"</span><span class="p">,</span>
     <span class="s2">"fit_channel"</span><span class="p">,</span>
     <span class="s2">"focal_length"</span><span class="p">,</span>
+    <span class="s2">"ground_scale"</span><span class="p">,</span>
     <span class="s2">"frame_poses"</span><span class="p">,</span>
     <span class="s2">"has_world"</span><span class="p">,</span>
     <span class="s2">"lower_world"</span><span class="p">,</span>
@@ -1024,6 +1026,43 @@ window.runMermaid = runMermaid;</script>
             <span class="bp">self</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
+
+
+
+<span class="c1">#: A hand placement whose scale differs from the ground plane's by more than</span>
+<span class="c1">#: this fraction is out of perspective (catalogue A6).</span>
+<span class="n">PERSPECTIVE_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.15</span>
+
+
+<div class="viewcode-block" id="ground_scale">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.ground_scale">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ground_scale</span><span class="p">(</span>
+    <span class="n">projection</span><span class="p">:</span> <span class="n">Projection</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">floor_y</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``stage.scale`` of a member standing on the horizontal plane ``y = floor_y`` whose feet are drawn at screen ``at`` (px from the frame centre), or ``None`` at or above the horizon or when the plane is not below the eye.</span>
+
+<span class="sd">    The single-view relation (catalogue A6): the ray through the pixel meets the</span>
+<span class="sd">    floor at depth ``t * f``, and a member of ``unit`` world units per native</span>
+<span class="sd">    pixel is drawn at ``unit * f / depth`` = ``unit * ray_y / (floor_y - eye_y)``,</span>
+<span class="sd">    so scale grows with the pixel's distance below the horizon.</span>
+
+<span class="sd">    &gt;&gt;&gt; eye = Projection((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 1000.0)</span>
+<span class="sd">    &gt;&gt;&gt; round(ground_scale(eye, (0.0, 100.0), floor_y=1.0, unit=0.01), 3)    # feet 100 px below the horizon</span>
+<span class="sd">    1.0</span>
+<span class="sd">    &gt;&gt;&gt; round(ground_scale(eye, (0.0, 200.0), floor_y=1.0, unit=0.01), 3)    # nearer: twice the size</span>
+<span class="sd">    2.0</span>
+<span class="sd">    &gt;&gt;&gt; ground_scale(eye, (0.0, -50.0), floor_y=1.0, unit=0.01) is None      # above the horizon</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">below</span> <span class="o">=</span> <span class="n">floor_y</span> <span class="o">-</span> <span class="n">projection</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ray_y</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">projection</span><span class="o">.</span><span class="n">focal</span> <span class="o">*</span> <span class="n">projection</span><span class="o">.</span><span class="n">forward</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="o">+</span> <span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">projection</span><span class="o">.</span><span class="n">right</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="o">+</span> <span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">projection</span><span class="o">.</span><span class="n">down</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">below</span> <span class="o">&lt;=</span> <span class="n">_MIN_DEPTH</span> <span class="ow">or</span> <span class="n">ray_y</span> <span class="o">&lt;=</span> <span class="n">_MIN_DEPTH</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">unit</span> <span class="o">*</span> <span class="n">ray_y</span> <span class="o">/</span> <span class="n">below</span></div>
 
 
 
@@ -2349,6 +2388,40 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">at</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">at</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">)"</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_perspective_note</span><span class="p">(</span>
+    <span class="n">note</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">projection</span><span class="p">:</span> <span class="n">Projection</span><span class="p">,</span>
+    <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">box</span><span class="p">:</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">at3</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A warning when a hand-placed member's ``scale`` is not the one the ground plane gives at its screen row (catalogue A6).</span>
+
+<span class="sd">    The member is taken to stand on the horizontal plane through its world</span>
+<span class="sd">    position. A hand ``at`` keeps the world's scale, so walking a member to a</span>
+<span class="sd">    nearer row by hand leaves it the size of its old row.</span>
+<span class="sd">    """</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">at3</span> <span class="k">if</span> <span class="n">at3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">_unit_scale</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">want</span> <span class="o">=</span> <span class="n">ground_scale</span><span class="p">(</span><span class="n">projection</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span class="n">floor_y</span><span class="o">=</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="n">want</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">PERSPECTIVE_TOLERANCE</span> <span class="o">*</span> <span class="n">want</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">note</span><span class="p">(</span>
+        <span class="s2">"warning"</span><span class="p">,</span>
+        <span class="s2">"perspective"</span><span class="p">,</span>
+        <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"placed by hand at </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">at</span><span class="p">)</span><span class="si">}</span><span class="s2"> scale </span><span class="si">{</span><span class="n">scale</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">, but standing on the "</span>
+        <span class="sa">f</span><span class="s2">"ground plane there it would be drawn at scale </span><span class="si">{</span><span class="n">want</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> (size follows "</span>
+        <span class="s2">"the row's distance below the horizon). Set `stage.scale` to that, or "</span>
+        <span class="s2">"drop `stage.at` to let the world place it."</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_lower_shot</span><span class="p">(</span>
     <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
     <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -2598,6 +2671,11 @@ window.runMermaid = runMermaid;</script>
                         <span class="s2">"drop `stage.at` to follow the world, or move the member."</span><span class="p">,</span>
                     <span class="p">)</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">eff_scale</span> <span class="o">=</span> <span class="n">hand</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">moving</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">members</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">attached</span><span class="p">:</span>
+                <span class="n">_perspective_note</span><span class="p">(</span>
+                    <span class="n">note</span><span class="p">,</span> <span class="n">projection</span><span class="p">,</span> <span class="n">members</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">stage</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">eff_scale</span><span class="p">,</span>
+                    <span class="n">box</span><span class="o">=</span><span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">at3</span><span class="o">=</span><span class="n">member_at</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                <span class="p">)</span>  <span class="c1"># fmt: skip</span>
             <span class="k">if</span> <span class="n">eff_scale</span> <span class="o">!=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">scale</span><span class="p">):</span>
                 <span class="n">entity</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
                     <span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"stage"</span><span class="p">:</span> <span class="n">stage</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"scale"</span><span class="p">:</span> <span class="n">eff_scale</span><span class="p">})}</span>
