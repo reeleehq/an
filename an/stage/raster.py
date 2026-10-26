@@ -287,6 +287,41 @@ def is_svg_content(source: str | Path | bytes) -> bool:
     return False
 
 
+#: Everything an XML document may hold before its root element: whitespace,
+#: processing instructions (the ``<?xml ?>`` declaration), comments and a DOCTYPE
+#: (with an optional internal subset). Bytes, so any ASCII-compatible encoding.
+_PROLOG = re.compile(
+    rb"\A(?:\xef\xbb\xbf)?(?:\s|<\?.*?\?>|<!--.*?-->|<!DOCTYPE(?:[^\[>]|\[.*?\])*>)*",
+    re.DOTALL,
+)
+
+
+def pixi_sniffable_svg(data: bytes) -> bytes:
+    r"""``data`` with its root element on a line of its own, which PixiJS 7 needs.
+
+    Pixi decides whether a loaded text is an SVG with a multiline regex that can
+    skip an XML declaration and at most one plain comment before a LINE that
+    starts the root; a root that follows a DOCTYPE, a second processing
+    instruction or a comment holding ``( ) - >`` on the same line is not an SVG
+    to it, and the whole shot fails at load (an#525) while `an validate` calls
+    the file fine. A newline between the prolog and the root changes nothing the
+    XML parser sees, so it is the whole repair; a file whose root already starts
+    a line (or has no prolog) is returned as given, the same object.
+
+    >>> pixi_sniffable_svg(b'<!-- made by a-b (v1) --><svg/>')
+    b'<!-- made by a-b (v1) -->\n<svg/>'
+    >>> pixi_sniffable_svg(b'<?xml version="1.0"?>\n<svg/>')
+    b'<?xml version="1.0"?>\n<svg/>'
+    >>> pixi_sniffable_svg(b'<svg/>')
+    b'<svg/>'
+    """
+    prolog = _PROLOG.match(data)
+    head = prolog.group() if prolog else b""
+    if not head or head.endswith((b"\n", b"\r")):
+        return data
+    return head + b"\n" + data[len(head) :]
+
+
 def _head(source: str | Path) -> bytes:
     with open(source, "rb") as f:
         return f.read(_SNIFF_BYTES)

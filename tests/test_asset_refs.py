@@ -285,3 +285,38 @@ def test_a_referenced_svg_with_a_script_is_an_error_whatever_its_suffix(tmp_path
     assert [f.severity for f in findings] == ["error"] * 4  # two problems, each on both shots
     assert "forbidden element(s): image, script" in findings[0].description
     assert "links outside the file: 'http://x/y.png'" in findings[1].description
+
+
+ART = '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>'
+
+
+@pytest.mark.parametrize(
+    "prolog",
+    ["<!-- made by a-b (v1) -->", "<!DOCTYPE svg>", '<?xml version="1.0"?><?xml-stylesheet href="x"?>'],
+)
+def test_the_staging_step_puts_the_root_on_a_line_of_its_own(tmp_path, prolog):
+    """an#525: PixiJS's SVG sniffing (a multiline regex) cannot skip these
+    prologs when the root follows on the same line, and the whole shot failed
+    at load. Checks the staged bytes, not Pixi: the render is a developer-machine check."""
+    store = PropsStore(tmp_path / "props")
+    parts = tmp_path / "props" / "thing" / "parts"
+    parts.mkdir(parents=True)
+    (parts / "body.svg").write_text(f"{prolog}{ART}", encoding="utf-8")
+    (parts / "clean.svg").write_text(ART, encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    for name in ("body", "clean"):
+        _stage_scene_assets(
+            _scene_json(x=AssetJSON(src=f"props/thing/parts/{name}.svg")), {"props": store}, runtime
+        )
+    assert (runtime / "props/thing/parts/body.svg").read_text(encoding="utf-8") == f"{prolog}\n{ART}"
+    assert (runtime / "props/thing/parts/clean.svg").read_text(encoding="utf-8") == ART
+
+
+def test_a_data_uri_svg_gets_the_same_repair():
+    import base64
+
+    from an.stage.text_layout import svg_data_uri
+
+    uri = svg_data_uri(f"<!-- a-b -->{ART}")
+    assert base64.b64decode(uri.split(",", 1)[1]) == f"<!-- a-b -->\n{ART}".encode()
