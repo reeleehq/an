@@ -22,7 +22,13 @@ from typing import Mapping
 
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.ir.schema import Meta, Resolution, SceneIR
-from an.ir.sync import ir_to_markdown, sync as sync_files
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    SceneFile,
+    ir_to_markdown,
+    resolve_scene_file,
+    sync as sync_files,
+)
 from an.stores import build_project_mall
 from an.util import _read_text, _write_json, _write_text
 
@@ -208,8 +214,18 @@ def init(
     return pdir
 
 
-def load(project_dir: str | Path, *, check_kinds: bool = True) -> Project:
+def load(
+    project_dir: str | Path,
+    *,
+    check_kinds: bool = True,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
+) -> Project:
     """Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+    ``scene_file`` names another scene of the project (``scene.studio.md``, its
+    JSON twin ``ir/scene.studio.json``, an#539; resolved by
+    :func:`an.ir.sync.resolve_scene_file`, so a bad or missing one raises
+    :class:`~an.ir.sync.SceneFileError`); the assets are the project's.
 
     Registers the installed genres first (:func:`an.genres.load`, ADR 0001
     decision 3: discovery is explicit, and loading a project is one of the
@@ -231,9 +247,10 @@ def load(project_dir: str | Path, *, check_kinds: bool = True) -> Project:
         raise FileNotFoundError(f"no such project directory: {pdir}")
 
     # Sync md ↔ json so the loaded scene reflects the latest Markdown.
-    sync_files(pdir)
+    scene_file = resolve_scene_file(pdir, scene_file)
+    sync_files(pdir, scene_file)
 
-    mall = build_project_mall(pdir, ensure=True)
+    mall = build_project_mall(pdir, ensure=True, scene_file=scene_file)
     scene = mall["scenes"]["main"]
     if check_kinds:
         from an.ir.validate import require_registered_kinds

@@ -60,7 +60,7 @@ from an.audio.pipeline import AudioPipelineError
 from an.audio.recorded import RecordedVoicesError
 from an.audio.voice_design import VoiceDesignError
 from an.ir.migrate import DocumentMigrationError
-from an.ir.sync import SceneMarkdownError, SceneValidationError
+from an.ir.sync import SceneFileError, SceneMarkdownError, SceneValidationError
 from an.tools import _dispatch_funcs, _dispatch_namespaces, registered_namespaces
 
 
@@ -119,6 +119,9 @@ _REFUSALS: tuple[type[BaseException], ...] = (
     DocumentMigrationError,
     SceneMarkdownError,
     SceneValidationError,
+    # `--scene` naming a file that is not there, not a scene file of the
+    # project, or one that would overwrite the default scene's output (an#539).
+    SceneFileError,
     # A render refused before any request — a voice spoken by the wrong
     # provider, a voice nobody chose (an#486): the message names the fix.
     AudioPipelineError,

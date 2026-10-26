@@ -25,7 +25,13 @@ from an.ir.validate import (
     validate_semantic,
 )
 from an.ir.migrate import DocumentMigrationError
-from an.ir.sync import SceneValidationError
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    SceneFile,
+    SceneFileError,
+    SceneValidationError,
+    resolve_scene_file,
+)
 from an.project import Project, load
 from an.render import render_project as _render_project
 from an.verify._base import Verifier, VerificationReport
@@ -81,8 +87,10 @@ def validate_project(
     *,
     fps: float | None = None,
     strict_assets: bool = False,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> ValidationReport:
-    """Schema + semantic validation of the scene at ``project_dir``.
+    """Schema + semantic validation of the scene at ``project_dir`` (``scene.md``,
+    or the project's other ``scene_file``, an#539).
 
     A ``scene.md`` that does not PARSE — a dialogue line in no accepted shape
     (an#96), a malformed YAML block — is a Finding, not a traceback: `an
@@ -105,25 +113,34 @@ def validate_project(
     import warnings
 
     try:
+        resolved = resolve_scene_file(project_dir, scene_file)
+    except SceneFileError as e:  # a bad name, a missing file: a finding, as below
+        report = ValidationReport()
+        report.add("error", str(scene_file), str(e))
+        return report
+    md_name, json_name = resolved.name, f"ir/{resolved.json_path.name}"
+    try:
         # Kinds are REPORTED here, as findings, not refused at load.
         with warnings.catch_warnings(record=True) as load_warnings:
             warnings.simplefilter("always")
-            project: Project = load(project_dir, check_kinds=False)
+            project: Project = load(
+                project_dir, check_kinds=False, scene_file=resolved
+            )
     except (DocumentMigrationError, SceneValidationError) as e:
         # NOT "scene.md does not parse": the md may be perfect and the stored
         # JSON from another build. Routing an agent to edit the file that is
         # fine is the failure `Finding.ir_path` exists to prevent (an#105).
         report = ValidationReport()
-        report.add("error", "ir/scene.json", str(e))
+        report.add("error", json_name, str(e))
         return report
     except ValueError as e:
         report = ValidationReport()
-        report.add("error", "scene.md", f"scene.md does not parse: {e}")
+        report.add("error", md_name, f"{md_name} does not parse: {e}")
         return report
     schema_report = validate_schema(project.scene)
     for w in load_warnings:
         if issubclass(w.category, (UserWarning, DeprecationWarning)):
-            schema_report.add("warning", "scene.md", f"reading the scene: {w.message}")
+            schema_report.add("warning", md_name, f"reading the scene: {w.message}")
     # Clock-owned shots (Manim) are judged at their MEASURED length, from the
     # derived store only — validate never renders (an#279).
     from an.measurements import render_context_for, settle_durations
