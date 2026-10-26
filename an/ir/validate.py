@@ -2414,7 +2414,7 @@ _DELIBERATE: dict[str, frozenset[str]] = {
 
 
 def _placements(
-    shot: Any, ctx: ValidationContext, index: int
+    ctx: ValidationContext, shot: Any, index: int
 ) -> dict[str, tuple[dict, dict]] | None:
     """``{entity id: (state at the start, state at the end)}`` of a stage shot's
     entities, each state ``{prop: value}`` read off the document the stage
@@ -2534,7 +2534,9 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
 def _all_placements(ctx: ValidationContext) -> list:
     """Every shot's :func:`_placements`, computed once per validation."""
     return ctx.cached(
-        "placements", lambda: [_placements(shot, ctx, i) for i, shot in enumerate(ctx.shots)]
+        "placements", lambda: [
+            _placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)
+        ]
     )
 
 

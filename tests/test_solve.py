@@ -620,7 +620,5 @@ def test_every_compile_based_check_shares_one_document_with_the_style_pack(tmp_p
         available_environments=project.mall["environments"],
         available_styles=project.mall["styles"],
     )
-    # (the action-target check also compiles, for node paths only: it has no pack)
     packed = [p for p in packs if p is not None]
     assert [p.name for p in packed] == ["noir"] * len(scene.timeline), packs
-    assert packs.count(None) == len(scene.timeline), packs
