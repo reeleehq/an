@@ -33,9 +33,13 @@ class LayoutLintVerifier:
             report.add(
                 "warning",
                 "meta/duration",
-                f"meta.duration ({ir.meta.duration}) doesn't match sum of "
-                f"shot durations ({timeline_total})",
-                suggested_fix=f"set meta.duration = {timeline_total}",
+                f"meta.duration ({ir.meta.duration}) doesn't match what the "
+                f"shots lay out ({timeline_total}: their durations, minus any "
+                "dissolve or wipe overlap)",
+                suggested_fix=(
+                    f"set meta.duration = {timeline_total}, or remove it "
+                    "(unset, the film is as long as its shots)"
+                ),
             )
 
         # Each shot's structural checks.
