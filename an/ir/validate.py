@@ -741,6 +741,7 @@ def _check_action_targets(
     *,
     resolution: tuple[int | None, int | None] | None = None,
     skip: frozenset[str] = frozenset(),
+    built: set[str] | None = None,
 ) -> None:
     """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
 
@@ -754,6 +755,9 @@ def _check_action_targets(
     ``skip`` names entities another check owns (text blocks: their units are
     checked by `_check_text_blocks`, at the scene's resolution). The runtime's
     camera node (``root``) is a legitimate target, as the compiler says.
+    ``built``, when given, is the node paths of the shot's compiled document
+    (the one the compile-based checks share, an#551): read instead of
+    compiling the stage a second time.
     """
     from an.stage import STAGE_RENDERER_NAMES
 
@@ -797,7 +801,9 @@ def _check_action_targets(
     ]
     if not targets:
         return
-    built, why = _built_node_paths(shot, stores, resolution=resolution)
+    why = None
+    if built is None:
+        built, why = _built_node_paths(shot, stores, resolution=resolution)
     if built is None:
         report.add(
             "warning",
@@ -1885,7 +1891,27 @@ def _core_action_targets(ctx: ValidationContext) -> None:
         ctx.stores,
         resolution=(res.width or None, res.height or None),
         skip=frozenset(_text_ids(ctx)),
+        built=_compiled_node_paths(ctx),
     )
+
+
+def _compiled_node_paths(ctx: ValidationContext) -> set[str] | None:
+    """The node paths of ``ctx.shot``'s compiled document, the one every
+    compile-based check shares (:func:`an.verify.constraints.compile_outcome`),
+    or ``None`` when it did not compile (or no stores were supplied, when the
+    targets are not checked). Safe to read instead of the stage alone: the
+    compiler refuses a channel on a node it did not build, so in a shot that
+    compiled every target is among these paths, which is all the check asks;
+    the stage alone is compiled only for a shot that did not."""
+    if not ctx.stores:
+        return None
+    from an.stage.tree import walk_document
+    from an.verify.constraints import compile_outcome
+
+    doc, _error = compile_outcome(ctx)
+    if doc is None:
+        return None  # the stage alone is compiled; its failure is reported
+    return {path for path, _node in walk_document(doc)}
 
 
 def _core_field_kinds(ctx: ValidationContext) -> None:

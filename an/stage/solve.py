@@ -60,6 +60,7 @@ __all__ = [
     "SOLVE_ORDER",
     "SOLVE_CLIP_PREFIX",
     "SOLVE_EXTENSION",
+    "solve_report",
     "UnknownBodyError",
     "Declarations",
     "declarations",
@@ -115,6 +116,21 @@ class UnknownBodyError(CutoutCompileError):
     def __init__(self, message: str, problems: Sequence[tuple[str, str]]) -> None:
         super().__init__(message)
         self.problems = list(problems)
+
+
+def solve_report(doc: Any) -> dict[str, Any]:
+    """The solve's report recorded on a compiled document
+    (``meta.extensions.solve``), ``{}`` when the pass recorded nothing: what
+    ``an validate``'s joint and hold checks read (the ``holds`` entry is the
+    hold layer's).
+
+    >>> from types import SimpleNamespace as NS
+    >>> solve_report(NS(meta=NS(extensions={SOLVE_EXTENSION: {"mode": "solve"}})))
+    {'mode': 'solve'}
+    >>> solve_report(NS(meta=NS(extensions=None)))
+    {}
+    """
+    return (doc.meta.extensions or {}).get(SOLVE_EXTENSION) or {}
 
 
 def _unknown_body_error(
@@ -2139,7 +2155,7 @@ def joint_residuals(
     puppet = build_puppet(doc, shot, mall, decl)
     # The verbs' spans and the join/unjoin instants as the COMPILE placed them
     # (it knew every leaf's natural length; this reading does not).
-    report = (doc.meta.extensions or {}).get(SOLVE_EXTENSION) or {}
+    report = solve_report(doc)
     recorded = report.get("joints") or []
     if len(recorded) >= len(puppet.rows):  # the reaches the hold layer added come last
         for row, rec in zip(puppet.rows, recorded):

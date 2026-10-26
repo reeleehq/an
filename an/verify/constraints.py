@@ -120,6 +120,7 @@ __all__ = [
     "ShortHold",
     "compile_outcome",
     "compiled_shot",
+    "report_not_compiled",
     "continuity_findings",
     "discontinuities",
     "short_holds",
@@ -221,12 +222,54 @@ def compile_outcome(ctx: Any) -> tuple[Any | None, Exception | None]:
     return ctx.cached((COMPILED_KEY, ctx.index), build)
 
 
+#: The memo key under which shot ``i``'s compile failure is marked reported.
+NOT_COMPILED_KEY: str = "constraints.not_compiled"
+
+
 def compiled_shot(ctx: Any) -> Any | None:
     """The document of :func:`compile_outcome`, ``None`` for a shot the stage
-    does not render or that does not compile: the checks that own those
-    problems report them, and a constraint says nothing about a shot it could
-    not see."""
-    return compile_outcome(ctx)[0]
+    does not render or that does not compile. A constraint says nothing about
+    a shot it could not see, but validate does not stay silent about it: a
+    shot that does not compile gets one :func:`report_not_compiled` line, so
+    the checks that skipped it are never read as having passed."""
+    doc, error = compile_outcome(ctx)
+    if error is not None:
+        report_not_compiled(ctx, error)
+    return doc
+
+
+def report_not_compiled(ctx: Any, error: Exception) -> None:
+    """Say, once per shot, that the compile-based checks did NOT run on
+    ``ctx.shot`` because it does not compile (``error``, from
+    :func:`compile_outcome`), at :data:`an.verify.vision.FAILURE_SEVERITY`:
+    a check that could not look must never read as a check that passed. The
+    check that owns the error (``unknown_body``, ``hold_conflict``, the action
+    targets) still reports the cause itself.
+
+    >>> from an.ir.schema import SceneIR
+    >>> from an.ir.validate import ValidationContext, ValidationReport
+    >>> ctx = ValidationContext(SceneIR(), ValidationReport(), {}, index=0)
+    >>> report_not_compiled(ctx, ValueError("bad step_hz"))
+    >>> report_not_compiled(ctx, ValueError("bad step_hz"))  # once per shot
+    >>> [(f.severity, f.ir_path) for f in ctx.report.findings]
+    [('warning', 'timeline/0')]
+    >>> "did NOT run" in ctx.report.findings[0].description
+    True
+    """
+
+    def add():
+        from an.verify.vision import FAILURE_SEVERITY
+
+        ctx.report.add(
+            FAILURE_SEVERITY,
+            ctx.path,
+            "the compile-based checks (the constraints, joints, holds and cut "
+            "placements) did NOT run on this shot: it does not compile "
+            f"({type(error).__name__}: {error}).",
+        )
+        return True
+
+    ctx.cached((NOT_COMPILED_KEY, ctx.index), add)
 
 
 def _fps(ctx: Any) -> float:

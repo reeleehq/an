@@ -355,7 +355,9 @@ def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp
     # no part sits on `hand`: still no body to choose
     with pytest.raises(UnknownBodyError, match="root parts"):
         _compile(project, _shot(project, actions=[pin("puppet@hand", "wheel@grip")]))
-    named = _compile(project, _shot(project, actions=[pin("puppet@fore", "wheel@grip")]))
+    named = _compile(
+        project, _shot(project, actions=[pin("puppet@fore", "wheel@grip")])
+    )
     on_part = _compile(
         project, _shot(project, actions=[pin("puppet/fore@fore", "wheel@grip")])
     )
@@ -534,7 +536,9 @@ def test_a_descriptor_joint_that_does_not_read_is_named_not_raised(tmp_path):
     with pytest.raises(UnknownBodyError):
         _compile(project)
     findings = _lint(project, project.scene.timeline[0])
-    assert [s for s, _ in findings] == ["error"] and "does not read" in findings[0][1]
+    assert [s for s, _ in findings] == ["error", "warning"]
+    assert "does not read" in findings[0][1]
+    assert "did NOT run" in findings[1][1]  # the other joint checks skipped it (an#551)
 
 
 def test_a_shot_that_declares_nothing_reads_no_other_store_entry():
@@ -595,13 +599,17 @@ def test_a_part_a_joint_let_go_of_stays_where_it_was_left(tmp_path, ends):
     assert max(math.dist(a, b) for a, b in zip(hands, hands[1:])) < 5.0
 
 
-def test_every_compile_based_check_shares_one_document_with_the_style_pack(tmp_path, monkeypatch):
+def test_every_compile_based_check_shares_one_document_with_the_style_pack(
+    tmp_path, monkeypatch
+):
     """an#534: the constraint lints and the placements helper used to compile
     without the scene's style pack (so a solve without its gravity), and twice."""
     from an.styles import StylePack
 
     project = _project(tmp_path)
-    project.mall["styles"]["noir"] = StylePack(name="noir", roles={"sky": "#000000"}).model_dump()
+    project.mall["styles"]["noir"] = StylePack(
+        name="noir", roles={"sky": "#000000"}
+    ).model_dump()
     meta = project.scene.meta.model_copy(update={"style_pack": "noir"})
     scene = project.scene.model_copy(update={"meta": meta})
 

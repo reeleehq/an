@@ -42,13 +42,13 @@ def _declares(ctx: Any) -> bool:
 
 
 def _holds(ctx: Any) -> tuple[dict[str, Any] | None, Exception | None]:
-    from an.verify.constraints import compile_outcome
-    from an.verify.joints import _report
+    from an.stage.solve import solve_report
+    from an.verify.constraints import compile_outcome, compiled_shot
 
-    doc, error = compile_outcome(ctx)
+    doc = compiled_shot(ctx)  # says, once, that the checks did not run
     if doc is None:
-        return None, error
-    return _report(doc).get("holds"), None
+        return None, compile_outcome(ctx)[1]
+    return solve_report(doc).get("holds"), None
 
 
 def check_hold_conflict(ctx: Any) -> None:
