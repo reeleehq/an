@@ -1106,7 +1106,7 @@
    ],
    "params": {
     "additionalProperties": true,
-    "description": "The hand holding ``item`` puts it ``onto`` a target and lets it go.\n\n``onto`` is ``ground`` (straight down, at floor height), ``ground@x`` (at\nstage ``x``), a body's point (a socket: the item's grip goes there, its\nframe aligned with the socket's) or ``world@x,y`` (hung on a point).\n``item@<point>`` names the item's point that touches the target (default:\nits grip on a socket, its lowest point on the ground). ``rotation``: the\nitem's rotation where it rests (radians, the stage's; default: the angle it\nlast rested at on the ground, else the nearest quarter turn; a socket's own).\n\n>>> PlaceAction(item=\"musket\", onto=\"nap/arm_r/weapon\").by is None\nTrue",
+    "description": "The hand holding ``item`` puts it ``onto`` a target and lets it go.\n\n``onto`` is ``ground`` (straight down, at floor height), ``ground@x`` (at\nstage ``x``), a body's point (a socket: the item's grip goes there, its\nframe aligned with the socket's) or ``world@x,y`` (hung on a point).\n``item@<point>`` names the item's point that touches the target (default:\nits grip on a socket, its lowest point on the ground). ``rotation``: the\nitem's rotation where it rests (radians, the stage's; default: the angle it\nlast rested at on the ground, else the nearest quarter turn; in a socket,\nthe socket's own). In a socket it is the angle the item comes to rest at\n(a musket aimed at someone, a sabre raised), held relative to the socket\nfrom then on, so it turns with it.\n\n>>> PlaceAction(item=\"musket\", onto=\"nap/arm_r/weapon\").by is None\nTrue",
     "properties": {
      "name": {
       "anyOf": [
@@ -1800,7 +1800,7 @@
    ],
    "params": {
     "additionalProperties": true,
-    "description": "``by`` takes ``take`` from ``holder`` and the hand holding ``give``\nputs that there, ``lag`` seconds later: a ``grasp`` and a ``place``.\n\n>>> SwapAction(holder=\"nap/hand\", take=\"musket\", give=\"sword\", by=\"stu@hand_r\").lag == DFLT_SWAP_LAG\nTrue",
+    "description": "``by`` takes ``take`` from ``holder`` and the hand holding ``give``\nputs that there, ``lag`` seconds later: a ``grasp`` and a ``place``.\n``rotation`` is the place's: the angle ``give`` comes to rest at in the\nholder (radians, the stage's; default: the holder's own).\n\n>>> SwapAction(holder=\"nap/hand\", take=\"musket\", give=\"sword\", by=\"stu@hand_r\").lag == DFLT_SWAP_LAG\nTrue",
     "properties": {
      "name": {
       "anyOf": [
@@ -1835,6 +1835,18 @@
       "exclusiveMinimum": 0,
       "title": "Lag",
       "type": "number"
+     },
+     "rotation": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Rotation"
      },
      "reach": {
       "default": 0.4,

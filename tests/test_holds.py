@@ -121,6 +121,7 @@ def test_the_hold_verbs_round_trip_through_scene_md():
             release("cup", at=3.0, onto="ground@100", arc=50),
             handover("cup", "jo@hand_l", meet=0.5),
             swap("nap/hand", take="musket", give="sword", by="stu@hand_r", lag=0.3),
+            swap("nap/hand", take="sword", give="musket", by="stu@hand_l", rotation=-0.4),
         ],
     )
     back = markdown_to_ir(ir_to_markdown(SceneIR(timeline=[shot])))
@@ -229,6 +230,48 @@ def test_a_place_puts_the_grip_in_the_socket_aligned_with_it(tmp_path):
         [_gesture(doc, "grasp")["contact"], "fig/arm_r"],
         [g["contact"], "stand@hand"],
     ]
+
+
+def test_a_place_into_a_socket_at_a_rotation_rests_aimed_and_turns_with_the_socket(
+    tmp_path,
+):
+    """``rotation`` on a place into a socket: the item comes to rest at that
+    stage angle (a musket aimed at someone), its grip on the socket, and is held
+    relative to the socket from then on."""
+    doc = _compile(
+        _project(
+            tmp_path,
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n"
+            "- {kind: place, item: stick, onto: stand@hand, start: 1.6, rotation: 0.6}\n"
+            "- {kind: tween, target: stand, property: rotation, from: 0.0, to: 0.3, duration: 0.5, start: 3.0}",
+        )
+    )
+    g = _gesture(doc, "place")
+    assert g["gap"] <= GRASP_TOLERANCE_PX
+    for t in _times(g["contact"], 2.9):
+        socket = _stage(doc, "stand", t, point=(0.0, -250.0 * K))
+        assert math.dist(_grip(doc, t), socket) < GRASP_TOLERANCE_PX
+        assert _pose(doc, t)[("stick", "rotation")] == pytest.approx(0.6, abs=1e-6)
+    later = _pose(doc, 3.8)
+    assert later[("stick", "rotation")] == pytest.approx(0.9, abs=1e-5)
+    socket = _stage(doc, "stand", 3.8, point=(0.0, -250.0 * K))
+    assert math.dist(_grip(doc, 3.8), socket) < GRASP_TOLERANCE_PX
+
+
+def test_a_swap_gives_at_the_rotation_it_is_given(tmp_path):
+    entities = """- {kind: prop, id: fig, store: props, ref: figure, stage: {at: [-100, 200]}}
+- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}
+- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 0], scale: 0.5, after: fig}, overrides: {held_by: stand@hand}}
+- {kind: prop, id: rod, store: props, ref: stick, stage: {at: [-200, 150], scale: 0.5, after: fig}, overrides: {held_by: ground}}
+"""
+    actions = """- {kind: grasp, by: fig/arm_l, item: rod, start: 0.2}
+- {kind: swap, holder: stand@hand, take: stick, give: rod, by: fig/arm_r, start: 1.2, rotation: -0.5}"""
+    doc = _compile(make_project(tmp_path / "p", scene(actions, entities=entities)))
+    give = _gesture(doc, "place")
+    assert give["gap"] <= GRASP_TOLERANCE_PX
+    assert _pose(doc, give["contact"] + 0.5)[("rod", "rotation")] == pytest.approx(
+        -0.5, abs=1e-6
+    )
 
 
 def test_a_place_on_the_ground_lays_it_down_at_floor_height(tmp_path):
