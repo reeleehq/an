@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import Any
 
 from an.genres.registry import CORE_OWNER, check_names, register_check
-from an.verify.constraints import Constraint, compile_outcome
+from an.verify.constraints import Constraint, compile_outcome, compiled_shot
 
 __all__ = [
     "JOINT_CONSTRAINTS",
@@ -54,12 +54,6 @@ def _declares(ctx: Any) -> bool:
     from an.stage.solve import shot_declares_solve
 
     return shot_declares_solve(ctx.shot, ctx.stores or {})
-
-
-def _report(doc: Any) -> dict[str, Any]:
-    from an.stage.solve import SOLVE_EXTENSION
-
-    return (doc.meta.extensions or {}).get(SOLVE_EXTENSION) or {}
 
 
 # -----------------------------------------------------------------------------
@@ -96,10 +90,12 @@ def check_unreachable_pin(ctx: Any) -> None:
     """A ``pin`` the joints can meet: else where the chain reaches, and where to put it."""
     if not _declares(ctx):
         return
-    doc, _error = compile_outcome(ctx)
+    doc = compiled_shot(ctx)
     if doc is None:
         return
-    report = _report(doc)
+    from an.stage.solve import solve_report
+
+    report = solve_report(doc)
     joints = report.get("joints") or []
     for entry in report.get("dropped") or []:
         row = joints[entry["joint"]] if entry["joint"] < len(joints) else {}
@@ -157,14 +153,14 @@ def check_joint_violation(ctx: Any) -> None:
     """Every joined joint holds at every frame of the compiled shot."""
     if not _declares(ctx):
         return
-    doc, _error = compile_outcome(ctx)
+    doc = compiled_shot(ctx)
     if doc is None:
         return
     import math
 
-    from an.stage.solve import _spans, joint_residuals
+    from an.stage.solve import _spans, joint_residuals, solve_report
 
-    report = _report(doc)
+    report = solve_report(doc)
     joints = report.get("joints") or []
     try:
         puppet, times, gaps, excess = joint_residuals(doc, ctx.shot, ctx.stores or {})

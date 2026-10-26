@@ -1295,12 +1295,24 @@ def test_a_blessed_row_is_surfaced_as_a_caveat_rather_than_left_write_only(tmp_p
 #: tracking the delivered format in both. The shipped cell (tol 6) goes
 #: 533 -> 982 of 429,623 (+84.2%), and tol 8 goes 152 -> 28: a change of the
 #: metric's own threshold inside its declared grid reverses its verdict (an#140).
-_GRADED_420 = {f"dilate_k=3,tol={t}": [n, 429623] for t, n in zip(range(4, 9), (1505, 780, 533, 309, 152))}
-_GRADED_444 = {f"dilate_k=3,tol={t}": [n, 429623] for t, n in zip(range(4, 9), (1647, 1016, 982, 836, 28))}
+_GRADED_420 = {
+    f"dilate_k=3,tol={t}": [n, 429623]
+    for t, n in zip(range(4, 9), (1505, 780, 533, 309, 152))
+}
+_GRADED_444 = {
+    f"dilate_k=3,tol={t}": [n, 429623]
+    for t, n in zip(range(4, 9), (1647, 1016, 982, 836, 28))
+}
 #: `saturated_outline` under `high_crf` (crf23 -> crf40), same grid row: every
 #: cell rises, which is what a verdict that is not a threshold accident reads.
-_SATURATED_23 = {f"dilate_k=3,tol={t}": [n, 823898] for t, n in zip(range(4, 9), (12101, 10553, 3952, 2217, 1987))}
-_SATURATED_40 = {f"dilate_k=3,tol={t}": [n, 823898] for t, n in zip(range(4, 9), (67644, 61660, 39895, 34962, 29147))}
+_SATURATED_23 = {
+    f"dilate_k=3,tol={t}": [n, 823898]
+    for t, n in zip(range(4, 9), (12101, 10553, 3952, 2217, 1987))
+}
+_SATURATED_40 = {
+    f"dilate_k=3,tol={t}": [n, 823898]
+    for t, n in zip(range(4, 9), (67644, 61660, 39895, 34962, 29147))
+}
 
 _FFD = "flat_field_deviation"
 
@@ -1409,9 +1421,9 @@ def test_a_sweep_whose_shipped_cell_is_not_the_value_is_refused():
     cells = dict(_GRADED_444)
     cells["dilate_k=3,tol=6"] = [1016, 429623]  # tol 5's count, not tol 6's
     after = _row({_FFD: measured(round(982 / 429623, 6), sweep=cells)})
-    entry = compare(_row({_FFD: _swept(_GRADED_420)}), after)["scenes"]["s"][
-        "metrics"
-    ][_FFD]
+    entry = compare(_row({_FFD: _swept(_GRADED_420)}), after)["scenes"]["s"]["metrics"][
+        _FFD
+    ]
     assert entry["state"] == "refused" and entry["refusal"] == "sweep_unusable"
 
 
@@ -1480,9 +1492,12 @@ def test_strict_fails_on_an_unstable_movement(tmp_path):
     b, a = tmp_path / "b.json", tmp_path / "a.json"
     b.write_text(json.dumps(_row({_FFD: _swept(_GRADED_444)})), encoding="utf-8")
     a.write_text(json.dumps(_row({_FFD: _swept(_GRADED_420)})), encoding="utf-8")
-    with pytest.raises(SystemExit) as caught:
-        tools.bench_compare(before=str(b), after=str(a), strict=True)
-    assert caught.value.code == 1
+    from an.cli_status import exit_code_of
+
+    # A report that carries exit 1, not a `SystemExit` (an#559): the CLI exits 1
+    # from it, and a Python caller keeps its process.
+    out = tools.bench_compare(before=str(b), after=str(a), strict=True)
+    assert exit_code_of(out) == 1
 
 
 def test_a_sweep_is_compared_exactly_not_as_rounded_fractions():

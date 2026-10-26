@@ -43,9 +43,12 @@ each one is user-visible and none is typer's default:
    returns its report as a string and argh printed it; typer discards return
    values, so the wrapper prints it. Without this the CLI runs correctly and
    shows nothing, which is the worst possible failure for a diagnostic tool.
-3. **A function that exits nonzero still exits nonzero.** ``bench-compare
-   --strict`` and ``bench-mutants`` call ``sys.exit(1)`` after printing; the
-   wrapper must not swallow ``SystemExit``.
+3. **A function that exits nonzero still exits nonzero.** A refusal raises
+   ``SystemExit("message")`` (``an probe``, ``an library ...``); the wrapper
+   must not swallow it. A command whose REPORT says it failed returns
+   :func:`an.cli_status.failed` instead, and the wrapper exits with its code
+   after printing it (an#480, an#559); which command does which:
+   :data:`an.cli_status.EXIT_POLICY`.
 """
 
 from __future__ import annotations

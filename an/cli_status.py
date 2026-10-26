@@ -43,3 +43,49 @@ def exit_code_of(result: object) -> int:
     """The status a command's return value asks for: 0 for anything that is not a
     :class:`CommandReport`."""
     return result.exit_code if isinstance(result, CommandReport) else 0
+
+
+#: How each core command ends when it fails. A new command must take a line
+#: here (`tests/test_cli_exit_status.py` holds the list complete), so "it prints a
+#: failure and exits 0" is a decision someone wrote down, never a default.
+#: ``failed``: a report that says it failed carries exit 1 (an.cli_status);
+#: ``refuses``: a bad argument or state raises (`SystemExit`, a `_REFUSALS`
+#: type), exit 1; ``0``: always 0, for the reason given.
+EXIT_POLICY: dict[str, str] = {
+    "init": "refuses",
+    "validate": "failed: a FAILED report (an#480)",
+    "sync": "refuses: a scene file that is not there; drift is a warning",
+    "check": "0: every backend is optional to some project; the render refuses",
+    "render": "failed: an error finding, though the mp4 exists (an#559)",
+    "iterate": "failed: the instruction was not applied (an#480)",
+    "preview": "refuses",
+    "probe": "refuses",
+    "credits": "0: the inventory; the gate is `validate --strict-assets`",
+    "bench": "failed: refused arguments (an#559)",
+    "bench-compare": "failed: --strict and a bad answer (an#559)",
+    "bench-mutants": "failed: a survivor, an unknown name, rot; 130 interrupted",
+    "voices list": "0: no voices is an answer",
+    "voices rescore": "failed: no dialogue line matches (an#559)",
+    "voices reroll": "failed: no dialogue line matches (an#559)",
+    "voices design": "refuses (VoiceDesignError)",
+    "voices audition": "refuses (VoiceDesignError)",
+    "voices choose": "refuses (VoiceDesignError)",
+    "voices cast": "refuses (VoiceDesignError)",
+    "voices import": "refuses (RecordedVoicesError)",
+    "library publish": "refuses; an unknown licence is recorded on purpose: 0",
+    "library kit": "refuses",
+    "library find": "0: no match is an answer",
+    "library vocabulary": "0",
+    "library show": "refuses",
+    "library checkout": "refuses",
+    "library promote": "refuses",
+    "library retire": "refuses",
+    "library sheet": "refuses",
+    "library reindex": "refuses",
+    "cache info": "0",
+    "cache gc": "refuses",
+    "sounds add": "refuses",
+    "props validate": "failed: a FAILED report (an#480)",
+    "props contract": "0",
+    "world show": "refuses",
+}
