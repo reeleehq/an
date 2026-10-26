@@ -1746,6 +1746,24 @@ def _clip_from_bytes(data: bytes, voice_id: str, text: str) -> AudioClip:
     )
 
 
+def lines_matching(scene: SceneIR, match: str) -> list[tuple[Any, Any]]:
+    """The ``(shot, line)`` pairs of ``scene`` whose dialogue text contains
+    ``match``, case-insensitively: the lines ``an voices rescore|reroll`` act on.
+
+    >>> from types import SimpleNamespace as NS
+    >>> scene = NS(timeline=[NS(id="s", dialogue=[NS(text="Hello there")])])
+    >>> [line.text for _, line in lines_matching(scene, "HELLO")], lines_matching(scene, "zebra")
+    (['Hello there'], [])
+    """
+    needle = match.lower()
+    return [
+        (shot, line)
+        for shot in scene.timeline
+        for line in shot.dialogue
+        if needle in line.text.lower()
+    ]
+
+
 def retake_lines(
     scene: SceneIR,
     mall: Mapping[str, MutableMapping],
@@ -1765,70 +1783,64 @@ def retake_lines(
     take has its own key, so its visemes and word timings are aligned afresh.
     This is the only way a recorded take is replaced (ADR 0003).
     """
-    needle = match.lower()
     out: list[str] = []
-    for shot in scene.timeline:
-        for line in shot.dialogue:
-            if needle not in line.text.lower():
-                continue
-            voice_id = line_voice_id(line, shot, mall)
-            req = _line_request(
-                line, mall, tts, voice_id, take_scorer=take_scorer, strict=False
-            )
-            if req.spec is None:
-                out.append(
-                    f"{line.text!r}: its voice declares no takes under {tts.name}"
-                )
-                continue
-            record = req.record
-            if record is None or record.get("chosen") is None:
-                out.append(
-                    f"{line.text!r}: no take recorded yet; the next render chooses one"
-                )
-                continue
-            roll = int(record.get("roll", 0))
-            missing = _missing_takes(req, mall)
-            if rescore and missing:
-                out.append(
-                    f"{line.text!r}: not rescored — take(s) {missing} of roll {roll} are "
-                    "gone from the audio store, and re-synthesizing them under their old "
-                    "keys would desynchronize the mouth. "
-                    f"{REROLL_ONLY_HINT}"
-                )
-                continue
-            write_takes_record(
-                mall.get(TAKES_STORE),
-                req.choice_key,
-                {
-                    "record_version": TAKES_RECORD_VERSION,
-                    "choice_key": req.choice_key,
-                    "text": line.text,
-                    "voice": voice_id,
-                    "tts": tts.name,
-                    "roll": roll if rescore else roll + 1,
-                    "chosen": None,
-                    "pending": "rescore" if rescore else "reroll",
-                    "takes": [],
-                    "history": [
-                        *record.get("history", []),
-                        {
-                            "chosen": record["chosen"],
-                            "digest": record.get("digest"),
-                            "roll": roll,
-                            "scorer": record.get("scorer"),
-                            "reason": "rescore" if rescore else "reroll",
-                        },
-                    ],
-                },
-            )
+    for shot, line in lines_matching(scene, match):
+        voice_id = line_voice_id(line, shot, mall)
+        req = _line_request(
+            line, mall, tts, voice_id, take_scorer=take_scorer, strict=False
+        )
+        if req.spec is None:
+            out.append(f"{line.text!r}: its voice declares no takes under {tts.name}")
+            continue
+        record = req.record
+        if record is None or record.get("chosen") is None:
             out.append(
-                f"{line.text!r}: take {record['chosen']} released; the next render "
-                + (
-                    "re-chooses from the cached takes"
-                    if rescore
-                    else f"synthesizes {req.spec.n} new takes (roll {roll + 1})"
-                )
+                f"{line.text!r}: no take recorded yet; the next render chooses one"
             )
+            continue
+        roll = int(record.get("roll", 0))
+        missing = _missing_takes(req, mall)
+        if rescore and missing:
+            out.append(
+                f"{line.text!r}: not rescored — take(s) {missing} of roll {roll} are "
+                "gone from the audio store, and re-synthesizing them under their old "
+                "keys would desynchronize the mouth. "
+                f"{REROLL_ONLY_HINT}"
+            )
+            continue
+        write_takes_record(
+            mall.get(TAKES_STORE),
+            req.choice_key,
+            {
+                "record_version": TAKES_RECORD_VERSION,
+                "choice_key": req.choice_key,
+                "text": line.text,
+                "voice": voice_id,
+                "tts": tts.name,
+                "roll": roll if rescore else roll + 1,
+                "chosen": None,
+                "pending": "rescore" if rescore else "reroll",
+                "takes": [],
+                "history": [
+                    *record.get("history", []),
+                    {
+                        "chosen": record["chosen"],
+                        "digest": record.get("digest"),
+                        "roll": roll,
+                        "scorer": record.get("scorer"),
+                        "reason": "rescore" if rescore else "reroll",
+                    },
+                ],
+            },
+        )
+        out.append(
+            f"{line.text!r}: take {record['chosen']} released; the next render "
+            + (
+                "re-chooses from the cached takes"
+                if rescore
+                else f"synthesizes {req.spec.n} new takes (roll {roll + 1})"
+            )
+        )
     if not out:
         out.append(f"no dialogue line contains {match!r}")
     return out
