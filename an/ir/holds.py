@@ -135,7 +135,10 @@ class PlaceAction(ExtensionAction):
     ``item@<point>`` names the item's point that touches the target (default:
     its grip on a socket, its lowest point on the ground). ``rotation``: the
     item's rotation where it rests (radians, the stage's; default: the angle it
-    last rested at on the ground, else the nearest quarter turn; a socket's own).
+    last rested at on the ground, else the nearest quarter turn; in a socket,
+    the socket's own). In a socket it is the angle the item comes to rest at
+    (a musket aimed at someone, a sabre raised), held relative to the socket
+    from then on, so it turns with it.
 
     >>> PlaceAction(item="musket", onto="nap/arm_r/weapon").by is None
     True
@@ -195,6 +198,8 @@ class HandoverAction(ExtensionAction):
 class SwapAction(ExtensionAction):
     """``by`` takes ``take`` from ``holder`` and the hand holding ``give``
     puts that there, ``lag`` seconds later: a ``grasp`` and a ``place``.
+    ``rotation`` is the place's: the angle ``give`` comes to rest at in the
+    holder (radians, the stage's; default: the holder's own).
 
     >>> SwapAction(holder="nap/hand", take="musket", give="sword", by="stu@hand_r").lag == DFLT_SWAP_LAG
     True
@@ -206,6 +211,7 @@ class SwapAction(ExtensionAction):
     give: str
     by: str
     lag: Seconds = Field(default=DFLT_SWAP_LAG, gt=0, allow_inf_nan=False)
+    rotation: float | None = Field(default=None, allow_inf_nan=False)
     reach: Seconds = _Reach
     retract: Seconds = _Retract
     lean: float = _Lean
@@ -313,6 +319,7 @@ def swap(
     give: str,
     by: str,
     lag: Seconds = DFLT_SWAP_LAG,
+    rotation: float | None = None,
     reach: Seconds = DFLT_REACH,
     retract: Seconds = DFLT_RETRACT,
     lean: float = DFLT_LEAN_DEG,
@@ -329,6 +336,7 @@ def swap(
         give=give,
         by=by,
         lag=lag,
+        rotation=rotation,
         reach=reach,
         retract=retract,
         lean=lean,
@@ -361,7 +369,9 @@ def swap_leaves(action: SwapAction) -> tuple[GraspAction, PlaceAction]:
     common = dict(reach=action.reach, retract=action.retract, lean=action.lean)
     return (
         GraspAction(by=action.by, item=action.take, align=action.align, **common),
-        PlaceAction(item=action.give, onto=action.holder, **common),
+        PlaceAction(
+            item=action.give, onto=action.holder, rotation=action.rotation, **common
+        ),
     )
 
 

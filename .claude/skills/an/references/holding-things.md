@@ -21,6 +21,7 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 - {kind: release, item: cup, at: 5.0}                                      # drop it: falls with the hand's velocity
 - {kind: handover, item: cup, to: jo@hand_l, meet: 0.5, start: 4.0}        # both reach; jo takes it in the middle
 - {kind: swap, holder: nap/arm_r/weapon, take: musket, give: sword, by: stu@hand_r, start: 10.4}
+- {kind: place, item: musket, onto: nap/arm_r/weapon, start: 14.0, rotation: -0.1}   # aimed: the barrel at the stage angle -0.1
 ```
 
 | field | on | means | default |
@@ -33,11 +34,13 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 | `reach`, `retract` | grasp, place, handover, swap | seconds out and back | 0.4, 0.35 |
 | `lean` | grasp, place, handover, swap | most degrees the body may bend | 60 |
 | `align` | grasp, handover, swap | over the retract the item turns to how the hand holds things (drawn as it is, along the hand's part, as a socket holds it); `false` keeps the angle it was taken at | true |
-| `rotation` | place, release | the item's rotation where it comes to rest (radians) | as it last lay on the ground, else its nearest quarter turn; a socket's own |
+| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
 | `arc` | release | how high a toss rises above its higher end (px) | 40 |
 | `lag` | swap | how long after the taking hand the giving hand starts | 0.25 |
 
-A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whichever hand holds it, onto `holder`) a beat apart: the socket is emptied before the new item arrives.
+A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whichever hand holds it, onto `holder`, at the swap's `rotation`) a beat apart: the socket is emptied before the new item arrives.
+
+**Aiming what a socket holds.** A socket aligns every item the same way (its own frame, the item drawn as it is), so two items drawn differently (a musket barrel-down, a sabre tip-up) point different ways in one hand. Give the place (or the swap) a `rotation`: the stage angle the item rests at. Work it out from the art: the item's grip-to-tip direction at rotation 0, turned clockwise (y down) to where it should point.
 
 ## The ground and what holds an item at the start
 
