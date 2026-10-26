@@ -219,7 +219,7 @@ def capture_fixture(
         )
 
     film = None
-    from an.assemble import film_timeline, needs_assembly
+    from an.assemble import film_duration, film_timeline, needs_assembly
 
     if needs_assembly(scene, fps=scene.meta.fps):
         from an.bench.core_corpus import FILM_SEGMENT_ID, compose_film_frames
@@ -251,7 +251,9 @@ def capture_fixture(
         shots=shots,
         resolution=next(iter(resolutions)),
         fps=int(scene.meta.fps),
-        duration=float(scene.meta.duration),
+        # What the shots lay out, not `meta.duration`, which is 0.0 when unset
+        # (an#557).
+        duration=float(film_duration(scene)),
         n_declared_entity_refs=sum(len(s.entities) for s in scene.timeline),
         visual_kinds=all_kinds,
         asset_resolution=[
