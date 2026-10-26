@@ -212,6 +212,32 @@ def markdown_to_ir(md_text: str) -> SceneIR:
     return SceneIR(meta=meta, timeline=shots, world=world)
 
 
+def unset_unwritten_duration(scene: SceneIR, md_text: str) -> SceneIR:
+    r"""``scene`` (read from the JSON) with ``meta.duration`` back to ``0.0``,
+    "unset", when ``md_text`` (its ``scene.md``) writes no ``duration`` (an#557).
+
+    Before an#557 reading the markdown filled an unwritten duration with a
+    derived length (the shots' layout, or their plain sum) and stored it in the
+    JSON. A JSON value the markdown does not carry can only be that: a value set
+    through the store writes the line. Left as it is, the next store write
+    would merge it into the author's file as if authored. Modified in place;
+    returned for chaining.
+
+    >>> from an.ir.schema import Shot
+    >>> s = SceneIR(meta=Meta(duration=4.0), timeline=[Shot(id="a", duration=4.0)])
+    >>> unset_unwritten_duration(s, "# T\n\n```yaml meta\nfps: 24\n```\n").meta.duration
+    0.0
+    >>> s.meta.duration = 4.0
+    >>> unset_unwritten_duration(s, "```yaml meta\nduration: 4\n```\n").meta.duration
+    4.0
+    """
+    if scene.meta.duration:
+        meta_block = _extract_yaml_block(_split_by_shots(md_text)["__global__"], "meta")
+        if not (meta_block or {}).get("duration"):
+            scene.meta.duration = 0.0
+    return scene
+
+
 def _extract_title(md_text: str) -> str:
     for line in md_text.splitlines():
         line = line.strip()
@@ -1448,8 +1474,10 @@ def sync(
         skew = json_mtime - md_mtime
         if skew > SYNC_MTIME_TOLERANCE_S:
             data = json.loads(_read_text(json_path))
-            scene = scene_from_json_doc(data, source=json_path)
             existing = _read_text(md_path)
+            scene = unset_unwritten_duration(
+                scene_from_json_doc(data, source=json_path), existing
+            )
             markdown = merge_markdown(existing, scene)  # an#275: keep the author's text
             if markdown != existing:
                 _write_text(md_path, markdown)
@@ -1485,8 +1513,9 @@ class SyncTieWarning(UserWarning):
 def _settle_a_tie(md_path: Path, json_path: Path, md_mtime: float, result) -> None:
     md_text = _read_text(md_path)
     try:
-        json_scene = scene_from_json_doc(
-            json.loads(_read_text(json_path)), source=json_path
+        json_scene = unset_unwritten_duration(
+            scene_from_json_doc(json.loads(_read_text(json_path)), source=json_path),
+            md_text,
         )
         if _md_canonical(md_text) == _md_canonical(ir_to_markdown(json_scene)):
             return
