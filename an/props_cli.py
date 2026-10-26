@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from an.cli_status import failed
+
 
 def _resolve_dir(name: str, out_dir: str) -> Path:
     """The prop folder ``name`` means: a path to the folder (or to its
@@ -39,7 +41,7 @@ def validate(name: str, out_dir: str = "") -> str:
     directory = _resolve_dir(name, out_dir)
     if not directory.is_dir():
         where = Path(out_dir or Path.cwd() / "assets" / "props")
-        return (
+        return failed(
             f"{name}: FAILED\n  no prop folder at {directory}: pass a prop's KEY "
             f"(a folder name under {where}, set by --out-dir), or a path to a "
             "folder that holds a prop.json"
@@ -51,7 +53,8 @@ def validate(name: str, out_dir: str = "") -> str:
         + (f"\n      fix: {f.suggested_fix}" if f.suggested_fix else "")
         for f in report.findings
     ]
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return text if report.passed else failed(text)  # exit 1 on FAILED (an#480)
 
 
 def contract() -> str:

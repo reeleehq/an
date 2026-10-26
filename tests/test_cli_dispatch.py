@@ -272,6 +272,27 @@ def test_a_nonzero_exit_is_not_swallowed():
     assert "printed before exiting" in result.output
 
 
+def test_a_failed_report_exits_with_its_code():
+    """MUTATION: in `_printing`, delete the `if code: raise typer.Exit(code)` guard.
+
+    A command returns its report as a string; `failed(text)` is the string that
+    also says the command failed (an#480). Without the guard `an validate`
+    prints FAILED and exits 0, which no CI step can tell from a pass.
+    """
+    from an.cli_status import failed
+
+    def bad() -> str:
+        return failed("thing: FAILED")
+
+    def good() -> str:
+        return "thing: passed"
+
+    app = build_app([bad, good], {})
+    r = runner.invoke(app, ["bad"])
+    assert (r.exit_code, "thing: FAILED" in r.output) == (1, True)
+    assert runner.invoke(app, ["good"]).exit_code == 0
+
+
 def test_a_single_command_app_still_needs_its_subcommand_name():
     """MUTATION: in `build_app`, delete the `@app.callback()`.
 
