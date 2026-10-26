@@ -1276,6 +1276,131 @@
    }
   },
   {
+   "id": "action.reframe",
+   "kind": "action",
+   "name": "reframe",
+   "version": "1",
+   "title": "",
+   "description": "move a world member to another frame of reference at an instant, keeping its place in the world; optionally flying free under gravity",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "Member ``target`` leaves its frame for ``to`` at ``at`` (shot seconds).\n\n>>> ReframeAction(target=\"bottle\", to=\"world\").keep\n'world'",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "to": {
+      "title": "To",
+      "type": "string"
+     },
+     "at": {
+      "default": 0.0,
+      "title": "At",
+      "type": "number"
+     },
+     "keep": {
+      "default": "world",
+      "enum": [
+       "world",
+       "local"
+      ],
+      "title": "Keep",
+      "type": "string"
+     },
+     "snap": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Snap"
+     },
+     "inherit": {
+      "anyOf": [
+       {
+        "enum": [
+         "velocity",
+         "none"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Inherit"
+     },
+     "motion": {
+      "anyOf": [
+       {
+        "const": "ballistic",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Motion"
+     },
+     "velocity": {
+      "default": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "number"
+       },
+       {
+        "type": "number"
+       }
+      ],
+      "title": "Velocity",
+      "type": "array"
+     },
+     "gravity": {
+      "default": 9.81,
+      "title": "Gravity",
+      "type": "number"
+     }
+    },
+    "required": [
+     "target",
+     "to"
+    ],
+    "title": "ReframeAction",
+    "type": "object"
+   }
+  },
+  {
    "id": "action.release",
    "kind": "action",
    "name": "release",

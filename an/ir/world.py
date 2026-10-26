@@ -1167,6 +1167,8 @@ class _Split:
     actions: list[Any]
     frame_tracks: dict[str, dict[str, Track]]
     member_tracks: dict[str, dict[str, Track]]
+    #: ``{member: [(shot time, ReframeAction), ...]}``, in time order.
+    reframes: dict[str, list[tuple[float, Any]]] = field(default_factory=dict)
 
 
 def _split_frame_actions(
@@ -1183,6 +1185,8 @@ def _split_frame_actions(
     are read with the default extent of a duration-less ``play``)."""
 
     def kind_of_target(a: Any) -> str | None:
+        if getattr(a, "kind", None) == "reframe":
+            return "reframe"
         if getattr(a, "kind", None) not in ("set", "tween"):
             return None
         if a.target in frames and a.property in FRAME_PROPERTIES:
@@ -1194,10 +1198,19 @@ def _split_frame_actions(
     if not any(kind_of_target(a) for top in shot.actions for a in iter_actions(top)):
         return _Split(list(shot.actions), {}, {})
     events: dict[tuple[str, str, str], list[TrackEvent]] = {}
+    reframes: dict[str, list[tuple[float, Any]]] = {}
     for f in flatten(parallel(*shot.actions)):
         a = f.action
         which = kind_of_target(a)
         if which is None:
+            continue
+        if which == "reframe":
+            if a.target not in members:
+                raise WorldError(
+                    f"shot {shot.id!r}: reframe of {a.target!r}, which is not a positioned "
+                    f"member of the world; the members are {sorted(members)}."
+                )
+            reframes.setdefault(a.target, []).append((f.start, a))
             continue
         where = f"shot {shot.id!r}: {a.target}:{a.property}"
         try:
@@ -1222,13 +1235,18 @@ def _split_frame_actions(
         follows it in a sequence keeps its time and the tree its shape."""
         if kind_of_target(a) is None:
             return a
-        return delay(0.0 if a.kind == "set" else a.duration)
+        return delay(0.0 if a.kind in ("set", "reframe") else a.duration)
 
     kept = [map_leaves(top, lowered_away) for top in shot.actions]
     tracks: dict[str, dict[str, dict[str, Track]]] = {"frame": {}, "member": {}}
     for (which, target, prop), evs in events.items():
         tracks[which].setdefault(target, {})[prop] = Track(evs)
-    return _Split(kept, tracks["frame"], tracks["member"])
+    return _Split(
+        kept,
+        tracks["frame"],
+        tracks["member"],
+        {k: sorted(v, key=lambda x: x[0]) for k, v in reframes.items()},
+    )
 
 
 def _member_point(
@@ -1254,12 +1272,224 @@ def _tracks_vary(tracks: Mapping[str, Track] | None, duration: float) -> bool:
     return False
 
 
+#: Step of the central differences a velocity is read with (s).
+_VELOCITY_DT: float = 1e-3
+#: A frame carrying a member faster than this (world units per second) is
+#: moving, for the lint that asks a ``reframe`` out of it to say what it inherits.
+_MOVING_EPS: float = 1e-6
+
+
+@dataclass(frozen=True)
+class _Leg:
+    """One stretch of a member's course: from ``start`` (shot time) on, either
+    standing in ``frame`` at ``base`` (its own ``tracks`` replacing channels),
+    or, with ``flight``, a projectile in the world from ``(p0, v0, g)``."""
+
+    start: float
+    frame: str
+    base: Point3
+    tracks: Mapping[str, Track]
+    flight: tuple[Point3, Point3, float] | None = None
+
+
+@dataclass(frozen=True)
+class _Change:
+    """What one ``reframe`` did, for the lints: the world point just before
+    and just after it, and the velocity the old frame carried the member with."""
+
+    at: float
+    action: Any
+    old_frame: str
+    before: Point3
+    after: Point3
+    carried: Point3
+
+
+class _Course:
+    """A member that changes frame: its world position as a function of shot
+    time, built leg by leg from its ``reframe`` actions (an#502).
+
+    >>> from an.ir.schema import Frame, FrameMoving, WorldMember
+    >>> from an.ir.reframe import reframe
+    >>> tree = FrameTree({"car": Frame(moving=FrameMoving(speed=20.0))})
+    >>> bottle = WorldMember(kind="prop", id="bottle", store="props", ref="b", at=(0.6, -0.3, 0.5), height=0.3, frame="car")
+    >>> acts = [(2.0, reframe("bottle", to="world", motion="ballistic", velocity=(3.0, -2.0, 0.0)))]
+    >>> course = _Course(bottle, "car", tree, acts, {}, film_start=0.0)
+    >>> [round(v, 2) for v in course.world_at(2.5)]
+    [2.1, -0.07, 50.5]
+    >>> [round(v, 2) for v in tree.world_pose("car", 2.5).at]       # abreast: 0.5 m ahead of the car
+    [0.0, 0.0, 50.0]
+    """
+
+    def __init__(
+        self,
+        member: WorldMember,
+        frame: str,
+        tree: FrameTree,
+        reframes: Sequence[tuple[float, Any]],
+        tracks: Mapping[str, Track],
+        *,
+        film_start: float,
+    ):
+        self.tree, self.film_start = tree, film_start
+        self.changes: list[_Change] = []
+        cuts = [t for t, _ in reframes]
+        parts = [self._slice(tracks, lo, hi) for lo, hi in zip([-math.inf, *cuts], [*cuts, math.inf])]
+        base = (float(member.at[0]), float(member.at[1]), float(member.at[2]))  # type: ignore[index]
+        self.legs: list[_Leg] = [_Leg(-math.inf, frame, base, parts[0])]
+        for (t, a), leg_tracks in zip(reframes, parts[1:]):
+            self._reframe(t, a, leg_tracks)
+
+    @staticmethod
+    def _slice(tracks: Mapping[str, Track], lo: float, hi: float) -> dict[str, Track]:
+        """The events of each track that start in ``[lo, hi)``."""
+        out = {}
+        for prop, track in tracks.items():
+            evs = [e for e in track.events if lo <= e.start < hi]
+            if evs:
+                out[prop] = Track(evs)
+        return out
+
+    def _leg_at(self, t: float, legs: Sequence[_Leg] | None = None) -> _Leg:
+        legs = legs or self.legs
+        return [leg for leg in legs if leg.start <= t][-1]
+
+    def _world(self, leg: _Leg, t: float) -> Point3:
+        if leg.flight is not None:
+            p0, v0, g = leg.flight
+            dt = t - leg.start
+            return (
+                p0[0] + v0[0] * dt,
+                p0[1] + v0[1] * dt + 0.5 * g * dt * dt,
+                p0[2] + v0[2] * dt,
+            )
+        p = list(leg.base)
+        for prop, i in _AT_CHANNELS.items():
+            track = leg.tracks.get(prop)
+            if track is not None:
+                p[i] = track.value(t, p[i])
+        return self.tree.world_pose(leg.frame, t, film_start=self.film_start).apply(
+            (p[0], p[1], p[2])
+        )
+
+    def world_at(self, t: float) -> Point3:
+        """The member's world position at shot time ``t``."""
+        return self._world(self._leg_at(t), t)
+
+    def _velocity(self, f: Callable[[float], Point3], t: float) -> Point3:
+        h = _VELOCITY_DT
+        a, b = f(t - h), f(t + h)
+        return tuple((bi - ai) / (2 * h) for ai, bi in zip(a, b))  # type: ignore[return-value]
+
+    def _reframe(self, t: float, a: Any, tracks: Mapping[str, Track]) -> None:
+        old = self.legs[-1]
+        tree = self.tree
+        where = f"reframe of {a.target!r} at {t:g}"
+        if a.to not in tree:
+            raise WorldError(
+                f"{where}: `to: {a.to}` is not a frame; the frames are "
+                f"{sorted({WORLD_FRAME, *tree.frames})}."
+            )
+        if t < 0:
+            raise WorldError(f"{where}: `at` is before the shot opens.")
+        before = self._world(old, t)
+        pose_old = tree.world_pose(old.frame, t, film_start=self.film_start)
+        pose_new = tree.world_pose(a.to, t, film_start=self.film_start)
+        local_old = pose_old.unapply(before)
+        if a.snap is not None:
+            sockets = tree.frames[a.to].sockets if a.to in tree.frames else {}
+            if a.snap not in sockets:
+                raise WorldError(
+                    f"{where}: frame {a.to!r} has no socket {a.snap!r}; its sockets are "
+                    f"{sorted(sockets)}."
+                )
+            base = tuple(float(v) for v in sockets[a.snap])
+        elif a.keep == "local":
+            base = local_old  # the numbers stay; the picture may jump
+        else:
+            base = pose_new.unapply(before)  # the picture stays; the numbers change
+        base = (float(base[0]), float(base[1]), float(base[2]))
+        after_leg = _Leg(t, a.to, base, tracks)
+        # The velocity the old frame carried the member with (a point fixed in
+        # it), and what the member does of its own on top of that.
+        carried = self._velocity(
+            lambda u: tree.world_pose(old.frame, u, film_start=self.film_start).apply(
+                local_old
+            ),
+            t,
+        )
+        total = self._velocity(lambda u: self._world(old, u), t)
+        own = tuple(x - c for x, c in zip(total, carried))
+        thrown = pose_old.rotate(tuple(float(v) for v in a.velocity))  # type: ignore[arg-type]
+        if a.motion == "ballistic":
+            keep_frame = 0.0 if a.inherit == "none" else 1.0
+            v0 = tuple(o + th + keep_frame * c for o, th, c in zip(own, thrown, carried))
+            after_leg = _Leg(
+                t,
+                WORLD_FRAME,
+                base,
+                tracks,
+                flight=(pose_new.apply(base), v0, float(a.gravity)),  # type: ignore[arg-type]
+            )
+        self.legs.append(after_leg)
+        self.changes.append(
+            _Change(t, a, old.frame, before, self._world(after_leg, t), carried)  # type: ignore[arg-type]
+        )
+
+
+def _reframe_notes(
+    change: _Change,
+    member: str,
+    ctx: _FrameCtx,
+    *,
+    near: float,
+    note: Callable[[str, str, str, str], None],
+) -> None:
+    """The lints of one ``reframe`` (an#502): a ``keep: local`` that makes the
+    picture jump (``reframe_jump``, warning, with the jump in pixels, over the
+    cut-continuity tolerance, or in size), and a ballistic reframe out of a
+    moving frame that does not say what the member inherits (``reframe_inherit``, info)."""
+    a = change.action
+    eye = ctx.eye_at(change.at)
+    focal = ctx.projection.focal
+    seen = [eye.view(p) for p in (change.before, change.after)]
+    if a.snap is None and any(v[2] > near for v in seen):
+        # One end behind the camera is read at the near plane: a jump out of
+        # (or into) the picture is still a jump.
+        (x0, y0, d0), (x1, y1, d1) = ((x, y, max(d, near)) for x, y, d in seen)
+        jump = math.hypot(focal * x1 / d1 - focal * x0 / d0, focal * y1 / d1 - focal * y0 / d0)
+        resized = abs(d0 / d1 - 1.0)  # the scale ratio: a depth-only jump
+        if jump > HAND_PLACEMENT_TOLERANCE_PX or resized > HAND_SCALE_TOLERANCE:
+            note(
+                "warning",
+                "reframe_jump",
+                member,
+                f"reframe to {a.to!r} at {change.at:g} s with `keep: {a.keep}` jumps the "
+                f"picture by {jump:.0f} px (size x{d0 / d1:.2g}). Say `keep: world` to hold its place, or "
+                "`snap` to put it at a socket on purpose.",
+            )
+    if (
+        a.motion == "ballistic"
+        and a.inherit is None
+        and math.hypot(*change.carried) > _MOVING_EPS
+    ):
+        note(
+            "info",
+            "reframe_inherit",
+            member,
+            f"reframe out of {change.old_frame!r}, which carries it at "
+            f"{math.hypot(*change.carried):.3g} units/s: say `inherit: velocity` "
+            "(it keeps going) or `inherit: none` (it stops in the world).",
+        )
+
+
 def _member_passes(
     member: WorldMember,
     ctx: _FrameCtx,
     frame: str,
     tracks: Mapping[str, Track] | None,
     *,
+    course: Callable[[float], Point3] | None = None,
     box: Box | None,
     m: float,
     near: float,
@@ -1272,7 +1502,9 @@ def _member_passes(
     stretch of the shot it is in front of the camera and on screen (it can
     leave and come back), each with its depth as it enters. Empty when it
     never is."""
-    view = ctx.view_fn(frame, lambda t: _member_point(member, tracks, t))
+    view = ctx.view_fn(
+        frame, course or (lambda t: _member_point(member, tracks, t))
+    )
     focal = ctx.projection.focal
 
     def g(t: float) -> tuple[float, float, float]:
@@ -1407,9 +1639,27 @@ def _lower_shot(
     frame_of = {m.id: m.frame or world.default_frame() for m in positioned.values()}
     member_at: dict[str, Point3] = {}
     moving: set[str] = set()
+    courses = {
+        mid: _Course(
+            positioned[mid],
+            frame_of[mid],
+            tree,
+            acts,
+            split.member_tracks.get(mid, {}),
+            film_start=film_start,
+        )
+        for mid, acts in split.reframes.items()
+    }
     for mid, member in positioned.items():
         tracks = split.member_tracks.get(mid)
         fx = frame_of[mid]
+        if mid in courses:
+            w0 = courses[mid].world_at(0.0)
+            member_at[mid] = tree.relative_pose(
+                WORLD_FRAME, vp_frame, 0.0, film_start=film_start
+            ).apply(w0)
+            moving.add(mid)
+            continue
         if fx == vp_frame and not tracks:
             continue
         p0 = _member_point(member, tracks, 0.0)
@@ -1456,8 +1706,9 @@ def _lower_shot(
         found = _member_passes(
             member,
             ctx,
-            frame_of[mid],
+            WORLD_FRAME if mid in courses else frame_of[mid],
             split.member_tracks.get(mid),
+            course=courses[mid].world_at if mid in courses else None,
             box=box,
             m=m,
             near=near,
@@ -1468,6 +1719,10 @@ def _lower_shot(
         )
         if found:
             passes[mid] = found
+    for mid, course in courses.items():
+        for change in course.changes:
+            _reframe_notes(change, mid, ctx, near=near, note=note)
+
     # A lowered scene lowered again: the shot lists the member where its pass
     # begins, so its motion is already there.
     already = {

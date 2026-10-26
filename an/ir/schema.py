@@ -1224,11 +1224,17 @@ class Frame(_IRModel):
     look: tuple[_Coord, _Coord, _Coord] = (0.0, 0.0, 0.0)
     coupling: Literal["rigid", "far"] = "rigid"
     moving: FrameMoving | None = None
+    #: Named points of this frame, ``{name: point}`` in its units: where a
+    #: member that ``reframe``s into it with ``snap: <name>`` lands (a hand's
+    #: palm, a shelf's slot).
+    sockets: dict[str, Point3] = Field(default_factory=dict)
 
     @model_serializer(mode="wrap")
     def _omit_defaults(self, handler):
         data = handler(self)
         if isinstance(data, dict):
+            if not self.sockets:
+                data.pop("sockets", None)
             if self.parent == WORLD_FRAME:
                 data.pop("parent", None)
             if tuple(self.at) == (0.0, 0.0, 0.0):

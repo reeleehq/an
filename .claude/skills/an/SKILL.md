@@ -86,6 +86,7 @@ Every core name a scene may use, with its version and the spectrum levels it acc
 | `release` | 1 | a | let a held item go: it falls, or is tossed, onto the ground |
 | `handover` | 1 | a | give a held item to another holder (a hand, a socket) |
 | `swap` | 1 | a | take the item a holder has and give it another in its place |
+| `reframe` | 1 | a | move a world member to another frame of reference at an instant, keeping its place in the world; optionally flying free under gravity |
 
 ### Entity kinds
 

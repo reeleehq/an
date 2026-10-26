@@ -54,7 +54,22 @@ world:
 - **A member the world moves, given a hand `stage.at`** (`hand_moving`): drop the hand placement or put the member in the camera's frame.
 - **A member attached with an offset to a host that moves across the frame** (`attached_moving`): the offset is applied where the host begins the shot.
 
-Not yet: a member leaving one frame for another (`reframe`, with the velocity it had) and a plane at a world depth are filed (an#502, an#503).
+## Leaving a frame: `reframe` and `motion: ballistic`
+
+A bottle thrown out of the car leaves the vehicle's frame for the world's, keeps where it is, and keeps the speed the car gave it:
+
+```yaml
+actions:
+- {kind: reframe, target: bottle, to: world, at: 2.0, motion: ballistic, velocity: [3, -2, 0], inherit: velocity}
+```
+
+- `keep: world` (default) holds the picture; `keep: local` keeps the numbers and lets it jump (a `reframe_jump` warning says by how many pixels).
+- `snap: <socket>` puts the member at a named point of the new frame (`frames: {hand: {sockets: {palm: [0, -0.1, 0]}}}`).
+- `inherit` and `velocity` apply only with `motion: ballistic` (refused otherwise); `inherit: velocity` adds the old frame's velocity to the member's own; `none` stops that part in the world. Say which when the old frame moves (`reframe_inherit`, info). `velocity` is the member's own extra velocity in the OLD frame's axes, per second (y is down).
+- `motion: ballistic` is `p + v·dt + ½·g·dt²` in the world (`gravity` per action, 9.81 by default); without it the member follows its own `<member>:at_*` actions that start at or after `at`, in the new frame's units.
+- `at` is shot time. A scene with no `reframe` lowers exactly as before.
+
+Not yet: a plane at a world depth (an#503); a landing (a ballistic member falls through the floor; a tween that straddles the reframe stops at the reframe instant, except that a flight keeps its velocity).
 
 ## Why it is general
 
