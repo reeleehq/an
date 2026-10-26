@@ -47,8 +47,8 @@ each one is user-visible and none is typer's default:
    ``SystemExit("message")`` (``an probe``, ``an library ...``); the wrapper
    must not swallow it. A command whose REPORT says it failed returns
    :func:`an.cli_status.failed` instead, and the wrapper exits with its code
-   after printing it (an#480, an#559): ``validate``, ``render`` with an error
-   finding, ``bench-compare --strict``, ``bench-mutants``, ``bench``'s refusals.
+   after printing it (an#480, an#559); which command does which:
+   :data:`an.cli_status.EXIT_POLICY`.
 """
 
 from __future__ import annotations

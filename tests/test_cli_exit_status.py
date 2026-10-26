@@ -14,7 +14,7 @@ import pytest
 from typer.testing import CliRunner
 
 from an.__main__ import build_app
-from an.cli_status import CommandReport, exit_code_of, failed
+from an.cli_status import EXIT_POLICY, CommandReport, exit_code_of, failed
 from an.project import init
 
 runner = CliRunner()
@@ -74,54 +74,10 @@ def test_string_operations_drop_the_exit_code_so_failed_is_called_last():
 
 # ------------------------------ an#559: the remaining commands, table-driven
 
-#: How each core command ends when it fails. A new command must take a line
-#: here (`test_every_core_command_declares_how_it_fails`), so "it prints a
-#: failure and exits 0" is a decision someone wrote down, never a default.
-#: ``failed``: a report that says it failed carries exit 1 (an.cli_status);
-#: ``refuses``: a bad argument or state raises (`SystemExit`, a `_REFUSALS`
-#: type), exit 1; ``0``: always 0, for the reason given.
-EXIT_POLICY: dict[str, str] = {
-    "init": "refuses",
-    "validate": "failed: a FAILED report (an#480)",
-    "sync": "refuses: a scene file that is not there; drift is a warning",
-    "check": "0: every backend is optional to some project; the render refuses",
-    "render": "failed: an error finding, though the mp4 exists (an#559)",
-    "iterate": "failed: the instruction was not applied (an#480)",
-    "preview": "refuses",
-    "probe": "refuses",
-    "credits": "0: the inventory; the gate is `validate --strict-assets`",
-    "bench": "failed: refused arguments (an#559)",
-    "bench-compare": "failed: --strict and a bad answer (an#559)",
-    "bench-mutants": "failed: a survivor, an unknown name, rot; 130 interrupted",
-    "voices list": "0: no voices is an answer",
-    "voices rescore": "failed: no dialogue line matches (an#559)",
-    "voices reroll": "failed: no dialogue line matches (an#559)",
-    "voices design": "refuses (VoiceDesignError)",
-    "voices audition": "refuses (VoiceDesignError)",
-    "voices choose": "refuses (VoiceDesignError)",
-    "voices cast": "refuses (VoiceDesignError)",
-    "voices import": "refuses (RecordedVoicesError)",
-    "library publish": "refuses; an unknown licence is recorded on purpose: 0",
-    "library kit": "refuses",
-    "library find": "0: no match is an answer",
-    "library vocabulary": "0",
-    "library show": "refuses",
-    "library checkout": "refuses",
-    "library promote": "refuses",
-    "library retire": "refuses",
-    "library sheet": "refuses",
-    "library reindex": "refuses",
-    "cache info": "0",
-    "cache gc": "refuses",
-    "sounds add": "refuses",
-    "props validate": "failed: a FAILED report (an#480)",
-    "props contract": "0",
-    "world show": "refuses",
-}
-
 
 def test_every_core_command_declares_how_it_fails():
-    """MUTATION: add a command to `an.tools._dispatch_funcs` without a line here."""
+    """MUTATION: add a command to `an.tools._dispatch_funcs` without a line in
+    `an.cli_status.EXIT_POLICY`, the one place the exit policy is written."""
     from an.__main__ import command_name
     from an.tools import _dispatch_funcs, _dispatch_namespaces
 
@@ -265,3 +221,25 @@ def test_voices_rescore_exits_0_when_a_line_matches(tmp_path, monkeypatch):
     )
     out = _run("voices", "rescore", str(tmp_path), "did not")
     assert "no take recorded yet" in out.output and out.exit_code == 0
+
+
+def test_bench_mutants_exits_1_on_a_survivor_and_on_rot(monkeypatch):
+    """Through the dispatcher: a survivor and a rotted declaration both exit 1,
+    and a full catch exits 0 (an#559)."""
+    from an.bench import mutants
+
+    def runs(results):
+        monkeypatch.setattr(mutants, "run_mutants", lambda wanted: results)
+
+    runs([{"caught": True}, {"caught": False}])
+    out = _run("bench-mutants", "--quiet")
+    assert "1/2 caught" in out.output and out.exit_code == 1
+    runs([{"caught": True}])
+    assert _run("bench-mutants", "--quiet").exit_code == 0
+
+    def rot(wanted):
+        raise mutants.MutantError("the mutant declarations no longer match")
+
+    monkeypatch.setattr(mutants, "run_mutants", rot)
+    out = _run("bench-mutants", "--quiet")
+    assert "no longer match" in out.output and out.exit_code == 1
