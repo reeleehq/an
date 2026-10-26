@@ -31,11 +31,15 @@ class CommandReport(str):
 
 
 def failed(text: str, *, exit_code: int = FAILURE_EXIT_CODE) -> CommandReport:
-    """``text`` as the report of a command that failed."""
+    """``text`` as the report of a command that failed.
+
+    Call it LAST: any string operation on the result (``+``, an f-string,
+    ``.join``, ``.strip()``) returns a plain ``str`` and the exit code is gone.
+    """
     return CommandReport(text, exit_code=exit_code)
 
 
 def exit_code_of(result: object) -> int:
     """The status a command's return value asks for: 0 for anything that is not a
     :class:`CommandReport`."""
-    return getattr(result, "exit_code", 0) if isinstance(result, CommandReport) else 0
+    return result.exit_code if isinstance(result, CommandReport) else 0

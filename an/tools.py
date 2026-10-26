@@ -242,7 +242,7 @@ def render(
         try:
             parallel_arg = int(parallel)
         except ValueError:
-            return f"invalid --parallel value: {parallel!r}; use a number or 'auto'"
+            return failed(f"invalid --parallel value: {parallel!r}; use a number or 'auto'")
     from an.render import format_render_findings
 
     cache = ShotCache(cache_frames=cache_frames)
@@ -310,6 +310,7 @@ def iterate(
         if result.validation:
             for f in result.validation.findings:
                 lines.append(f"  [{f.severity}] {f.ir_path}: {f.description}")
+        return failed("\n".join(lines))  # the instruction was not applied (an#480)
     elif apply_changes:
         lines.append("status: applied + persisted; re-run `an render` to see changes")
     else:

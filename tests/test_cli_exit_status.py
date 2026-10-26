@@ -46,3 +46,25 @@ def test_a_failed_report_is_still_the_text_python_callers_saw():
     r = failed("x: FAILED")
     assert isinstance(r, str) and r == "x: FAILED" and r.exit_code == 1
     assert exit_code_of("plain") == 0 and exit_code_of(CommandReport("ok")) == 0
+
+
+def test_a_refused_argument_exits_1(tmp_path):
+    out = _run("render", str(init(tmp_path / "p")), "--parallel", "abc")
+    assert "invalid --parallel" in out.output and out.exit_code == 1
+
+
+def test_props_validate_exits_1_on_a_bad_descriptor_and_0_on_a_good_one(tmp_path):
+    import shutil
+    from pathlib import Path
+
+    lamp = Path(__file__).resolve().parent / "fixtures" / "props" / "lamp"
+    shutil.copytree(lamp, tmp_path / "lamp")
+    assert _run("props", "validate", "lamp", "--out-dir", str(tmp_path)).exit_code == 0
+    (tmp_path / "lamp" / "parts" / "off.svg").unlink()
+    bad = _run("props", "validate", "lamp", "--out-dir", str(tmp_path))
+    assert "lamp: FAILED" in bad.output and bad.exit_code == 1
+
+
+def test_string_operations_drop_the_exit_code_so_failed_is_called_last():
+    """The documented caveat of `failed()`: composing a report is a plain str."""
+    assert exit_code_of(failed("x") + "y") == 0 and exit_code_of(f"{failed('x')}") == 0
