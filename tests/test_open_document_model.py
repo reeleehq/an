@@ -227,7 +227,7 @@ def test_scene_md_refuses_genre_kinds_and_sugar_until_loaded(declared_entry_poin
             markdown_to_ir(md)
         assert (
             "must be one of set/tween/sequence/parallel/delay/loop/pin/pull/join/unjoin/"
-            "grasp/place/release/handover/swap; got 'play'"
+            "grasp/place/release/handover/swap/reframe; got 'play'"
             in str(err.value)
         )
         with pytest.raises(SceneMarkdownError, match=r"\[happy\].*cutout_animation"):
