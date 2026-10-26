@@ -118,6 +118,7 @@ __all__ = [
     "vanishings",
     "Discontinuity",
     "ShortHold",
+    "compile_outcome",
     "compiled_shot",
     "continuity_findings",
     "discontinuities",
@@ -173,15 +174,17 @@ COMPILED_KEY: str = "constraints.compiled"
 STAGE_RENDERERS: frozenset[str] = frozenset({"stage", "cutout"})
 
 
-def compiled_shot(ctx: Any) -> Any | None:
-    """``ctx.shot`` compiled as ``an render`` compiles it, once per validation.
+def compile_outcome(ctx: Any) -> tuple[Any | None, Exception | None]:
+    """``ctx.shot`` compiled as ``an render`` compiles it, once per validation:
+    ``(document, None)``, ``(None, the compile error)``, or ``(None, None)`` for
+    a shot the stage does not render.
 
     The stores validate was given stand in for the mall; the scene's frame rate
-    (the render's when ``an validate --fps`` says), resolution, step grid and
-    default easing are the ones the render uses, so what is linted is the
-    document that is drawn. ``None`` for a shot the stage does not render or
-    that does not compile: the checks that own those problems report them, and
-    a constraint says nothing about a shot it could not see.
+    (the render's when ``an validate --fps`` says), resolution, step grid,
+    default easing and **style pack** are the ones the render uses, so what is
+    linted is the document that is drawn: the ``solve`` pass reads the pack's
+    gravity and damping, and a document compiled without them is a different
+    solve (an#534). Every compile-based check reads this one document.
     """
 
     def build():
@@ -189,15 +192,19 @@ def compiled_shot(ctx: Any) -> Any | None:
 
         shot, scene = ctx.shot, ctx.scene
         if shot.renderer not in STAGE_RENDERERS:
-            return None
-        from an.stage.compile import compile_shot
+            return None, None
+        from an.stage.compile import compile_shot, style_pack_for
 
+        try:
+            pack = style_pack_for(scene.meta, (ctx.stores or {}).get("styles") or {})
+        except Exception:  # noqa: BLE001 - a broken pack is the style check's to report
+            pack = None
         res = scene.meta.resolution
         step_hz = shot.step_hz if shot.step_hz is not None else scene.meta.step_hz
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # the render's warnings, not validate's
-                return compile_shot(
+                doc = compile_shot(
                     shot,
                     mall=ctx.stores,
                     fps=int(round(_fps(ctx))),
@@ -205,11 +212,21 @@ def compiled_shot(ctx: Any) -> Any | None:
                     height=res.height,
                     step_hz=step_hz,
                     default_easing=scene.meta.default_easing,
+                    style_pack=pack,
                 )
-        except Exception:  # noqa: BLE001 - a shot that cannot compile is reported elsewhere
-            return None
+        except Exception as e:  # noqa: BLE001 - reported by the check that owns it
+            return None, e
+        return doc, None
 
     return ctx.cached((COMPILED_KEY, ctx.index), build)
+
+
+def compiled_shot(ctx: Any) -> Any | None:
+    """The document of :func:`compile_outcome`, ``None`` for a shot the stage
+    does not render or that does not compile: the checks that own those
+    problems report them, and a constraint says nothing about a shot it could
+    not see."""
+    return compile_outcome(ctx)[0]
 
 
 def _fps(ctx: Any) -> float:

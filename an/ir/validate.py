@@ -2414,18 +2414,21 @@ _DELIBERATE: dict[str, frozenset[str]] = {
 
 
 def _placements(
-    shot: Any, ctx: ValidationContext
+    ctx: ValidationContext, shot: Any, index: int
 ) -> dict[str, tuple[dict, dict]] | None:
     """``{entity id: (state at the start, state at the end)}`` of a stage shot's
     entities, each state ``{prop: value}`` read off the document the stage
-    compiles; ``None`` when the shot is not a stage shot or does not compile
+    compiles (the one every compile-based check shares: style pack included,
+    an#534); ``None`` when the shot is not a stage shot or does not compile
     (its own checks say why)."""
-    import warnings
+    from dataclasses import replace
 
-    if shot.renderer not in ("stage", "cutout"):
+    from an.verify.constraints import compiled_shot
+
+    doc = compiled_shot(replace(ctx, shot=shot, index=index))
+    if doc is None:
         return None
     try:
-        from an.stage.compile import compile_shot
         from an.stage.timeline import (
             _node_chain,
             _pose_for,
@@ -2435,12 +2438,6 @@ def _placements(
         )
 
         res = ctx.scene.meta.resolution
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            doc = compile_shot(
-                shot, mall=ctx.stores, fps=int(ctx.scene.meta.fps),
-                width=res.width, height=res.height,
-            )  # fmt: skip
         timeline = timeline_from_scene(doc)
         poses = (
             evaluate_timeline(timeline, 0.0),
@@ -2537,7 +2534,9 @@ def _core_cut_continuity(ctx: ValidationContext) -> None:
 def _all_placements(ctx: ValidationContext) -> list:
     """Every shot's :func:`_placements`, computed once per validation."""
     return ctx.cached(
-        "placements", lambda: [_placements(shot, ctx) for shot in ctx.shots]
+        "placements", lambda: [
+            _placements(ctx, shot, i) for i, shot in enumerate(ctx.shots)
+        ]
     )
 
 

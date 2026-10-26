@@ -41,9 +41,10 @@ def _declares(ctx: Any) -> bool:
 
 
 def _holds(ctx: Any) -> tuple[dict[str, Any] | None, Exception | None]:
-    from an.verify.joints import _compiled, _report
+    from an.verify.constraints import compile_outcome
+    from an.verify.joints import _report
 
-    doc, error = _compiled(ctx)
+    doc, error = compile_outcome(ctx)
     if doc is None:
         return None, error
     return _report(doc).get("holds"), None
