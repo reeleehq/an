@@ -12,8 +12,9 @@ A member of the world is in one frame of reference at a time
 - ``inherit: velocity`` (the default) gives the member, in the new frame, the
   velocity the old frame carried it with, added to its own (the Galilean sum;
   Godot's ``platform_on_leave`` ``ADD_VELOCITY``); ``inherit: none`` stops that
-  part in the world. It only matters for ``motion: ballistic``, and for a
-  member the new frame does not carry along;
+  part in the world. It, and ``velocity``, only apply with ``motion:
+  ballistic`` (otherwise the member follows the new frame, and asking for
+  them is refused);
 - ``motion: ballistic`` makes the member a projectile in the world from then
   on, ``p + v·dt + ½·g·dt²`` (closed form, no dependency, sampled by
   :func:`an.ir.world.fit_channel`). This is the gravity seam: the puppet
@@ -42,7 +43,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from an.base import Seconds
 from an.genres.registry import CORE_OWNER, ActionKind, action_kind, register_action_kind
@@ -78,6 +79,20 @@ class ReframeAction(ExtensionAction):
     motion: Literal["ballistic"] | None = None
     velocity: Point3 = (0.0, 0.0, 0.0)
     gravity: float = Field(default=DFLT_WORLD_GRAVITY, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def _flight_fields_need_a_flight(self) -> "ReframeAction":
+        import math
+
+        if not all(math.isfinite(v) for v in (self.at, *self.velocity)):
+            raise ValueError("a reframe's `at` and `velocity` must be finite numbers.")
+        if self.motion is None and (self.inherit is not None or any(self.velocity)):
+            raise ValueError(
+                "`inherit` and `velocity` say how a member flies after leaving its "
+                "frame; give `motion: ballistic`, or drop them (a member that does not "
+                "fly follows the new frame)."
+            )
+        return self
 
 
 def reframe(

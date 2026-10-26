@@ -159,13 +159,13 @@ def test_reframe_out_of_a_moving_frame_without_inherit_is_an_info_lint():
 
 def test_keep_local_that_jumps_the_picture_is_a_warning_with_the_pixels():
     scene = _car_scene(
-        reframe("bottle", to="world", at=2.0, keep="local", inherit="velocity")
+        reframe("bottle", to="world", at=2.0, keep="local")
     )
     notes = lower_world(scene, extents=EXT).notes
     warned = [n for n in notes if n.kind == "reframe_jump"]
     assert len(warned) == 1 and warned[0].severity == "warning"
     assert " px" in warned[0].message and "keep: world" in warned[0].message
-    held = _car_scene(reframe("bottle", to="world", at=2.0, inherit="velocity"))
+    held = _car_scene(reframe("bottle", to="world", at=2.0))
     assert not [n for n in lower_world(held, extents=EXT).notes if n.kind == "reframe_jump"]
 
 
@@ -188,3 +188,29 @@ def test_the_action_round_trips_through_scene_md_without_its_defaults():
 def test_a_scene_with_no_reframe_lowers_byte_identically():
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
     assert {n: _dump(s) for n, s in _legacy_scenes().items()} == golden
+
+
+def test_inherit_and_velocity_need_a_flight_and_values_must_be_finite():
+    with pytest.raises(ValueError, match="motion: ballistic"):
+        reframe("bottle", to="world", inherit="none")
+    with pytest.raises(ValueError, match="motion: ballistic"):
+        reframe("bottle", to="world", velocity=(1.0, 0.0, 0.0))
+    with pytest.raises(ValueError, match="finite"):
+        reframe("bottle", to="world", at=float("nan"))
+
+
+def test_a_depth_only_jump_is_a_jump():
+    scene = _car_scene(reframe("bottle", to="world", at=2.0, keep="local"))
+    scene.world.members[0].at = (0.0, -1.0, 0.5)  # dead ahead of the camera
+    warned = [n for n in lower_world(scene, extents=EXT).notes if n.kind == "reframe_jump"]
+    assert len(warned) == 1 and "size x" in warned[0].message
+
+
+def test_two_reframes_throw_then_catch():
+    tree = FrameTree({"car": Frame(moving=FrameMoving(speed=CAR_SPEED))})
+    member = WorldMember(kind="prop", id="bottle", store="props", ref="b", at=SEAT, height=0.3, frame="car")
+    acts = [(OUT_AT, _throw()), (OUT_AT + 0.5, reframe("bottle", to="car"))]
+    c = _Course(member, "car", tree, acts, {}, film_start=0.0)
+    caught = tree.world_pose("car", 2.5).unapply(c.world_at(2.5))
+    assert caught == pytest.approx((2.1, -0.07, 0.5), abs=0.01)  # held where the flight had it
+    assert tree.world_pose("car", 3.0).unapply(c.world_at(3.0)) == pytest.approx(caught)  # then rides

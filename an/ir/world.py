@@ -1447,8 +1447,8 @@ def _reframe_notes(
 ) -> None:
     """The lints of one ``reframe`` (an#502): a ``keep: local`` that makes the
     picture jump (``reframe_jump``, warning, with the jump in pixels, over the
-    cut-continuity tolerance), and a reframe out of a moving frame that does
-    not say what the member inherits (``reframe_inherit``, info)."""
+    cut-continuity tolerance, or in size), and a ballistic reframe out of a
+    moving frame that does not say what the member inherits (``reframe_inherit``, info)."""
     a = change.action
     eye = ctx.eye_at(change.at)
     focal = ctx.projection.focal
@@ -1458,16 +1458,21 @@ def _reframe_notes(
         # (or into) the picture is still a jump.
         (x0, y0, d0), (x1, y1, d1) = ((x, y, max(d, near)) for x, y, d in seen)
         jump = math.hypot(focal * x1 / d1 - focal * x0 / d0, focal * y1 / d1 - focal * y0 / d0)
-        if jump > HAND_PLACEMENT_TOLERANCE_PX:
+        resized = abs(d0 / d1 - 1.0)  # the scale ratio: a depth-only jump
+        if jump > HAND_PLACEMENT_TOLERANCE_PX or resized > HAND_SCALE_TOLERANCE:
             note(
                 "warning",
                 "reframe_jump",
                 member,
                 f"reframe to {a.to!r} at {change.at:g} s with `keep: {a.keep}` jumps the "
-                f"picture by {jump:.0f} px. Say `keep: world` to hold its place, or "
+                f"picture by {jump:.0f} px (size x{d0 / d1:.2g}). Say `keep: world` to hold its place, or "
                 "`snap` to put it at a socket on purpose.",
             )
-    if a.inherit is None and math.hypot(*change.carried) > _MOVING_EPS:
+    if (
+        a.motion == "ballistic"
+        and a.inherit is None
+        and math.hypot(*change.carried) > _MOVING_EPS
+    ):
         note(
             "info",
             "reframe_inherit",
