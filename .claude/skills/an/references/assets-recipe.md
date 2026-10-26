@@ -106,8 +106,8 @@ mall["props"]["route"] = PathDescriptor(
 ).model_dump(mode="json")
 
 # Art direction, named by `style_pack:` in the meta block.
-mall["styles"]["south_park"] = StylePack(
-    name="south_park", roles={"sky": "#c0c6c7", "ground": "#987a43"}
+mall["styles"]["kurzgesagt"] = StylePack(
+    name="kurzgesagt", roles={"sky": "#c0c6c7", "ground": "#987a43"}
 ).model_dump(mode="json")
 
 # A sound: WAV bytes plus where they came from. synth_bed is an honest stand-in.
