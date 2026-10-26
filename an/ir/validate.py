@@ -2094,17 +2094,19 @@ def _core_asset_refs(ctx: ValidationContext) -> None:
             continue  # store not supplied → this check did not run
         problems = ctx.cached(
             ("asset_refs", store_name, entity.ref),
-            lambda: _asset_ref_problems(store, entity.ref),
+            lambda: _stored_asset_ref_problems(store, entity.ref),
         )
         where = f"{path}/entities/{j}"
         for problem in problems:
             report.add("error", where, f"{entity.kind} ref {entity.ref!r}: {problem}")
 
 
-def _asset_ref_problems(store: Any, ref: str) -> list[str]:
+def _stored_asset_ref_problems(store: Any, ref: str) -> list[str]:
     """What is wrong with the files the asset ``ref``'s document names
-    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is."""
-    from an.stores._common import ASSET_REF_RULE, asset_ref_problem, inside_folder
+    (:func:`_core_asset_refs`), one message each; ``[]`` when nothing is.
+    The rule is :func:`an.stores._common.asset_ref_problems`, with the SVG
+    self-containment check as its ``file_problems``."""
+    from an.stores._common import asset_ref_problems
 
     try:
         raw = store[ref] if ref in store else None
@@ -2114,66 +2116,30 @@ def _asset_ref_problems(store: Any, ref: str) -> list[str]:
         return []  # a missing or malformed document is `entity_refs`' finding
     root = getattr(store, "_root", None)
     folder = Path(root) / str(ref) if root is not None else None
-    out: list[str] = []
-    for label, rel in _asset_references(raw):
-        who = f"{label} names {rel!r}, which"
-        problem = asset_ref_problem(rel)
-        if problem is not None:
-            out.append(f"{who} {problem}: {ASSET_REF_RULE}")
-            continue
-        if folder is None:
-            continue
-        file = inside_folder(folder, rel)
-        if file is None:
-            out.append(
-                f"{who} resolves outside the asset's folder (a link): {ASSET_REF_RULE}"
-            )
-            continue
-        out += [
-            f"{who} is SVG that {found} — an asset is self-contained: no code, "
-            "no picture inside, no outside file, no embedded data"
-            for found in _svg_file_problems(file)
-        ]
-    return out
+    return [
+        message
+        for _label, message in asset_ref_problems(
+            raw, folder, file_problems=_svg_self_containment_problems
+        )
+    ]
+
+
+def _svg_self_containment_problems(file: "Path") -> list[str]:
+    """:func:`_svg_file_problems` of ``file``, each said as what an asset must be."""
+    return [
+        f"is SVG that {found} — an asset is self-contained: no code, "
+        "no picture inside, no outside file, no embedded data"
+        for found in _svg_file_problems(file)
+    ]
 
 
 def _asset_references(doc: Mapping) -> list[tuple[str, str]]:
-    """``(what, path)`` for every file path ``doc`` names: an environment's
-    image planes (``planes/<name>/art/src``), a rig's attachments
-    (``skins/<skin>/slots/<slot>/<attachment>/path``), a character's
-    ``source_svg`` and the files its ``colour_roles`` keys name.
+    """Deprecated private alias of :func:`an.stores._common.asset_references`,
+    kept because ``cutan`` (before it moves to the public name, an#552)
+    imports it."""
+    from an.stores._common import asset_references
 
-    >>> _asset_references({"planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}},
-    ...                               {"name": "fill", "art": {"kind": "fill"}}]})
-    [('plane sky', 'sky.png')]
-    >>> _asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
-    ...                    "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
-    [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
-    """
-    out: list[tuple[str, str]] = []
-    for plane in doc.get("planes") or ():
-        if not isinstance(plane, Mapping):
-            continue
-        art = plane.get("art") or {}
-        src = art.get("src") if isinstance(art, Mapping) else None
-        if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
-            out.append((f"plane {plane.get('name', '?')}", src))
-    for skin in (doc.get("skins") or {}).values():
-        slots = (skin or {}).get("slots") or {} if isinstance(skin, Mapping) else {}
-        for slot_name, attachments in slots.items():
-            if not isinstance(attachments, Mapping):
-                continue
-            for att_name, att in attachments.items():
-                rel = att.get("path") if isinstance(att, Mapping) else None
-                if isinstance(rel, str) and rel:
-                    out.append((f"part {slot_name}/{att_name}", rel))
-    source_svg = doc.get("source_svg")
-    if isinstance(source_svg, str) and source_svg:
-        out.append(("source_svg", source_svg))
-    roles = doc.get("colour_roles")
-    if isinstance(roles, Mapping):
-        out += [(f"colour_roles {k}", k) for k in roles if isinstance(k, str) and k]
-    return out
+    return asset_references(doc)
 
 
 def _svg_file_problems(file: "Path") -> list[str]:
