@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=16fa25a3"></script>
+    <script src="../../../_static/documentation_options.js?v=2102afc9"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.265" />
+  <meta name="docsearch:version" content="0.1.266" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1624,6 +1624,18 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">head</span>
                 <span class="k">else</span> <span class="n">head</span>
             <span class="p">)</span>
+            <span class="c1"># A bone named on an entity with several root parts (`ned@hand_r`)</span>
+            <span class="c1"># is a point of the part that bone carries: it needs no `ned/&lt;part&gt;`</span>
+            <span class="c1"># (with one root, the reference is that root's, as it always was).</span>
+            <span class="n">carrier</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_bone_carrier</span><span class="p">(</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">at</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">head</span>
+                <span class="ow">and</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">roots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">carrier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">rigs</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">carrier</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="n">node_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
             <span class="n">near</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">eid</span><span class="p">)</span>
             <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -1921,6 +1933,24 @@ window.runMermaid = runMermaid;</script>
         <span class="n">far</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">near</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">far</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">far</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">near</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">far</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span> <span class="o">+</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bone_carrier</span><span class="p">(</span><span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The slot whose part a bone is a point of: the part drawn on that bone</span>
+<span class="sd">    (the one named like it, else the first in draw order, as the rig's own joints pick it), or ``None`` for a bone no</span>
+<span class="sd">    part sits on (a landmark such as a prop's ``grip``) or a name that is no bone.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(anchors={"hand_r": 1, "grip": 1}, body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso"})</span>
+<span class="sd">    &gt;&gt;&gt; _bone_carrier(rig, "hand_r"), _bone_carrier(rig, "grip"), _bone_carrier(rig, "nope")</span>
+<span class="sd">    ('hand_r', None, None)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bone</span> <span class="ow">or</span> <span class="n">bone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">slots</span> <span class="o">=</span> <span class="p">[</span><span class="n">slot</span> <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">body_bone</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="n">bone</span><span class="p">]</span>  <span class="c1"># draw order</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">slots</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">bone</span> <span class="k">if</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">slots</span> <span class="k">else</span> <span class="n">slots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_pivot</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
