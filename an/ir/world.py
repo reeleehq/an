@@ -1334,7 +1334,10 @@ class _Course:
         self.tree, self.film_start = tree, film_start
         self.changes: list[_Change] = []
         cuts = [t for t, _ in reframes]
-        parts = [self._slice(tracks, lo, hi) for lo, hi in zip([-math.inf, *cuts], [*cuts, math.inf])]
+        parts = [
+            self._slice(tracks, lo, hi)
+            for lo, hi in zip([-math.inf, *cuts], [*cuts, math.inf])
+        ]
         base = (float(member.at[0]), float(member.at[1]), float(member.at[2]))  # type: ignore[index]
         self.legs: list[_Leg] = [_Leg(-math.inf, frame, base, parts[0])]
         for (t, a), leg_tracks in zip(reframes, parts[1:]):
@@ -1423,7 +1426,9 @@ class _Course:
         thrown = pose_old.rotate(tuple(float(v) for v in a.velocity))  # type: ignore[arg-type]
         if a.motion == "ballistic":
             keep_frame = 0.0 if a.inherit == "none" else 1.0
-            v0 = tuple(o + th + keep_frame * c for o, th, c in zip(own, thrown, carried))
+            v0 = tuple(
+                o + th + keep_frame * c for o, th, c in zip(own, thrown, carried)
+            )
             after_leg = _Leg(
                 t,
                 WORLD_FRAME,
@@ -1457,7 +1462,9 @@ def _reframe_notes(
         # One end behind the camera is read at the near plane: a jump out of
         # (or into) the picture is still a jump.
         (x0, y0, d0), (x1, y1, d1) = ((x, y, max(d, near)) for x, y, d in seen)
-        jump = math.hypot(focal * x1 / d1 - focal * x0 / d0, focal * y1 / d1 - focal * y0 / d0)
+        jump = math.hypot(
+            focal * x1 / d1 - focal * x0 / d0, focal * y1 / d1 - focal * y0 / d0
+        )
         resized = abs(d0 / d1 - 1.0)  # the scale ratio: a depth-only jump
         if jump > HAND_PLACEMENT_TOLERANCE_PX or resized > HAND_SCALE_TOLERANCE:
             note(
@@ -1502,9 +1509,7 @@ def _member_passes(
     stretch of the shot it is in front of the camera and on screen (it can
     leave and come back), each with its depth as it enters. Empty when it
     never is."""
-    view = ctx.view_fn(
-        frame, course or (lambda t: _member_point(member, tracks, t))
-    )
+    view = ctx.view_fn(frame, course or (lambda t: _member_point(member, tracks, t)))
     focal = ctx.projection.focal
 
     def g(t: float) -> tuple[float, float, float]:
