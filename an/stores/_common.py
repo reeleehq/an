@@ -138,17 +138,32 @@ def asset_references(doc: Mapping) -> list[tuple[str, str]]:
     >>> asset_references({"skins": {"default": {"slots": {"body": {"body": {"path": "parts/body.svg"}}}}},
     ...                   "source_svg": "source.svg", "colour_roles": {"parts/body.svg": {"#fff": "skin"}}})
     [('part body/body', 'parts/body.svg'), ('source_svg', 'source.svg'), ('colour_roles parts/body.svg', 'parts/body.svg')]
+
+    A malformed document names nothing where it is malformed (its schema
+    check reports it), rather than raising:
+
+    >>> asset_references({"planes": [{"art": "sky.png"}], "skins": {"default": {"slots": ["body"]}},
+    ...                   "source_svg": 3})
+    []
+    >>> asset_references({"planes": "sky.png", "skins": ["default"]})
+    []
     """
     out: list[tuple[str, str]] = []
-    for plane in doc.get("planes") or ():
+    planes = doc.get("planes")
+    for plane in planes if isinstance(planes, (list, tuple)) else ():
         if not isinstance(plane, Mapping):
             continue
-        art = plane.get("art") or {}
-        src = art.get("src") if isinstance(art, Mapping) else None
+        art = plane.get("art")
+        if not isinstance(art, Mapping):
+            continue
+        src = art.get("src")
         if art.get("kind", "fill") == "image" and isinstance(src, str) and src:
             out.append((f"plane {plane.get('name', '?')}", src))
-    for skin in (doc.get("skins") or {}).values():
-        slots = (skin or {}).get("slots") or {} if isinstance(skin, Mapping) else {}
+    skins = doc.get("skins")
+    for skin in skins.values() if isinstance(skins, Mapping) else ():
+        slots = skin.get("slots") if isinstance(skin, Mapping) else None
+        if not isinstance(slots, Mapping):
+            continue
         for slot_name, attachments in slots.items():
             if not isinstance(attachments, Mapping):
                 continue
@@ -183,9 +198,13 @@ def asset_ref_problems(
     never read when its name is bad; with a ``folder``, also by where it
     resolves (:func:`inside_folder`: a link out of the folder is the same
     error). ``file_problems``, when given, is asked about each file that
-    passed (the core passes its SVG self-containment check); its messages
-    are reported as they come. ``message`` is a whole sentence, label
-    included, so a caller can report it as is.
+    passed (the core passes its SVG self-containment check): it is called
+    for every path that passed the name (and folder) check, whether or not
+    the file exists, so it must tolerate an absent file. Each message it
+    returns is appended to ``"<label> names <path>, which"``, so it must
+    begin with a verb (``"is SVG that ..."``, ``"is not in the folder"``).
+    ``message`` is a whole sentence, label included, so a caller can report
+    it as is.
 
     >>> asset_ref_problems({"source_svg": "../x.svg", "planes": [
     ...     {"name": "sky", "art": {"kind": "image", "src": "sky.png"}}]})  # doctest: +NORMALIZE_WHITESPACE

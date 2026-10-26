@@ -97,7 +97,7 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 
 `an` is the **core** of structured animation: the scene IR and its timing kernel, the open registries (action kinds, entity kinds, checks, compile passes, runtime scripts, services; `an/genres/`), the stage (compiler, runtime, renderer, rig model: `an/stage/`), audio, storage, the asset library, verification, the shot cache and the bench *runner*. It knows no genre by name. The cut-out genre is the separate distribution **`cutan`** (`pip install "an[cutout]"`; repository github.com/thorwhalen/cutan): rigged characters, faces and expressions, lip-sync visemes, swap conventions (views, eyelids, visemes), impacts and the style lint. Wherever a row or path below names `an/characters`, `an/expression`, `an/impacts`, the lip-sync providers, the style lint or the cut-out compile passes, that code now lives at the same path under `cutan/` (character CLI: `cutan.characters.cli`; passes: `cutan.compile.passes`; corpus, examples, demos and the cut-out skills: the `cutan` repository). The old `an.*` paths are live aliases that warn (`an._shims.moved_to_package`).
 
-How the core reaches a genre without importing it (`an.genres.API_LEVEL` 2; `tests/test_import_firewall.py` holds it with an empty allow-list, and `tests/test_core_corpus.py` renders the core corpus with every cut-out module poisoned):
+How the core reaches a genre without importing it (`an.genres.API_LEVEL`, the level each seam arrived at listed in `an/genres/__init__.py` (2 for the move itself, 10 today); `tests/test_import_firewall.py` holds it with an empty allow-list, and `tests/test_core_corpus.py` renders the core corpus with every cut-out module poisoned):
 
 | Seam | Used for |
 |---|---|
