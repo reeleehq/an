@@ -814,7 +814,9 @@ def _schedule(
         try:
             aims[item] = float(aim)
         except (TypeError, ValueError):
-            problems.append((where, f"{AIM_OVERRIDE} is an angle in radians, not {aim!r}"))
+            problems.append(
+                (where, f"{AIM_OVERRIDE} is an angle in radians, not {aim!r}")
+            )
     gestures: list[Gesture] = []
     events: dict[str, list[Event]] = {item: [] for item in items}
     holder: dict[str, Holder] = {
@@ -1281,7 +1283,9 @@ def walk_items(
             elif first.kind == "body":
                 lin = _socket_lin(ctx, run, 0, first, item)
                 aim = ctx.aims.get(item)
-                if aim is not None:  # aimed: held at this angle, then relative to the socket
+                if (
+                    aim is not None
+                ):  # aimed: held at this angle, then relative to the socket
                     lin = (aim, lin[1], lin[2])
                 m = _placed(_point_world(puppet, run, 0, first), lin, info.grip)
                 state = _State(
