@@ -1183,7 +1183,9 @@ def _place_target(
     if target.kind == "body":
         point = _point_world(ctx.puppet, run, k, target)
         lin = _socket_lin(ctx, run, k, target, item)
-        if g.rotation is not None:  # aimed: at rest at this angle, then held relative to the socket
+        if (
+            g.rotation is not None
+        ):  # aimed: at rest at this angle, then held relative to the socket
             lin = (float(g.rotation), lin[1], lin[2])
         return lin, None, point
     if target.kind == "world":
