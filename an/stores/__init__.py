@@ -28,6 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import MutableMapping
 
+from an.ir.sync import DEFAULT_SCENE_FILE
 from an.stores.characters import CharactersStore
 from an.stores.decisions import DecisionLogStore
 from an.stores.environments import EnvironmentsStore
@@ -81,12 +82,17 @@ __all__ = [
 
 
 def build_project_mall(
-    project_dir: str | Path, *, ensure: bool = False, **overrides: MutableMapping
+    project_dir: str | Path,
+    *,
+    ensure: bool = False,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    **overrides: MutableMapping,
 ) -> dict[str, MutableMapping]:
     """Build the standard project mall over ``project_dir``.
 
     Pass ``ensure=True`` to create the per-store directories on disk if they
-    don't exist. Pass keyword overrides to swap in alternate stores (e.g. an
+    don't exist. ``scene_file`` picks the scene the ``scenes`` store holds (an#539;
+    ``scene.md`` by default). Pass keyword overrides to swap in alternate stores (e.g. an
     in-memory `dict` for tests).
     """
     pdir = Path(project_dir)
@@ -129,7 +135,7 @@ def build_project_mall(
         # Opaque scene sources a whole-shot renderer runs as they are: a Manim
         # shot's `options.source` is a key here (`assets/sources/<key>.py`).
         "sources": SourcesStore(pdir / "assets" / "sources"),
-        "scenes": ScenesStore(pdir),
+        "scenes": ScenesStore(pdir, scene_file),
         "audio": AudioArtifactStore(pdir / "artifacts" / "audio"),
         "visemes": VisemeArtifactStore(pdir / "artifacts" / "visemes"),
         # Which take of a best-of-N line was kept, and why (an.audio.takes):

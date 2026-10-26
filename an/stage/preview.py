@@ -30,6 +30,7 @@ from an.stage.render import _serve_dir, _stage_scene_assets
 from an.stage.runtime_files import runtime_dir
 from an.stage.serialize import to_dict
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
+from an.ir.sync import DEFAULT_SCENE_FILE, scene_file_paths
 from an.project import load
 
 
@@ -56,6 +57,7 @@ def _stage_preview(
     project_dir: str | Path,
     *,
     shot_id: str | None = None,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
 ) -> PreviewStaging:
     """Stage the runtime files + compiled scene JSON under ``<dir>/.an/preview/runtime``.
 
@@ -74,7 +76,9 @@ def _stage_preview(
         shutil.rmtree(runtime_target)
     shutil.copytree(runtime_dir(), runtime_target)
 
-    chosen_id = _compile_scene_to(project_root, runtime_target, shot_id=shot_id)
+    chosen_id = _compile_scene_to(
+        project_root, runtime_target, shot_id=shot_id, scene_file=scene_file
+    )
     return PreviewStaging(
         runtime_dir=runtime_target,
         scene_json_path=runtime_target / "scene.json",
@@ -88,6 +92,7 @@ def preview_project(
     shot_id: str | None = None,
     open_browser: bool = True,
     poll_interval_s: float = DEFAULT_POLL_INTERVAL_S,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
 ) -> str:
     """Serve a live preview of ``project_dir`` from a local HTTP server.
 
@@ -101,7 +106,7 @@ def preview_project(
     Blocks the calling thread until interrupted (Ctrl-C). Returns the
     base URL after teardown.
     """
-    staging = _stage_preview(project_dir, shot_id=shot_id)
+    staging = _stage_preview(project_dir, shot_id=shot_id, scene_file=scene_file)
     project_root = Path(project_dir).expanduser().resolve()
 
     stop_event = threading.Event()
@@ -113,6 +118,7 @@ def preview_project(
             shot_id,
             poll_interval_s,
             stop_event,
+            scene_file,
         ),
         daemon=True,
     )
@@ -145,13 +151,14 @@ def _compile_scene_to(
     runtime_target: Path,
     *,
     shot_id: str | None,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
 ) -> str:
     """Compile the chosen shot to ``runtime_target/scene.json``.
 
     Re-syncs scene.md ↔ ir/scene.json via :func:`an.project.load` so the
     Markdown is always the source of truth. Returns the compiled shot's id.
     """
-    project = load(project_root)
+    project = load(project_root, scene_file=scene_file)
     scene = project.scene
     from an.audio.pipeline import retime_dialogue
 
@@ -213,10 +220,12 @@ def _compile_scene_to(
     return shot.id
 
 
-def _source_mtimes(project_root: Path) -> tuple[float, float]:
-    """``(scene.md mtime, ir/scene.json mtime)``; missing files report 0.0."""
-    md = project_root / "scene.md"
-    js = project_root / "ir" / "scene.json"
+def _source_mtimes(
+    project_root: Path, scene_file: str | Path = DEFAULT_SCENE_FILE
+) -> tuple[float, float]:
+    """``(scene.md mtime, ir/scene.json mtime)`` (the pair of ``scene_file``);
+    missing files report 0.0."""
+    md, js = scene_file_paths(project_root, scene_file)
     md_t = md.stat().st_mtime if md.exists() else 0.0
     js_t = js.stat().st_mtime if js.exists() else 0.0
     return md_t, js_t
@@ -228,6 +237,7 @@ def _watch_loop(
     shot_id: str | None,
     poll_interval_s: float,
     stop_event: threading.Event,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
 ) -> None:
     """Poll source files and recompile when either changes.
 
@@ -235,17 +245,19 @@ def _watch_loop(
     rewrite ``ir/scene.json`` during sync — without re-reading we'd see
     our own write as a change and loop forever.
     """
-    last = _source_mtimes(project_root)
+    last = _source_mtimes(project_root, scene_file)
     while not stop_event.is_set():
         # Use stop_event.wait so Ctrl-C tears down quickly.
         if stop_event.wait(poll_interval_s):
             return
-        cur = _source_mtimes(project_root)
+        cur = _source_mtimes(project_root, scene_file)
         if cur == last:
             continue
         try:
-            _compile_scene_to(project_root, runtime_target, shot_id=shot_id)
+            _compile_scene_to(
+                project_root, runtime_target, shot_id=shot_id, scene_file=scene_file
+            )
             print(f"preview: reloaded ({time.strftime('%H:%M:%S')})")
         except Exception as e:
             print(f"preview: recompile failed — {e}")
-        last = _source_mtimes(project_root)
+        last = _source_mtimes(project_root, scene_file)

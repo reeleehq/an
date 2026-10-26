@@ -13,7 +13,12 @@ from pathlib import Path
 
 from an.check_requirements import check_requirements as _check_requirements
 from an.check_requirements import format_report
-from an.ir.sync import sync as _sync
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    default_output_name,
+    scene_file_paths,
+    sync as _sync,
+)
 from an.orchestrate import render_project as _render_project
 from an.orchestrate import validate_project
 from an.project import init as _init
@@ -82,14 +87,22 @@ def init(
     return f"initialized an project at {path}"
 
 
-def validate(project_dir: str, fps: float = 0.0, strict_assets: bool = False) -> str:
+def validate(
+    project_dir: str, fps: float = 0.0, strict_assets: bool = False, scene: str = ""
+) -> str:
     """Validate the scene at ``project_dir``. Prints findings, exit 0 on pass.
 
     project_dir: the an project
     fps: the frame rate `an render --fps` will use, when not the scene's (0: the scene's)
     strict_assets: judge the scene as `an render --strict-assets` will: a stand-in for a missing asset is an error (a voice written in words that nobody chose is an info line here: casting comes after the check, and the render is what refuses it)
+    scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
     """
-    report = validate_project(project_dir, fps=fps or None, strict_assets=strict_assets)
+    report = validate_project(
+        project_dir,
+        fps=fps or None,
+        strict_assets=strict_assets,
+        scene_file=scene or DEFAULT_SCENE_FILE,
+    )
     if report.passed and not report.findings:
         return "validation: passed, no findings"
     lines = ["validation: " + ("passed" if report.passed else "FAILED")]
@@ -99,7 +112,7 @@ def validate(project_dir: str, fps: float = 0.0, strict_assets: bool = False) ->
     return "\n".join(lines)
 
 
-def sync(project_dir: str, accept_measured: bool = False) -> str:
+def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> str:
     """Reconcile scene.md and ir/scene.json inside ``project_dir``.
 
     ``--accept-measured`` also writes the durations a clock-owning renderer
@@ -107,23 +120,27 @@ def sync(project_dir: str, accept_measured: bool = False) -> str:
     patched in place, so the prose around it is kept. Without it, a measured
     duration lives only in the derived ``measurements`` store and the scene
     says what its author wrote.
+
+    scene: the scene file to reconcile (default scene.md; for example scene.studio.md with ir/scene.studio.json)
     """
+    scene_file = scene or DEFAULT_SCENE_FILE
     parts = []
     if accept_measured:
         from an.measurements import accept_measured as _accept
 
-        accepted = _accept(project_dir)
+        accepted = _accept(project_dir, scene_file=scene_file)
         parts.append(
             "accepted measured duration(s): "
             + ", ".join(f"{k}={v:g}s" for k, v in accepted.items())
             if accepted
             else "no measured duration differs from the scene's"
         )
-    result = _sync(project_dir)
+    result = _sync(project_dir, scene_file)
+    md_path, json_path = scene_file_paths(project_dir, scene_file)
     if result.wrote_json:
-        parts.append("regenerated ir/scene.json from scene.md")
+        parts.append(f"regenerated ir/{json_path.name} from {md_path.name}")
     if result.wrote_md:
-        parts.append("regenerated scene.md from ir/scene.json")
+        parts.append(f"regenerated {md_path.name} from ir/{json_path.name}")
     if result.drift_warning:
         parts.append(f"warning: {result.drift_warning}")
     return "; ".join(parts) if parts else "no changes"
@@ -136,7 +153,8 @@ def check() -> str:
 
 def render(
     project_dir: str,
-    output_name: str = "main",
+    output_name: str = "",
+    scene: str = "",
     tts: str = "",
     lipsync: str = "offline",
     parallel: str = "",
@@ -163,7 +181,8 @@ def render(
     holds them all).
 
     project_dir: path to an an project (must contain scene.md / ir/scene.json)
-    output_name: filename stem under output/ (default: "main")
+    output_name: filename stem under output/ (default: "main", or the scene file's stem when --scene names one)
+    scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
     tts: TTS provider for EVERY line — "offline" (silent), "elevenlabs" (needs
         ELEVEN_API_KEY) or "mac_say". Omitted (the default): each voice's own
         `provider` speaks its lines, a voice naming none is offline, and what a
@@ -224,9 +243,12 @@ def render(
     from an.render import format_render_findings
 
     cache = ShotCache(cache_frames=cache_frames)
+    scene_file = scene or DEFAULT_SCENE_FILE
+    output_name = output_name or default_output_name(scene_file)
     output_path = _render_project(
         project_dir,
         output_name=output_name,
+        scene_file=scene_file,
         tts=tts or None,
         lipsync=lipsync,
         parallel=parallel_arg,
@@ -296,6 +318,7 @@ def preview(
     project_dir: str,
     shot: str = "",
     no_browser: bool = False,
+    scene: str = "",
 ) -> str:
     """Live-preview the project's scene in a browser; reloads on edit.
 
@@ -306,6 +329,7 @@ def preview(
     project_dir: path to an an project (must contain scene.md / ir/scene.json)
     shot: shot id to preview (default: first shot in the timeline)
     no_browser: don't auto-open the default browser
+    scene: the scene file to preview, inside the project (default scene.md; for example scene.studio.md)
     """
     from an.stage.preview import (
         preview_project as _preview_project,
@@ -315,6 +339,7 @@ def preview(
         project_dir,
         shot_id=shot or None,
         open_browser=not no_browser,
+        scene_file=scene or DEFAULT_SCENE_FILE,
     )
     return f"preview: stopped (was at {base_url})"
 
@@ -327,6 +352,7 @@ def probe(
     columns: int = 0,
     supersample: int = 1,
     allow_private_here: bool = False,
+    scene: str = "",
 ) -> str:
     """Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it.
 
@@ -343,6 +369,7 @@ def probe(
     columns: cells per row of a grid (default: a square grid)
     supersample: as `an render --supersample`, so the frame matches the film's
     allow_private_here: write not-publishable frames where git would pick them up
+    scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
     """
     from an.probe import probe as _probe
 
@@ -356,6 +383,7 @@ def probe(
         columns=columns or None,
         supersample=supersample,
         allow_private_here=allow_private_here,
+        scene_file=scene or DEFAULT_SCENE_FILE,
     )
     return f"probe: {path}"
 

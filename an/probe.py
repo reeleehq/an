@@ -32,6 +32,7 @@ import uuid
 from collections.abc import Sequence
 from pathlib import Path
 
+from an.ir.sync import DEFAULT_SCENE_FILE
 from an.project import PROBES_GITIGNORE, Project, keep_out_of_git, load
 
 __all__ = ["ProbeError", "frame", "frames", "probe"]
@@ -48,8 +49,12 @@ class ProbeError(RuntimeError):
     """A probe cannot draw what was asked: the message says why and what to do."""
 
 
-def _project(project: Project | str | os.PathLike) -> Project:
-    return project if isinstance(project, Project) else load(project)
+def _project(
+    project: Project | str | os.PathLike, scene_file: str | os.PathLike = DEFAULT_SCENE_FILE
+) -> Project:
+    return (
+        project if isinstance(project, Project) else load(project, scene_file=scene_file)
+    )
 
 
 def frames(
@@ -140,6 +145,7 @@ def probe(
     columns: int | None = None,
     supersample: int = 1,
     allow_private_here: bool = False,
+    scene_file: str | os.PathLike = DEFAULT_SCENE_FILE,
 ) -> Path:
     """Write shot ``shot``'s frames at ``at`` to one PNG (a grid for several instants).
 
@@ -147,11 +153,12 @@ def probe(
     columns: cells per row of a grid (default: a square grid)
     allow_private_here: write not-publishable frames inside a git work tree
         that does not ignore the path
+    scene_file: probe another scene of the project (``scene.studio.md``, an#539)
     """
     from an.library.root import check_private_output
     from an.media.grid import tile
 
-    project = _project(project_dir)
+    project = _project(project_dir, scene_file)
     times = [float(t) for t in at]
     target = (
         Path(out)

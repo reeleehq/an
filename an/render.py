@@ -40,6 +40,7 @@ from an.base import (
     MP4_FASTSTART_ARGS,
 )
 from an.ir.schema import Shot
+from an.ir.sync import DEFAULT_SCENE_FILE, default_output_name
 from an.project import Project, load
 
 
@@ -161,7 +162,8 @@ def _has_any_audio_content(scene) -> bool:
 def render_project(
     project_dir: str | Path,
     *,
-    output_name: str = "main",
+    output_name: str | None = None,
+    scene_file: str | Path = DEFAULT_SCENE_FILE,
     fps: int | None = None,
     resolution: tuple[int, int] | None = None,
     tts: str | object | None = None,
@@ -240,9 +242,14 @@ def render_project(
     finding is in ``render_reports/<output_name>.json``, read back as
     ``Finding`` s by :func:`render_findings`, and summarised by ``an render``.
 
+    ``scene_file`` renders another scene of the project (``scene.studio.md``,
+    an#539) instead of ``scene.md``; ``output_name`` then defaults to the file's
+    stem (``main`` for ``scene.md``), so the scenes never write the same file.
+
     Returns the absolute path of the final output file (under ``output/``).
     """
-    project: Project = load(project_dir)
+    project: Project = load(project_dir, scene_file=scene_file)
+    output_name = output_name or default_output_name(scene_file)
     if any(e.library for shot in project.scene.timeline for e in shot.entities):
         # The asset library's pins (an#240): the scene's `library:` must say what
         # assets.lock.json says the project holds — a warning, fatal under

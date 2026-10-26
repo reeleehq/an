@@ -30,7 +30,7 @@ def test_every_cli_render_flag_reaches_the_leaf_renderer(monkeypatch):
 
     assert isinstance(seen.pop("incremental"), ShotCache)
     assert seen == {
-        "output_name": "main", "tts": "mac_say", "lipsync": "rhubarb", "parallel": "auto",
+        "output_name": "main", "scene_file": "scene.md", "tts": "mac_say", "lipsync": "rhubarb", "parallel": "auto",
         "strict_assets": True, "supersample": 2, "pix_fmt": "yuv444p", "step_hz": 12.0, "language": "fr",
         "capture": "canvas", "force_render": False,
         # The CLI prints the render's findings grouped, after it (an#254).
@@ -46,3 +46,18 @@ def test_every_cli_render_flag_reaches_the_leaf_renderer(monkeypatch):
 
     params = inspect.signature(render_project).parameters
     assert set(seen) <= set(params), sorted(set(seen) - set(params))
+
+
+def test_a_scene_flag_reaches_the_leaf_and_names_the_output(monkeypatch):
+    """an#539: `--scene scene.studio.md` selects the scene file, and the output
+    defaults to its stem so two scenes of a project never write the same mp4."""
+    from an import orchestrate, tools
+
+    seen = {}
+    monkeypatch.setattr(
+        orchestrate, "_render_project", lambda d, **kw: seen.update(kw) or Path("out.mp4")
+    )
+    tools.render("proj", scene="scene.studio.md")
+    assert (seen["scene_file"], seen["output_name"]) == ("scene.studio.md", "scene.studio")
+    tools.render("proj", scene="scene.studio.md", output_name="final")
+    assert seen["output_name"] == "final"

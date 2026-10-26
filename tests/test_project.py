@@ -81,3 +81,30 @@ def test_save_persists_scene_changes():
         save(proj)
         proj2 = load(root)
         assert proj2.scene.meta.title == "changed"
+
+
+def test_a_project_keeps_several_scenes_side_by_side(tmp_path):
+    """an#539: `scene_file` picks a scene.<name>.md and its ir/scene.<name>.json;
+    the default scene is untouched, and writes through the mall go to the pair."""
+    from an.orchestrate import validate_project
+
+    root = init(tmp_path / "demo")
+    studio = "# Studio\n\n```yaml meta\ntitle: Studio\nduration: 3\nfps: 24\n```\n\n## Shot s1 (cutout)\n\n```yaml shot\nduration: 3\n```\n"
+    (root / "scene.studio.md").write_text(studio, encoding="utf-8")
+
+    project = load(root, scene_file="scene.studio.md")
+    assert [s.id for s in project.scene.timeline] == ["s1"]
+    assert (root / "ir" / "scene.studio.json").exists()
+    assert load(root).scene.timeline == []  # the default scene is another document
+
+    project.scene.timeline[0].duration = 4.0
+    save(project)
+    assert "duration: 4" in (root / "scene.studio.md").read_text(encoding="utf-8")
+    assert "duration: 4" not in (root / "scene.md").read_text(encoding="utf-8")
+
+    assert validate_project(root, scene_file="scene.studio.md").passed
+    for bad in ("nope.md", "sub/scene.md", "scene.txt"):
+        report = validate_project(root, scene_file=bad)
+        assert not report.passed and bad in report.findings[0].ir_path
+    with pytest.raises(FileNotFoundError, match="no scene file"):
+        load(root, scene_file="nope.md")

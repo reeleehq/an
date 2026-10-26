@@ -1,8 +1,9 @@
 """Scenes store — wraps the project's ``scene.md`` + ``ir/scene.json`` pair.
 
-Right now an an project contains exactly one scene ("main"), so this store
-exposes only the ``"main"`` key. Future versions can support multi-scene
-projects by promoting siblings inside a ``scenes/`` directory.
+The store exposes the one scene of the file pair it was opened on under the
+``"main"`` key: ``scene.md`` and ``ir/scene.json`` by default, or the pair of
+the ``scene_file`` a command was given (``scene.studio.md`` and
+``ir/scene.studio.json``, an#539), so a project can keep several scenes.
 
 Reading returns a ``SceneIR``. Writing accepts a ``SceneIR`` (or a dict that
 validates as one) and persists the JSON and the Markdown -- the Markdown UPDATED
@@ -19,7 +20,13 @@ from pathlib import Path
 from typing import Iterator
 
 from an.ir.schema import SceneIR
-from an.ir.sync import ir_to_markdown, merge_markdown, scene_from_json_doc
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    ir_to_markdown,
+    merge_markdown,
+    scene_file_paths,
+    scene_from_json_doc,
+)
 from an.util import _read_text, _write_json, _write_text
 
 
@@ -32,16 +39,19 @@ class ScenesStore(MutableMapping):
 
     SCENE_KEY = "main"
 
-    def __init__(self, project_dir: str | Path) -> None:
+    def __init__(
+        self, project_dir: str | Path, scene_file: str | Path = DEFAULT_SCENE_FILE
+    ) -> None:
         self._root = Path(project_dir)
+        self._md_path, self._json_path = scene_file_paths(self._root, scene_file)
 
     @property
     def md_path(self) -> Path:
-        return self._root / "scene.md"
+        return self._md_path
 
     @property
     def json_path(self) -> Path:
-        return self._root / "ir" / "scene.json"
+        return self._json_path
 
     def __getitem__(self, key: str) -> SceneIR:
         if key != self.SCENE_KEY:

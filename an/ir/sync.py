@@ -1258,16 +1258,74 @@ def scene_from_json_doc(doc: dict, *, source: str | Path | None = None) -> Scene
         raise SceneValidationError(f"{where}: {e}", e) from e
 
 
-def sync(project_dir: str | Path) -> SyncResult:
-    """Reconcile ``scene.md`` and ``ir/scene.json`` inside a project directory.
+#: The scene file a project's commands read when none is named: ``scene.md``,
+#: paired with ``ir/scene.json``.
+DEFAULT_SCENE_FILE: str = "scene.md"
+
+
+def scene_file_name(project_dir: str | Path, scene_file: str | Path = DEFAULT_SCENE_FILE) -> str:
+    """The name of ``scene_file`` as a markdown file directly inside the project
+    (an#539: a project may keep several scenes, ``scene.studio.md`` beside
+    ``scene.md``). A path is accepted when it points into the project directory.
+
+    >>> scene_file_name("/p", "scene.studio.md")
+    'scene.studio.md'
+    >>> scene_file_name("/p", "/p/scene.studio.md")
+    'scene.studio.md'
+    >>> scene_file_name("/p", "sub/scene.md")
+    Traceback (most recent call last):
+    ...
+    ValueError: scene file 'sub/scene.md' must be a .md file directly inside the project directory (for example scene.studio.md)
+    """
+    given = Path(scene_file)
+    if given.is_absolute() and given.parent == Path(project_dir):
+        given = Path(given.name)
+    name = given.name
+    if given.parent != Path(".") or not name.endswith(".md") or name.startswith("."):
+        raise ValueError(
+            f"scene file {str(scene_file)!r} must be a .md file directly inside the "
+            "project directory (for example scene.studio.md)"
+        )
+    return name
+
+
+def scene_file_paths(
+    project_dir: str | Path, scene_file: str | Path = DEFAULT_SCENE_FILE
+) -> tuple[Path, Path]:
+    """``(the markdown, its JSON twin)`` of a scene file: ``scene.md`` pairs
+    with ``ir/scene.json``, ``scene.studio.md`` with ``ir/scene.studio.json``.
+
+    >>> [p.as_posix() for p in scene_file_paths("/p")]
+    ['/p/scene.md', '/p/ir/scene.json']
+    >>> [p.as_posix() for p in scene_file_paths("/p", "scene.studio.md")]
+    ['/p/scene.studio.md', '/p/ir/scene.studio.json']
+    """
+    name = scene_file_name(project_dir, scene_file)
+    pdir = Path(project_dir)
+    return pdir / name, pdir / "ir" / f"{Path(name).stem}.json"
+
+
+def default_output_name(scene_file: str | Path = DEFAULT_SCENE_FILE) -> str:
+    """What ``output/<name>.mp4`` a render of ``scene_file`` writes when no
+    output name is given: ``main`` for the default scene file, else its stem,
+    so two scenes of a project never write the same file.
+
+    >>> default_output_name(), default_output_name("scene.studio.md")
+    ('main', 'scene.studio')
+    """
+    name = Path(scene_file).name
+    return "main" if name == DEFAULT_SCENE_FILE else Path(name).stem
+
+
+def sync(project_dir: str | Path, scene_file: str | Path = DEFAULT_SCENE_FILE) -> SyncResult:
+    """Reconcile a scene's markdown and JSON inside a project directory
+    (``scene.md`` and ``ir/scene.json``, or the pair of the ``scene_file`` named).
 
     Strategy in v0.1: Markdown is the human SSOT; if both exist, the JSON is
     regenerated from the Markdown unless mtimes show JSON is newer (which the
     user is told never to do — but we warn instead of silently overwriting).
     """
-    pdir = Path(project_dir)
-    md_path = pdir / "scene.md"
-    json_path = pdir / "ir" / "scene.json"
+    md_path, json_path = scene_file_paths(project_dir, scene_file)
     result = SyncResult()
 
     md_exists = md_path.exists()

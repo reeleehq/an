@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 from an.base import DEFAULT_DURATION
 from an.ir.schema import SceneIR, Shot
+from an.ir.sync import DEFAULT_SCENE_FILE
 
 if TYPE_CHECKING:  # pragma: no cover - types only
     from an.adapters._base import RenderContext
@@ -268,7 +269,9 @@ def render_context_for(project: Any, **overrides: Any) -> "RenderContext":
     return RenderContext(**kwargs)
 
 
-def accept_measured(project_dir: str | Path) -> dict[str, float]:
+def accept_measured(
+    project_dir: str | Path, *, scene_file: str | Path = DEFAULT_SCENE_FILE
+) -> dict[str, float]:
     """Write each clock-owned shot's MEASURED length into the authored scene.
 
     Only stored measurements (render first); only shots whose scene duration
@@ -278,7 +281,7 @@ def accept_measured(project_dir: str | Path) -> dict[str, float]:
     """
     from an.project import load
 
-    project = load(project_dir)
+    project = load(project_dir, scene_file=scene_file)
     ctx = render_context_for(project)
     accepted: dict[str, float] = {}
     for shot in project.scene.timeline:
