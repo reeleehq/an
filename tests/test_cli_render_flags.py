@@ -94,7 +94,7 @@ def test_render_project_names_the_output_after_the_scene_file(monkeypatch, tmp_p
     assert seen == ["main", "scene.studio", "final"]
     with pytest.raises(SceneFileError, match="--output-name"):
         render_mod.render_project(root, scene_file="scene.studio.md", output_name="main")
-    (root / "main.md").write_text((root / "scene.studio.md").read_text(), encoding="utf-8")
+    (root / "main.md").write_text((root / "scene.studio.md").read_text(encoding="utf-8"), encoding="utf-8")
     with pytest.raises(SceneFileError, match="rename the file"):
         render_mod.render_project(root, scene_file="main.md")
     assert seen == ["main", "scene.studio", "final"]  # refused before any render
