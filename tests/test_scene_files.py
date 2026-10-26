@@ -48,6 +48,8 @@ def test_no_scene_takes_another_scenes_output_name(tmp_path):
     """`--scene scene.a.md --output-name scene.b` overwrote scene.b.md's film."""
     root = _two_scene_project(tmp_path)
     (root / "scene.b.md").write_text(_STUDIO, encoding="utf-8")
+    for name in ("scene.b.md", "scene.studio.md"):
+        load(root, scene_file=name)  # a scene: it has its ir/<stem>.json twin
     studio = resolve_scene_file(root, "scene.studio.md")
     default = resolve_scene_file(root)
     for sf, taken in (
@@ -63,12 +65,38 @@ def test_no_scene_takes_another_scenes_output_name(tmp_path):
     assert default.output_for("main") == "main"
 
 
+def test_an_md_file_that_is_not_a_scene_owns_no_output_name(tmp_path):
+    """an#554 review: notes and READMEs are not scenes (no ir/<stem>.json twin),
+    and a scene's output is its own name, not every stem it shares a prefix with."""
+    root = _two_scene_project(tmp_path)
+    load(root, scene_file="scene.studio.md")
+    for name in ("notes.md", "README.md"):
+        (root / name).write_text("# notes\n", encoding="utf-8")
+    default = resolve_scene_file(root)
+    studio = resolve_scene_file(root, "scene.studio.md")
+    assert default.output_for("notes") == "notes"
+    assert default.output_for("README") == "README"
+    assert studio.output_for("scene") == "scene"  # scene.md's output is `main`
+
+
+@pytest.mark.parametrize("bad", ["..", ".", ".hidden", "a/b", "a\\b", "a b", ""])
+def test_an_output_name_is_a_plain_stem(tmp_path, bad):
+    """an#554 review: `..` resolved `render_work/outputs/..` to main's work dir."""
+    sf = resolve_scene_file(_two_scene_project(tmp_path), "scene.studio.md")
+    if not bad:
+        assert sf.output_for(bad) == "scene.studio"  # empty: the scene's own
+        return
+    with pytest.raises(SceneFileError, match="file stem"):
+        sf.output_for(bad)
+
+
 def test_the_render_leaf_refuses_another_scenes_output_before_any_work(
     monkeypatch, tmp_path
 ):
     from an import render as render_mod
 
     root = _two_scene_project(tmp_path)
+    load(root, scene_file="scene.studio.md")  # a scene once it has its JSON twin
     seen = []
     monkeypatch.setattr(render_mod, "render", lambda project, **kw: seen.append(kw))
     with pytest.raises(SceneFileError, match="scene.studio.md"):
@@ -201,15 +229,83 @@ def test_every_scene_reading_command_takes_scene(argv, tmp_path, monkeypatch):
     assert "Traceback" not in result.output
 
 
-def test_world_show_and_credits_read_the_scene_named(tmp_path):
+def _studio_with_a_line(tmp_path) -> Path:
+    """scene.md has no shots; scene.studio.md has shot `s1` with a line."""
+    from an.ir.schema import Dialogue
+
+    root = init(tmp_path / "p")
+    _put_scene(
+        root,
+        "scene.studio.md",
+        SceneIR(
+            meta=Meta(title="Studio", duration=1.0),
+            timeline=[
+                Shot(
+                    id="s1",
+                    renderer="cutout",
+                    duration=1.0,
+                    dialogue=[Dialogue(speaker="amy", text="hello there")],
+                )
+            ],
+        ),
+    )
+    return root
+
+
+def test_the_commands_read_the_scene_named_not_scene_md(tmp_path, monkeypatch):
+    """`--scene` reaches the right scene: every scene-reading command loads
+    scene.studio.md's shot `s1`, which scene.md lacks."""
+    import an.project
     from an import tools
-    from an.credits import credits_for_project
+    from an.audio.cli import audition, retake
     from an.world_cli import show
 
-    root = _two_scene_project(tmp_path)
-    assert "no framed shot" in show(str(root), scene="scene.studio.md")
-    assert credits_for_project(root, scene_file="scene.studio.md").entries == []
-    assert isinstance(tools.credits(str(root), scene="scene.studio.md"), str)
+    root = _studio_with_a_line(tmp_path)
+    studio = "scene.studio.md"
+
+    # A real difference in output: the line exists only in the studio scene.
+    assert "no dialogue line contains" in retake(str(root), "hello")
+    assert "no take recorded" in retake(str(root), "hello", scene=studio) or (
+        "declares no takes" in retake(str(root), "hello", scene=studio)
+    )
+
+    loaded: list[list[str]] = []
+    real_load = an.project.load
+
+    def spy(*args, **kwargs):
+        project = real_load(*args, **kwargs)
+        loaded.append([s.id for s in project.scene.timeline])
+        return project
+
+    monkeypatch.setattr(an.project, "load", spy)
+    show(str(root), scene=studio)
+    tools.credits(str(root), scene=studio)
+    with pytest.raises(Exception):  # no voice options: refused after the load
+        audition(str(root), scene=studio)
+    assert loaded and all(ids == ["s1"] for ids in loaded), loaded
+
+
+def test_iterate_edits_the_scene_named(tmp_path, monkeypatch):
+    pytest.importorskip("anthropic")
+    import an.iterate as it
+
+    root = _studio_with_a_line(tmp_path)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-used")
+    seen = []
+
+    def fake_claude(scene, instruction, **kw):
+        seen.append([s.id for s in scene.timeline])
+        return it.IterateResponse(
+            summary="longer",
+            patches=[it.Patch(op="set", path="timeline/0/duration", value=2.0)],
+        )
+
+    monkeypatch.setattr(it, "_call_claude", fake_claude)
+    result = it.iterate(root, "longer", scene_file="scene.studio.md")
+    assert result.success, result.error
+    assert seen == [["s1"]]
+    assert load(root, scene_file="scene.studio.md").scene.timeline[0].duration == 2.0
+    assert load(root).scene.timeline == []  # scene.md untouched
 
 
 def test_orchestrate_runs_on_the_scene_named(tmp_path):

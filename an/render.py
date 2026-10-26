@@ -71,6 +71,8 @@ def _uncached_work_dir(project_root: Path, output_name: str) -> Path:
     >>> _uncached_work_dir(Path("/p"), "scene.studio").as_posix()
     '/p/.an/render_work/outputs/scene.studio'
     """
+    # Keyed by OUTPUT, not by scene (unlike `SceneFile.per_scene_dir`): what a
+    # render writes belongs to its output, and one scene may render several.
     base = Path(project_root) / RENDER_WORK_DIR
     if output_name == DEFAULT_OUTPUT_NAME:
         return base
@@ -1303,7 +1305,7 @@ def cache_reach(
         retime_dialogue(scene, timed_shots_only=True)
     prep = _prepare_shots(
         project,
-        project.root / ".an" / "render_work",  # nothing is written
+        project.root / RENDER_WORK_DIR,  # nothing is written
         fps=fps,
         resolution=resolution,
         strict_assets=strict_assets,

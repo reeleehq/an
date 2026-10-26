@@ -316,12 +316,12 @@ def reachable_entries(
     root_max_age: float | None = None,
     now: float | None = None,
     force: bool = False,
-    others: Mapping[str, Any] | None = None,
+    others: Iterable[tuple[Any, Any]] = (),
 ) -> Reachability:
     """What the project's current scene and its recorded roots reach.
 
-    ``others`` are the project's OTHER scenes (``{scene file name: loaded
-    project}``, :func:`other_scenes`; an#554): the cache is the project's, so
+    ``others`` are the project's OTHER scenes (``(SceneFile, loaded project)``
+    pairs, :func:`other_scenes`; an#554): the cache is the project's, so
     what each of them reaches is kept as the current scene's is — otherwise
     ``--max-age`` collected for one scene drops another's older entries.
 
@@ -390,14 +390,19 @@ def reachable_entries(
 
     from an.audio.pipeline import in_memory_audio_mall
 
+    from an.ir.sync import resolve_scene_file
+
     scenes = [
-        (name, replace(p, mall=in_memory_audio_mall(p.mall)))
-        for name, p in {"": project, **dict(others or {})}.items()
+        (sf, replace(p, mall=in_memory_audio_mall(p.mall)))
+        for sf, p in [
+            (resolve_scene_file(project.root, must_exist=False), project),
+            *others,
+        ]
     ]
     for profile, roots in candidates:
         keyed = False
-        for name, scene_project in scenes:
-            which = f"scene {name}" if name else "current scene"
+        for sf, scene_project in scenes:
+            which = "current scene" if sf.is_default else f"scene {sf.name}"
             try:
                 with warnings.catch_warnings():
                     # A stand-in or a missing font warns at compile time; that is
@@ -407,13 +412,19 @@ def reachable_entries(
             except AudioNotCachedError as e:
                 # No key until that line is synthesised: nothing cached can be its
                 # shot's entry. What the renders under it used stays, whatever age.
-                reach.skipped.append((profile, f"{name}: {e}" if name else str(e)))
+                reach.skipped.append(
+                    (profile, str(e) if sf.is_default else f"{sf.name}: {e}")
+                )
                 for root in roots:
                     rp = root.record.render_provenance or {}
                     reach.from_roots.update(rp.get("entries") or ())
                 continue
             except Exception as e:  # noqa: BLE001 — refuse rather than guess
-                fix = f"`an validate --scene {name}`" if name else "`an validate`"
+                fix = (
+                    "`an validate`"
+                    if sf.is_default
+                    else f"`an validate --scene {sf.name}`"
+                )
                 raise CacheGcError(
                     f"cannot compute what the {which} reaches under {profile} "
                     f"({type(e).__name__}: {e}); nothing was deleted. Fix what keeps "
@@ -555,20 +566,20 @@ def _protection_horizon(project_root: Path, now: float) -> float:
     return min([now, *starts]) - CLOCK_SLACK_S
 
 
-def other_scenes(project_dir: str | Path) -> dict[str, Any]:
-    """The project's scenes besides ``scene.md``, loaded, by file name
-    (:func:`an.ir.sync.project_scene_files`; an#554): what a project-wide
+def other_scenes(project_dir: str | Path) -> list[tuple[Any, Any]]:
+    """The project's scenes besides ``scene.md``, as ``(SceneFile, loaded
+    project)`` pairs (:func:`an.ir.sync.project_scene_files`; an#554): what a project-wide
     collection must keep reachable too. A scene that cannot be loaded is a
     :class:`CacheGcError`: what it reaches is unknown, so nothing may go."""
     from an.ir.sync import project_scene_files
     from an.project import load
 
-    out: dict[str, Any] = {}
+    out: list[tuple[Any, Any]] = []
     for sf in project_scene_files(project_dir):
         if sf.is_default:
             continue
         try:
-            out[sf.name] = load(project_dir, scene_file=sf)
+            out.append((sf, load(project_dir, scene_file=sf)))
         except Exception as e:  # noqa: BLE001 — refuse rather than guess
             raise CacheGcError(
                 f"cannot read the project's scene {sf.name} ({type(e).__name__}: "

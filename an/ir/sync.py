@@ -1292,6 +1292,10 @@ DEFAULT_OUTPUT_NAME: str = "main"
 #: scene keeps the folder itself, as it always did.
 PER_SCENE_SUBDIR: str = "scenes"
 
+#: What an output name may be: a file stem that cannot climb out of, or alias,
+#: the folder it names (``..``, ``.``, ``a/b``; an#554 review).
+_OUTPUT_NAME_RE = re.compile(r"[\w-][\w.-]*")
+
 
 class SceneFileError(ValueError):
     """A scene file a command was given cannot be used: a bad name, a file
@@ -1335,9 +1339,10 @@ class SceneFile:
 
     def output_for(self, output_name: str | None = None) -> str:
         """The output name a render of this scene writes: ``output_name`` when
-        given, else :attr:`output_name`. No scene may write another's default
-        output: not the default scene's ``main``, and not the stem of another
-        scene file of the project (``scene.b.md``'s ``scene.b``, an#554).
+        given, else :attr:`output_name`. No scene may write another scene's
+        default output: not the default scene's ``main``, and not that of another
+        scene of the project (:func:`project_scene_files`: ``scene.b.md``'s
+        ``scene.b``, an#554). A name must be a plain stem (no ``..``).
 
         >>> sf = resolve_scene_file("/p", "scene.studio.md", must_exist=False)
         >>> sf.output_for(), sf.output_for("final")
@@ -1346,12 +1351,19 @@ class SceneFile:
         Traceback (most recent call last):
         ...
         an.ir.sync.SceneFileError: output name 'main' is the default scene's (scene.md) output; a render of scene.studio.md would overwrite it: pick another --output-name
+        >>> sf.output_for("..")  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        an.ir.sync.SceneFileError: output name '..' must be a file stem ...
         """
         if not output_name:
             return self.output_name
-        if "/" in output_name or "\\" in output_name:
+        if not _OUTPUT_NAME_RE.fullmatch(output_name):
+            # Not a path, and not `.`/`..`/`.hidden`: a name like those resolves
+            # to another output's folder (`render_work/outputs/..` is main's).
             raise SceneFileError(
-                f"output name {output_name!r} must be a file stem, not a path"
+                f"output name {output_name!r} must be a file stem (letters, digits, "
+                "'_', '-' and '.', not starting with '.'), not a path"
             )
         if not self.is_default and output_name.lower() == DEFAULT_OUTPUT_NAME:
             raise SceneFileError(
@@ -1359,12 +1371,13 @@ class SceneFile:
                 f"({DEFAULT_SCENE_FILE}) output; a render of {self.name} would "
                 "overwrite it: pick another --output-name"
             )
-        if output_name.lower() != self.output_name.lower():
-            owner = _scene_file_with_stem(self.project_dir, output_name)
-            if owner is not None and owner != self.name:
+        for other in project_scene_files(self.project_dir):
+            if other.name != self.name and (
+                other.output_name.lower() == output_name.lower()
+            ):
                 raise SceneFileError(
                     f"output name {output_name!r} is the output of the project's "
-                    f"other scene file {owner}; a render of {self.name} would "
+                    f"other scene file {other.name}; a render of {self.name} would "
                     "overwrite it: pick another --output-name"
                 )
         return output_name
@@ -1462,18 +1475,6 @@ def resolve_scene_file(
         json_path=pdir / "ir" / f"{stem}.json",
         output_name=DEFAULT_OUTPUT_NAME if is_default else stem,
     )
-
-
-def _scene_file_with_stem(project_dir: Path, stem: str) -> str | None:
-    """The name of the scene file in ``project_dir`` whose stem is ``stem``
-    (case-insensitively: on a case-insensitive disk they are one file), if any."""
-    if not project_dir.is_dir():
-        return None
-    wanted = f"{stem}.md".lower()
-    for p in project_dir.iterdir():
-        if p.name.lower() == wanted and p.is_file():
-            return p.name
-    return None
 
 
 def project_scene_files(project_dir: str | Path) -> list[SceneFile]:

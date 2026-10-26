@@ -88,7 +88,10 @@ def init(
 
 
 def validate(
-    project_dir: str, fps: float = 0.0, strict_assets: bool = False, scene: str = ""
+    project_dir: str,
+    fps: float = 0.0,
+    strict_assets: bool = False,
+    scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Validate the scene at ``project_dir``. Prints findings; exits 1 when it reports FAILED, 0 otherwise.
 
@@ -101,7 +104,7 @@ def validate(
         project_dir,
         fps=fps or None,
         strict_assets=strict_assets,
-        scene_file=scene or DEFAULT_SCENE_FILE,
+        scene_file=scene,
     )
     if report.passed and not report.findings:
         return "validation: passed, no findings"
@@ -113,7 +116,9 @@ def validate(
     return text if report.passed else failed(text)  # exit 1 on a FAILED report (an#480)
 
 
-def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> str:
+def sync(
+    project_dir: str, accept_measured: bool = False, scene: str = DEFAULT_SCENE_FILE
+) -> str:
     """Reconcile scene.md and ir/scene.json inside ``project_dir``.
 
     ``--accept-measured`` also writes the durations a clock-owning renderer
@@ -126,7 +131,7 @@ def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> st
     """
     # Resolved first, so a scene file that is not there is a refusal
     # (`SceneFileError`, printed by the CLI), never "no changes".
-    scene_file = resolve_scene_file(project_dir, scene or DEFAULT_SCENE_FILE)
+    scene_file = resolve_scene_file(project_dir, scene)
     parts = []
     if accept_measured:
         from an.measurements import accept_measured as _accept
@@ -157,7 +162,7 @@ def check() -> str:
 def render(
     project_dir: str,
     output_name: str = "",
-    scene: str = "",
+    scene: str = DEFAULT_SCENE_FILE,
     tts: str = "",
     lipsync: str = "offline",
     parallel: str = "",
@@ -252,7 +257,7 @@ def render(
         project_dir,
         # None: the leaf names the output after the scene file (an#539).
         output_name=output_name or None,
-        scene_file=scene or DEFAULT_SCENE_FILE,
+        scene_file=scene,
         tts=tts or None,
         lipsync=lipsync,
         parallel=parallel_arg,
@@ -290,7 +295,7 @@ def iterate(
     instruction: str,
     apply_changes: bool = True,
     model: str = "claude-opus-4-7",
-    scene: str = "",
+    scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.
 
@@ -306,7 +311,7 @@ def iterate(
         instruction,
         apply=apply_changes,
         model=model,
-        scene_file=scene or DEFAULT_SCENE_FILE,
+        scene_file=scene,
     )
     lines: list[str] = []
     lines.append(f"summary: {result.summary}")
@@ -332,7 +337,7 @@ def preview(
     project_dir: str,
     shot: str = "",
     no_browser: bool = False,
-    scene: str = "",
+    scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Live-preview the project's scene in a browser; reloads on edit.
 
@@ -353,7 +358,7 @@ def preview(
         project_dir,
         shot_id=shot or None,
         open_browser=not no_browser,
-        scene_file=scene or DEFAULT_SCENE_FILE,
+        scene_file=scene,
     )
     return f"preview: stopped (was at {base_url})"
 
@@ -366,7 +371,7 @@ def probe(
     columns: int = 0,
     supersample: int = 1,
     allow_private_here: bool = False,
-    scene: str = "",
+    scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it.
 
@@ -397,7 +402,7 @@ def probe(
         columns=columns or None,
         supersample=supersample,
         allow_private_here=allow_private_here,
-        scene_file=scene or DEFAULT_SCENE_FILE,
+        scene_file=scene,
     )
     return f"probe: {path}"
 
@@ -405,7 +410,9 @@ def probe(
 # SSOT for the CLI dispatcher (per the python-dispatching skill convention).
 
 
-def credits(project_dir: str, json_out: str | None = None, scene: str = "") -> str:
+def credits(
+    project_dir: str, json_out: str | None = None, scene: str = DEFAULT_SCENE_FILE
+) -> str:
     """Show what third-party work is in ``project_dir`` and what it obliges.
 
     project_dir: the an project
@@ -417,7 +424,7 @@ def credits(project_dir: str, json_out: str | None = None, scene: str = "") -> s
     """
     from an.credits import credits_for_project
 
-    report = credits_for_project(project_dir, scene_file=scene or DEFAULT_SCENE_FILE)
+    report = credits_for_project(project_dir, scene_file=scene)
     if json_out:
         import json as _json
 

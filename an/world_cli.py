@@ -6,6 +6,8 @@ Thin projections of :mod:`an.stage.world`, wired into the CLI by
 
 from __future__ import annotations
 
+from an.ir.sync import DEFAULT_SCENE_FILE
+
 import json as _json
 
 __all__ = ["show"]
@@ -16,7 +18,7 @@ def show(
     shot: str = "",
     json: bool = False,
     frames: bool = False,
-    scene: str = "",
+    scene: str = DEFAULT_SCENE_FILE,
 ) -> str:
     """Print every framed shot as the compiler sees it: each entity's placement derived from the scene's world, and what the world added, replaced or could not place.
 
@@ -30,12 +32,11 @@ def show(
     frames: print instead the scene's frames of reference, one line per frame per framed shot: its pose in the world as the shot opens and as it closes
     scene: the scene file to read, inside the project (default scene.md; for example scene.studio.md)
     """
-    from an.ir.sync import DEFAULT_SCENE_FILE
     from an.ir.world import WorldError
     from an.project import load
     from an.stage.world import lower_scene, world_report
 
-    project = load(project_dir, scene_file=scene or DEFAULT_SCENE_FILE)
+    project = load(project_dir, scene_file=scene)
     if frames:
         return _show_frames(project, shot=shot, json=json)
     try:
