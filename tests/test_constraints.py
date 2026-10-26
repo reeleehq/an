@@ -646,7 +646,10 @@ def _halfway_y() -> float:
         def cached(key, build):
             return build()
 
-    project = load(LAMP)
+    import tempfile
+
+    # a copy: loading writes ir/scene.json, which the corpus must not gain
+    project = load(Path(shutil.copytree(LAMP, Path(tempfile.mkdtemp()) / "p")))
     shot = Shot.model_validate(
         {
             **project.scene.timeline[0].model_dump(),
