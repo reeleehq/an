@@ -62,7 +62,13 @@ def _stage_document(shot: Any, ctx: Any, renderer: Any) -> Any:
 
 
 def crossing_in_document(
-    doc: Any, anchor: CueAnchor, *, shot_id: str, fps: float, duration: float, where: str
+    doc: Any,
+    anchor: CueAnchor,
+    *,
+    shot_id: str,
+    fps: float,
+    duration: float,
+    where: str,
 ) -> float:
     """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``, in a compiled stage document."""
     from an.stage.timeline import (
