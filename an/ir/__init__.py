@@ -50,6 +50,9 @@ from an.ir.joints import pin, pull, join, unjoin  # noqa: E402
 
 # Holding things (an#502, catalogue A4): grasp, place, release, handover, swap.
 from an.ir.holds import grasp, place, release, handover, swap  # noqa: E402
+
+# Changing frame (an#502, ADR 0008 decision 5): reframe.
+from an.ir.reframe import reframe  # noqa: E402
 from an.ir.validate import (
     validate_schema,
     validate_semantic,
@@ -121,6 +124,7 @@ __all__ = [
     "join",
     "unjoin",
     "grasp",
+    "reframe",
     "place",
     "release",
     "handover",
