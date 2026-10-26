@@ -157,6 +157,11 @@ def test_the_runtime_lists_the_same_order_properties():
     (listed,) = re.findall(r"const PAINT_AFTER = '([a-z_]+)'", block)
     assert {listed} == set(ORDER_PROPERTIES)
     assert "new Set([PAINT_AFTER])" in block
+    # applyProperty and captureRest spell the one member literally (tests lift
+    # them out on their own): the same name.
+    for fn in ("function applyProperty(", "function captureRest("):
+        body = src[src.index(fn) : src.index("switch (prop)", src.index(fn))]
+        assert f"prop === '{listed}'" in body, fn
 
 
 # -- in pixels ---------------------------------------------------------------------

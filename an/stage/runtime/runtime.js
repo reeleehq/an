@@ -1368,7 +1368,9 @@
 
     function applyProperty(node, prop, value) {
         // Not a transform and not a swap: where the node is painted (an#537).
-        if (ORDER_PROPERTIES.has(prop)) {
+        // Spelled literally (ORDER_PROPERTIES' one member) so this function
+        // stays self-contained: tests lift it out of the file on its own.
+        if (prop === 'paint_after') {
             applyPaintAfter(node, value);
             return;
         }
@@ -2091,7 +2093,7 @@
     // first time a clip actually writes the key.
     function captureRest(node, prop) {
         // At rest a node paints at its own place in the tree (an#537).
-        if (ORDER_PROPERTIES.has(prop)) return () => applyPaintAfter(node, '');
+        if (prop === 'paint_after') return () => applyPaintAfter(node, '');
         switch (prop) {
             case 'x': { const v = node.x; return () => { node.x = v; }; }
             case 'y': { const v = node.y; return () => { node.y = v; }; }
