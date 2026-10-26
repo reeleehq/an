@@ -487,8 +487,8 @@ MUTANTS: tuple[Mutant, ...] = (
     Mutant(
         name="strict_exits_zero_on_a_row_it_cannot_read",
         file="an/tools.py",
-        old="        if strict:\n            print(refusal)",
-        new="        if False:\n            print(refusal)",
+        old="        return failed(refusal) if strict else refusal",
+        new="        return failed(refusal) if False else refusal",
         caught_by="tests/test_bench_compare.py",
         why=(
             "the documented CI gate exited 0 on an unreadable schema_version "
@@ -599,8 +599,8 @@ MUTANTS: tuple[Mutant, ...] = (
     Mutant(
         name="bench_blesses_a_deliberately_degraded_picture",
         file="an/tools.py",
-        old='        if bless:\n            return (\n                "refusing --bless with --mutation: a lever renders a"',
-        new='        if False:\n            return (\n                "refusing --bless with --mutation: a lever renders a"',
+        old='        if bless:\n            return failed(\n                "refusing --bless with --mutation: a lever renders a"',
+        new='        if False:\n            return failed(\n                "refusing --bless with --mutation: a lever renders a"',
         caught_by="tests/test_bench_mutation_cli.py",
         why=(
             "blessing under a lever commits the degraded picture as the "

@@ -121,14 +121,17 @@ def retake(
     The plain-function core of ``an voices rescore`` / ``an voices reroll``: see
     :func:`an.audio.pipeline.retake_lines`. ``tts`` must be the provider the
     line is rendered with (its takes are keyed by it). ``scene`` names another
-    scene file of the project (``scene.studio.md``, an#554).
+    scene file of the project (``scene.studio.md``, an#554). When no dialogue
+    line contains ``line`` nothing was released, and the CLI exits 1 (an#559).
     """
-    from an.audio.pipeline import retake_lines
+    from an.audio.pipeline import lines_matching, retake_lines
+    from an.cli_status import failed
     from an.project import load
 
     proj = load(project, scene_file=scene)
     messages = retake_lines(proj.scene, proj.mall, line, tts=make(tts), rescore=rescore)
-    return "\n".join(messages)
+    text = "\n".join(messages)
+    return text if lines_matching(proj.scene, line) else failed(text)
 
 
 def _rescore(
