@@ -200,7 +200,14 @@ def settle_durations(
     out = scene.model_copy(update={"timeline": timeline})
     from an.assemble import film_duration
 
-    before = (film_duration(scene, fps=fps), sum(s.duration for s in scene.timeline))
+    # What "the author left it unset" can look like: the layout at the render's
+    # rate, at the scene's own (what reading the scene fills in, an#481), or the
+    # plain sum.
+    before = (
+        film_duration(scene, fps=fps),
+        film_duration(scene),
+        sum(s.duration for s in scene.timeline),
+    )
     if any(abs(meta.duration - b) <= META_DURATION_TOLERANCE_S for b in before):
         out.meta = meta.model_copy(update={"duration": film_duration(out, fps=fps)})
     return out, findings

@@ -206,10 +206,29 @@ def markdown_to_ir(md_text: str) -> SceneIR:
                 shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
 
+    scene = SceneIR(meta=meta, timeline=shots, world=world)
     if meta.duration == 0.0:
-        meta.duration = sum(s.duration for s in shots)
+        scene.meta.duration = _laid_out_duration(scene)
+    return scene
 
-    return SceneIR(meta=meta, timeline=shots, world=world)
+
+def _laid_out_duration(scene: SceneIR) -> float:
+    """The duration of a scene whose author wrote none: what the shots lay out
+    (their durations minus each dissolve or wipe overlap, an#481), so the
+    `meta.duration` check has nothing to disagree with. The plain sum when the
+    overlaps cannot be laid out (`an validate` says why).
+
+    >>> from an.ir.schema import Shot, Transition
+    >>> two = SceneIR(meta=Meta(fps=24), timeline=[Shot(id="a", duration=2.0),
+    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.6))])
+    >>> round(_laid_out_duration(two), 4)
+    3.4167
+    """
+    from an.assemble import film_duration, transition_problems
+
+    if transition_problems(scene.timeline, scene.meta.fps):
+        return sum(s.duration for s in scene.timeline)
+    return film_duration(scene)
 
 
 def _extract_title(md_text: str) -> str:
