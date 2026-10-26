@@ -183,6 +183,17 @@ class CameraFollow(_IRModel):
 
     target: PathStr
     axes: Literal["x", "y", "xy"] = "x"
+    #: Time constant of the camera's catch-up (s): it tracks the target through
+    #: a first-order filter, so after ``lag`` seconds of a step it has covered
+    #: 63% of it (Cinemachine's damping). ``0``: the frame keeps the target put.
+    lag: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+
+    @model_serializer(mode="wrap")
+    def _omit_no_lag(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and not self.lag:
+            data.pop("lag", None)
+        return data
 
 
 class _CameraShakes(_IRModel):
@@ -1202,6 +1213,20 @@ class FrameMoving(_IRModel):
         return data
 
 
+class FrameSway(_IRModel):
+    """Opt-in sway of an accelerating frame (an#504): what rides in it leans
+    away from the acceleration by ``gain × atan(a / g)`` (the pseudo-force of a
+    non-inertial frame; follow-through and drag, in animation terms), settling
+    with the time constant ``settle`` seconds (``0``: at once).
+
+    >>> FrameSway().gain
+    1.0
+    """
+
+    gain: float = Field(default=1.0, allow_inf_nan=False)
+    settle: float = Field(default=0.0, ge=0, allow_inf_nan=False)
+
+
 class Frame(_IRModel):
     """A frame of reference: a pose (position and orientation) over film time,
     relative to its ``parent`` (ADR 0009 amendment, an#501).
@@ -1224,6 +1249,8 @@ class Frame(_IRModel):
     look: tuple[_Coord, _Coord, _Coord] = (0.0, 0.0, 0.0)
     coupling: Literal["rigid", "far"] = "rigid"
     moving: FrameMoving | None = None
+    #: Lean of the members riding in it when it accelerates (off when unset).
+    sway: FrameSway | None = None
     #: Named points of this frame, ``{name: point}`` in its units: where a
     #: member that ``reframe``s into it with ``snap: <name>`` lands (a hand's
     #: palm, a shelf's slot).
@@ -1243,7 +1270,7 @@ class Frame(_IRModel):
                 data.pop("look", None)
             if self.coupling == "rigid":
                 data.pop("coupling", None)
-        return _omit_none(data, "moving")
+        return _omit_none(data, "moving", "sway")
 
 
 class World(_IRModel):

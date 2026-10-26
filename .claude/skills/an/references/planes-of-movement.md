@@ -71,6 +71,11 @@ actions:
 
 Not yet: a plane at a world depth (an#503); a landing (a ballistic member falls through the floor; a tween that straddles the reframe stops at the reframe instant, except that a flight keeps its velocity).
 
+## Lag and sway (an#504)
+
+- **A camera that trails its target**: `camera: {follow: {target: bob, lag: 0.3}}`. The camera closes `1 - exp(-dt/lag)` of the gap each frame (a first-order filter, time constant `lag` seconds; Cinemachine's damping). `lag: 0` (default) is the follow camera that keeps the target put.
+- **A frame that leans what rides in it when it accelerates**: `frames: {vehicle: {sway: {gain: 1, settle: 0.2}}}`. Members in the frame (or one below it) get a `rotation` channel of `-gain × atan(a / g)` degrees, `a` the frame's acceleration along the camera's right axis (`g` 9.81): a car braking to the picture's right tips them toward its left, i.e. forward. Constant speed is no lean; `settle` seconds lets the lean die away instead of stopping dead. Off unless `sway` is declared. Acceleration comes from the frame's `at_*` actions (a `moving` frame is constant speed, so it has none). Do not also animate such a member's `rotation` (`sway_rotation` warns). Not yet: the swing of hanging props and a rig preset on the torso (the genre's half).
+
 ## Why it is general
 
 Every 2D and 3D animation tool exposes the same thing under another name: a Harmony peg, an After Effects null, a Blender Child Of constraint, a Maya parent constraint with space switching, Unity and Unreal attachment, a ROS tf frame. Positions compose up the tree; whatever is at infinity turns with the camera and never slides. The car, the deck, the train and the crane differ only in the shape of the tree.

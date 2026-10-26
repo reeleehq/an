@@ -61,6 +61,7 @@ from an.ir.frames import (
     Pose,
     Track,
     TrackEvent,
+    lag_filter,
 )
 from an.ir.frames import look_basis as _basis
 from an.ir.schema import (
@@ -81,6 +82,7 @@ from an.ir.schema import (
     World,
     WorldMember,
 )
+from an.ir.reframe import DFLT_WORLD_GRAVITY
 from an.timing.easing import apply_easing
 
 __all__ = [
@@ -1483,6 +1485,76 @@ def _reframe_notes(
         )
 
 
+#: Rotation (degrees) a sway channel's fit may stray from the lean; a lean
+#: below it all shot long is none.
+SWAY_TOLERANCE_DEG: float = 0.05
+#: How far inside the shot a sway's acceleration is read at its ends (s).
+_SWAY_EDGE: float = 0.02
+
+
+def _sway_actions(
+    entity_id: str,
+    sway: Any,
+    accel: Callable[[float], Point3],
+    ctx: _FrameCtx,
+    *,
+    shot: Shot,
+    tol: float,
+    min_step: float,
+    fps: float,
+    note: Callable[[str, str, str, str], None],
+) -> list[Any]:
+    """The lean of a member riding an accelerating frame (an#504): its
+    ``rotation`` (degrees, clockwise) follows ``-gain × atan(a / g)``, ``a``
+    being the frame's acceleration along the camera's right axis, so a frame
+    braking toward the camera's left (acceleration right) tips what rides in it
+    to the left. Constant speed is no lean. ``settle`` smooths it (a first-order
+    lag); the channel is fitted by :func:`fit_channel`. No actions when the
+    lean stays under ``tol`` degrees all shot long."""
+    duration = ctx.duration
+    n = max(1, int(math.ceil(duration * fps)))
+    times = [duration * i / n for i in range(n + 1)]
+
+    def raw(t: float) -> float:
+        right = ctx.eye_at(t).right
+        # Read inside the shot: at its very edges the second difference would
+        # straddle the instant the motion starts, and see an impulse.
+        a = sum(
+            x * y
+            for x, y in zip(accel(min(max(t, _SWAY_EDGE), duration - _SWAY_EDGE)), right)
+        )
+        return -float(sway.gain) * math.degrees(math.atan2(a, DFLT_WORLD_GRAVITY))
+
+    lean = lag_filter([raw(t) for t in times], lag=float(sway.settle), dt=duration / n)
+    if max(abs(v) for v in lean) <= tol:
+        return []
+
+    def g(t: float) -> float:
+        x = min(max(t / duration * n, 0.0), float(n))
+        i = min(int(x), n - 1)
+        return lean[i] + (lean[i + 1] - lean[i]) * (x - i)
+
+    if any(
+        getattr(a, "target", None) == entity_id and getattr(a, "property", None) == "rotation"
+        for top in shot.actions
+        for a in iter_actions(top)
+    ):
+        note(
+            "warning",
+            "sway_rotation",
+            entity_id,
+            "its frame sways (it leans with the frame's acceleration) and the shot "
+            "also animates its `rotation`: the two fight. Drop one.",
+        )
+    out: list[Any] = [set_(entity_id, "rotation", g(0.0), at=0.0)]
+    for ta, tb, va, vb, easing in fit_channel(g, 0.0, duration, tolerance=tol, min_step=min_step):
+        if abs(va - vb) <= _FLAT_CHANNEL_EPS:
+            continue
+        tw = tween(entity_id, "rotation", to=vb, duration=tb - ta, from_=va, easing=easing)
+        out.append(sequence(delay(ta), tw) if ta > 0 else tw)
+    return out
+
+
 def _member_passes(
     member: WorldMember,
     ctx: _FrameCtx,
@@ -1900,6 +1972,25 @@ def _lower_shot(
             actions.extend(
                 _pass_actions(mid, [p for p, _ in passes[mid]], duration=duration)
             )
+    for mid in sorted(emitted & frame_of.keys()):
+        if members[mid].kind == "environment" or mid in vp.hide:
+            continue
+        sway = tree.sway_frame(frame_of[mid])
+        if sway is None:
+            continue
+        actions.extend(
+            _sway_actions(
+                mid,
+                tree.frames[sway].sway,
+                lambda t, sway=sway: tree.acceleration(sway, t, film_start=film_start),
+                ctx,
+                shot=shot,
+                tol=SWAY_TOLERANCE_DEG,
+                min_step=min_step,
+                fps=fps,
+                note=note,
+            )
+        )
     n_motion = len(actions) - len(split.actions)
     if n_motion > budget:
         raise WorldError(
