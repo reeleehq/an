@@ -1202,7 +1202,7 @@ def end_effector(
 
 def _bone_carrier(rig: Any, bone: str) -> str | None:
     """The slot whose part a bone is a point of: the part drawn on that bone
-    (the one named like it, else the first by name), or ``None`` for a bone no
+    (the one named like it, else the first in draw order, as the rig's own joints pick it), or ``None`` for a bone no
     part sits on (a landmark such as a prop's ``grip``) or a name that is no bone.
 
     >>> from types import SimpleNamespace as NS
@@ -1212,7 +1212,7 @@ def _bone_carrier(rig: Any, bone: str) -> str | None:
     """
     if not bone or bone not in rig.anchors:
         return None
-    slots = sorted(slot for slot, b in rig.body_bone.items() if b == bone)
+    slots = [slot for slot, b in rig.body_bone.items() if b == bone]  # draw order
     if not slots:
         return None
     return bone if bone in slots else slots[0]
