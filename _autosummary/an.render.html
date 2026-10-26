@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -638,8 +638,14 @@ adapters and the same flow handles them.</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RENDER_RUNS_DIR" title="an.render.RENDER_RUNS_DIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RENDER_WORK_DIR" title="an.render.RENDER_WORK_DIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RENDER_WORK_DIR</span></code></a></p></td>
+<td><p>A project's render scratch space (relative to its root).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.render.RENDER_RUNS_DIR" title="an.render.RENDER_RUNS_DIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></p></td>
 <td><p>one directory per CACHED render run.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.render.RENDER_OUTPUTS_DIR" title="an.render.RENDER_OUTPUTS_DIR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RENDER_OUTPUTS_DIR</span></code></a></p></td>
+<td><p>an UNCACHED render of an output other than <code class="docutils literal notranslate"><span class="pre">main</span></code> works in <code class="docutils literal notranslate"><span class="pre">outputs/&lt;output</span> <span class="pre">name&gt;/</span></code> (an#554).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.render.RUN_LIVE_MARKER" title="an.render.RUN_LIVE_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RUN_LIVE_MARKER</span></code></a></p></td>
 <td><p>the pid of the process rendering it (written at start).</p></td>
@@ -737,6 +743,18 @@ kind not listed (another warning category) is headed by its own name, after.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.render.RENDER_OUTPUTS_DIR">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RENDER_OUTPUTS_DIR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outputs'</span></span><a class="headerlink" href="#an.render.RENDER_OUTPUTS_DIR" title="Link to this definition">#</a></dt>
+<dd><p>an UNCACHED render of an output other than
+<code class="docutils literal notranslate"><span class="pre">main</span></code> works in <code class="docutils literal notranslate"><span class="pre">outputs/&lt;output</span> <span class="pre">name&gt;/</span></code> (an#554).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Under <code class="docutils literal notranslate"><span class="pre">.an/render_work/</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.render.RENDER_RUNS_DIR">
 <span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RENDER_RUNS_DIR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'runs'</span></span><a class="headerlink" href="#an.render.RENDER_RUNS_DIR" title="Link to this definition">#</a></dt>
 <dd><p>one directory per CACHED render run.</p>
@@ -745,6 +763,12 @@ kind not listed (another warning category) is headed by its own name, after.</p>
 <dd class="field-odd"><p>Under <code class="docutils literal notranslate"><span class="pre">.an/render_work/</span></code></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.render.RENDER_WORK_DIR">
+<span class="sig-prename descclassname"><span class="pre">an.render.</span></span><span class="sig-name descname"><span class="pre">RENDER_WORK_DIR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.an/render_work'</span></span><a class="headerlink" href="#an.render.RENDER_WORK_DIR" title="Link to this definition">#</a></dt>
+<dd><p>A project’s render scratch space (relative to its root).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1125,7 +1149,9 @@ another scene may not take <code class="docutils literal notranslate"><span clas
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.CacheReach"><code class="docutils literal notranslate"><span class="pre">CacheReach</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.FINDING_GROUPS"><code class="docutils literal notranslate"><span class="pre">FINDING_GROUPS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.POSIX_TEMP_DIRS"><code class="docutils literal notranslate"><span class="pre">POSIX_TEMP_DIRS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_OUTPUTS_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_OUTPUTS_DIR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_RUNS_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_RUNS_DIR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RENDER_WORK_DIR"><code class="docutils literal notranslate"><span class="pre">RENDER_WORK_DIR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_DONE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_DONE_MARKER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RUN_LIVE_MARKER"><code class="docutils literal notranslate"><span class="pre">RUN_LIVE_MARKER</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.render.RenderError"><code class="docutils literal notranslate"><span class="pre">RenderError</span></code></a></li>

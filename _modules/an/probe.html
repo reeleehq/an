@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -746,7 +746,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span> <span class="n">SceneFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span> <span class="n">SceneFile</span><span class="p">,</span> <span class="n">resolve_scene_file</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROBES_GITIGNORE</span><span class="p">,</span> <span class="n">Project</span><span class="p">,</span> <span class="n">keep_out_of_git</span><span class="p">,</span> <span class="n">load</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ProbeError"</span><span class="p">,</span> <span class="s2">"frame"</span><span class="p">,</span> <span class="s2">"frames"</span><span class="p">,</span> <span class="s2">"probe"</span><span class="p">]</span>
@@ -879,7 +879,8 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Write shot ``shot``'s frames at ``at`` to one PNG (a grid for several instants).</span>
 
-<span class="sd">    out: the PNG to write (default ``&lt;project&gt;/artifacts/probes/&lt;shot&gt;@&lt;t&gt;.png``)</span>
+<span class="sd">    out: the PNG to write (default ``&lt;project&gt;/artifacts/probes/&lt;shot&gt;@&lt;t&gt;.png``;</span>
+<span class="sd">        for another scene, under ``artifacts/probes/scenes/&lt;its stem&gt;/``)</span>
 <span class="sd">    columns: cells per row of a grid (default: a square grid)</span>
 <span class="sd">    allow_private_here: write not-publishable frames inside a git work tree</span>
 <span class="sd">        that does not ignore the path</span>
@@ -888,13 +889,18 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_private_output</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.grid</span><span class="w"> </span><span class="kn">import</span> <span class="n">tile</span>
 
+    <span class="n">scene_file</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span>
+        <span class="n">project_dir</span><span class="o">.</span><span class="n">root</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">Project</span><span class="p">)</span> <span class="k">else</span> <span class="n">project_dir</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">project</span> <span class="o">=</span> <span class="n">_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">at</span><span class="p">]</span>
     <span class="n">target</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">Path</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out</span>
-        <span class="k">else</span> <span class="n">project</span><span class="o">.</span><span class="n">root</span>
-        <span class="o">/</span> <span class="n">PROBE_DIR</span>
+        <span class="c1"># Another scene's probes in their own folder: two scenes sharing a</span>
+        <span class="c1"># shot id never overwrite each other's frames (an#554).</span>
+        <span class="k">else</span> <span class="n">scene_file</span><span class="o">.</span><span class="n">per_scene_dir</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="n">PROBE_DIR</span><span class="p">)</span>
         <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="s1">'+'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">'</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">times</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">.png"</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">out</span><span class="p">:</span>

@@ -15,7 +15,7 @@ without touching these functions, so they stay plain Python.
 | [`bench_compare`](#an.tools.bench_compare)([before, after, mutation, ...])     | Compare two ledger rows — and refuse when they are not comparable.                    |
 | [`bench_mutants`](#an.tools.bench_mutants)([names, quiet])                     | Break each guard on purpose and check the test that names it goes red.                |
 | [`check`](#an.tools.check)()                                           | Print a status report of all backend system + Python deps.                            |
-| [`credits`](#an.tools.credits)(project_dir[, json_out])                  | Show what third-party work is in `project_dir` and what it obliges.                   |
+| [`credits`](#an.tools.credits)(project_dir[, json_out, scene])           | Show what third-party work is in `project_dir` and what it obliges.                   |
 | [`init`](#an.tools.init)(project_dir[, name, force, id, genre, ...])  | Create a fresh an project at `project_dir` — or, with --id, at the default location.  |
 | [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])          | Apply a free-text instruction to the scene.                                           |
 | [`preview`](#an.tools.preview)(project_dir[, shot, no_browser, scene])   | Live-preview the project's scene in a browser; reloads on edit.                       |
@@ -127,12 +127,13 @@ says what to install (an#559).
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.credits(project_dir, json_out=None)
+### an.tools.credits(project_dir, json_out=None, scene='scene.md')
 
 Show what third-party work is in `project_dir` and what it obliges.
 
 project_dir: the an project
 json_out: also write the machine-readable record to this path
+scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)
 
 A licence recorded and never displayed is not compliance, so this is the
 consumer that makes the provenance field worth having.
@@ -160,7 +161,7 @@ root: with –id, that package’s root (default: its data folder, or <PKG>_HOME
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.iterate(project_dir, instruction, apply_changes=True, model='claude-opus-4-7')
+### an.tools.iterate(project_dir, instruction, apply_changes=True, model='claude-opus-4-7', scene='scene.md')
 
 Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.
 
@@ -171,11 +172,12 @@ apply_changes: persist the new scene to disk (default True); the next render
 > re-renders exactly the shots whose content changed
 
 model: Anthropic model id (default claude-opus-4-7)
+scene: the scene file to edit, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.preview(project_dir, shot='', no_browser=False, scene='')
+### an.tools.preview(project_dir, shot='', no_browser=False, scene='scene.md')
 
 Live-preview the project’s scene in a browser; reloads on edit.
 
@@ -191,7 +193,7 @@ scene: the scene file to preview, inside the project (default scene.md; for exam
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False, scene='')
+### an.tools.probe(project_dir, shot='', at=None, out='', columns=0, supersample=1, allow_private_here=False, scene='scene.md')
 
 Write a shot’s frame at chosen instants to a PNG, drawn the way `an render` draws it.
 
@@ -225,7 +227,7 @@ True
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]
 
-### an.tools.render(project_dir, output_name='', scene='', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
+### an.tools.render(project_dir, output_name='', scene='scene.md', tts='', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='', force_render=False, no_cache=False, cache_frames=False)
 
 Render the project at `project_dir` to a single mp4. Exits 1 when the render reports an error finding.
 
@@ -304,7 +306,7 @@ cache_frames: no longer needed, and no effect on `an render` (an#260): a
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.sync(project_dir, accept_measured=False, scene='')
+### an.tools.sync(project_dir, accept_measured=False, scene='scene.md')
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
 
@@ -319,7 +321,7 @@ scene: the scene file to reconcile (default scene.md; for example scene.studio.m
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.validate(project_dir, fps=0.0, strict_assets=False, scene='')
+### an.tools.validate(project_dir, fps=0.0, strict_assets=False, scene='scene.md')
 
 Validate the scene at `project_dir`. Prints findings; exits 1 when it reports FAILED, 0 otherwise.
 

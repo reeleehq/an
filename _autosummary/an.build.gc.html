@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -639,8 +639,11 @@ reached 4.9 GB after nine renders of a 16 s film. Collecting them is a
 separate, explicit command, and this module is it.</p>
 <p><strong>What is kept (reachable).</strong> An entry is reachable when either</p>
 <ul class="simple">
-<li><p>a render of the project’s CURRENT scene would read it — under any knob set
-a recorded render ever used, or under a plain <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code>’s — computed
+<li><p>a render of the project’s CURRENT scene would read it — of <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> or
+of any other scene file of the project (<code class="docutils literal notranslate"><span class="pre">scene.studio.md</span></code> with its
+<code class="docutils literal notranslate"><span class="pre">ir/scene.studio.json</span></code>, an#554: the cache is the project’s, so a
+collection never drops one scene’s entries for another’s sake) — under
+any knob set a recorded render ever used, or under a plain <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code>’s — computed
 by the render loop’s own setup and the engine’s own key code, with the
 dialogue stamped from the audio stores as the render stamps it
 (<a class="reference internal" href="an.render.html#an.render.cache_entries" title="an.render.cache_entries"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.render.cache_entries()</span></code></a>); or</p></li>
@@ -936,8 +939,12 @@ listed with role <code class="docutils literal notranslate"><span class="pre">&q
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.gc.reachable_entries">
-<span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">reachable_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#reachable_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.reachable_entries" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.build.gc.</span></span><span class="sig-name descname"><span class="pre">reachable_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/gc.html#reachable_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.gc.reachable_entries" title="Link to this definition">#</a></dt>
 <dd><p>What the project’s current scene and its recorded roots reach.</p>
+<p><code class="docutils literal notranslate"><span class="pre">others</span></code> are the project’s OTHER scenes (<code class="docutils literal notranslate"><span class="pre">(SceneFile,</span> <span class="pre">loaded</span> <span class="pre">project)</span></code>
+pairs, <code class="xref py py-func docutils literal notranslate"><span class="pre">other_scenes()</span></code>; an#554): the cache is the project’s, so
+what each of them reaches is kept as the current scene’s is — otherwise
+<code class="docutils literal notranslate"><span class="pre">--max-age</span></code> collected for one scene drops another’s older entries.</p>
 <p>The current scene is keyed under the knobs of EVERY recorded root (of any
 project, any age: a knob set is a few values, and dropping one would orphan
 that render’s entries of the unchanged scene), each with its own recorded

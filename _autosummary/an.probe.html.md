@@ -65,7 +65,9 @@ supersample: as `an render --supersample` (the frame is the film’s only
 
 Write shot `shot`’s frames at `at` to one PNG (a grid for several instants).
 
-out: the PNG to write (default `<project>/artifacts/probes/<shot>@<t>.png`)
+out: the PNG to write (default `<project>/artifacts/probes/<shot>@<t>.png`;
+: for another scene, under `artifacts/probes/scenes/<its stem>/`)
+
 columns: cells per row of a grid (default: a square grid)
 allow_private_here: write not-publishable frames inside a git work tree
 

@@ -30,14 +30,14 @@ parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
-| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                       | Whether a source is the character factory's own stamp (an#236, an#251).              |
-|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`is_generated_source`](#an.credits.is_generated_source)(raw)                    | Whether a descriptor's source was written by a generator rather than a person.       |
-| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.                         |
-| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                                            |
-| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211).                      |
-| [`speech_credits`](#an.credits.speech_credits)(mall, scene)                 | One entry per voice whose lines a render synthesized with a named provider (an#271). |
-| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.                            |
+| [`is_factory_stamp`](#an.credits.is_factory_stamp)(raw)                              | Whether a source is the character factory's own stamp (an#236, an#251).                                                                                    |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`is_generated_source`](#an.credits.is_generated_source)(raw)                           | Whether a descriptor's source was written by a generator rather than a person.                                                                             |
+| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])                  | Walk a project mall and gather every recorded `AssetSource`.                                                                                               |
+| [`credits_for_project`](#an.credits.credits_for_project)(project_dir, \*[, scene_file]) | Credits for the project at `project_dir`: its assets, and the speech of its scene (`scene_file`: another scene of the project, `scene.studio.md`, an#554). |
+| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)                     | Credits for exactly the assets `scene` draws or plays (an#211).                                                                                            |
+| [`speech_credits`](#an.credits.speech_credits)(mall, scene)                        | One entry per voice whose lines a render synthesized with a named provider (an#271).                                                                       |
+| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output])        | Warn, loudly, when `report` holds private-study material.                                                                                                  |
 
 ### Classes
 
@@ -143,9 +143,11 @@ record from `metadata.dicebear_*`, which no other store has ever written.
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)
 
-### an.credits.credits_for_project(project_dir)
+### an.credits.credits_for_project(project_dir, , scene_file='scene.md')
 
-Credits for the project at `project_dir`.
+Credits for the project at `project_dir`: its assets, and the speech
+of its scene (`scene_file`: another scene of the project,
+`scene.studio.md`, an#554).
 
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)

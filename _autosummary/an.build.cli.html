@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -643,10 +643,10 @@ business logic is <a class="reference internal" href="an.build.gc.html#module-an
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.build.cli.gc" title="an.build.cli.gc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gc</span></code></a>(project_dir[, dry_run, max_size, ...])</p></td>
-<td><p>Delete the shot-cache entries nothing reaches: not the current scene (under the default render settings or any a recorded render used), and not the latest render of each output on each machine.</p></td>
+<td><p>Delete the shot-cache entries nothing reaches: not the project's scenes (scene.md and every other scene file, e.g. scene.studio.md; under the default render settings or any a recorded render used), and not the latest render of each output on each machine.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.build.cli.info" title="an.build.cli.info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">info</span></code></a>(project_dir[, no_reachability])</p></td>
-<td><p>Show the project's shot cache: its size, its entries by kind, and how much of it the current scene still reaches.</p></td>
+<td><p>Show the project's shot cache: its size, its entries by kind, and how much of it the project's scenes still reach (scene.md and every other scene file, e.g. scene.studio.md).</p></td>
 </tr>
 </tbody>
 </table>
@@ -654,7 +654,7 @@ business logic is <a class="reference internal" href="an.build.gc.html#module-an
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.cli.gc">
 <span class="sig-prename descclassname"><span class="pre">an.build.cli.</span></span><span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/cli.html#gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.cli.gc" title="Link to this definition">#</a></dt>
-<dd><p>Delete the shot-cache entries nothing reaches: not the current scene (under the default render settings or any a recorded render used), and not the latest render of each output on each machine.</p>
+<dd><p>Delete the shot-cache entries nothing reaches: not the project’s scenes (scene.md and every other scene file, e.g. scene.studio.md; under the default render settings or any a recorded render used), and not the latest render of each output on each machine.</p>
 <p>Never deletes a reachable entry, nor anything written since a render of this project still in progress began. A render running meanwhile can at worst re-render a shot, never use a wrong one.</p>
 <p>project_dir: path to an an project
 dry_run: report what would be deleted, delete nothing
@@ -671,7 +671,7 @@ force: collect a cache no render of this project has recorded what it used in (o
 <dl class="py function">
 <dt class="sig sig-object py" id="an.build.cli.info">
 <span class="sig-prename descclassname"><span class="pre">an.build.cli.</span></span><span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_reachability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/build/cli.html#info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.build.cli.info" title="Link to this definition">#</a></dt>
-<dd><p>Show the project’s shot cache: its size, its entries by kind, and how much of it the current scene still reaches.</p>
+<dd><p>Show the project’s shot cache: its size, its entries by kind, and how much of it the project’s scenes still reach (scene.md and every other scene file, e.g. scene.studio.md).</p>
 <p>project_dir: path to an an project
 no_reachability: skip computing what the current scene reaches (which compiles every shot and probes this machine’s browser, like a render’s first second)</p>
 <dl class="field-list simple">

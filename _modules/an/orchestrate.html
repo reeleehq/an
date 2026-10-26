@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1065,7 +1065,8 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">orchestrate</span><span class="p">(</span>
     <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span><span class="p">,</span>
+    <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scene_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">SceneFile</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
     <span class="n">verifiers</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Verifier</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">skip_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1092,6 +1093,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    to inject a :class:`an.audio.WordTimingsLipSync` driven by their</span>
 <span class="sd">    own alignment store, instead of letting ``an`` re-transcribe. ``tts``</span>
 <span class="sd">    defaults to each voice's own provider (an#305), as ``an render`` does.</span>
+
+<span class="sd">    ``scene_file`` runs the pipeline on another scene of the project</span>
+<span class="sd">    (``scene.studio.md``, an#554), and ``output_name`` then defaults to its</span>
+<span class="sd">    stem, as :func:`an.render.render_project` does (``main`` for ``scene.md``).</span>
+<span class="sd">    A bad or missing scene file, or an output name another scene owns, fails</span>
+<span class="sd">    the report at validation, before any work.</span>
 <span class="sd">    """</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">OrchestratorReport</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verifiers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1099,7 +1106,14 @@ window.runMermaid = runMermaid;</script>
 
     <span class="c1"># --- 1. validation ------------------------------------------------------</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">validation</span> <span class="o">=</span> <span class="n">validate_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+        <span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">)</span>
+        <span class="n">output_name</span> <span class="o">=</span> <span class="n">resolved</span><span class="o">.</span><span class="n">output_for</span><span class="p">(</span><span class="n">output_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">SceneFileError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"scene file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">report</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">validation</span> <span class="o">=</span> <span class="n">validate_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">report</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"validation crashed: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">"</span>
@@ -1110,7 +1124,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">report</span>
 
     <span class="c1"># --- 2. pre-render verifiers (run on IR alone) --------------------------</span>
-    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">verifiers</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">vr</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -1128,6 +1142,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">report</span><span class="o">.</span><span class="n">output_path</span> <span class="o">=</span> <span class="n">_render_project</span><span class="p">(</span>
             <span class="n">project_dir</span><span class="p">,</span>
             <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
+            <span class="n">scene_file</span><span class="o">=</span><span class="n">resolved</span><span class="p">,</span>
             <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>
             <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync</span><span class="p">,</span>
             <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
@@ -1139,7 +1154,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">report</span>
 
     <span class="c1"># --- 4. post-render verifiers (with the actual mp4) ---------------------</span>
-    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">resolved</span><span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderResult</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_duration</span>

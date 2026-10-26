@@ -8,7 +8,9 @@ an.render
 
    .. autosummary::
    
+      RENDER_WORK_DIR
       RENDER_RUNS_DIR
+      RENDER_OUTPUTS_DIR
       RUN_LIVE_MARKER
       RUN_DONE_MARKER
       TMP_TOKEN

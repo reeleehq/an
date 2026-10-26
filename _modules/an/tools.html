@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -807,7 +807,10 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="validate">
 <a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.validate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span>
-    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Validate the scene at ``project_dir``. Prints findings; exits 1 when it reports FAILED, 0 otherwise.</span>
 
@@ -820,7 +823,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">project_dir</span><span class="p">,</span>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
-        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span> <span class="ow">or</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"validation: passed, no findings"</span>
@@ -835,7 +838,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="sync">
 <a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.sync">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accept_measured</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accept_measured</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Reconcile scene.md and ir/scene.json inside ``project_dir``.</span>
 
 <span class="sd">    ``--accept-measured`` also writes the durations a clock-owning renderer</span>
@@ -848,7 +853,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="c1"># Resolved first, so a scene file that is not there is a refusal</span>
     <span class="c1"># (`SceneFileError`, printed by the CLI), never "no changes".</span>
-    <span class="n">scene_file</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene</span> <span class="ow">or</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">)</span>
+    <span class="n">scene_file</span> <span class="o">=</span> <span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">accept_measured</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">accept_measured</span> <span class="k">as</span> <span class="n">_accept</span>
@@ -891,7 +896,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span>
     <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
-    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
     <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"offline"</span><span class="p">,</span>
     <span class="n">parallel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
@@ -988,7 +993,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">project_dir</span><span class="p">,</span>
         <span class="c1"># None: the leaf names the output after the scene file (an#539).</span>
         <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span> <span class="ow">or</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
         <span class="n">tts</span><span class="o">=</span><span class="n">tts</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync</span><span class="p">,</span>
         <span class="n">parallel</span><span class="o">=</span><span class="n">parallel_arg</span><span class="p">,</span>
@@ -1032,6 +1037,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">instruction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">apply_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"claude-opus-4-7"</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Apply a free-text instruction to the scene. Needs ANTHROPIC_API_KEY.</span>
 
@@ -1040,8 +1046,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    apply_changes: persist the new scene to disk (default True); the next render</span>
 <span class="sd">        re-renders exactly the shots whose content changed</span>
 <span class="sd">    model: Anthropic model id (default claude-opus-4-7)</span>
+<span class="sd">    scene: the scene file to edit, inside the project (default scene.md; for example scene.studio.md, whose JSON twin is ir/scene.studio.json)</span>
 <span class="sd">    """</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">_iterate</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">instruction</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="n">apply_changes</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_iterate</span><span class="p">(</span>
+        <span class="n">project_dir</span><span class="p">,</span>
+        <span class="n">instruction</span><span class="p">,</span>
+        <span class="n">apply</span><span class="o">=</span><span class="n">apply_changes</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"summary: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"affected shots: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">affected_shots</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'(none)'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -1069,7 +1082,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
     <span class="n">no_browser</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Live-preview the project's scene in a browser; reloads on edit.</span>
 
@@ -1090,7 +1103,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">project_dir</span><span class="p">,</span>
         <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">open_browser</span><span class="o">=</span><span class="ow">not</span> <span class="n">no_browser</span><span class="p">,</span>
-        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span> <span class="ow">or</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"preview: stopped (was at </span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">)"</span></div>
 
@@ -1106,7 +1119,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">columns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">allow_private_here</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Write a shot's frame at chosen instants to a PNG, drawn the way `an render` draws it.</span>
 
@@ -1137,7 +1150,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">columns</span><span class="o">=</span><span class="n">columns</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
         <span class="n">allow_private_here</span><span class="o">=</span><span class="n">allow_private_here</span><span class="p">,</span>
-        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span> <span class="ow">or</span> <span class="n">DEFAULT_SCENE_FILE</span><span class="p">,</span>
+        <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"probe: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span></div>
 
@@ -1148,11 +1161,14 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="credits">
 <a class="viewcode-back" href="../../_autosummary/an.tools.html#an.tools.credits">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">credits</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">json_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">credits</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">json_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Show what third-party work is in ``project_dir`` and what it obliges.</span>
 
 <span class="sd">    project_dir: the an project</span>
 <span class="sd">    json_out: also write the machine-readable record to this path</span>
+<span class="sd">    scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)</span>
 
 <span class="sd">    A licence recorded and never displayed is not compliance, so this is the</span>
 <span class="sd">    consumer that makes the provenance field worth having.</span>
@@ -1164,7 +1180,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">credits_for_project</span>
 
-    <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">scene</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">json_out</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_json</span>
 

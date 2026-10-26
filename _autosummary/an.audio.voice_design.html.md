@@ -247,7 +247,7 @@ True
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.voice_design.audition_project_voices(project_dir, refs=None, \*, options=None, tts=None, gap_s=0.6, announce=<object object>, redo=False)
+### an.audio.voice_design.audition_project_voices(project_dir, refs=None, \*, options=None, tts=None, gap_s=0.6, announce=<object object>, redo=False, scene_file='scene.md')
 
 An audition reel per option of each voice in `refs` (default: every
 voice with a manifest): the voice’s own lines from the scene, spoken with
@@ -258,7 +258,8 @@ the manifest records each reel (`audition_path`) as soon as it is made.
 Every voice’s reels are planned and checked before the first request, the
 whole bill is announced once, and a reel already on record under the same
 content key is not made again (`redo` makes them all again). Returns
-the manifests of `refs`.
+the manifests of `refs`. `scene_file` takes the lines from another
+scene of the project (`scene.studio.md`, an#554).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
@@ -352,12 +353,13 @@ The library used when none is given: [`ElevenLabsVoiceLibrary`](#an.audio.voice_
 * **Return type:**
   [`ElevenLabsVoiceLibrary`](#an.audio.voice_design.ElevenLabsVoiceLibrary)
 
-### an.audio.voice_design.design_project_voices(project_dir, refs=None, , designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix=None, library=None, library_query=None, library_limit=8, design=True)
+### an.audio.voice_design.design_project_voices(project_dir, refs=None, , designer=None, model_id='eleven_ttv_v3', persist=True, name_prefix=None, library=None, library_query=None, library_limit=8, design=True, scene_file='scene.md')
 
 Design options for the project’s voices (and search the library for the
 ones with a query); write manifests and samples; return the manifest.
 
-A voice document without `sample_text` speaks its own lines from the scene.
+A voice document without `sample_text` speaks its own lines from the scene
+(`scene_file`: another scene of the project, an#554).
 `library_query` (`accent=irish,gender=male`) applies to every voice
 without a `library` of its own; `design=False` searches the library only.
 

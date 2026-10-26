@@ -11,8 +11,10 @@ adapters and the same flow handles them.
 
 ### Module Attributes
 
-| [`RENDER_RUNS_DIR`](#an.render.RENDER_RUNS_DIR)        | one directory per CACHED render run.                                                                                                                                                                                       |
+| [`RENDER_WORK_DIR`](#an.render.RENDER_WORK_DIR)        | A project's render scratch space (relative to its root).                                                                                                                                                                   |
 |-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`RENDER_RUNS_DIR`](#an.render.RENDER_RUNS_DIR)        | one directory per CACHED render run.                                                                                                                                                                                       |
+| [`RENDER_OUTPUTS_DIR`](#an.render.RENDER_OUTPUTS_DIR)     | an UNCACHED render of an output other than `main` works in `outputs/<output name>/` (an#554).                                                                                                                              |
 | [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
 | [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
 | [`TMP_TOKEN`](#an.render.TMP_TOKEN)              | What a temp-folder path becomes in a portable text ([`portable_text()`](#an.render.portable_text)).                                                                                                     |
@@ -59,12 +61,24 @@ kind not listed (another warning category) is headed by its own name, after.
 
 The temp folders every POSIX machine has, besides the one Python reports.
 
+### an.render.RENDER_OUTPUTS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'outputs'*
+
+an UNCACHED render of an output other than
+`main` works in `outputs/<output name>/` (an#554).
+
+* **Type:**
+  Under `.an/render_work/`
+
 ### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
 
 one directory per CACHED render run.
 
 * **Type:**
   Under `.an/render_work/`
+
+### an.render.RENDER_WORK_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
+
+A project’s render scratch space (relative to its root).
 
 ### an.render.RUN_DONE_MARKER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.done'*
 

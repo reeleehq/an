@@ -80,7 +80,7 @@ A single mutation against the SceneIR JSON tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.iterate.iterate(project_dir, instruction, , apply=True, model='claude-opus-4-7', max_tokens=4096)
+### an.iterate.iterate(project_dir, instruction, , apply=True, model='claude-opus-4-7', max_tokens=4096, scene_file='scene.md')
 
 Apply a free-text instruction to the scene at `project_dir`.
 
@@ -97,6 +97,9 @@ The caller is responsible for re-rendering: `an render` then re-renders
 exactly the shots whose content changed, found by digest (the shot cache,
 ADR 0004) — `IterateResult.affected_shots` is the model’s account of
 which those are, for the reader, not the mechanism.
+
+`scene_file` edits another scene of the project (`scene.studio.md`,
+an#554): it is read from, and persisted to, that file’s pair.
 
 * **Return type:**
   [`IterateResult`](#an.iterate.IterateResult)

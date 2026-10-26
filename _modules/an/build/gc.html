@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../../../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,8 +721,11 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">**What is kept (reachable).** An entry is reachable when either</span>
 
-<span class="sd">- a render of the project's CURRENT scene would read it — under any knob set</span>
-<span class="sd">  a recorded render ever used, or under a plain ``an render``'s — computed</span>
+<span class="sd">- a render of the project's CURRENT scene would read it — of ``scene.md`` or</span>
+<span class="sd">  of any other scene file of the project (``scene.studio.md`` with its</span>
+<span class="sd">  ``ir/scene.studio.json``, an#554: the cache is the project's, so a</span>
+<span class="sd">  collection never drops one scene's entries for another's sake) — under</span>
+<span class="sd">  any knob set a recorded render ever used, or under a plain ``an render``'s — computed</span>
 <span class="sd">  by the render loop's own setup and the engine's own key code, with the</span>
 <span class="sd">  dialogue stamped from the audio stores as the render stamps it</span>
 <span class="sd">  (:func:`an.render.cache_entries`); or</span>
@@ -1047,8 +1050,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">root_max_age</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">now</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">others</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Reachability</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the project's current scene and its recorded roots reach.</span>
+
+<span class="sd">    ``others`` are the project's OTHER scenes (``(SceneFile, loaded project)``</span>
+<span class="sd">    pairs, :func:`other_scenes`; an#554): the cache is the project's, so</span>
+<span class="sd">    what each of them reaches is kept as the current scene's is — otherwise</span>
+<span class="sd">    ``--max-age`` collected for one scene drops another's older entries.</span>
 
 <span class="sd">    The current scene is keyed under the knobs of EVERY recorded root (of any</span>
 <span class="sd">    project, any age: a knob set is a few values, and dropping one would orphan</span>
@@ -1115,32 +1124,52 @@ window.runMermaid = runMermaid;</script>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">in_memory_audio_mall</span>
 
-    <span class="n">project</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">in_memory_audio_mall</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">))</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_scene_file</span>
+
+    <span class="n">scenes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">replace</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">in_memory_audio_mall</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">mall</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">sf</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">resolve_scene_file</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">project</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">others</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">profile</span><span class="p">,</span> <span class="n">roots</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
-                <span class="c1"># A stand-in or a missing font warns at compile time; that is</span>
-                <span class="c1"># the render's message to give, not the collector's.</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-                <span class="n">scene_reach</span> <span class="o">=</span> <span class="n">cache_reach</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">AudioNotCachedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c1"># No key until that line is synthesised: nothing cached can be its</span>
-            <span class="c1"># shot's entry. What the renders under it used stays, whatever age.</span>
-            <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">profile</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
-            <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
-                <span class="n">rp</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">render_provenance</span> <span class="ow">or</span> <span class="p">{}</span>
-                <span class="n">reach</span><span class="o">.</span><span class="n">from_roots</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"entries"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
-            <span class="k">continue</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — refuse rather than guess</span>
-            <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"cannot compute what the current scene reaches under </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2"> "</span>
-                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing was deleted. Fix what keeps "</span>
-                <span class="s2">"it from rendering (`an validate`)"</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-        <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
-        <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">scene_reach</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">scene_reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+        <span class="n">keyed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">sf</span><span class="p">,</span> <span class="n">scene_project</span> <span class="ow">in</span> <span class="n">scenes</span><span class="p">:</span>
+            <span class="n">which</span> <span class="o">=</span> <span class="s2">"current scene"</span> <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">is_default</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"scene </span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="c1"># A stand-in or a missing font warns at compile time; that is</span>
+                    <span class="c1"># the render's message to give, not the collector's.</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
+                    <span class="n">scene_reach</span> <span class="o">=</span> <span class="n">cache_reach</span><span class="p">(</span><span class="n">scene_project</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">profile</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">AudioNotCachedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># No key until that line is synthesised: nothing cached can be its</span>
+                <span class="c1"># shot's entry. What the renders under it used stays, whatever age.</span>
+                <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">is_default</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+                    <span class="n">rp</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">render_provenance</span> <span class="ow">or</span> <span class="p">{}</span>
+                    <span class="n">reach</span><span class="o">.</span><span class="n">from_roots</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"entries"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — refuse rather than guess</span>
+                <span class="n">fix</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"`an validate`"</span>
+                    <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">is_default</span>
+                    <span class="k">else</span> <span class="sa">f</span><span class="s2">"`an validate --scene </span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`"</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"cannot compute what the </span><span class="si">{</span><span class="n">which</span><span class="si">}</span><span class="s2"> reaches under </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing was deleted. Fix what keeps "</span>
+                    <span class="sa">f</span><span class="s2">"it from rendering (</span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="n">keyed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">reach</span><span class="o">.</span><span class="n">from_scene</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">scene_reach</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">scene_reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">reach</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">keyed</span><span class="p">:</span>
+            <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">reach</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
         <span class="n">why</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">({</span><span class="n">why</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">reach</span><span class="o">.</span><span class="n">skipped</span><span class="p">}))</span>
         <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
@@ -1207,9 +1236,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kept_derived</span><span class="p">:</span>
             <span class="n">n</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-            <span class="n">what</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">store</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span>
-            <span class="p">)</span> <span class="ow">or</span> <span class="s2">"nothing"</span>
+            <span class="n">what</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">store</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="k">for</span> <span class="n">store</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">deleted_derived</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">v</span>
+                <span class="p">)</span>
+                <span class="ow">or</span> <span class="s2">"nothing"</span>
+            <span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"derived stores: </span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> entries (</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">), "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">human_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">derived_freed</span><span class="p">)</span><span class="si">}</span><span class="s2">; kept </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kept_derived</span><span class="si">}</span><span class="s2">"</span>
@@ -1270,6 +1304,29 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">min</span><span class="p">([</span><span class="n">now</span><span class="p">,</span> <span class="o">*</span><span class="n">starts</span><span class="p">])</span> <span class="o">-</span> <span class="n">CLOCK_SLACK_S</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The project's scenes besides ``scene.md``, as ``(SceneFile, loaded</span>
+<span class="sd">    project)`` pairs (:func:`an.ir.sync.project_scene_files`; an#554): what a project-wide</span>
+<span class="sd">    collection must keep reachable too. A scene that cannot be loaded is a</span>
+<span class="sd">    :class:`CacheGcError`: what it reaches is unknown, so nothing may go."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">project_scene_files</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">project_scene_files</span><span class="p">(</span><span class="n">project_dir</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sf</span><span class="o">.</span><span class="n">is_default</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">sf</span><span class="p">,</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">,</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">sf</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — refuse rather than guess</span>
+            <span class="k">raise</span> <span class="n">CacheGcError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"cannot read the project's scene </span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing was deleted: what it reaches is unknown. Fix it "</span>
+                <span class="sa">f</span><span class="s2">"(`an validate --scene </span><span class="si">{</span><span class="n">sf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`)"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <div class="viewcode-block" id="collect_garbage">
 <a class="viewcode-back" href="../../../_autosummary/an.build.gc.html#an.build.collect_garbage">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">collect_garbage</span><span class="p">(</span>
@@ -1302,6 +1359,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">report</span> <span class="o">=</span> <span class="n">GcReport</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">report</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="n">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">if</span> <span class="n">now</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">now</span>
     <span class="n">horizon</span> <span class="o">=</span> <span class="n">_protection_horizon</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
     <span class="n">entries</span> <span class="o">=</span> <span class="n">inventory</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
@@ -1309,8 +1367,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">report</span><span class="o">.</span><span class="n">bytes_before</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">size</span> <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">blobs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="n">report</span><span class="o">.</span><span class="n">reach</span> <span class="o">=</span> <span class="n">reach</span> <span class="o">=</span> <span class="n">reachable_entries</span><span class="p">(</span>
         <span class="n">project</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">root_max_age</span><span class="o">=</span><span class="n">max_age</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-        <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span>
-    <span class="p">)</span>
+        <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span> <span class="n">others</span><span class="o">=</span><span class="n">others</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="n">keep_ids</span> <span class="o">=</span> <span class="n">reach</span><span class="o">.</span><span class="n">ids</span>
 
     <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CacheEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1538,7 +1596,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">keep</span> <span class="o">=</span> <span class="n">_closure</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="n">keep</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">UnreadableRecordError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"derived stores: a kept record is unreadable (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing deleted"</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"derived stores: a kept record is unreadable (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); nothing deleted"</span>
+        <span class="p">)</span>
         <span class="k">return</span>
     <span class="n">by_key</span> <span class="o">=</span> <span class="p">{(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">key</span><span class="p">):</span> <span class="n">e</span> <span class="k">for</span> <span class="n">es</span> <span class="ow">in</span> <span class="n">inventory_</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">es</span><span class="p">}</span>
     <span class="n">records</span> <span class="o">=</span> <span class="p">[</span>
@@ -1763,8 +1823,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">reachability</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">reach</span> <span class="o">=</span> <span class="n">reachable_entries</span><span class="p">(</span>
-                <span class="n">project</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span>
+                <span class="n">project</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">others</span><span class="o">=</span><span class="n">other_scenes</span><span class="p">(</span><span class="n">project_dir</span><span class="p">),</span>
+            <span class="p">)</span>  <span class="c1"># fmt: skip</span>
         <span class="k">except</span> <span class="n">CacheGcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">info</span><span class="o">.</span><span class="n">reachability_error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">info</span>
@@ -1795,7 +1856,9 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Bytes of the distinct blobs ``entries`` name, less those ``exclude`` names."""</span>
     <span class="n">skip</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset_id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">is_root</span><span class="p">}</span>
-    <span class="n">hashes</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset_id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">is_root</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">asset_id</span> <span class="ow">in</span> <span class="n">blobs</span><span class="p">}</span> <span class="o">-</span> <span class="n">skip</span>
+    <span class="n">hashes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">asset_id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">is_root</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">asset_id</span> <span class="ow">in</span> <span class="n">blobs</span>
+    <span class="p">}</span> <span class="o">-</span> <span class="n">skip</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">blobs</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hashes</span><span class="p">)</span>
 </pre></div>
 

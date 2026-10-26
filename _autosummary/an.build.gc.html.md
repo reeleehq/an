@@ -9,8 +9,11 @@ separate, explicit command, and this module is it.
 
 **What is kept (reachable).** An entry is reachable when either
 
-- a render of the project’s CURRENT scene would read it — under any knob set
-  a recorded render ever used, or under a plain `an render`’s — computed
+- a render of the project’s CURRENT scene would read it — of `scene.md` or
+  of any other scene file of the project (`scene.studio.md` with its
+  `ir/scene.studio.json`, an#554: the cache is the project’s, so a
+  collection never drops one scene’s entries for another’s sake) — under
+  any knob set a recorded render ever used, or under a plain `an render`’s — computed
   by the render loop’s own setup and the engine’s own key code, with the
   dialogue stamped from the audio stores as the render stamps it
   ([`an.render.cache_entries()`](an.render.html.md#an.render.cache_entries)); or
@@ -229,9 +232,14 @@ listed with role `"unreadable"` and, on disk, its file’s mtime.
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
-### an.build.gc.reachable_entries(project, store, , entries=None, engine=None, root_max_age=None, now=None, force=False)
+### an.build.gc.reachable_entries(project, store, , entries=None, engine=None, root_max_age=None, now=None, force=False, others=())
 
 What the project’s current scene and its recorded roots reach.
+
+`others` are the project’s OTHER scenes (`(SceneFile, loaded project)`
+pairs, `other_scenes()`; an#554): the cache is the project’s, so
+what each of them reaches is kept as the current scene’s is — otherwise
+`--max-age` collected for one scene drops another’s older entries.
 
 The current scene is keyed under the knobs of EVERY recorded root (of any
 project, any age: a knob set is a few values, and dropping one would orphan

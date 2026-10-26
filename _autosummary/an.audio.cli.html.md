@@ -27,11 +27,11 @@ the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, make])         | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
-|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`format_voices`](#an.audio.cli.format_voices)(voices)                           | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
-| [`retake`](#an.audio.cli.retake)(project, line, \*[, rescore, tts, make]) | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
-| [`import_recorded`](#an.audio.cli.import_recorded)(project, audio[, ...])          | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
+| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, make])        | The voices `provider` exposes, optionally filtered by `search`.                                                                                                                                                                                     |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_voices`](#an.audio.cli.format_voices)(voices)                          | One line per voice: `voice_id  name  (labels)`.                                                                                                                                                                                                     |
+| [`retake`](#an.audio.cli.retake)(project, line, \*[, rescore, tts, ...]) | Release the recorded takes of the lines of `project` containing `line`.                                                                                                                                                                             |
+| [`import_recorded`](#an.audio.cli.import_recorded)(project, audio[, ...])         | Import a performer's recording as the voice of its lines: each line is cut out, matched to the scene's dialogue (or added to --shot), stored with its provenance, and the speaker's character speaks with it — nothing synthesized, nothing billed. |
 
 ### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
 
@@ -67,7 +67,7 @@ abc  Ada  (accent=british)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False)
+### an.audio.cli.import_recorded(project, audio, transcript='', speaker='', speakers='', shot='', voice='', denoise=False, license='', recorded_by='', transcriber='', diarize=False, scene='scene.md')
 
 Import a performer’s recording as the voice of its lines: each line is cut out,
 matched to the scene’s dialogue (or added to –shot), stored with its provenance,
@@ -85,18 +85,20 @@ license: REQUIRED — the licence or permission code you vouch for (cc0-1.0, cc-
 recorded_by: who recorded the take (the performer), for the credits
 transcriber: the scribed backend when a take must be transcribed (default: scribed’s default)
 diarize: ask the transcriber for speaker labels (map them with –speakers)
+scene: the scene file whose lines the takes voice (default scene.md; for example scene.studio.md)
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>)
+### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>, scene='scene.md')
 
 Release the recorded takes of the lines of `project` containing `line`.
 
 The plain-function core of `an voices rescore` / `an voices reroll`: see
 [`an.audio.pipeline.retake_lines()`](an.audio.pipeline.html.md#an.audio.pipeline.retake_lines). `tts` must be the provider the
-line is rendered with (its takes are keyed by it). When no dialogue line
-contains `line` nothing was released, and the CLI exits 1 (an#559).
+line is rendered with (its takes are keyed by it). `scene` names another
+scene file of the project (`scene.studio.md`, an#554). When no dialogue
+line contains `line` nothing was released, and the CLI exits 1 (an#559).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

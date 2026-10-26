@@ -74,7 +74,7 @@ Apply a free-text edit instruction. Returns an IterateResult.
 Thin re-export for consistency with the rest of the orchestrator surface;
 the real implementation lives in `an.iterate`.
 
-### an.orchestrate.orchestrate(project_dir, , output_name='main', verifiers=None, skip_render=False, tts=None, lipsync='offline', parallel=None, language='en')
+### an.orchestrate.orchestrate(project_dir, , output_name=None, scene_file='scene.md', verifiers=None, skip_render=False, tts=None, lipsync='offline', parallel=None, language='en')
 
 Run the full pipeline. Returns a structured outcome.
 
@@ -96,6 +96,12 @@ provider instance — useful for callers (e.g. `muvid`) that want
 to inject a `an.audio.WordTimingsLipSync` driven by their
 own alignment store, instead of letting `an` re-transcribe. `tts`
 defaults to each voice’s own provider (an#305), as `an render` does.
+
+`scene_file` runs the pipeline on another scene of the project
+(`scene.studio.md`, an#554), and `output_name` then defaults to its
+stem, as [`an.render.render_project()`](an.render.html.md#an.render.render_project) does (`main` for `scene.md`).
+A bad or missing scene file, or an output name another scene owns, fails
+the report at validation, before any work.
 
 * **Return type:**
   [`OrchestratorReport`](#an.orchestrate.OrchestratorReport)

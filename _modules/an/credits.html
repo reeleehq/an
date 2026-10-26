@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=fbc6567f"></script>
+    <script src="../../_static/documentation_options.js?v=cc3edc15"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.281" />
+  <meta name="docsearch:version" content="0.1.282" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -760,6 +760,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">provider_terms_restriction</span><span class="p">,</span>
     <span class="n">requires_attribution</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SCENE_FILE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -2040,11 +2041,15 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="credits_for_project">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.credits_for_project">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">credits_for_project</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Credits for the project at ``project_dir``."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">credits_for_project</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">scene_file</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">DEFAULT_SCENE_FILE</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Credits for the project at ``project_dir``: its assets, and the speech</span>
+<span class="sd">    of its scene (``scene_file``: another scene of the project,</span>
+<span class="sd">    ``scene.studio.md``, an#554)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
 
-    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">))</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">project_dir</span><span class="p">),</span> <span class="n">scene_file</span><span class="o">=</span><span class="n">scene_file</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">collect_credits</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">)</span>
     <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">speech_credits</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">report</span></div>
