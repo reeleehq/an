@@ -171,14 +171,17 @@
     // (PixiJS 7's updateTransform walks non-renderable objects too), so it
     // adds no per-frame state, no filter and nothing random. The Python
     // statement of the list is an.stage.rig.global_paint_order.
+    // `when` (optional): a target is painted here only while it holds (a held
+    // item, only while its `paint_after` names this proxy's host, an#537).
     class PaintProxy extends PIXI.Container {
-        constructor(targets) {
+        constructor(targets, when) {
             super();
             this._anTargets = targets;
+            this._anWhen = when || null;
         }
         render(renderer) {
             for (const t of this._anTargets) {
-                if (!t.worldVisible) continue;
+                if (!t.worldVisible || (this._anWhen && !this._anWhen(t))) continue;
                 t.renderable = true;
                 t.render(renderer);
                 t.renderable = false;
@@ -207,30 +210,14 @@
     // frame (an#537): the `paint_after` channel names the node it paints just
     // after ('' = its own place). A held item is its own entity, so its
     // transform stays its own; only its paint follows its holder's part. At
-    // load, one HeldPaint is inserted right after every node a `paint_after`
+    // load, one PaintProxy (with a `when`) is inserted right after every node a `paint_after`
     // key names (after its paint proxy when a global paint list paints it,
     // with its zIndex when its container sorts); each frame, a node whose
     // channel names a host is made non-renderable in place and that host's
-    // HeldPaint renders it with the world transform and alpha the tree just
-    // computed, exactly as a PaintProxy does. Nothing is reparented, so no
+    // proxy renders it with the world transform and alpha the tree just
+    // computed, as for a global paint list. Nothing is reparented, so no
     // transform, no alpha and no swap changes. The Python statement of the
     // keys is an.stage.hold.paint_hosts.
-    class HeldPaint extends PIXI.Container {
-        constructor(host) {
-            super();
-            this._anHost = host;
-            this._anItems = [];
-        }
-        render(renderer) {
-            for (const item of this._anItems) {
-                if (item._anPaintAfter !== this._anHost || !item.worldVisible) continue;
-                item.renderable = true;
-                item.render(renderer);
-                item.renderable = false;
-            }
-        }
-    }
-
     function insertHeldPaint(host) {
         const node = nodeIndex[host];
         if (!node) {
@@ -241,7 +228,7 @@
         }
         const anchor = node._anPaintProxy || node;
         const parent = anchor.parent;
-        const held = new HeldPaint(host);
+        const held = new PaintProxy([], item => item._anPaintAfter === host);
         held.name = host + '#held';
         held.zIndex = anchor.zIndex;
         parent.addChildAt(held, parent.getChildIndex(anchor) + 1);
@@ -249,7 +236,7 @@
     }
 
     function makeHeldPaints(sceneJson) {
-        const hosts = {};  // host path -> HeldPaint
+        const hosts = {};  // host path -> its PaintProxy
         const anims = sceneJson.animations || {};
         for (const name of Object.keys(anims).sort()) {
             for (const ch of anims[name].channels || []) {
@@ -260,7 +247,8 @@
                     const host = kf.value;
                     if (!host) continue;
                     if (!hosts[host]) hosts[host] = insertHeldPaint(host);
-                    if (!hosts[host]._anItems.includes(item)) hosts[host]._anItems.push(item);
+                    const items = hosts[host]._anTargets;
+                    if (!items.includes(item)) items.push(item);
                     (item._anPaintHosts || (item._anPaintHosts = new Set())).add(host);
                 }
             }

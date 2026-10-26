@@ -44,7 +44,7 @@ its holder's part (an#537): a ``paint_after`` channel on the item's entity node
 (:data:`an.base.PAINT_AFTER_PROPERTY`) names that part from the frame the hold
 changes, and ``""`` (its staged place, ``stage.after`` included) once nothing
 holds it. The item keeps its own node, so its transform is untouched; the
-runtime paints it from right after the part (``runtime.js``, ``HeldPaint``).
+runtime paints it from right after the part (``runtime.js``, ``makeHeldPaints``).
 A musket in a hand draws over the arm that carries it and under whatever the
 holder draws over that arm; put in a figurine's hand, it draws with the
 figurine, not over the one who put it there.
@@ -2109,15 +2109,6 @@ def _item_channels(
     return out
 
 
-def _paint_host(holder: Holder | None) -> str:
-    """The node an item held by ``holder`` paints just after: the holder's part
-    (its entity, for a one-part body), or ``""`` (its staged place) when a body
-    does not hold it."""
-    if holder is None or holder.kind != "body" or holder.body is None:
-        return ""
-    return holder.body
-
-
 def paint_hosts(
     holders: Sequence[tuple[int, Holder | None]],
     times: Sequence[float],
@@ -2125,37 +2116,36 @@ def paint_hosts(
     lead: float = PAINT_SWITCH_LEAD_S,
 ) -> list[tuple[float, str]]:
     """The keys of an item's ``paint_after`` channel (an#537) from its holders
-    ``[(frame, holder)]`` in the order they changed: who it paints just after,
-    at each change (``""``: its staged place). Several changes at one frame:
-    the last one stands. A change key leads its frame by ``lead`` seconds, and
-    is preceded by a key holding the previous host at the frame before, so a
-    space that switches a discrete property part-way between keys still
-    switches by the frame of the change. ``[]`` when no body ever holds it:
+    ``[(frame, holder)]`` in the order they changed: the part it paints just
+    after (``""``: its staged place, when no body holds it), at each change; at
+    one frame the last change stands. A change key leads its frame by ``lead``
+    seconds, so the frame sees it however its time was rounded (the property is
+    ``discrete(switch_at=1)``: it switches at its own key; a space that
+    declares it otherwise must keep that). ``[]`` when no body ever holds it:
     nothing to emit, and the shot compiles as before.
 
     >>> hand = Holder("body", ref="fig/arm_r", body="fig/arm_r", local=(0.0, 0.0))
     >>> times = [0.0, 0.5, 1.0, 1.5, 2.0]
     >>> paint_hosts([(0, Holder("ground")), (2, hand), (4, None)], times, lead=0.25)
-    [(0.0, ''), (0.5, ''), (0.75, 'fig/arm_r'), (1.5, 'fig/arm_r'), (1.75, '')]
+    [(0.0, ''), (0.75, 'fig/arm_r'), (1.75, '')]
     >>> paint_hosts([(0, Holder("ground"))], times)
     []
     """
-    final: dict[int, str] = {}
-    for k, holder in holders:
-        final[k] = _paint_host(holder)
+
+    def host(holder: Holder | None) -> str:
+        if holder is None or holder.kind != "body" or holder.body is None:
+            return ""
+        return holder.body
+
+    final = {k: host(h) for k, h in holders}
     if not any(final.values()):
         return []
-    keys: list[tuple[float, str]] = []
+    keys: list[tuple[float, str]] = [(times[0], "")]
     for k in sorted(final):
-        host = final[k]
-        if keys and host == keys[-1][1]:
-            continue
-        at = times[k] - lead if k > 0 else times[k]
-        if keys and k > 0 and keys[-1][0] < times[k - 1] < at:
-            keys.append((times[k - 1], keys[-1][1]))
-        keys.append((at, host))
-    if keys[0][0] > times[0]:
-        keys.insert(0, (times[0], ""))
+        if final[k] != keys[-1][1]:
+            at = times[k] - lead if k > 0 else times[0]
+            keys = keys[:-1] if keys[-1][0] == at else keys
+            keys.append((at, final[k]))
     return keys
 
 

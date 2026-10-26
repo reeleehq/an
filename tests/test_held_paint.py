@@ -2,7 +2,7 @@
 
 The hold layer keys a held item's ``paint_after`` channel on the part that holds
 it (``tests/test_holds.py`` checks those keys). Here the runtime's half runs
-under node on the vendored PixiJS bundle: ``HeldPaint``, ``makeHeldPaints`` and
+under node on the vendored PixiJS bundle: ``PaintProxy``, ``makeHeldPaints`` and
 ``applyPaintAfter`` are lifted from ``runtime.js`` verbatim, a small tree is
 built, and every leaf records when it is rendered, so the assertion is the
 paint order PixiJS itself walks (no WebGL: nothing is drawn, the order is).
@@ -182,7 +182,11 @@ def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path):
     from an.adapters._base import RenderContext
     from an.stage.compile import compile_shot
     from an.stage.render import CutoutRenderer
-    from an.stage.timeline import evaluate_timeline, screen_position, timeline_from_scene
+    from an.stage.timeline import (
+        evaluate_timeline,
+        screen_position,
+        timeline_from_scene,
+    )
 
     width, height, fps = 640, 480, 4
     entities = """- {kind: prop, id: stick, store: props, ref: stick, stage: {at: [40, 150], scale: 0.5}, overrides: {held_by: ground}}
@@ -191,14 +195,21 @@ def test_in_pixels_a_held_item_draws_over_the_arm_that_holds_it(tmp_path):
 """
     project = make_project(
         tmp_path / "p",
-        scene("- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}", entities=entities),
+        scene(
+            "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}", entities=entities
+        ),
     )
     shot = project.scene.timeline[0]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         result = CutoutRenderer().render(
             shot,
-            RenderContext(mall=project.mall, work_dir=tmp_path / "w", fps=fps, resolution=(width, height)),
+            RenderContext(
+                mall=project.mall,
+                work_dir=tmp_path / "w",
+                fps=fps,
+                resolution=(width, height),
+            ),
         )
         doc = compile_shot(shot, project.mall, fps=fps, width=width, height=height)
     frames = result.frame_manifest
