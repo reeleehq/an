@@ -40,6 +40,7 @@ agent extensions don't get clobbered on round-trip.
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 import warnings
@@ -1324,7 +1325,9 @@ def _scene_file_name(project_dir: Path, scene_file: str | Path) -> str:
         f"project directory {project_dir} (for example scene.studio.md)"
     )
     spelled = str(scene_file)
-    if "\\" in spelled or not spelled.strip():
+    # A backslash is a path separator on Windows (Path sorts it out below); on
+    # POSIX it is a legal name character that would be a folder there.
+    if ("\\" in spelled and os.sep != "\\") or not spelled.strip():
         raise SceneFileError(shape)
     given = Path(spelled).expanduser()
     if len(given.parts) > 1:  # a path, not a bare name: where does it point?
