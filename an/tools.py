@@ -15,8 +15,7 @@ from an.check_requirements import check_requirements as _check_requirements
 from an.check_requirements import format_report
 from an.ir.sync import (
     DEFAULT_SCENE_FILE,
-    default_output_name,
-    scene_file_paths,
+    resolve_scene_file,
     sync as _sync,
 )
 from an.orchestrate import render_project as _render_project
@@ -123,7 +122,9 @@ def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> st
 
     scene: the scene file to reconcile (default scene.md; for example scene.studio.md with ir/scene.studio.json)
     """
-    scene_file = scene or DEFAULT_SCENE_FILE
+    # Resolved first, so a scene file that is not there is a refusal
+    # (`SceneFileError`, printed by the CLI), never "no changes".
+    scene_file = resolve_scene_file(project_dir, scene or DEFAULT_SCENE_FILE)
     parts = []
     if accept_measured:
         from an.measurements import accept_measured as _accept
@@ -136,11 +137,11 @@ def sync(project_dir: str, accept_measured: bool = False, scene: str = "") -> st
             else "no measured duration differs from the scene's"
         )
     result = _sync(project_dir, scene_file)
-    md_path, json_path = scene_file_paths(project_dir, scene_file)
+    md_name, json_name = scene_file.name, f"ir/{scene_file.json_path.name}"
     if result.wrote_json:
-        parts.append(f"regenerated ir/{json_path.name} from {md_path.name}")
+        parts.append(f"regenerated {json_name} from {md_name}")
     if result.wrote_md:
-        parts.append(f"regenerated {md_path.name} from ir/{json_path.name}")
+        parts.append(f"regenerated {md_name} from {json_name}")
     if result.drift_warning:
         parts.append(f"warning: {result.drift_warning}")
     return "; ".join(parts) if parts else "no changes"
@@ -243,12 +244,11 @@ def render(
     from an.render import format_render_findings
 
     cache = ShotCache(cache_frames=cache_frames)
-    scene_file = scene or DEFAULT_SCENE_FILE
-    output_name = output_name or default_output_name(scene_file)
     output_path = _render_project(
         project_dir,
-        output_name=output_name,
-        scene_file=scene_file,
+        # None: the leaf names the output after the scene file (an#539).
+        output_name=output_name or None,
+        scene_file=scene or DEFAULT_SCENE_FILE,
         tts=tts or None,
         lipsync=lipsync,
         parallel=parallel_arg,
@@ -276,7 +276,8 @@ def render(
             f"shot cache: {cache.report.store_line()} "
             f"(`an cache gc {project_dir}` removes what the scene no longer uses)"
         )
-    lines += format_render_findings(project_dir, output_name)
+    # The output the leaf chose: `output/<name>.mp4`.
+    lines += format_render_findings(project_dir, Path(output_path).stem)
     return "\n".join(lines)
 
 

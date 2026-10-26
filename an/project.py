@@ -24,8 +24,9 @@ from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.ir.schema import Meta, Resolution, SceneIR
 from an.ir.sync import (
     DEFAULT_SCENE_FILE,
+    SceneFile,
     ir_to_markdown,
-    scene_file_name,
+    resolve_scene_file,
     sync as sync_files,
 )
 from an.stores import build_project_mall
@@ -71,8 +72,6 @@ class Project:
     root: Path
     mall: Mapping[str, MutableMapping]
     scene: SceneIR
-    #: The scene file this project was loaded from (an#539), a name inside ``root``.
-    scene_file: str = DEFAULT_SCENE_FILE
 
 
 def _age_the_seed(*paths: Path) -> None:
@@ -219,12 +218,14 @@ def load(
     project_dir: str | Path,
     *,
     check_kinds: bool = True,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> Project:
     """Load an existing project. Reconciles scene.md / ir/scene.json first.
 
     ``scene_file`` names another scene of the project (``scene.studio.md``, its
-    JSON twin ``ir/scene.studio.json``, an#539); the assets are the project's.
+    JSON twin ``ir/scene.studio.json``, an#539; resolved by
+    :func:`an.ir.sync.resolve_scene_file`, so a bad or missing one raises
+    :class:`~an.ir.sync.SceneFileError`); the assets are the project's.
 
     Registers the installed genres first (:func:`an.genres.load`, ADR 0001
     decision 3: discovery is explicit, and loading a project is one of the
@@ -246,9 +247,7 @@ def load(
         raise FileNotFoundError(f"no such project directory: {pdir}")
 
     # Sync md ↔ json so the loaded scene reflects the latest Markdown.
-    scene_file = scene_file_name(pdir, scene_file)
-    if scene_file != DEFAULT_SCENE_FILE and not (pdir / scene_file).exists():
-        raise FileNotFoundError(f"no scene file {scene_file!r} in {pdir}")
+    scene_file = resolve_scene_file(pdir, scene_file)
     sync_files(pdir, scene_file)
 
     mall = build_project_mall(pdir, ensure=True, scene_file=scene_file)
@@ -257,7 +256,7 @@ def load(
         from an.ir.validate import require_registered_kinds
 
         require_registered_kinds(scene, where=str(pdir))
-    return Project(root=pdir, mall=mall, scene=scene, scene_file=scene_file)
+    return Project(root=pdir, mall=mall, scene=scene)
 
 
 def save(project: Project) -> None:

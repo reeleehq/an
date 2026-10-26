@@ -9,6 +9,7 @@ import pytest
 
 from an import init, load, save
 from an.ir.schema import Meta, SceneIR, Shot
+from an.ir.sync import SceneFileError, resolve_scene_file
 
 
 def test_init_creates_full_layout():
@@ -106,5 +107,54 @@ def test_a_project_keeps_several_scenes_side_by_side(tmp_path):
     for bad in ("nope.md", "sub/scene.md", "scene.txt"):
         report = validate_project(root, scene_file=bad)
         assert not report.passed and bad in report.findings[0].ir_path
-    with pytest.raises(FileNotFoundError, match="no scene file"):
+    with pytest.raises(SceneFileError, match="no scene file"):
         load(root, scene_file="nope.md")
+
+
+def test_a_scene_file_is_resolved_the_way_it_was_typed(tmp_path, monkeypatch):
+    """an#539 review: a path into the project is accepted however it is spelled
+    (relative to the shell, absolute, with `..`); `Scene.md` is the default
+    scene on a case-insensitive disk; a backslash, a sub-folder and a stem of
+    `main` (the default scene's output) are refused."""
+    root = init(tmp_path / "demo")
+    (root / "scene.x.md").write_text("# X\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    spellings = (
+        "scene.x.md",
+        "demo/scene.x.md",
+        str(root / "scene.x.md"),
+        str(root / ".." / "demo" / "scene.x.md"),
+    )
+    for spelled in spellings:
+        sf = resolve_scene_file(root, spelled)
+        assert (sf.name, sf.json_path.name, sf.output_name) == (
+            "scene.x.md", "scene.x.json", "scene.x"
+        ), spelled
+    monkeypatch.chdir(root)
+    assert resolve_scene_file(".", "./scene.x.md").name == "scene.x.md"
+
+    default = resolve_scene_file(root, "Scene.md")
+    assert (default.name, default.output_name) == ("scene.md", "main")
+    for bad in ("sub\\scene.x.md", "sub/scene.x.md", "scene.txt", ".hidden.md"):
+        with pytest.raises(SceneFileError, match="directly inside"):
+            resolve_scene_file(root, bad, must_exist=False)
+    with pytest.raises(SceneFileError, match="rename the file"):
+        resolve_scene_file(root, "main.md", must_exist=False)
+    with pytest.raises(SceneFileError, match="no scene file"):
+        resolve_scene_file(root, "scene.y.md")
+    # The default scene missing is not an error: a new project has none yet.
+    (root / "scene.md").unlink()
+    assert resolve_scene_file(root).md_path == root / "scene.md"
+
+
+def test_sync_refuses_a_scene_file_that_is_not_there(tmp_path):
+    """`an sync <dir> --scene typo.md` used to report "no changes"."""
+    from an import tools
+    from an.ir.sync import sync
+
+    root = init(tmp_path / "demo")
+    with pytest.raises(SceneFileError, match="no scene file 'typo.md'"):
+        sync(root, "typo.md")
+    with pytest.raises(SceneFileError, match="no scene file 'typo.md'"):
+        tools.sync(str(root), scene="typo.md")
+    assert not (root / "ir" / "typo.json").exists()

@@ -28,7 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import MutableMapping
 
-from an.ir.sync import DEFAULT_SCENE_FILE
+from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile
 from an.stores.characters import CharactersStore
 from an.stores.decisions import DecisionLogStore
 from an.stores.environments import EnvironmentsStore
@@ -85,7 +85,7 @@ def build_project_mall(
     project_dir: str | Path,
     *,
     ensure: bool = False,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
     **overrides: MutableMapping,
 ) -> dict[str, MutableMapping]:
     """Build the standard project mall over ``project_dir``.

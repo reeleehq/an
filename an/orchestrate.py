@@ -25,7 +25,13 @@ from an.ir.validate import (
     validate_semantic,
 )
 from an.ir.migrate import DocumentMigrationError
-from an.ir.sync import DEFAULT_SCENE_FILE, SceneValidationError, scene_file_name
+from an.ir.sync import (
+    DEFAULT_SCENE_FILE,
+    SceneFile,
+    SceneFileError,
+    SceneValidationError,
+    resolve_scene_file,
+)
 from an.project import Project, load
 from an.render import render_project as _render_project
 from an.verify._base import Verifier, VerificationReport
@@ -81,7 +87,7 @@ def validate_project(
     *,
     fps: float | None = None,
     strict_assets: bool = False,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> ValidationReport:
     """Schema + semantic validation of the scene at ``project_dir`` (``scene.md``,
     or the project's other ``scene_file``, an#539).
@@ -107,32 +113,29 @@ def validate_project(
     import warnings
 
     try:
-        scene_file = scene_file_name(project_dir, scene_file)
-    except ValueError as e:
+        resolved = resolve_scene_file(project_dir, scene_file)
+    except SceneFileError as e:  # a bad name, a missing file: a finding, as below
         report = ValidationReport()
         report.add("error", str(scene_file), str(e))
         return report
-    if scene_file != DEFAULT_SCENE_FILE and not (Path(project_dir) / scene_file).exists():
-        report = ValidationReport()
-        report.add("error", scene_file, f"no scene file {scene_file!r} in {project_dir}")
-        return report
+    md_name, json_name = resolved.name, f"ir/{resolved.json_path.name}"
     try:
         # Kinds are REPORTED here, as findings, not refused at load.
         with warnings.catch_warnings(record=True) as load_warnings:
             warnings.simplefilter("always")
             project: Project = load(
-                project_dir, check_kinds=False, scene_file=scene_file
+                project_dir, check_kinds=False, scene_file=resolved
             )
     except (DocumentMigrationError, SceneValidationError) as e:
         # NOT "scene.md does not parse": the md may be perfect and the stored
         # JSON from another build. Routing an agent to edit the file that is
         # fine is the failure `Finding.ir_path` exists to prevent (an#105).
         report = ValidationReport()
-        report.add("error", f"ir/{Path(scene_file).stem}.json", str(e))
+        report.add("error", json_name, str(e))
         return report
     except ValueError as e:
         report = ValidationReport()
-        report.add("error", scene_file, f"{scene_file} does not parse: {e}")
+        report.add("error", md_name, f"{md_name} does not parse: {e}")
         return report
     schema_report = validate_schema(project.scene)
     for w in load_warnings:

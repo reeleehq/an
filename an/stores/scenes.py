@@ -22,9 +22,10 @@ from typing import Iterator
 from an.ir.schema import SceneIR
 from an.ir.sync import (
     DEFAULT_SCENE_FILE,
+    SceneFile,
     ir_to_markdown,
     merge_markdown,
-    scene_file_paths,
+    resolve_scene_file,
     scene_from_json_doc,
 )
 from an.util import _read_text, _write_json, _write_text
@@ -40,10 +41,14 @@ class ScenesStore(MutableMapping):
     SCENE_KEY = "main"
 
     def __init__(
-        self, project_dir: str | Path, scene_file: str | Path = DEFAULT_SCENE_FILE
+        self,
+        project_dir: str | Path,
+        scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
     ) -> None:
         self._root = Path(project_dir)
-        self._md_path, self._json_path = scene_file_paths(self._root, scene_file)
+        # The store may create the scene it holds, so it need not exist yet.
+        resolved = resolve_scene_file(self._root, scene_file, must_exist=False)
+        self._md_path, self._json_path = resolved.md_path, resolved.json_path
 
     @property
     def md_path(self) -> Path:

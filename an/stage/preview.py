@@ -30,7 +30,7 @@ from an.stage.render import _serve_dir, _stage_scene_assets
 from an.stage.runtime_files import runtime_dir
 from an.stage.serialize import to_dict
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
-from an.ir.sync import DEFAULT_SCENE_FILE, scene_file_paths
+from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile, resolve_scene_file
 from an.project import load
 
 
@@ -57,7 +57,7 @@ def _stage_preview(
     project_dir: str | Path,
     *,
     shot_id: str | None = None,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> PreviewStaging:
     """Stage the runtime files + compiled scene JSON under ``<dir>/.an/preview/runtime``.
 
@@ -92,7 +92,7 @@ def preview_project(
     shot_id: str | None = None,
     open_browser: bool = True,
     poll_interval_s: float = DEFAULT_POLL_INTERVAL_S,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> str:
     """Serve a live preview of ``project_dir`` from a local HTTP server.
 
@@ -106,6 +106,7 @@ def preview_project(
     Blocks the calling thread until interrupted (Ctrl-C). Returns the
     base URL after teardown.
     """
+    scene_file = resolve_scene_file(project_dir, scene_file)
     staging = _stage_preview(project_dir, shot_id=shot_id, scene_file=scene_file)
     project_root = Path(project_dir).expanduser().resolve()
 
@@ -151,7 +152,7 @@ def _compile_scene_to(
     runtime_target: Path,
     *,
     shot_id: str | None,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> str:
     """Compile the chosen shot to ``runtime_target/scene.json``.
 
@@ -221,11 +222,12 @@ def _compile_scene_to(
 
 
 def _source_mtimes(
-    project_root: Path, scene_file: str | Path = DEFAULT_SCENE_FILE
+    project_root: Path, scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE
 ) -> tuple[float, float]:
     """``(scene.md mtime, ir/scene.json mtime)`` (the pair of ``scene_file``);
     missing files report 0.0."""
-    md, js = scene_file_paths(project_root, scene_file)
+    resolved = resolve_scene_file(project_root, scene_file, must_exist=False)
+    md, js = resolved.md_path, resolved.json_path
     md_t = md.stat().st_mtime if md.exists() else 0.0
     js_t = js.stat().st_mtime if js.exists() else 0.0
     return md_t, js_t
@@ -237,7 +239,7 @@ def _watch_loop(
     shot_id: str | None,
     poll_interval_s: float,
     stop_event: threading.Event,
-    scene_file: str | Path = DEFAULT_SCENE_FILE,
+    scene_file: str | Path | SceneFile = DEFAULT_SCENE_FILE,
 ) -> None:
     """Poll source files and recompile when either changes.
 

@@ -32,7 +32,7 @@ import uuid
 from collections.abc import Sequence
 from pathlib import Path
 
-from an.ir.sync import DEFAULT_SCENE_FILE
+from an.ir.sync import DEFAULT_SCENE_FILE, SceneFile
 from an.project import PROBES_GITIGNORE, Project, keep_out_of_git, load
 
 __all__ = ["ProbeError", "frame", "frames", "probe"]
@@ -50,8 +50,11 @@ class ProbeError(RuntimeError):
 
 
 def _project(
-    project: Project | str | os.PathLike, scene_file: str | os.PathLike = DEFAULT_SCENE_FILE
+    project: Project | str | os.PathLike,
+    scene_file: str | os.PathLike | SceneFile = DEFAULT_SCENE_FILE,
 ) -> Project:
+    """``project`` itself when loaded, else the project at that folder, read
+    from ``scene_file`` (a loaded project already holds its scene)."""
     return (
         project if isinstance(project, Project) else load(project, scene_file=scene_file)
     )
@@ -145,7 +148,7 @@ def probe(
     columns: int | None = None,
     supersample: int = 1,
     allow_private_here: bool = False,
-    scene_file: str | os.PathLike = DEFAULT_SCENE_FILE,
+    scene_file: str | os.PathLike | SceneFile = DEFAULT_SCENE_FILE,
 ) -> Path:
     """Write shot ``shot``'s frames at ``at`` to one PNG (a grid for several instants).
 
